@@ -382,6 +382,28 @@ GET /api/v1/admin/material-hub/tasks/<task-id>/results
 - `MaterialMatchCandidate`
 - `PriceHistory`
 
+## Read-only просмотр данных
+
+Для контроля результата добавлен read-only viewer:
+
+```text
+GET /api/v1/admin/material-hub/view
+```
+
+Экран показывает:
+
+- источники;
+- последние `SourceTask`;
+- `CatalogProduct -> Material`;
+- `Material`;
+- `MaterialMatchCandidate`;
+- `PriceHistory`;
+- `MaterialDocument`;
+- последние логи и результаты задач.
+
+Viewer не запускает сбор и не изменяет данные. Запуск задач остается через
+защищенный API администратора.
+
 ## Не входит в Sprint 02
 
 - Module 02 Knowledge Base;

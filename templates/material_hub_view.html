@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Material Hub Viewer</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --line: #d8dee8;
+      --text: #152033;
+      --muted: #617086;
+      --accent: #0f766e;
+      --warn: #9a5b00;
+      --bad: #a52828;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    main { padding: 18px 24px 40px; }
+    .muted { color: var(--muted); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .stat strong { display: block; font-size: 24px; line-height: 1.1; }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      margin-bottom: 16px;
+      padding: 14px;
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: 0; }
+    code, pre {
+      background: #eef3f8;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    code { padding: 1px 4px; }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    a { color: var(--accent); }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: #f8fafc;
+      white-space: nowrap;
+    }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
+    .empty {
+      color: var(--muted);
+      padding: 10px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Material Hub Viewer</h1>
+    <div class="muted">Read-only срез данных: источники, задачи, товары, материалы, цены, документы и кандидаты на совпадение.</div>
+  </header>
+
+  <main>
+    <div class="stats">
+      {% for key, value in stats.items() %}
+      <div class="stat">
+        <strong>{{ value }}</strong>
+        <span class="muted">{{ key }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <section>
+      <h2>Как запускать сбор</h2>
+      <div class="muted">Запуск остается через защищенный API. Администратор выбирает источники, действие и объем.</div>
+      <pre>POST /api/v1/admin/material-hub/tasks
+{{ sample_task_payload }}</pre>
+      <pre>POST /api/v1/admin/material-hub/tasks/&lt;task-id&gt;/run</pre>
+    </section>
+
+    <section>
+      <h2>Источники</h2>
+      {% if sources %}
+      <table>
+        <thead><tr><th>Название</th><th>Тип</th><th>URL</th><th>Статус</th><th>Priority</th><th>Full scan</th><th>Prices</th><th>Documents</th></tr></thead>
+        <tbody>
+        {% for source in sources %}
+          <tr>
+            <td>{{ source.name }}</td>
+            <td><span class="pill">{{ source.source_type.value }}</span></td>
+            <td>{% if source.url %}<a href="{{ source.url }}" target="_blank">{{ source.url }}</a>{% endif %}</td>
+            <td>{{ source.status.value }}</td>
+            <td>{{ source.priority }}</td>
+            <td>{{ source.last_full_scan_at or "" }}</td>
+            <td>{{ source.last_price_update_at or "" }}</td>
+            <td>{{ source.last_document_update_at or "" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">Источники пока не созданы.</div>{% endif %}
+    </section>
+
+    <section>
+      <h2>Последние задачи SourceTask</h2>
+      {% if tasks %}
+      <table>
+        <thead><tr><th>Создана</th><th>Источник</th><th>Action</th><th>Статус</th><th>Параметры</th><th>Итог</th><th>Ошибка</th></tr></thead>
+        <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>{{ task.created_at }}</td>
+            <td>{{ task.source.name if task.source else "" }}</td>
+            <td>{{ task.action_type.value }}</td>
+            <td>{{ task.status.value }}</td>
+            <td><code>{{ task.parameters or "" }}</code></td>
+            <td><code>{{ task.result_summary or "" }}</code></td>
+            <td class="bad">{{ task.error_message or "" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">Задач пока нет.</div>{% endif %}
+    </section>
+
+    <section>
+      <h2>CatalogProduct -> Material</h2>
+      {% if products %}
+      <table>
+        <thead><tr><th>Создан</th><th>Источник</th><th>Название</th><th>Категория</th><th>Бренд</th><th>Цена</th><th>Наличие</th><th>Material</th><th>Статус</th></tr></thead>
+        <tbody>
+        {% for product in products %}
+          <tr>
+            <td>{{ product.created_at }}</td>
+            <td>{{ product.source.name if product.source else "" }}</td>
+            <td>{% if product.external_url %}<a href="{{ product.external_url }}" target="_blank">{{ product.raw_name }}</a>{% else %}{{ product.raw_name }}{% endif %}</td>
+            <td>{{ product.raw_category or "" }}</td>
+            <td>{{ product.raw_brand or product.raw_manufacturer or "" }}</td>
+            <td>{% if product.price is not none %}{{ product.price }} {{ product.currency }}{% if product.unit %} / {{ product.unit }}{% endif %}{% endif %}</td>
+            <td>{{ product.availability or "" }}</td>
+            <td>{{ product.material.canonical_name if product.material else "" }}</td>
+            <td>{{ product.status.value }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">CatalogProduct пока нет. Запусти INITIAL_MATERIAL_SCAN или UPDATE_PRICES.</div>{% endif %}
+    </section>
+
+    <section>
+      <h2>Material</h2>
+      {% if materials %}
+      <table>
+        <thead><tr><th>Создан</th><th>Canonical name</th><th>Бренд</th><th>Производитель</th><th>Статус</th></tr></thead>
+        <tbody>
+        {% for material in materials %}
+          <tr>
+            <td>{{ material.created_at }}</td>
+            <td>{{ material.canonical_name }}</td>
+            <td>{{ material.brand or "" }}</td>
+            <td>{{ material.manufacturer or "" }}</td>
+            <td>{{ material.status.value }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">Material пока нет.</div>{% endif %}
+    </section>
+
+    <div class="grid">
+      <section>
+        <h2>Кандидаты на совпадение</h2>
+        {% if candidates %}
+        <table>
+          <thead><tr><th>CatalogProduct</th><th>Candidate Material</th><th>Score</th><th>Статус</th><th>Причина</th></tr></thead>
+          <tbody>
+          {% for candidate in candidates %}
+            <tr>
+              <td>{{ candidate.catalog_product.raw_name if candidate.catalog_product else "" }}</td>
+              <td>{{ candidate.candidate_material.canonical_name if candidate.candidate_material else "" }}</td>
+              <td>{{ candidate.match_score or "" }}</td>
+              <td>{{ candidate.status.value }}</td>
+              <td>{{ candidate.match_reason or "" }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">Кандидатов пока нет.</div>{% endif %}
+      </section>
+
+      <section>
+        <h2>История цен</h2>
+        {% if prices %}
+        <table>
+          <thead><tr><th>Дата</th><th>Цена</th><th>Unit</th><th>Наличие</th><th>Material ID</th></tr></thead>
+          <tbody>
+          {% for price in prices %}
+            <tr>
+              <td>{{ price.collected_at }}</td>
+              <td>{{ price.price }} {{ price.currency }}</td>
+              <td>{{ price.unit or "" }}</td>
+              <td>{{ price.availability or "" }}</td>
+              <td><code>{{ price.material_id }}</code></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">PriceHistory пока нет.</div>{% endif %}
+      </section>
+    </div>
+
+    <section>
+      <h2>Документы</h2>
+      {% if documents %}
+      <table>
+        <thead><tr><th>Создан</th><th>Тип</th><th>Название</th><th>Источник</th><th>Связь</th><th>Статус</th></tr></thead>
+        <tbody>
+        {% for document in documents %}
+          <tr>
+            <td>{{ document.created_at }}</td>
+            <td>{{ document.document_type.value }}</td>
+            <td>{% if document.file_url %}<a href="{{ document.file_url }}" target="_blank">{{ document.title }}</a>{% else %}{{ document.title }}{% endif %}</td>
+            <td>{{ document.source.name if document.source else "" }}</td>
+            <td>{{ document.material.canonical_name if document.material else document.manufacturer.name if document.manufacturer else "" }}</td>
+            <td>{{ document.status.value }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">Документы пока не сохранены.</div>{% endif %}
+    </section>
+
+    <div class="grid">
+      <section>
+        <h2>Последние логи</h2>
+        {% if logs %}
+        <table>
+          <thead><tr><th>Дата</th><th>Level</th><th>Message</th></tr></thead>
+          <tbody>
+          {% for log in logs %}
+            <tr><td>{{ log.created_at }}</td><td>{{ log.level.value }}</td><td>{{ log.message }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">Логов пока нет.</div>{% endif %}
+      </section>
+
+      <section>
+        <h2>Последние результаты</h2>
+        {% if results %}
+        <table>
+          <thead><tr><th>Дата</th><th>Тип</th><th>Entity</th><th>Status</th><th>Value</th></tr></thead>
+          <tbody>
+          {% for result in results %}
+            <tr>
+              <td>{{ result.created_at }}</td>
+              <td>{{ result.result_type.value }}</td>
+              <td>{{ result.entity_type or "" }}</td>
+              <td>{{ result.status or "" }}</td>
+              <td><code>{{ result.new_value or "" }}</code></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="empty">Результатов пока нет.</div>{% endif %}
+      </section>
+    </div>
+  </main>
+</body>
+</html>
