@@ -9,6 +9,8 @@ from sqlalchemy.orm import selectinload
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
     CatalogProductStatus,
+    DocumentStatus,
+    DocumentType,
     MaterialStatus,
     MatchCandidateStatus,
     SourceActionType,
@@ -17,15 +19,17 @@ from app.models.enums import (
     TaskResultType,
     TaskStatus,
 )
+from app.models.manufacturer import Manufacturer
 from app.models.material import Material
 from app.models.material_alias import MaterialAlias
+from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.price_history import PriceHistory
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
 from app.source_integrations import get_integration
-from app.source_integrations.base import SourceProduct
+from app.source_integrations.base import SourceDocument, SourceProduct
 
 
 async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
@@ -62,8 +66,14 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
             SourceActionType.INITIAL_MATERIAL_SCAN,
             SourceActionType.UPDATE_PRICES,
             SourceActionType.FIND_NEW_PRODUCTS,
+            SourceActionType.UPDATE_SPECIFICATIONS,
         }:
             await _run_product_scan(db, task, integration)
+        elif task.action_type in {
+            SourceActionType.UPDATE_CERTIFICATES,
+            SourceActionType.UPDATE_TECH_DOCUMENTS,
+        }:
+            await _run_document_scan(db, task, integration)
         else:
             await _fail_task(db, task, f"Runner is not implemented for action {task.action_type.value}")
             return task
@@ -149,6 +159,40 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
     db.add(task.source)
 
 
+async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) -> None:
+    documents = await integration.fetch_documents(task.action_type)
+    await _log(db, task, TaskLogLevel.INFO, f"Fetched documents: {len(documents)}")
+
+    created = 0
+    unchanged = 0
+    manufacturer = await _get_or_create_manufacturer(db, task.source.name, task.source.url)
+
+    for document in documents:
+        material_document, result_type = await _upsert_material_document(db, task, document, manufacturer.id)
+        if result_type == TaskResultType.CREATED:
+            created += 1
+        else:
+            unchanged += 1
+
+        await _result(
+            db,
+            task,
+            result_type,
+            entity_type="MaterialDocument",
+            entity_id=material_document.id,
+            status=material_document.status.value,
+            new_value=_document_snapshot(material_document),
+        )
+
+    task.result_summary = {
+        "fetched": len(documents),
+        "created": created,
+        "unchanged": unchanged,
+    }
+    _mark_source_timestamp(task)
+    db.add(task.source)
+
+
 async def _upsert_catalog_product(
     db: AsyncSession,
     task: SourceTask,
@@ -218,6 +262,38 @@ async def _upsert_catalog_product(
     return existing, TaskResultType.UPDATED, price_changed
 
 
+async def _upsert_material_document(
+    db: AsyncSession,
+    task: SourceTask,
+    document: SourceDocument,
+    default_manufacturer_id: UUID | None,
+) -> tuple[MaterialDocument, TaskResultType]:
+    document_type = DocumentType(document.document_type)
+    result = await db.execute(
+        select(MaterialDocument).where(
+            MaterialDocument.source_id == task.source_id,
+            MaterialDocument.file_url == document.file_url,
+        )
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        return existing, TaskResultType.UNCHANGED
+
+    material_document = MaterialDocument(
+        material_id=document.material_id,
+        manufacturer_id=document.manufacturer_id or default_manufacturer_id,
+        source_id=task.source_id,
+        document_type=document_type,
+        title=document.title,
+        file_url=document.file_url,
+        source_url=document.source_url,
+        status=DocumentStatus.NEEDS_REVIEW,
+    )
+    db.add(material_document)
+    await db.flush()
+    return material_document, TaskResultType.CREATED
+
+
 async def _find_catalog_product(
     db: AsyncSession,
     source_id: UUID,
@@ -243,6 +319,25 @@ async def _find_catalog_product(
         )
         return result.scalar_one_or_none()
     return None
+
+
+async def _get_or_create_manufacturer(db: AsyncSession, name: str | None, official_site: str | None) -> Manufacturer:
+    manufacturer_name = (name or "Unknown manufacturer").strip()
+    result = await db.execute(select(Manufacturer).where(Manufacturer.name == manufacturer_name))
+    manufacturer = result.scalar_one_or_none()
+    if manufacturer:
+        return manufacturer
+
+    manufacturer = Manufacturer(
+        name=manufacturer_name,
+        official_site=official_site,
+        country="RU",
+        status="ACTIVE",
+    )
+    db.add(manufacturer)
+    await db.flush()
+    await db.refresh(manufacturer)
+    return manufacturer
 
 
 async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogProduct) -> str:
@@ -333,6 +428,19 @@ def _product_snapshot(product: CatalogProduct) -> dict:
     }
 
 
+def _document_snapshot(document: MaterialDocument) -> dict:
+    return {
+        "material_id": str(document.material_id) if document.material_id else None,
+        "manufacturer_id": str(document.manufacturer_id) if document.manufacturer_id else None,
+        "source_id": str(document.source_id) if document.source_id else None,
+        "document_type": document.document_type.value,
+        "title": document.title,
+        "file_url": document.file_url,
+        "source_url": document.source_url,
+        "status": document.status.value,
+    }
+
+
 async def _log(db: AsyncSession, task: SourceTask, level: TaskLogLevel, message: str, metadata: dict | None = None) -> None:
     db.add(SourceTaskLog(
         task_id=task.id,
@@ -382,6 +490,11 @@ def _mark_source_timestamp(task: SourceTask) -> None:
         task.source.last_price_update_at = now
     elif task.action_type == SourceActionType.FIND_NEW_PRODUCTS:
         task.source.last_full_scan_at = now
+    elif task.action_type in {
+        SourceActionType.UPDATE_CERTIFICATES,
+        SourceActionType.UPDATE_TECH_DOCUMENTS,
+    }:
+        task.source.last_document_update_at = now
 
 
 def _normalize(value: str) -> str:

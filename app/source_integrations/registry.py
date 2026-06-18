@@ -1,5 +1,6 @@
 from app.models.source import Source
 from app.source_integrations.base import SourceIntegration
+from app.source_integrations.bonolit import BonolitIntegration
 from app.source_integrations.lemanapro import LemanaProIntegration
 
 
@@ -8,5 +9,6 @@ def get_integration(source: Source) -> SourceIntegration | None:
     url = (source.url or "").lower()
     if "lemana" in name or "lemanapro" in url or "лемана" in name:
         return LemanaProIntegration(source)
+    if "bonolit" in name or "bonolit" in url or "бонолит" in name:
+        return BonolitIntegration(source)
     return None
-
