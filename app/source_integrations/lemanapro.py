@@ -73,6 +73,11 @@ class LemanaProIntegration(SourceIntegration):
             return []
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
             response = await client.get(self.base_url, headers=_headers())
+            if response.status_code == 403:
+                raise RuntimeError(
+                    "Lemana PRO returned 403 Forbidden for direct server-side fetch. "
+                    "Do not bypass anti-bot protection; use an approved/public feed or manual import."
+                )
             response.raise_for_status()
 
         parser = _TextAndLinkParser()

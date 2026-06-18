@@ -47,6 +47,20 @@
 - `UPDATE_PRICES`
 - `FIND_NEW_PRODUCTS`
 
+Тест 18.06.2026:
+
+- прямой `httpx` запрос к `https://lemanapro.ru/` вернул `403 Forbidden`;
+- `https://lemanapro.ru/robots.txt` также вернул `403 Forbidden`;
+- `sitemap.xml` и `/catalogue/` через server-side запрос дали timeout;
+- антибот-обходы не используем по правилам Sprint 02.
+
+Вывод: для Лемана ПРО нужна одна из безопасных стратегий:
+
+- официальный feed/API/выгрузка, если доступна;
+- ручная CSV/XLSX загрузка для проверки Material Hub;
+- тестовый HTML fixture, сохраненный из разрешенного источника вручную;
+- переход ко второму источнику Bonolit для первичной проверки live-flow.
+
 ### Bonolit
 
 Приоритет: 2.
