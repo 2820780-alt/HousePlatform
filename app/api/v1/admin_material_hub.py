@@ -5,7 +5,8 @@ from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
-from app.models.enums import SourceStatus, TaskStatus, UserRole
+from app.models.enums import SourceStatus, SourceType, TaskStatus, UserRole
+from app.models.material_document import MaterialDocument
 from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
@@ -13,6 +14,8 @@ from app.models.source_task_result import SourceTaskResult
 from app.schemas.common import PaginatedResponse
 from app.schemas.material_hub import (
     SourceCreate,
+    MaterialDocumentCreate,
+    MaterialDocumentRead,
     SourceRead,
     SourceTaskCreate,
     SourceTaskLogRead,
@@ -21,6 +24,7 @@ from app.schemas.material_hub import (
     SourceUpdate,
 )
 from app.services.audit_service import log_event
+from app.services.source_task_runner import run_source_task
 
 router = APIRouter(prefix="/admin/material-hub", tags=["admin-material-hub"])
 
@@ -55,6 +59,45 @@ async def create_source(data: SourceCreate, db: DBSession, user: CurrentUser):
     await db.refresh(source)
     await log_event(db, "source_created", "Source", source.id, user.id)
     return source
+
+
+@router.post("/sources/defaults", response_model=list[SourceRead], status_code=201)
+async def create_default_sources(db: DBSession, user: CurrentUser):
+    _check_admin(user)
+    defaults = [
+        SourceCreate(
+            name="Лемана ПРО",
+            source_type=SourceType.RETAIL,
+            url="https://lemanapro.ru/",
+            priority=10,
+        ),
+        SourceCreate(
+            name="Bonolit",
+            source_type=SourceType.MANUFACTURER,
+            url="https://bonolit.ru/",
+            priority=20,
+        ),
+        SourceCreate(
+            name="ТЕХНОНИКОЛЬ",
+            source_type=SourceType.MANUFACTURER,
+            url="https://www.tn.ru/",
+            priority=30,
+        ),
+    ]
+    sources: list[Source] = []
+    for source_data in defaults:
+        existing_result = await db.execute(select(Source).where(Source.name == source_data.name))
+        existing = existing_result.scalar_one_or_none()
+        if existing:
+            sources.append(existing)
+            continue
+        source = Source(**source_data.model_dump())
+        db.add(source)
+        await db.flush()
+        await db.refresh(source)
+        await log_event(db, "source_created", "Source", source.id, user.id, {"default": True})
+        sources.append(source)
+    return sources
 
 
 @router.get("/sources/{source_id}", response_model=SourceRead)
@@ -161,6 +204,17 @@ async def list_source_tasks(
     return PaginatedResponse(items=result.scalars().all(), total=total, offset=offset, limit=limit)
 
 
+@router.post("/tasks/{task_id}/run", response_model=SourceTaskRead)
+async def run_task(task_id: UUID, db: DBSession, user: CurrentUser):
+    _check_admin(user)
+    task = await run_source_task(db, task_id)
+    await log_event(db, "source_task_run", "SourceTask", task.id, user.id, {
+        "status": task.status.value,
+        "action_type": task.action_type.value,
+    })
+    return task
+
+
 @router.get("/tasks/{task_id}/logs", response_model=list[SourceTaskLogRead])
 async def list_task_logs(task_id: UUID, db: DBSession, user: CurrentUser):
     _check_admin(user)
@@ -177,3 +231,16 @@ async def list_task_results(task_id: UUID, db: DBSession, user: CurrentUser):
         select(SourceTaskResult).where(SourceTaskResult.task_id == task_id).order_by(SourceTaskResult.created_at.asc())
     )
     return result.scalars().all()
+
+
+@router.post("/documents", response_model=MaterialDocumentRead, status_code=201)
+async def create_material_document(data: MaterialDocumentCreate, db: DBSession, user: CurrentUser):
+    _check_admin(user)
+    if not data.material_id and not data.manufacturer_id:
+        raise ValidationError("material_id or manufacturer_id is required")
+    document = MaterialDocument(**data.model_dump())
+    db.add(document)
+    await db.flush()
+    await db.refresh(document)
+    await log_event(db, "material_document_created", "MaterialDocument", document.id, user.id)
+    return document

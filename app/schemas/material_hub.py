@@ -158,6 +158,19 @@ class MaterialDocumentRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MaterialDocumentCreate(BaseModel):
+    material_id: UUID | None = None
+    manufacturer_id: UUID | None = None
+    source_id: UUID | None = None
+    document_type: DocumentType
+    title: str
+    file_url: str | None = None
+    source_url: str | None = None
+    issue_date: date | None = None
+    expiry_date: date | None = None
+    status: DocumentStatus = DocumentStatus.NEEDS_REVIEW
+
+
 class MaterialMatchCandidateRead(BaseModel):
     id: UUID
     catalog_product_id: UUID
