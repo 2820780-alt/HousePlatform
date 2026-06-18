@@ -1,6 +1,7 @@
 from app.source_integrations.baucenter import (
     _article_from_url,
     _extract_product,
+    _extract_product_from_api,
     _filter_product_urls,
     _resolve_product_limits,
 )
@@ -56,6 +57,36 @@ def test_extract_product_from_next_data():
 
 def test_article_from_url():
     assert _article_from_url("https://baucenter.ru/product/example-705006436/") == "705006436"
+
+
+def test_extract_product_from_api_uses_real_price_and_availability():
+    product = _extract_product_from_api({
+        "id": 288639,
+        "article": "643000283",
+        "title": "Плита ОСБ влагостойкая 2440х1220х12 мм",
+        "url": "/product/plita-osb-643000283/",
+        "categoryName": "Плиты OSB",
+        "brand": "Ультраплай",
+        "price": {
+            "main": {
+                "price": 105000,
+                "currency": "RUB",
+                "unit": "лст",
+            }
+        },
+        "availability": [{
+            "availabilityCount": {
+                "amount": 1156.88,
+                "unit": "лст",
+                "text": "Доступно к заказу 1156.88 лст",
+            }
+        }],
+    }, "https://baucenter.ru/product/example-643000283/")
+
+    assert product is not None
+    assert product.price == 1050
+    assert product.unit == "лст"
+    assert product.availability == "Доступно к заказу 1156.88 лст"
 
 
 def test_scan_parameters_support_category_and_full_modes():

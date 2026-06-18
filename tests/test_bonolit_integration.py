@@ -6,6 +6,7 @@ from app.source_integrations.bonolit import (
     _parse_page,
     _resolve_document_limit,
     _resolve_product_limits,
+    _should_keep_document,
 )
 
 
@@ -46,3 +47,21 @@ def test_scan_parameters_support_category_and_full_modes():
     assert _resolve_product_limits({"scan_mode": "FULL"}) == (None, None)
     assert _resolve_document_limit({}, 2) == 100
     assert _resolve_document_limit({"scan_mode": "FULL"}, 2) is None
+
+
+def test_document_filter_rejects_hr_documents_and_keeps_technical_documents():
+    assert not _should_keep_document(
+        "Сводная ведомость СОУТ 2026",
+        "TECH_CARD",
+        "https://bonolit.ru/upload/sout.pdf",
+    )
+    assert _should_keep_document(
+        "Альбом технических решений",
+        "TECH_CARD",
+        "https://bonolit.ru/upload/album.pdf",
+    )
+    assert _should_keep_document(
+        "Сертификат соответствия",
+        "CERTIFICATE",
+        "https://bonolit.ru/upload/cert.pdf",
+    )

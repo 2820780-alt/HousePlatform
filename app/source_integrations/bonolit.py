@@ -182,6 +182,8 @@ class BonolitIntegration(SourceIntegration):
                     absolute_url = urljoin(page_url, href)
                     if not _is_document_url(absolute_url) or absolute_url in seen:
                         continue
+                    if not _should_keep_document(title, document_type, absolute_url):
+                        continue
                     seen.add(absolute_url)
                     documents.append(SourceDocument(
                         title=title or _filename_from_url(absolute_url),
@@ -282,6 +284,47 @@ def _name_from_title(title: str | None) -> str | None:
 def _is_document_url(url: str) -> bool:
     path = urlparse(url).path.lower()
     return path.endswith((".pdf", ".dwg", ".rvt", ".ifc", ".zip", ".rar"))
+
+
+def _should_keep_document(title: str | None, document_type: str, url: str) -> bool:
+    text = _normalize_name(" ".join([title or "", _filename_from_url(url)])) or ""
+    negative_markers = [
+        "соут",
+        "специальной оценки условий труда",
+        "специальная оценка условий труда",
+        "сводная ведомость",
+        "перечень мероприятий",
+        "мероприятия соут",
+    ]
+    if any(marker in text for marker in negative_markers):
+        return False
+
+    if document_type == DocumentType.CERTIFICATE.value:
+        return True
+
+    path = urlparse(url).path.lower()
+    if path.endswith((".dwg", ".rvt", ".ifc")):
+        return True
+
+    positive_markers = [
+        "техничес",
+        "техкарт",
+        "инструкц",
+        "монтаж",
+        "альбом",
+        "типов",
+        "узел",
+        "bim",
+        "паспорт",
+        "качества",
+        "протокол",
+        "испыт",
+        "гост",
+        "ту ",
+        "рекомендац",
+        "регламент",
+    ]
+    return any(marker in text for marker in positive_markers)
 
 
 def _filename_from_url(url: str) -> str:

@@ -108,6 +108,10 @@ class BaucenterIntegration(SourceIntegration):
                 if response.status_code != 200:
                     continue
                 product = _extract_product(response.text, product_url)
+                if product and product.external_id:
+                    api_product = await _fetch_product_api(client, product.external_id)
+                    if api_product:
+                        product = _extract_product_from_api(api_product, product_url)
                 if product:
                     products.append(product)
             return products
@@ -158,6 +162,47 @@ def _extract_product(html: str, url: str) -> SourceProduct | None:
         currency=currency,
         unit=unit,
         availability=raw_product.get("availableType"),
+        region=None,
+    )
+
+
+async def _fetch_product_api(client, article: str) -> dict | None:
+    response = await client.get(
+        f"https://baucenter.ru/api/v2/product/article/{article}",
+        headers=_api_headers(),
+    )
+    if response.status_code != 200:
+        return None
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    return ((payload.get("data") or {}).get("product") or {}) or None
+
+
+def _extract_product_from_api(product: dict, url: str) -> SourceProduct | None:
+    name = _clean_text(product.get("title") or product.get("name") or "")
+    if not name:
+        return None
+
+    price, currency, unit = _extract_price(product)
+    availability = _extract_availability(product)
+    product_url = product.get("url")
+    if product_url and product_url.startswith("/"):
+        product_url = f"https://baucenter.ru{product_url}"
+
+    return SourceProduct(
+        external_id=str(product.get("article") or product.get("id") or url),
+        external_url=product_url or url,
+        raw_name=name,
+        normalized_name=_normalize_name(name),
+        raw_category=product.get("categoryName"),
+        raw_brand=product.get("brand"),
+        raw_manufacturer=None,
+        price=price,
+        currency=currency,
+        unit=unit,
+        availability=availability,
         region=None,
     )
 
@@ -219,9 +264,23 @@ def _extract_price(product: dict) -> tuple[Decimal | None, str, str | None]:
     if raw_price in (None, "", 0, "0"):
         return None, main_price.get("currency") or "RUB", main_price.get("unit") or None
     try:
-        return Decimal(str(raw_price)), main_price.get("currency") or "RUB", main_price.get("unit") or None
+        return Decimal(str(raw_price)) / Decimal("100"), main_price.get("currency") or "RUB", main_price.get("unit") or None
     except InvalidOperation:
         return None, main_price.get("currency") or "RUB", main_price.get("unit") or None
+
+
+def _extract_availability(product: dict) -> str | None:
+    availability = product.get("availability") or []
+    for item in availability:
+        count = (item.get("availabilityCount") or {}) if isinstance(item, dict) else {}
+        text = count.get("text")
+        amount = count.get("amount")
+        if text:
+            return str(text)
+        if amount not in (None, "", 0, "0"):
+            unit = count.get("unit") or ""
+            return f"available {amount} {unit}".strip()
+    return product.get("availableType")
 
 
 def _article_from_url(url: str) -> str | None:
@@ -245,3 +304,9 @@ def _headers() -> dict[str, str]:
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.7",
     }
+
+
+def _api_headers() -> dict[str, str]:
+    headers = _headers()
+    headers["Accept"] = "application/json, text/plain, */*"
+    return headers
