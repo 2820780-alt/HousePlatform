@@ -1,4 +1,9 @@
-from app.source_integrations.baucenter import _article_from_url, _extract_product
+from app.source_integrations.baucenter import (
+    _article_from_url,
+    _extract_product,
+    _filter_product_urls,
+    _resolve_product_limits,
+)
 
 
 def test_extract_product_from_next_data():
@@ -51,3 +56,17 @@ def test_extract_product_from_next_data():
 
 def test_article_from_url():
     assert _article_from_url("https://baucenter.ru/product/example-705006436/") == "705006436"
+
+
+def test_scan_parameters_support_category_and_full_modes():
+    urls = [
+        "https://baucenter.ru/product/osb-ctg-stroymaterialy-643000283/",
+        "https://baucenter.ru/product/lamp-ctg-svet-801010557/",
+    ]
+
+    filtered = _filter_product_urls(urls, {"category_url_contains": "stroymaterialy"})
+
+    assert filtered == [urls[0]]
+    assert _resolve_product_limits({}) == (30, 60)
+    assert _resolve_product_limits({"scan_mode": "FULL"}) == (None, None)
+    assert _resolve_product_limits({"scan_mode": "FULL", "max_pages": 1000}) == (1000, None)

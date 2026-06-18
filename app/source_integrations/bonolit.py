@@ -26,6 +26,7 @@ DOCUMENT_PAGES = {
 MAX_PRODUCT_PAGES = 25
 MAX_PRODUCT_ATTEMPTS = 60
 MAX_DOCUMENT_LINKS_PER_PAGE = 50
+FULL_SCAN_MODE = "FULL"
 
 
 class _PageParser(HTMLParser):
@@ -110,7 +111,11 @@ class BonolitIntegration(SourceIntegration):
         except Exception as exc:
             return HealthCheckResult(ok=False, message=str(exc))
 
-    async def fetch_products(self, action_type: SourceActionType) -> list[SourceProduct]:
+    async def fetch_products(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceProduct]:
         if action_type not in {
             SourceActionType.INITIAL_MATERIAL_SCAN,
             SourceActionType.FIND_NEW_PRODUCTS,
@@ -122,9 +127,13 @@ class BonolitIntegration(SourceIntegration):
 
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
             product_urls = await _fetch_product_urls(client)
+            product_urls = _filter_product_urls(product_urls, parameters)
+            max_pages, max_attempts = _resolve_product_limits(parameters)
             products: list[SourceProduct] = []
-            for product_url in product_urls[:MAX_PRODUCT_ATTEMPTS]:
-                if len(products) >= MAX_PRODUCT_PAGES:
+            for index, product_url in enumerate(product_urls):
+                if max_attempts is not None and index >= max_attempts:
+                    break
+                if max_pages is not None and len(products) >= max_pages:
                     break
                 await asyncio.sleep(0.2)
                 response = await client.get(product_url, headers=_headers())
@@ -150,7 +159,11 @@ class BonolitIntegration(SourceIntegration):
                 ))
         return products
 
-    async def fetch_documents(self, action_type: SourceActionType) -> list[SourceDocument]:
+    async def fetch_documents(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceDocument]:
         pages = DOCUMENT_PAGES.get(action_type)
         if not pages:
             return []
@@ -159,6 +172,7 @@ class BonolitIntegration(SourceIntegration):
 
         documents: list[SourceDocument] = []
         seen: set[str] = set()
+        document_limit = _resolve_document_limit(parameters, len(pages))
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
             for page_url, document_type in pages:
                 response = await client.get(page_url, headers=_headers())
@@ -175,7 +189,7 @@ class BonolitIntegration(SourceIntegration):
                         file_url=absolute_url,
                         source_url=page_url,
                     ))
-                    if len(documents) >= MAX_DOCUMENT_LINKS_PER_PAGE * len(pages):
+                    if document_limit is not None and len(documents) >= document_limit:
                         return documents
         return documents
 
@@ -195,6 +209,54 @@ def _parse_page(html: str) -> _PageParser:
     parser = _PageParser()
     parser.feed(html)
     return parser
+
+
+def _filter_product_urls(product_urls: list[str], parameters: dict | None) -> list[str]:
+    if not parameters:
+        return product_urls
+    category_filters = parameters.get("category_url_contains") or parameters.get("category_filters")
+    if not category_filters:
+        return product_urls
+    if isinstance(category_filters, str):
+        category_filters = [category_filters]
+    filters = [str(item).lower() for item in category_filters if str(item).strip()]
+    if not filters:
+        return product_urls
+    return [url for url in product_urls if any(filter_value in url.lower() for filter_value in filters)]
+
+
+def _resolve_product_limits(parameters: dict | None) -> tuple[int | None, int | None]:
+    parameters = parameters or {}
+    scan_mode = str(parameters.get("scan_mode") or "TEST").upper()
+    if scan_mode == FULL_SCAN_MODE:
+        return _positive_int_or_none(parameters.get("max_pages")), _positive_int_or_none(parameters.get("max_attempts"))
+    return (
+        _positive_int_or_default(parameters.get("max_pages"), MAX_PRODUCT_PAGES),
+        _positive_int_or_default(parameters.get("max_attempts"), MAX_PRODUCT_ATTEMPTS),
+    )
+
+
+def _resolve_document_limit(parameters: dict | None, page_count: int) -> int | None:
+    parameters = parameters or {}
+    scan_mode = str(parameters.get("scan_mode") or "TEST").upper()
+    if scan_mode == FULL_SCAN_MODE:
+        return _positive_int_or_none(parameters.get("max_documents"))
+    return _positive_int_or_default(parameters.get("max_documents"), MAX_DOCUMENT_LINKS_PER_PAGE * page_count)
+
+
+def _positive_int_or_default(value, default: int) -> int:
+    parsed = _positive_int_or_none(value)
+    return parsed if parsed is not None else default
+
+
+def _positive_int_or_none(value) -> int | None:
+    if value in (None, "", 0, "0"):
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
 
 
 def _external_id(url: str) -> str:

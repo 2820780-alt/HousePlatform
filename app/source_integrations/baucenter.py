@@ -14,6 +14,7 @@ from app.source_integrations.base import HealthCheckResult, SourceIntegration, S
 SITEMAP_URL = "https://baucenter.ru/sitemap.xml"
 MAX_PRODUCT_PAGES = 30
 MAX_PRODUCT_ATTEMPTS = 60
+FULL_SCAN_MODE = "FULL"
 
 
 class _ProductPageParser(HTMLParser):
@@ -83,7 +84,11 @@ class BaucenterIntegration(SourceIntegration):
         except Exception as exc:
             return HealthCheckResult(ok=False, message=str(exc))
 
-    async def fetch_products(self, action_type: SourceActionType) -> list[SourceProduct]:
+    async def fetch_products(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceProduct]:
         if action_type not in self.supported_actions:
             return []
 
@@ -91,9 +96,13 @@ class BaucenterIntegration(SourceIntegration):
 
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
             product_urls = await _fetch_product_urls(client)
+            product_urls = _filter_product_urls(product_urls, parameters)
+            max_pages, max_attempts = _resolve_product_limits(parameters)
             products: list[SourceProduct] = []
-            for product_url in product_urls[:MAX_PRODUCT_ATTEMPTS]:
-                if len(products) >= MAX_PRODUCT_PAGES:
+            for index, product_url in enumerate(product_urls):
+                if max_attempts is not None and index >= max_attempts:
+                    break
+                if max_pages is not None and len(products) >= max_pages:
                     break
                 response = await client.get(product_url, headers=_headers())
                 if response.status_code != 200:
@@ -151,6 +160,46 @@ def _extract_product(html: str, url: str) -> SourceProduct | None:
         availability=raw_product.get("availableType"),
         region=None,
     )
+
+
+def _filter_product_urls(product_urls: list[str], parameters: dict | None) -> list[str]:
+    if not parameters:
+        return product_urls
+    category_filters = parameters.get("category_url_contains") or parameters.get("category_filters")
+    if not category_filters:
+        return product_urls
+    if isinstance(category_filters, str):
+        category_filters = [category_filters]
+    filters = [str(item).lower() for item in category_filters if str(item).strip()]
+    if not filters:
+        return product_urls
+    return [url for url in product_urls if any(filter_value in url.lower() for filter_value in filters)]
+
+
+def _resolve_product_limits(parameters: dict | None) -> tuple[int | None, int | None]:
+    parameters = parameters or {}
+    scan_mode = str(parameters.get("scan_mode") or "TEST").upper()
+    if scan_mode == FULL_SCAN_MODE:
+        return _positive_int_or_none(parameters.get("max_pages")), _positive_int_or_none(parameters.get("max_attempts"))
+    return (
+        _positive_int_or_default(parameters.get("max_pages"), MAX_PRODUCT_PAGES),
+        _positive_int_or_default(parameters.get("max_attempts"), MAX_PRODUCT_ATTEMPTS),
+    )
+
+
+def _positive_int_or_default(value, default: int) -> int:
+    parsed = _positive_int_or_none(value)
+    return parsed if parsed is not None else default
+
+
+def _positive_int_or_none(value) -> int | None:
+    if value in (None, "", 0, "0"):
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
 
 
 def _find_current_product(data: dict) -> dict:

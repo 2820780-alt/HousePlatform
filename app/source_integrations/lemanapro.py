@@ -66,7 +66,11 @@ class LemanaProIntegration(SourceIntegration):
         except Exception as exc:
             return HealthCheckResult(ok=False, message=str(exc))
 
-    async def fetch_products(self, action_type: SourceActionType) -> list[SourceProduct]:
+    async def fetch_products(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceProduct]:
         import httpx
 
         if action_type not in self.supported_actions:

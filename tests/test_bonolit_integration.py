@@ -1,8 +1,11 @@
 from app.source_integrations.bonolit import (
     _category_from_url,
     _external_id,
+    _filter_product_urls,
     _is_document_url,
     _parse_page,
+    _resolve_document_limit,
+    _resolve_product_limits,
 )
 
 
@@ -28,3 +31,18 @@ def test_product_url_helpers_are_stable():
 
     assert _category_from_url(url) == "stenovye bloki"
     assert _external_id(url).startswith("stenovoy-blok-d500-300mm-:")
+
+
+def test_scan_parameters_support_category_and_full_modes():
+    urls = [
+        "https://bonolit.ru/products/stenovye-bloki/d500/block/",
+        "https://bonolit.ru/products/p-obraznye-bloki/d500/u-block/",
+    ]
+
+    filtered = _filter_product_urls(urls, {"category_url_contains": "stenovye-bloki"})
+
+    assert filtered == [urls[0]]
+    assert _resolve_product_limits({}) == (25, 60)
+    assert _resolve_product_limits({"scan_mode": "FULL"}) == (None, None)
+    assert _resolve_document_limit({}, 2) == 100
+    assert _resolve_document_limit({"scan_mode": "FULL"}, 2) is None

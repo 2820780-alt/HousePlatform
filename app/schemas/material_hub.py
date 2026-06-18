@@ -60,6 +60,7 @@ class SourceTaskCreate(BaseModel):
     action_type: SourceActionType
     source_ids: list[UUID] | None = None
     all_sources: bool = False
+    parameters: dict | None = None
 
 
 class ManufacturerRead(BaseModel):
@@ -194,6 +195,7 @@ class SourceTaskRead(BaseModel):
     started_at: datetime | None = None
     finished_at: datetime | None = None
     created_by: UUID | None = None
+    parameters: dict | None = None
     result_summary: dict | None = None
     error_message: str | None = None
     created_at: datetime

@@ -174,6 +174,7 @@ async def create_source_tasks(data: SourceTaskCreate, db: DBSession, user: Curre
             action_type=data.action_type,
             status=TaskStatus.PENDING,
             created_by=user.id,
+            parameters=data.parameters,
         )
         db.add(task)
         tasks.append(task)

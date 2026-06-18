@@ -111,7 +111,7 @@ async def _run_health_check(db: AsyncSession, task: SourceTask, integration) -> 
 
 
 async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> None:
-    products = await integration.fetch_products(task.action_type)
+    products = await integration.fetch_products(task.action_type, task.parameters)
     await _log(db, task, TaskLogLevel.INFO, f"Fetched products: {len(products)}")
 
     created = 0
@@ -160,7 +160,7 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
 
 
 async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) -> None:
-    documents = await integration.fetch_documents(task.action_type)
+    documents = await integration.fetch_documents(task.action_type, task.parameters)
     await _log(db, task, TaskLogLevel.INFO, f"Fetched documents: {len(documents)}")
 
     created = 0

@@ -44,9 +44,16 @@ class SourceIntegration:
     async def check_health(self) -> HealthCheckResult:
         raise NotImplementedError
 
-    async def fetch_products(self, action_type: SourceActionType) -> list[SourceProduct]:
+    async def fetch_products(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceProduct]:
         raise NotImplementedError
 
-    async def fetch_documents(self, action_type: SourceActionType) -> list[SourceDocument]:
+    async def fetch_documents(
+        self,
+        action_type: SourceActionType,
+        parameters: dict | None = None,
+    ) -> list[SourceDocument]:
         return []
-
