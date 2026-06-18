@@ -1,6 +1,7 @@
 param(
     [string]$OutputDir = "backup\dumps",
-    [int]$Keep = 14
+    [int]$Keep = 14,
+    [switch]$StartDb
 )
 
 Set-StrictMode -Version Latest
@@ -11,6 +12,10 @@ $composeFile = Join-Path $projectRoot "docker-compose.yml"
 $outputPath = Join-Path $projectRoot $OutputDir
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+
+if ($StartDb) {
+    docker compose -f $composeFile up -d db
+}
 
 $containerId = docker compose -f $composeFile ps -q db
 if ([string]::IsNullOrWhiteSpace($containerId)) {
@@ -40,4 +45,3 @@ foreach ($backup in $oldBackups) {
 }
 
 Write-Host "Backup created: $localFile"
-

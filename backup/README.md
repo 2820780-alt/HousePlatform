@@ -1,61 +1,106 @@
 # Backups
 
-Бэкапы обязательны для HousePlatform.
+Backups are mandatory for HousePlatform.
 
-Текущий контур рассчитан на PostgreSQL в Docker Compose.
+Current backup scripts are designed for PostgreSQL running through Docker Compose.
 
-## Что хранится в Git
+## Stored In Git
 
 - backup scripts;
-- инструкция восстановления.
+- restore instructions;
+- scheduled task setup scripts.
 
-## Что не хранится в Git
+## Not Stored In Git
 
-- сами дампы базы;
-- временные файлы восстановления.
+- database dump files;
+- backup logs.
 
-Дампы пишутся в `backup/dumps/`, эта папка исключена в `.gitignore`.
+Dumps are written to `backup/dumps/`.
+Logs are written to `backup/logs/`.
 
-## Создать бэкап
+Both folders are ignored by Git.
 
-Запустить из корня проекта:
+## Manual Backup
+
+Run from the project root:
 
 ```powershell
 .\backup\scripts\backup-postgres.ps1
 ```
 
-По умолчанию скрипт:
+By default, the script:
 
-- создает `backup/dumps/`;
-- делает PostgreSQL custom dump;
-- сохраняет файл вида `houseplatform-YYYYMMDD-HHMMSS.dump`;
-- оставляет последние 14 дампов.
+- creates `backup/dumps/`;
+- creates a PostgreSQL custom dump;
+- saves `houseplatform-YYYYMMDD-HHMMSS.dump`;
+- keeps the last 14 dumps.
 
-Изменить количество хранимых дампов:
+Change retention:
 
 ```powershell
 .\backup\scripts\backup-postgres.ps1 -Keep 30
 ```
 
-## Восстановить бэкап
+Start the database container automatically before backup:
 
-Восстановление очищает существующие объекты базы перед импортом.
+```powershell
+.\backup\scripts\backup-postgres.ps1 -StartDb
+```
+
+## Nightly Backup
+
+Register a Windows Task Scheduler task:
+
+```powershell
+.\backup\scripts\register-nightly-backup.ps1
+```
+
+Default schedule:
+
+```text
+Every day at 23:00
+```
+
+Change time:
+
+```powershell
+.\backup\scripts\register-nightly-backup.ps1 -At "22:30"
+```
+
+Change retention:
+
+```powershell
+.\backup\scripts\register-nightly-backup.ps1 -Keep 30
+```
+
+The scheduled task runs:
+
+```powershell
+.\backup\scripts\nightly-backup.ps1
+```
+
+Nightly logs are written to:
+
+```text
+backup/logs/
+```
+
+Remove the scheduled task:
+
+```powershell
+.\backup\scripts\unregister-nightly-backup.ps1
+```
+
+## Restore
+
+Restore cleans existing database objects before import.
 
 ```powershell
 .\backup\scripts\restore-postgres.ps1 -DumpFile .\backup\dumps\houseplatform-YYYYMMDD-HHMMSS.dump
 ```
 
-## Рекомендуемый режим
+## Notes
 
-Для локальной разработки:
-
-- перед крупными изменениями схемы;
-- после успешного наполнения справочников;
-- перед ручными экспериментами с импортом.
-
-Для сервера:
-
-- минимум 1 раз в день;
-- хранить локально последние 7-14 копий;
-- отдельно выгружать важные бэкапы во внешнее хранилище.
-
+- Docker must be installed.
+- The scheduled script starts the `db` container before making a dump.
+- Keep important production backups in external storage too.
