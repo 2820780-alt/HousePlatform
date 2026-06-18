@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Supplier Dashboard</title></head>
+  <body>
+    <h1>Поставщик: {{ supplier.name }}</h1>
+    <p>Город: {{ supplier.city }}</p>
+
+    <h2>Загрузить прайс</h2>
+    <form action="/supplier/{{ supplier.id }}/upload" enctype="multipart/form-data" method="post">
+      <label>Файл: <input type="file" name="file" required></label><br>
+      <label>Город: <input name="city"></label><br>
+      <label>Дата цены (ISO): <input name="price_date"></label><br>
+      <button type="submit">Загрузить</button>
+    </form>
+
+    <h2>Исходные строки</h2>
+    <ul>
+      {% for r in raws %}
+        <li>{{ r.original_name }} — {{ r.original_price }} ({{ r.status }})</li>
+      {% else %}
+        <li>Нет загруженных строк</li>
+      {% endfor %}
+    </ul>
+
+    <h2>Материалы в базе</h2>
+    <ul>
+      {% for m in materials %}
+        <li>{{ m.canonical_name }} ({{ m.status }})</li>
+      {% else %}
+        <li>Пусто</li>
+      {% endfor %}
+    </ul>
+
+    <p><a href="/">Назад</a></p>
+  </body>
+</html>

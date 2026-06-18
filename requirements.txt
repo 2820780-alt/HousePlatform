@@ -1,0 +1,48 @@
+# ===========================================
+# BUILD DATA PLATFORM — Python Dependencies
+# ===========================================
+
+# Web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# Database
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+alembic>=1.13.0
+greenlet>=3.0.0
+
+# Validation & Settings
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+
+# Auth
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.1.0
+
+# File parsing
+pandas>=2.2.0
+openpyxl>=3.1.0
+pdfplumber>=0.11.0
+
+# AI
+httpx>=0.27.0
+
+# Background tasks
+celery[redis]>=5.4.0
+redis>=5.0.0
+
+# Utilities
+python-slugify>=8.0.0
+rapidfuzz>=3.9.0
+
+# Templates (temporary UI)
+jinja2>=3.1.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+httpx>=0.27.0

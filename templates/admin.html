@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Admin Dashboard</title></head>
+  <body>
+    <h1>Admin — Загрузка прайсов</h1>
+    <form action="/admin/upload" enctype="multipart/form-data" method="post">
+      <label>Поставщик:
+        <select name="supplier_id">
+          {% for s in suppliers %}
+            <option value="{{ s.id }}">{{ s.name }} ({{ s.city }})</option>
+          {% endfor %}
+        </select>
+      </label><br>
+      <label>Файл: <input type="file" name="file" required></label><br>
+      <label>Город: <input name="city"></label><br>
+      <label>Дата цены (ISO): <input name="price_date"></label><br>
+      <button type="submit">Загрузить от имени администратора</button>
+    </form>
+
+    <p><a href="/">На главную</a></p>
+  </body>
+</html>
