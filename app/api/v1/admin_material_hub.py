@@ -66,9 +66,9 @@ async def create_default_sources(db: DBSession, user: CurrentUser):
     _check_admin(user)
     defaults = [
         SourceCreate(
-            name="Лемана ПРО",
+            name="Бауцентр",
             source_type=SourceType.RETAIL,
-            url="https://lemanapro.ru/",
+            url="https://baucenter.ru/",
             priority=10,
         ),
         SourceCreate(

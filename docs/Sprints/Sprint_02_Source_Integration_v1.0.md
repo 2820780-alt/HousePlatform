@@ -7,9 +7,78 @@
 
 ## Источники
 
-### Лемана ПРО
+## Правило источников одного бренда
+
+Если у производителя есть основной сайт и отдельный интернет-магазин, они
+создаются как разные `Source`.
+
+Пример:
+
+- `ТЕХНОНИКОЛЬ` — `MANUFACTURER`, технологии, документы, системы, сертификаты;
+- `ТЕХНОНИКОЛЬ Shop` — `RETAIL`, карточки товаров, цены, наличие;
+- `Гранд Лайн` — `MANUFACTURER`, документы, решения, рекомендации;
+- `Гранд Лайн Shop` — `RETAIL`, каталог, цены, наличие.
+
+Оба источника могут ссылаться на один `Material`, но действия, логи, ошибки и
+история обновлений хранятся отдельно.
+
+### Бауцентр
 
 Приоритет: 1.
+
+Тип: `RETAIL`.
+
+Базовый URL: `https://baucenter.ru/`.
+
+Способ получения данных:
+
+- публичные HTML-страницы;
+- публичный `sitemap.xml`;
+- товарные страницы `/product/...`;
+- `__NEXT_DATA__` на товарной странице;
+- без антибот-обходов;
+- без приватных API.
+
+Данные:
+
+- название товара;
+- артикул;
+- ссылка на товар;
+- категория;
+- бренд;
+- цена, если публично доступна и не равна `0`;
+- валюта;
+- единица измерения, если указана;
+- наличие/тип доступности.
+
+Периодичность:
+
+- `UPDATE_PRICES`: ежедневно или вручную;
+- `FIND_NEW_PRODUCTS`: 1-2 раза в неделю;
+- `INITIAL_MATERIAL_SCAN`: однократно для выбранного объема sitemap;
+- `CHECK_SOURCE_HEALTH`: ежедневно.
+
+Поддерживаемые ACTION:
+
+- `CHECK_SOURCE_HEALTH`
+- `INITIAL_MATERIAL_SCAN`
+- `UPDATE_PRICES`
+- `FIND_NEW_PRODUCTS`
+
+Тест 18.06.2026:
+
+- `https://baucenter.ru/` возвращает `200 OK`;
+- `https://baucenter.ru/robots.txt` возвращает `200 OK`;
+- `https://baucenter.ru/sitemap.xml` возвращает `200 OK`;
+- sitemap содержит товарные URL `/product/...`;
+- карточки товаров возвращают `h1`, артикул, бренд, категорию, availability и структуру `__NEXT_DATA__`;
+- цена в проверенных карточках вернулась как `0`, поэтому фиктивные цены не сохраняются.
+
+### Лемана ПРО
+
+Статус: fallback/backlog до появления безопасного способа получения данных.
+
+Приоритет: снят с текущего retail-MVP.
 
 Тип: `RETAIL`.
 
@@ -59,7 +128,7 @@
 - официальный feed/API/выгрузка, если доступна;
 - ручная CSV/XLSX загрузка для проверки Material Hub;
 - тестовый HTML fixture, сохраненный из разрешенного источника вручную;
-- переход ко второму источнику Bonolit для первичной проверки live-flow.
+- замена текущего retail-MVP на Бауцентр.
 
 ### Bonolit
 
@@ -118,6 +187,45 @@
 - `UPDATE_CERTIFICATES`
 - `UPDATE_TECH_DOCUMENTS`
 
+Тест 18.06.2026:
+
+- `https://www.tn.ru/` возвращает `200 OK`;
+- `https://www.tn.ru/robots.txt` возвращает `200 OK`;
+- `https://www.tn.ru/sitemap.xml` возвращает `200 OK`;
+- `https://www.tn.ru/sitemap-main.xml` содержит релевантные разделы продуктов,
+  систем и документов;
+- `https://shop.tn.ru/` возвращает `403`, поэтому интернет-магазин
+  ТЕХНОНИКОЛЬ пока не используется для server-side retail-сбора без
+  официального feed/API/выгрузки.
+
+### Гранд Лайн
+
+Приоритет: 4.
+
+Тип: `MANUFACTURER` + отдельный будущий `RETAIL` source для магазина.
+
+Основной URL: `https://www.grandline.ru/`.
+
+Интернет-магазин:
+
+- `https://shop.grandline.ru/` редиректит на `https://www.grandline.ru/katalog/`;
+- `https://www.grandline.ru/katalog/` возвращает `200 OK`.
+
+Поддерживаемые ACTION после отдельного адаптера:
+
+- `CHECK_SOURCE_HEALTH`
+- `INITIAL_MATERIAL_SCAN`
+- `UPDATE_PRICES` для shop-source, если цены доступны публично;
+- `FIND_NEW_PRODUCTS` для shop-source;
+- `UPDATE_CERTIFICATES` для manufacturer-source;
+- `UPDATE_TECH_DOCUMENTS` для manufacturer-source.
+
+Тест 18.06.2026:
+
+- `https://www.grandline.ru/` возвращает `200 OK`;
+- `https://shop.grandline.ru/` возвращает `200 OK` после редиректа на каталог;
+- сайт подходит как кандидат на следующий live-source после Бауцентра и Bonolit.
+
 ## Проверяемый сценарий
 
 ```text
@@ -144,7 +252,7 @@ PriceHistory при изменении цены
 POST /api/v1/admin/material-hub/sources/defaults
 ```
 
-2. Создать задачу для Лемана ПРО:
+2. Создать задачу для Бауцентра:
 
 ```text
 POST /api/v1/admin/material-hub/tasks
@@ -155,7 +263,7 @@ POST /api/v1/admin/material-hub/tasks
 ```json
 {
   "action_type": "INITIAL_MATERIAL_SCAN",
-  "source_ids": ["<lemana-source-id>"],
+  "source_ids": ["<baucenter-source-id>"],
   "all_sources": false
 }
 ```
