@@ -1,9 +1,8 @@
 # Запуск через Docker
 
-Текущий Docker-контур соответствует `Master_Prompt_v1.0` и запускает API-first
-backend.
+Docker-контур запускает API-first backend, PostgreSQL и Redis.
 
-## Запуск
+## Полный запуск
 
 ```powershell
 docker compose build
@@ -22,15 +21,28 @@ http://127.0.0.1:8000
 GET /api/v1/health
 ```
 
-Документация FastAPI:
+FastAPI docs:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
+Material Hub viewer:
+
+```text
+http://127.0.0.1:8000/api/v1/admin/material-hub/view
+```
+
+## Только база и Redis
+
+Для локального запуска FastAPI из `.venv` можно поднять только инфраструктуру:
+
+```powershell
+docker compose up db redis
+```
+
+Затем создать локальный `.env` на основе `.env.local.example`.
+
 ## Важно
 
-Старые страницы `/`, `/admin`, `/supplier/{id}` относились к SQLite/SQLModel
-прототипу и больше не являются основным интерфейсом проекта.
-
-Текущий основной интерфейс разработки — `/api/v1`.
+Текущий основной интерфейс разработки - `/api/v1`.
