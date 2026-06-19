@@ -92,23 +92,46 @@
       z-index: 3;
       padding: 28px;
     }
-    .center-node h2 { margin: 0 0 8px; font-size: 25px; letter-spacing: 0; }
-    .center-node p { margin: 0; color: var(--muted); line-height: 1.42; }
-    .center-metrics {
+    .center-core,
+    .node-core {
+      display: grid;
+      place-items: center;
+      gap: 6px;
+      text-align: center;
+      max-width: 150px;
+      margin: auto;
+    }
+    .center-node h2 { margin: 0; font-size: 24px; letter-spacing: 0; }
+    .center-node p { margin: 0; color: var(--muted); line-height: 1.22; font-size: 12px; }
+    .metric-pair {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      width: 100%;
-      margin-top: 16px;
+      gap: 7px;
+      width: 165px;
+      z-index: 1;
     }
-    .center-metric {
-      padding: 8px;
+    .metric-pair.top { top: 22px; }
+    .metric-pair.bottom { bottom: 22px; }
+    .center-metric,
+    .mini-metric {
+      min-height: 38px;
+      padding: 5px;
       border: 1px solid rgba(158, 184, 255, 0.16);
       border-radius: 7px;
       background: rgba(7, 13, 33, 0.42);
     }
-    .center-metric strong { display: block; font-size: 20px; }
-    .center-metric span { display: block; color: var(--muted); font-size: 11px; line-height: 1.2; }
+    .center-metric.alert,
+    .mini-metric.alert {
+      border-color: rgba(245, 158, 11, 0.58);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .center-metric strong,
+    .mini-metric strong { display: block; font-size: 15px; line-height: 1.05; overflow-wrap: anywhere; }
+    .center-metric span,
+    .mini-metric span { display: block; color: var(--muted); font-size: 9px; line-height: 1.08; }
     .module-node {
       --card-accent: var(--cyan);
       --x: 50%;
@@ -119,11 +142,8 @@
       width: 210px;
       min-height: 210px;
       transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
+      display: grid;
+      place-items: center;
       padding: 20px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
       border-radius: 50%;
@@ -167,7 +187,7 @@
       font-weight: 800;
       font-size: 14px;
     }
-    .module-title { min-width: 0; max-width: 158px; }
+    .module-title { min-width: 0; max-width: 148px; }
     .module-title strong { display: block; font-size: 16px; line-height: 1.15; }
     .module-title span { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
     .module-hint {
@@ -175,27 +195,8 @@
       font-size: 11px;
       line-height: 1.22;
       text-align: center;
-      max-width: 148px;
+      max-width: 126px;
     }
-    .metric-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      width: min(150px, 100%);
-    }
-    .mini-metric {
-      min-height: 38px;
-      padding: 5px;
-      border: 1px solid rgba(158, 184, 255, 0.14);
-      border-radius: 6px;
-      background: rgba(7, 13, 33, 0.38);
-    }
-    .mini-metric.alert {
-      border-color: rgba(245, 158, 11, 0.58);
-      background: rgba(245, 158, 11, 0.1);
-    }
-    .mini-metric strong { display: block; font-size: 15px; line-height: 1.05; overflow-wrap: anywhere; }
-    .mini-metric span { color: var(--muted); font-size: 9px; line-height: 1.1; }
     @media (max-width: 1100px) {
       header, main { padding-left: 16px; padding-right: 16px; }
       .orbit-shell {
@@ -218,6 +219,11 @@
       .center-node { border-radius: 10px; grid-column: 1 / -1; }
       .module-node { border-radius: 10px; }
       .module-node::before { display: none; }
+      .metric-pair {
+        position: static;
+        transform: none;
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -234,17 +240,25 @@
       <div class="orbit-line three"></div>
 
       <div class="center-node">
-        <div>
-          <h2>HousePlatform</h2>
-          <p>Административный контур, контроль данных и переходы к активным модулям.</p>
-          <div class="center-metrics">
-            {% for metric in center_card.metrics %}
-            <div class="center-metric">
-              <strong>{{ metric.value }}</strong>
-              <span>{{ metric.label }}</span>
-            </div>
-            {% endfor %}
+        <div class="metric-pair top">
+          {% for metric in center_card.metrics[:2] %}
+          <div class="center-metric {% if metric.alert %}alert{% endif %}">
+            <strong>{{ metric.value }}</strong>
+            <span>{{ metric.label }}</span>
           </div>
+          {% endfor %}
+        </div>
+        <div class="center-core">
+          <h2>HousePlatform</h2>
+          <p>Административный контур</p>
+        </div>
+        <div class="metric-pair bottom">
+          {% for metric in center_card.metrics[2:4] %}
+          <div class="center-metric {% if metric.alert %}alert{% endif %}">
+            <strong>{{ metric.value }}</strong>
+            <span>{{ metric.label }}</span>
+          </div>
+          {% endfor %}
         </div>
       </div>
 
@@ -254,17 +268,29 @@
         {% else %}
         <a class="module-node future" href="{{ card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
         {% endif %}
-          <div class="module-head">
-            <div class="module-number">{{ card.number }}</div>
-            <div class="module-title">
-              <strong>{{ card.display_name }}</strong>
-              <span>{{ card.status }}</span>
-            </div>
-          </div>
-          <div class="module-hint">{{ card.subtitle }}</div>
           {% if card.dashboard_metrics %}
-          <div class="metric-row">
-            {% for metric in card.dashboard_metrics %}
+          <div class="metric-pair top">
+            {% for metric in card.dashboard_metrics[:2] %}
+            <div class="mini-metric {% if metric.alert %}alert{% endif %}">
+              <strong>{{ metric.value }}</strong>
+              <span>{{ metric.label }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="node-core">
+            <div class="module-head">
+              <div class="module-number">{{ card.number }}</div>
+              <div class="module-title">
+                <strong>{{ card.display_name }}</strong>
+                <span>{{ card.status }}</span>
+              </div>
+            </div>
+            <div class="module-hint">{{ card.subtitle }}</div>
+          </div>
+          {% if card.dashboard_metrics %}
+          <div class="metric-pair bottom">
+            {% for metric in card.dashboard_metrics[2:4] %}
             <div class="mini-metric {% if metric.alert %}alert{% endif %}">
               <strong>{{ metric.value }}</strong>
               <span>{{ metric.label }}</span>

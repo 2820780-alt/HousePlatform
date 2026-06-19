@@ -369,7 +369,7 @@ def _passport(
             {"label": "Статус", "value": status},
             {"label": "Документ", "value": document.split("/")[-1]},
         ],
-        "dashboard_metrics": dashboard_metrics[:2],
+        "dashboard_metrics": dashboard_metrics[:4],
         "implemented": bool(href),
         "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
