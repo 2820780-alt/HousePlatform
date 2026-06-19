@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ card.title }} · Паспорт модуля</title>
+  <style>
+    :root {
+      --bg: #080d1f;
+      --surface: rgba(15, 24, 58, 0.9);
+      --line: rgba(158, 184, 255, 0.2);
+      --text: #eef6ff;
+      --muted: #9aa9c8;
+      --accent: {{ card.accent }};
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 30%),
+        radial-gradient(circle at 88% 76%, rgba(139, 92, 246, 0.18), transparent 28%),
+        linear-gradient(135deg, #080d1f 0%, #111942 55%, #201433 100%);
+    }
+    a { color: inherit; text-decoration: none; }
+    header {
+      padding: 22px 28px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 14, 34, 0.78);
+      backdrop-filter: blur(18px);
+    }
+    main { max-width: 1180px; padding: 24px 28px 44px; }
+    h1 { margin: 0 0 7px; font-size: 28px; letter-spacing: 0; }
+    h2 { margin: 0 0 12px; font-size: 17px; letter-spacing: 0; }
+    .subtitle { color: var(--muted); line-height: 1.45; }
+    .back-link {
+      display: inline-flex;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      font-weight: 700;
+    }
+    .passport-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+      border-radius: 8px;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), rgba(9, 15, 38, 0.96));
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .description {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+    .passport-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .passport-row {
+      padding: 11px;
+      border: 1px solid rgba(158, 184, 255, 0.16);
+      border-radius: 7px;
+      background: rgba(7, 13, 33, 0.42);
+      color: var(--muted);
+      line-height: 1.38;
+    }
+    .passport-row strong { display: block; color: var(--text); margin-bottom: 4px; }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      min-height: 82px;
+      padding: 11px;
+      border: 1px solid rgba(158, 184, 255, 0.16);
+      border-radius: 7px;
+      background: rgba(7, 13, 33, 0.44);
+    }
+    .metric.alert { border-color: rgba(245, 158, 11, 0.56); background: rgba(245, 158, 11, 0.08); }
+    .metric strong { display: block; font-size: 22px; margin-bottom: 6px; overflow-wrap: anywhere; }
+    .metric span { color: var(--muted); line-height: 1.25; }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .action {
+      display: inline-flex;
+      padding: 9px 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      font-weight: 700;
+    }
+    @media (max-width: 900px) {
+      header, main { padding-left: 16px; padding-right: 16px; }
+      .passport-layout { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back-link" href="/api/v1/admin/cabinet/view">Назад к карте модулей</a>
+    <h1>{{ card.title }}</h1>
+    <div class="subtitle">{{ card.subtitle }} · {{ card.status }}</div>
+  </header>
+
+  <main>
+    <div class="passport-layout">
+      <section class="panel">
+        <h2>Назначение</h2>
+        <div class="description">{{ card.description }}</div>
+        <div class="passport-grid">
+          <div class="passport-row"><strong>Что использует</strong>{{ card.reads }}</div>
+          <div class="passport-row"><strong>Что формирует</strong>{{ card.writes }}</div>
+          <div class="passport-row"><strong>Связи с платформой</strong>{{ card.connections }}</div>
+          <div class="passport-row"><strong>Документ</strong>{{ card.document }}</div>
+        </div>
+        <div class="action-row">
+          {% if card.implemented %}
+          <a class="action" href="{{ card.href }}">Открыть рабочий модуль</a>
+          {% else %}
+          <span class="action">Функционал еще не реализован</span>
+          {% endif %}
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Связанная информация</h2>
+        <div class="metric-grid">
+          {% for metric in card.metrics %}
+          <div class="metric {% if metric.alert %}alert{% endif %}">
+            <strong>{{ metric.value }}</strong>
+            <span>{{ metric.label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

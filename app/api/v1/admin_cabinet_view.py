@@ -18,6 +18,33 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("", response_class=HTMLResponse)
 async def admin_cabinet_view(request: Request, db: DBSession):
+    cards = await _load_module_passports(db)
+    center_card = next(card for card in cards if card["number"] == 16)
+    satellite_cards = [card for card in cards if card["number"] != 16]
+    return templates.TemplateResponse(
+        request,
+        "admin_cabinet_view.html",
+        {
+            "cards": satellite_cards,
+            "center_card": center_card,
+        },
+    )
+
+
+@router.get("/modules/{module_number}", response_class=HTMLResponse)
+async def admin_module_passport_view(module_number: int, request: Request, db: DBSession):
+    cards = await _load_module_passports(db)
+    card = next((item for item in cards if item["number"] == module_number), None)
+    if card is None:
+        card = next(item for item in cards if item["number"] == 16)
+    return templates.TemplateResponse(
+        request,
+        "admin_module_passport.html",
+        {"card": card},
+    )
+
+
+async def _load_module_passports(db: DBSession) -> list[dict]:
     material_total = await _count_model(db, Material)
     document_total = await _count_model(db, MaterialDocument)
     pending_candidates = await _count_pending_candidates(db)
@@ -32,11 +59,7 @@ async def admin_cabinet_view(request: Request, db: DBSession):
         price_points,
         price_dynamics_summary,
     )
-    return templates.TemplateResponse(
-        request,
-        "admin_cabinet_view.html",
-        {"cards": cards},
-    )
+    return _apply_orbit_layout(cards)
 
 
 def _module_passports(
@@ -319,8 +342,39 @@ def _passport(
             {"label": "Статус", "value": status},
             {"label": "Документ", "value": document.split("/")[-1]},
         ],
-        "enabled": bool(href),
+        "implemented": bool(href),
+        "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
+        "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
     }
+
+
+def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
+    layout = {
+        1: ("50%", "9%", "265px", "90deg"),
+        2: ("70%", "13%", "250px", "122deg"),
+        3: ("86%", "27%", "300px", "150deg"),
+        4: ("91%", "50%", "330px", "180deg"),
+        5: ("86%", "73%", "300px", "210deg"),
+        6: ("70%", "88%", "250px", "238deg"),
+        7: ("50%", "92%", "280px", "270deg"),
+        8: ("30%", "88%", "250px", "302deg"),
+        9: ("14%", "73%", "300px", "330deg"),
+        10: ("9%", "50%", "330px", "0deg"),
+        11: ("14%", "27%", "300px", "30deg"),
+        12: ("30%", "13%", "250px", "58deg"),
+        13: ("38%", "30%", "135px", "32deg"),
+        14: ("62%", "30%", "135px", "148deg"),
+        15: ("62%", "70%", "135px", "212deg"),
+    }
+    for card in cards:
+        x, y, link_width, link_angle = layout.get(card["number"], ("50%", "50%", "180px", "0deg"))
+        card["orbit"] = {
+            "x": x,
+            "y": y,
+            "link_width": link_width,
+            "link_angle": link_angle,
+        }
+    return cards
 
 
 async def _count_model(db: DBSession, model) -> int:
