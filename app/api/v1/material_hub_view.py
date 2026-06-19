@@ -406,8 +406,8 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
             "title": "Карточки источников",
             "value": total_products,
             "note": f"требуют проверки: {products_needs_review}",
-            "href": "/api/v1/admin/material-hub/view/products",
-            "action": "Смотреть карточки",
+            "href": "/api/v1/admin/material-hub/view/products?status=NEEDS_REVIEW" if products_needs_review else "/api/v1/admin/material-hub/view/products",
+            "action": "Проверить карточки" if products_needs_review else "Смотреть карточки",
             "tone": "warn" if products_needs_review else "info",
         },
         {

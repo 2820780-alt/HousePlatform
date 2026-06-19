@@ -38,8 +38,12 @@ BAUCENTER_CATEGORY_MAP: tuple[tuple[tuple[str, ...], TaxonomyPath], ...] = (
     (("гипсокартон", "гкл", "гипсоволокнист", "гвл"), TaxonomyPath("Строительные материалы", "Материалы для сухого строительства", "Гипсовые листы")),
     (("профили для гипсокартона", "профиль потолочный", "профиль направляющий"), TaxonomyPath("Строительные материалы", "Материалы для сухого строительства", "Профили для гипсокартона")),
     (("газобетон", "газобетонный блок", "стеновой блок", "bonolit", "vkblock", "вкблок"), TaxonomyPath("Строительные материалы", "Стеновые материалы", "Газобетонные блоки")),
+    (("шпатлевка гипсовая", "шпаклевка гипсовая"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки")),
+    (("шпатлевка полимерная", "шпаклевка полимерная", "полимерная шпатлевка"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки")),
+    (("шпатлев", "шпаклев", "шпатлевка цементная", "шпаклевка цементная"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Цементные шпатлевки")),
+    (("штукатурка гипсовая", "гипсовая штукатурка"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки")),
+    (("штукатур",), TaxonomyPath("Строительные материалы", "Сухие смеси", "Цементные штукатурки")),
     (("клей для кладки", "кладочная смесь", "клей монтажный", "ячеистого бетона"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Клеи для кладки")),
-    (("шпатлев", "шпаклев", "штукатур"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Шпатлевки и штукатурки")),
     (("металлочереп", "монтеррей", "монтерей"), TaxonomyPath("Кровля и водосток", "Кровельные материалы", "Металлочерепица")),
     (("гибкая черепица", "shinglas", "tegola"), TaxonomyPath("Кровля и водосток", "Кровельные материалы", "Гибкая черепица")),
     (("снегозадерж", "snegozader"), TaxonomyPath("Кровля и водосток", "Комплектующие кровли", "Снегозадержатели")),
@@ -123,6 +127,27 @@ SPECIFICATION_TEMPLATES: dict[tuple[str, str, str | None], tuple[SpecificationFi
         SpecificationField("Назначение", "application", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Вес мешка", "package_weight", "number", "кг", True, Decimal("1.2")),
         SpecificationField("Основание", "base_material", weight_for_matching=Decimal("1.1")),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
+    ),
+    ("Строительные материалы", "Сухие смеси", "Цементные шпатлевки"): (
+        SpecificationField("Вес мешка", "package_weight", "number", "кг"),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
+    ),
+    ("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки"): (
+        SpecificationField("Вес мешка", "package_weight", "number", "кг"),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
+    ),
+    ("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки"): (
+        SpecificationField("Вес мешка", "package_weight", "number", "кг"),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
+    ),
+    ("Строительные материалы", "Сухие смеси", "Цементные штукатурки"): (
+        SpecificationField("Вес мешка", "package_weight", "number", "кг"),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
+    ),
+    ("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки"): (
+        SpecificationField("Вес мешка", "package_weight", "number", "кг"),
+        SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
     ("Крепеж", "Саморезы", "С прессшайбой"): (
         SpecificationField("Диаметр", "diameter", "number", "мм", True, Decimal("1.6")),
@@ -280,6 +305,9 @@ def extract_specification_values(
     package_weight = _extract_package_weight(text)
     if package_weight:
         values["package_weight"] = package_weight
+    consumption_rate = _extract_consumption_rate(text)
+    if consumption_rate:
+        values["consumption_rate"] = consumption_rate
     cable = _extract_cable_values(text)
     values.update(cable)
     if path.category == "Саморезы" or path.section == "Крепеж":
@@ -388,6 +416,18 @@ def _extract_package_quantity(text: str) -> str | None:
 def _extract_package_weight(text: str) -> str | None:
     match = re.search(r"(\d+(?:[,.]\d+)?)\s*кг", text, re.IGNORECASE)
     return match.group(1).replace(",", ".") if match else None
+
+
+def _extract_consumption_rate(text: str) -> str | None:
+    match = re.search(
+        r"расход[^\d]{0,20}(\d+(?:[,.]\d+)?)\s*(?:кг|kg)\s*/?\s*(?:м2|м²|m2)",
+        text,
+        re.IGNORECASE,
+    )
+    if match:
+        return match.group(1).replace(",", ".")
+    match = re.search(r"(\d+(?:[,.]\d+)?)\s*(?:кг|kg)\s*/?\s*(?:м2|м²|m2)", text, re.IGNORECASE)
+    return match.group(1).replace(",", ".") if match and "расход" in text.lower() else None
 
 
 def _extract_cable_values(text: str) -> dict[str, str]:

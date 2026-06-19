@@ -137,6 +137,22 @@ class DevRunBatchTaskResponse(BaseModel):
     tasks: list[DevRunTaskResponse]
 
 
+class DevSourceManageRequest(BaseModel):
+    name: str
+    source_type: SourceType = SourceType.RETAIL
+    url: str | None = None
+    priority: int = 100
+    status: SourceStatus = SourceStatus.ACTIVE
+
+
+class DevSourceUpdateRequest(BaseModel):
+    name: str | None = None
+    source_type: SourceType | None = None
+    url: str | None = None
+    priority: int | None = None
+    status: SourceStatus | None = None
+
+
 class DevModerationDecision(BaseModel):
     reason: str | None = None
     canonical_name_choice: str | None = "material"
@@ -222,11 +238,54 @@ async def create_dev_default_sources(db: DBSession):
     return sources
 
 
+@router.post("/sources", response_model=SourceRead, status_code=201)
+async def create_dev_source(data: DevSourceManageRequest, db: DBSession):
+    _ensure_development()
+    result = await db.execute(select(Source).where(Source.name == data.name))
+    source = result.scalar_one_or_none()
+    if source:
+        raise HTTPException(status_code=409, detail="Source with this name already exists")
+    source = Source(**data.model_dump())
+    db.add(source)
+    await db.flush()
+    await db.refresh(source)
+    return source
+
+
+@router.patch("/sources/{source_id}", response_model=SourceRead)
+async def update_dev_source(source_id: UUID, data: DevSourceUpdateRequest, db: DBSession):
+    _ensure_development()
+    result = await db.execute(select(Source).where(Source.id == source_id))
+    source = result.scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(source, field, value)
+    db.add(source)
+    await db.flush()
+    await db.refresh(source)
+    return source
+
+
+@router.post("/sources/{source_id}/status/{status}", response_model=SourceRead)
+async def set_dev_source_status(source_id: UUID, status: SourceStatus, db: DBSession):
+    _ensure_development()
+    result = await db.execute(select(Source).where(Source.id == source_id))
+    source = result.scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    source.status = status
+    db.add(source)
+    await db.flush()
+    await db.refresh(source)
+    return source
+
+
 @router.post("/run", response_model=DevRunTaskResponse, status_code=201)
 async def run_dev_material_hub_task(data: DevRunTaskRequest, db: DBSession):
     _ensure_development()
     source = await _get_or_create_source(db, data)
-    parameters = data.parameters or _default_parameters(data.action_type)
+    parameters = _sanitize_task_parameters(data.action_type, data.parameters or _default_parameters(data.action_type))
 
     task = await _create_and_run_task(db, source, data.action_type, parameters)
     return DevRunTaskResponse(source=source, task=task)
@@ -238,7 +297,7 @@ async def run_dev_material_hub_batch(data: DevRunBatchTaskRequest, db: DBSession
     sources = await _resolve_batch_sources(db, data)
     if not sources:
         raise HTTPException(status_code=400, detail="No sources selected")
-    parameters = data.parameters or _default_parameters(data.action_type)
+    parameters = _sanitize_task_parameters(data.action_type, data.parameters or _default_parameters(data.action_type))
 
     results: list[DevRunTaskResponse] = []
     for source in sources:
@@ -664,7 +723,7 @@ async def _resolve_batch_sources(db: DBSession, data: DevRunBatchTaskRequest) ->
     if data.all_sources:
         result = await db.execute(
             select(Source)
-            .where(Source.status.in_([SourceStatus.ACTIVE, SourceStatus.ERROR]))
+            .where(Source.status == SourceStatus.ACTIVE)
             .order_by(Source.priority.asc(), Source.name.asc())
         )
         return list(result.scalars().all())
@@ -766,6 +825,41 @@ def _default_parameters(action_type: SourceActionType) -> dict:
             "max_documents": 10,
         }
     return {}
+
+
+def _sanitize_task_parameters(action_type: SourceActionType, parameters: dict | None) -> dict:
+    sanitized = dict(parameters or {})
+    scan_mode = str(sanitized.get("scan_mode") or "TEST").upper()
+    if scan_mode not in {"TEST", "CATEGORY", "FULL"}:
+        scan_mode = "TEST"
+    sanitized["scan_mode"] = scan_mode
+
+    if action_type in {
+        SourceActionType.UPDATE_CERTIFICATES,
+        SourceActionType.UPDATE_TECH_DOCUMENTS,
+    }:
+        sanitized["max_documents"] = _bounded_int(sanitized.get("max_documents"), 10, 1, 100)
+        return sanitized
+
+    default_pages = 5 if scan_mode == "TEST" else 30 if scan_mode == "CATEGORY" else 50
+    max_allowed_pages = 20 if scan_mode == "TEST" else 80 if scan_mode == "CATEGORY" else 150
+    max_pages = _bounded_int(sanitized.get("max_pages"), default_pages, 1, max_allowed_pages)
+    sanitized["max_pages"] = max_pages
+    sanitized["max_attempts"] = _bounded_int(
+        sanitized.get("max_attempts"),
+        min(max_pages * 3, 150),
+        1,
+        min(max_pages * 4, 300),
+    )
+    return sanitized
+
+
+def _bounded_int(value, default: int, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(minimum, min(parsed, maximum))
 
 
 def _select_canonical_name(data: DevModerationDecision, product: CatalogProduct, material: Material) -> str | None:

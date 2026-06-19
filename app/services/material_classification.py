@@ -141,15 +141,9 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
 
     if _has_any(text, ["клей", "klej", "kley", "кладочная смесь", "smes suhaya", "шпатлев", "штукатур"]):
         canonical = _normalize_mix_name(name_without_region)
-        if _has_any(text, ["шпатлев", "штукатур"]):
-            category = "Шпатлевки и штукатурки"
-        elif _has_any(text, ["газобетон", "ячеистого бетона", "kladki"]):
-            category = "Клеи для кладки"
-        else:
-            category = "Сухие строительные смеси"
         return MaterialClassification(
             canonical_name=canonical,
-            category_path=CategoryPath("Сухие смеси", category),
+            category_path=_dry_mix_category_path(text),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -519,6 +513,23 @@ def _normalize_mix_name(name: str) -> str:
     else:
         base = "Сухая строительная смесь"
     return f"{base} {mark.group(1).upper()}" if mark else base
+
+
+def _dry_mix_category_path(text: str) -> CategoryPath:
+    lower = text.lower()
+    if _has_any(lower, ["шпатлев", "шпаклев"]):
+        if _has_any(lower, ["полимер"]):
+            return CategoryPath("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки")
+        if _has_any(lower, ["гипс"]):
+            return CategoryPath("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки")
+        return CategoryPath("Строительные материалы", "Сухие смеси", "Цементные шпатлевки")
+    if _has_any(lower, ["штукатур"]):
+        if _has_any(lower, ["гипс"]):
+            return CategoryPath("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки")
+        return CategoryPath("Строительные материалы", "Сухие смеси", "Цементные штукатурки")
+    if _has_any(lower, ["газобетон", "ячеистого бетона", "kladki"]):
+        return CategoryPath("Строительные материалы", "Сухие смеси", "Клеи для кладки")
+    return CategoryPath("Строительные материалы", "Сухие смеси", "Сухие строительные смеси")
 
 
 def _normalize_sheet_name(name: str) -> str:

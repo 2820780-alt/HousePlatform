@@ -78,3 +78,36 @@ def test_extract_presswasher_screw_filters():
     assert values["length"] == "19"
     assert values["package_quantity"] == "50"
     assert values["tip_type"] == "со сверлом"
+
+
+def test_split_dry_mix_subcategories_and_consumption():
+    path = infer_baucenter_taxonomy(
+        "Шпатлевка полимерная финишная 20 кг расход 1,2 кг/м2",
+        "Шпатлевка полимерная",
+        None,
+    )
+
+    assert path is not None
+    assert path.category == "Сухие смеси"
+    assert path.product_type == "Полимерные шпатлевки"
+
+    values = extract_specification_values(
+        "Шпатлевка полимерная финишная 20 кг расход 1,2 кг/м2",
+        "Шпатлевка полимерная",
+        path,
+    )
+
+    assert values["package_weight"] == "20"
+    assert values["consumption_rate"] == "1.2"
+
+
+def test_split_gypsum_plaster_subcategory():
+    path = infer_baucenter_taxonomy(
+        "Штукатурка гипсовая 30 кг расход 8 кг/м2",
+        "Штукатурка гипсовая",
+        None,
+    )
+
+    assert path is not None
+    assert path.category == "Сухие смеси"
+    assert path.product_type == "Гипсовые штукатурки"

@@ -299,6 +299,34 @@
           <input id="source-search" oninput="filterRows('source-table', 'source-search')" placeholder="Название, тип, статус">
         </div>
       </div>
+      <div class="filters">
+        <div>
+          <label for="new-source-name">Название</label>
+          <input id="new-source-name" placeholder="Например: Новый поставщик">
+        </div>
+        <div>
+          <label for="new-source-type">Тип</label>
+          <select id="new-source-type">
+            <option value="RETAIL">Ритейл</option>
+            <option value="MANUFACTURER">Производитель</option>
+            <option value="SUPPLIER">Поставщик</option>
+            <option value="MANUAL_UPLOAD">Ручная загрузка</option>
+          </select>
+        </div>
+        <div>
+          <label for="new-source-url">URL</label>
+          <input id="new-source-url" placeholder="https://example.ru/">
+        </div>
+        <div>
+          <label for="new-source-priority">Приоритет</label>
+          <input id="new-source-priority" type="number" value="100" min="1">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="button" onclick="createSource()">Добавить источник</button>
+        </div>
+      </div>
+      <div id="source-manage-status" class="muted"></div>
       {% if sources %}
       <table id="source-table">
         <thead><tr>
@@ -310,10 +338,11 @@
           <th><button type="button" onclick="sortTable('source-table', 5, 'date')">Материалы</button></th>
           <th><button type="button" onclick="sortTable('source-table', 6, 'date')">Цены</button></th>
           <th><button type="button" onclick="sortTable('source-table', 7, 'date')">Документы</button></th>
+          <th>Управление</th>
         </tr></thead>
         <tbody>
         {% for source in sources %}
-          <tr>
+          <tr data-source-id="{{ source.id }}">
             <td>{{ source_display_name(source) }}</td>
             <td><span class="pill">{{ enum_label(source.source_type) }}</span></td>
             <td>{% if source.url %}<a href="{{ source.url }}" target="_blank">{{ source.url }}</a>{% endif %}</td>
@@ -322,6 +351,11 @@
             <td>{{ dt(source.last_full_scan_at) }}</td>
             <td>{{ dt(source.last_price_update_at) }}</td>
             <td>{{ dt(source.last_document_update_at) }}</td>
+            <td>
+              <button type="button" onclick="setSourceStatus('{{ source.id }}', 'ACTIVE')">Включить</button>
+              <button type="button" onclick="setSourceStatus('{{ source.id }}', 'PAUSED')">Пауза</button>
+              <button type="button" onclick="setSourceStatus('{{ source.id }}', 'DISABLED')">Отключить</button>
+            </td>
           </tr>
         {% endfor %}
         </tbody>
@@ -1265,6 +1299,8 @@
     }
 
     function applyProductFilters() {
+      const table = document.getElementById("product-table");
+      if (!table) return;
       const query = (document.getElementById("product-search").value || "").toLocaleLowerCase();
       const status = document.getElementById("product-status-filter").value;
       const region = (document.getElementById("product-region-filter").value || "").toLocaleLowerCase();
@@ -1274,8 +1310,45 @@
         const matchesRegion = !region || (row.dataset.region || "").toLocaleLowerCase().includes(region);
         setRowFilterVisible(row, matchesText && matchesStatus && matchesRegion);
       });
-      document.getElementById("product-table").dataset.page = "1";
+      table.dataset.page = "1";
       applyPagination("product-table");
+    }
+
+    async function createSource() {
+      const status = document.getElementById("source-manage-status");
+      const payload = {
+        name: document.getElementById("new-source-name").value.trim(),
+        source_type: document.getElementById("new-source-type").value,
+        url: document.getElementById("new-source-url").value.trim() || null,
+        priority: Number(document.getElementById("new-source-priority").value || 100),
+        status: "ACTIVE"
+      };
+      if (!payload.name) {
+        status.textContent = "Укажи название источника.";
+        return;
+      }
+      const response = await fetch("/api/v1/dev/material-hub/sources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        status.textContent = "Ошибка добавления источника: " + await response.text();
+        return;
+      }
+      status.textContent = "Источник добавлен.";
+      setTimeout(() => window.location.reload(), 600);
+    }
+
+    async function setSourceStatus(sourceId, sourceStatus) {
+      const status = document.getElementById("source-manage-status");
+      const response = await fetch(`/api/v1/dev/material-hub/sources/${sourceId}/status/${sourceStatus}`, { method: "POST" });
+      if (!response.ok) {
+        status.textContent = "Ошибка изменения статуса: " + await response.text();
+        return;
+      }
+      status.textContent = "Статус источника обновлен.";
+      setTimeout(() => window.location.reload(), 600);
     }
 
     function applyMaterialFilters() {
@@ -1331,6 +1404,13 @@
         initTablePagination();
         applyPagination("no-history-table");
       }
+    }
+
+    const initialParams = new URLSearchParams(window.location.search);
+    const productStatus = initialParams.get("status");
+    if (productStatus && document.getElementById("product-status-filter")) {
+      document.getElementById("product-status-filter").value = productStatus;
+      applyProductFilters();
     }
   </script>
 </body>
