@@ -535,6 +535,10 @@
             <label for="history-region-filter">Город или регион</label>
             <input id="history-region-filter" oninput="applyHistoryFilters()" placeholder="Например: Краснодар">
           </div>
+          <div>
+            <label>&nbsp;</label>
+            <label><input id="show-no-history" type="checkbox" style="width:auto;min-height:0" onchange="toggleNoHistoryMaterials()"> Показать материалы без истории цен</label>
+          </div>
         </div>
         {% if prices %}
         <table id="history-table">
@@ -566,6 +570,34 @@
           </tbody>
         </table>
         {% else %}<div class="empty">Истории цен пока нет.</div>{% endif %}
+        <div id="no-history-materials" style="display:none; margin-top:14px">
+          <h2>Материалы без истории цен</h2>
+          <div class="muted" style="margin-bottom:10px">Эти материалы есть в основной базе, но по ним еще нет записей в PriceHistory.</div>
+          {% if materials_without_price_history %}
+          <table id="no-history-table">
+            <thead><tr>
+              <th><button type="button" onclick="sortTable('no-history-table', 0, 'text')">Материал</button></th>
+              <th><button type="button" onclick="sortTable('no-history-table', 1, 'text')">Категория</button></th>
+              <th><button type="button" onclick="sortTable('no-history-table', 2, 'text')">Подкатегория</button></th>
+              <th><button type="button" onclick="sortTable('no-history-table', 3, 'text')">Производитель</button></th>
+              <th><button type="button" onclick="sortTable('no-history-table', 4, 'text')">Статус</button></th>
+              <th><button type="button" onclick="sortTable('no-history-table', 5, 'date')">Изменен</button></th>
+            </tr></thead>
+            <tbody>
+            {% for material in materials_without_price_history %}
+              <tr>
+                <td>{{ material.canonical_name }}</td>
+                <td>{{ material.category.name if material.category else "" }}</td>
+                <td>{{ material.subcategory.name if material.subcategory else "" }}</td>
+                <td>{{ material.manufacturer or "" }}</td>
+                <td>{{ enum_label(material.status) }}</td>
+                <td>{{ dt(material.updated_at) }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}<div class="empty">Все активные материалы уже имеют историю цен.</div>{% endif %}
+        </div>
       </section>
       {% endif %}
 
@@ -1275,6 +1307,8 @@
     }
 
     function applyHistoryFilters() {
+      const table = document.getElementById("history-table");
+      if (!table) return;
       const query = (document.getElementById("history-search").value || "").toLocaleLowerCase();
       const manufacturer = (document.getElementById("history-manufacturer-filter").value || "").toLocaleLowerCase();
       const region = (document.getElementById("history-region-filter").value || "").toLocaleLowerCase();
@@ -1284,8 +1318,19 @@
         const matchesRegion = !region || (row.dataset.region || "").toLocaleLowerCase().includes(region);
         setRowFilterVisible(row, matchesText && matchesManufacturer && matchesRegion);
       });
-      document.getElementById("history-table").dataset.page = "1";
+      table.dataset.page = "1";
       applyPagination("history-table");
+    }
+
+    function toggleNoHistoryMaterials() {
+      const panel = document.getElementById("no-history-materials");
+      const checkbox = document.getElementById("show-no-history");
+      if (!panel || !checkbox) return;
+      panel.style.display = checkbox.checked ? "block" : "none";
+      if (checkbox.checked) {
+        initTablePagination();
+        applyPagination("no-history-table");
+      }
     }
   </script>
 </body>

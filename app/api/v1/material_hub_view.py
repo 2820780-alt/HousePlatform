@@ -254,6 +254,7 @@ async def _render_data_page(
             "categories": await _load_categories(db),
             "material_prices": await _load_material_price_map(db),
             "prices": await _load_prices(db),
+            "materials_without_price_history": await _load_materials_without_price_history(db),
             "logs": await _load_logs(db),
             "results": await _load_results(db),
             "action_labels": ACTION_LABELS,
@@ -411,11 +412,11 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
             "tone": "warn" if products_needs_review else "info",
         },
         {
-            "title": "История цен",
+            "title": "Динамика цен",
             "value": total_prices,
-            "note": "точки цен для сравнения",
-            "href": "/api/v1/admin/material-hub/view/prices",
-            "action": "Сравнить цены",
+            "note": "история, изменения и первые аналитические срезы",
+            "href": "/api/v1/admin/price-dynamics/view",
+            "action": "Открыть аналитику цен",
             "tone": "info",
         },
         {
@@ -558,6 +559,19 @@ async def _load_prices(db: DBSession) -> list[PriceHistory]:
         }
         for price, material, source in result.all()
     ]
+
+
+async def _load_materials_without_price_history(db: DBSession) -> list[Material]:
+    priced_material_ids = select(PriceHistory.material_id).distinct()
+    result = await db.execute(
+        select(Material)
+        .options(selectinload(Material.category), selectinload(Material.subcategory))
+        .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
+        .where(Material.id.not_in(priced_material_ids))
+        .order_by(Material.updated_at.desc())
+        .limit(200)
+    )
+    return list(result.scalars().all())
 
 
 async def _load_documents(db: DBSession) -> list[MaterialDocument]:
