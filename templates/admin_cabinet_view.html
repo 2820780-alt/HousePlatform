@@ -6,16 +6,13 @@
   <title>Кабинет администратора · HousePlatform</title>
   <style>
     :root {
-      --bg: #090f24;
-      --surface: rgba(22, 31, 69, 0.9);
-      --surface-2: rgba(13, 21, 50, 0.94);
-      --line: rgba(125, 156, 255, 0.22);
+      --bg: #080d1f;
+      --surface: rgba(19, 28, 62, 0.88);
+      --surface-2: rgba(11, 18, 44, 0.94);
+      --line: rgba(150, 174, 255, 0.2);
       --text: #eef6ff;
-      --muted: #9ca9c9;
+      --muted: #9aa9c8;
       --accent: #10d7e8;
-      --blue: #5b7cfa;
-      --amber: #f5a524;
-      --red: #ff3b7f;
       --soft: rgba(125, 156, 255, 0.12);
       --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
     }
@@ -24,10 +21,10 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 10% 8%, rgba(16, 215, 232, 0.22), transparent 34%),
-        radial-gradient(circle at 82% 12%, rgba(245, 165, 36, 0.14), transparent 24%),
-        radial-gradient(circle at 70% 85%, rgba(255, 59, 127, 0.14), transparent 28%),
-        linear-gradient(135deg, #090f24 0%, #111942 55%, #191433 100%);
+        radial-gradient(circle at 8% 7%, rgba(16, 215, 232, 0.28), transparent 31%),
+        radial-gradient(circle at 78% 10%, rgba(245, 158, 11, 0.18), transparent 25%),
+        radial-gradient(circle at 70% 84%, rgba(236, 72, 153, 0.16), transparent 29%),
+        linear-gradient(135deg, #080d1f 0%, #111942 52%, #201433 100%);
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
       font-size: 14px;
@@ -41,106 +38,141 @@
       top: 0;
       z-index: 2;
     }
-    h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
-    h2 { margin: 0; font-size: 19px; letter-spacing: 0; }
-    a { color: var(--accent); }
     main { padding: 22px 28px 44px; }
-    .muted { color: var(--muted); }
-    .workspace-note {
-      max-width: 920px;
+    h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    a { color: inherit; }
+    .workspace-note { max-width: 1020px; color: var(--muted); line-height: 1.45; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 0;
       color: var(--muted);
-      line-height: 1.45;
+      font-size: 12px;
     }
+    .legend span {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: rgba(7, 13, 33, 0.42);
+    }
+    .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
     .modules-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
       align-items: stretch;
     }
     .module-card {
-      min-height: 390px;
+      --card-accent: var(--accent);
+      min-height: 360px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      text-decoration: none;
       color: var(--text);
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
       border-radius: 8px;
       background:
-        linear-gradient(145deg, var(--surface), var(--surface-2));
+        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 12%, var(--surface)), var(--surface-2));
       box-shadow: var(--shadow);
       overflow: hidden;
+      text-decoration: none;
+      position: relative;
       transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }
-    .module-card:hover {
+    .module-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, color-mix(in srgb, var(--card-accent) 20%, transparent), transparent 38%),
+        radial-gradient(circle at 92% 6%, color-mix(in srgb, var(--card-accent) 24%, transparent), transparent 30%);
+      pointer-events: none;
+      opacity: 0.75;
+    }
+    .module-card.enabled:hover {
       transform: translateY(-3px);
-      border-color: rgba(16, 215, 232, 0.48);
-      box-shadow: 0 30px 86px rgba(0, 0, 0, 0.48);
+      border-color: color-mix(in srgb, var(--card-accent) 72%, white 8%);
+      box-shadow: 0 30px 86px rgba(0, 0, 0, 0.5);
     }
-    .module-band {
-      height: 7px;
-      background: linear-gradient(90deg, var(--accent), var(--blue));
-    }
-    .module-card.info .module-band { background: linear-gradient(90deg, var(--blue), var(--accent)); }
-    .module-body { padding: 18px; }
+    .module-card.disabled { opacity: 0.88; }
+    .module-band { height: 7px; background: linear-gradient(90deg, var(--card-accent), color-mix(in srgb, var(--card-accent) 40%, white)); }
+    .module-body, .module-footer { position: relative; z-index: 1; }
+    .module-body { padding: 16px; }
     .module-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
       align-items: flex-start;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .module-kicker {
-      color: var(--accent);
+      color: color-mix(in srgb, var(--card-accent) 70%, white);
       font-size: 12px;
       font-weight: 700;
       margin-bottom: 7px;
     }
-    .module-description {
-      color: var(--muted);
-      line-height: 1.45;
-      max-width: 620px;
-    }
-    .module-icon {
+    .module-number {
       display: grid;
       place-items: center;
-      width: 52px;
-      height: 52px;
-      flex: 0 0 auto;
-      border: 1px solid rgba(16, 215, 232, 0.35);
+      width: 48px;
+      height: 48px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 44%, transparent);
       border-radius: 8px;
-      background: rgba(16, 215, 232, 0.1);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--accent);
+      background: color-mix(in srgb, var(--card-accent) 16%, #071024);
+      color: color-mix(in srgb, var(--card-accent) 72%, white);
+      font-size: 20px;
+      font-weight: 800;
     }
+    .status-pill {
+      display: inline-flex;
+      width: max-content;
+      margin: 10px 0 0;
+      padding: 5px 8px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
+      border-radius: 5px;
+      color: color-mix(in srgb, var(--card-accent) 70%, white);
+      background: color-mix(in srgb, var(--card-accent) 10%, transparent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .module-description { color: var(--muted); line-height: 1.45; margin-top: 10px; }
+    .passport-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .passport-row {
+      padding: 9px;
+      border: 1px solid rgba(150, 174, 255, 0.16);
+      border-radius: 6px;
+      background: rgba(7, 13, 33, 0.38);
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .passport-row strong { display: block; color: var(--text); font-size: 12px; margin-bottom: 3px; }
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 18px;
+      gap: 9px;
+      margin-top: 14px;
     }
     .metric {
-      min-height: 92px;
-      padding: 12px;
-      border: 1px solid var(--line);
+      min-height: 82px;
+      padding: 10px;
+      border: 1px solid rgba(150, 174, 255, 0.16);
       border-radius: 7px;
-      background: rgba(7, 13, 33, 0.54);
+      background: rgba(7, 13, 33, 0.48);
     }
-    .metric.alert { border-color: rgba(245, 165, 36, 0.48); background: rgba(245, 165, 36, 0.08); }
-    .metric strong {
-      display: block;
-      font-size: 26px;
-      line-height: 1;
-      margin-bottom: 7px;
-    }
-    .metric span {
-      display: block;
-      color: var(--muted);
-      line-height: 1.25;
-    }
+    .metric.alert { border-color: rgba(245, 158, 11, 0.56); background: rgba(245, 158, 11, 0.08); }
+    .metric strong { display: block; font-size: 22px; line-height: 1.05; margin-bottom: 6px; overflow-wrap: anywhere; }
+    .metric span { display: block; color: var(--muted); line-height: 1.25; }
     .module-footer {
-      padding: 0 18px 18px;
+      padding: 0 16px 16px;
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -150,62 +182,85 @@
       display: inline-flex;
       align-items: center;
       width: max-content;
+      max-width: 100%;
       padding: 8px 12px;
-      border: 1px solid rgba(16, 215, 232, 0.48);
+      border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
       border-radius: 6px;
       color: var(--text);
-      background: rgba(16, 215, 232, 0.1);
+      background: color-mix(in srgb, var(--card-accent) 12%, transparent);
       font-weight: 700;
     }
-    .settings-hint {
+    .document-link {
       color: var(--muted);
       font-size: 12px;
       text-align: right;
+      overflow-wrap: anywhere;
     }
     @media (max-width: 900px) {
       header, main { padding-left: 16px; padding-right: 16px; }
       .modules-grid { grid-template-columns: 1fr; }
       .metric-grid { grid-template-columns: 1fr; }
       .module-card { min-height: 0; }
+      .module-footer { align-items: flex-start; flex-direction: column; }
+      .document-link { text-align: left; }
     }
   </style>
 </head>
-<body>
+<body class="module-admin">
   <header>
     <h1>Кабинет администратора</h1>
-    <div class="workspace-note">Модуль 16 · переходы только в включенные модули. Карточки показывают краткую выдержку и уведомления, а детализация остается внутри соответствующего модуля.</div>
+    <div class="workspace-note">Модуль 16 · карта платформы, паспорта модулей, уведомления и переходы в рабочие контуры. Активные карточки открывают модуль, будущие карточки показывают архитектурный паспорт.</div>
+    <div class="legend">
+      <span><i style="background:#10d7e8"></i> реализуется</span>
+      <span><i style="background:#94a3b8"></i> паспорт без функционала</span>
+      <span><i style="background:#f59e0b"></i> есть уведомления</span>
+    </div>
   </header>
 
   <main>
     <div class="modules-grid">
       {% for card in cards %}
-      <a class="module-card {{ card.tone }}" href="{{ card.href }}">
-        <div>
-          <div class="module-band"></div>
-          <div class="module-body">
-            <div class="module-top">
-              <div>
-                <div class="module-kicker">{{ card.subtitle }}</div>
-                <h2>{{ card.title }}</h2>
+        {% if card.enabled %}
+        <a class="module-card enabled" href="{{ card.href }}" style="--card-accent: {{ card.accent }}">
+        {% else %}
+        <article class="module-card disabled" style="--card-accent: {{ card.accent }}">
+        {% endif %}
+          <div>
+            <div class="module-band"></div>
+            <div class="module-body">
+              <div class="module-top">
+                <div>
+                  <div class="module-kicker">{{ card.subtitle }}</div>
+                  <h2>{{ card.title }}</h2>
+                  <span class="status-pill">{{ card.status }}</span>
+                </div>
+                <div class="module-number">{{ card.number }}</div>
               </div>
-              <div class="module-icon">{{ loop.index }}</div>
-            </div>
-            <div class="module-description">{{ card.description }}</div>
-            <div class="metric-grid">
-              {% for metric in card.metrics %}
-              <div class="metric {% if metric.alert %}alert{% endif %}">
-                <strong>{{ metric.value }}</strong>
-                <span>{{ metric.label }}</span>
+              <div class="module-description">{{ card.description }}</div>
+              <div class="passport-grid">
+                <div class="passport-row"><strong>Читает</strong>{{ card.reads }}</div>
+                <div class="passport-row"><strong>Создает / изменяет</strong>{{ card.writes }}</div>
+                <div class="passport-row"><strong>Связи</strong>{{ card.connections }}</div>
               </div>
-              {% endfor %}
+              <div class="metric-grid">
+                {% for metric in card.metrics %}
+                <div class="metric {% if metric.alert %}alert{% endif %}">
+                  <strong>{{ metric.value }}</strong>
+                  <span>{{ metric.label }}</span>
+                </div>
+                {% endfor %}
+              </div>
             </div>
           </div>
-        </div>
-        <div class="module-footer">
-          <span class="card-action">{{ card.action }} →</span>
-          <span class="settings-hint">состав карточки позже можно настраивать</span>
-        </div>
-      </a>
+          <div class="module-footer">
+            <span class="card-action">{{ card.action }}{% if card.enabled %} →{% endif %}</span>
+            <span class="document-link">{{ card.document }}</span>
+          </div>
+        {% if card.enabled %}
+        </a>
+        {% else %}
+        </article>
+        {% endif %}
       {% endfor %}
     </div>
   </main>
