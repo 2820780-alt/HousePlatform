@@ -33,6 +33,7 @@ from app.models.material_category_schema import MaterialCategorySchema
 from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.material_specification import MaterialSpecification
+from app.models.knowledge_candidate import KnowledgeCandidate
 from app.models.price_history import PriceHistory
 from app.models.rule_memory import RuleMemory
 from app.models.source import Source
@@ -49,6 +50,7 @@ from app.models.supplier_upload_row import SupplierUploadRow
 from app.models.unit import Unit
 from app.models.unit_alias import UnitAlias
 from app.models.unit_conversion import UnitConversion
+from app.models.unit_conversion_rule import UnitConversionRule
 from app.models.user import User
 
 __all__ = [
@@ -70,6 +72,7 @@ __all__ = [
     "MaterialDocument",
     "MaterialMatchCandidate",
     "MaterialSpecification",
+    "KnowledgeCandidate",
     "MaterialStatus",
     "PriceHistory",
     "RuleMemory",
@@ -94,6 +97,7 @@ __all__ = [
     "Unit",
     "UnitAlias",
     "UnitConversion",
+    "UnitConversionRule",
     "UnitType",
     "UploadFileType",
     "UploadRowStatus",
