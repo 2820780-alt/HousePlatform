@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -14,6 +15,9 @@ from app.models.enums import (
     MaterialStatus,
     SourceActionType,
     SourceStatus,
+    UploadFileType,
+    UploadRowStatus,
+    UploadStatus,
     TaskLogLevel,
     TaskResultType,
     TaskStatus,
@@ -27,6 +31,11 @@ from app.models.price_history import PriceHistory
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
+from app.models.supplier_price import SupplierPrice
+from app.models.supplier_upload import SupplierUpload
+from app.models.supplier_upload_row import SupplierUploadRow
+from app.processing.file_parser import parse_file
+from app.processing.file_validator import FileType
 from app.source_integrations import get_integration
 from app.source_integrations.base import SourceDocument, SourceProduct
 from app.services.material_classification import (
@@ -52,6 +61,24 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
         raise ValueError(f"SourceTask not found: {task_id}")
     if not task.source:
         raise ValueError("SourceTask has no source")
+
+    if task.action_type == SourceActionType.UPLOAD_SUPPLIER_FILE:
+        task.status = TaskStatus.RUNNING
+        task.started_at = datetime.utcnow()
+        task.error_message = None
+        db.add(task)
+        await _log(db, task, TaskLogLevel.INFO, "Started supplier file upload processing")
+        try:
+            await _run_supplier_upload(db, task)
+            task.status = TaskStatus.COMPLETED
+            task.finished_at = datetime.utcnow()
+            db.add(task)
+            await _log(db, task, TaskLogLevel.INFO, "Supplier file upload processing completed")
+        except Exception as exc:
+            await _fail_task(db, task, str(exc))
+        await db.flush()
+        await db.refresh(task)
+        return task
 
     integration = get_integration(task.source)
     if not integration:
@@ -166,6 +193,170 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
     }
     _mark_source_timestamp(task)
     db.add(task.source)
+
+
+async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
+    payload = {}
+    if task.parameters:
+        payload.update(task.parameters)
+    if task.result_summary:
+        payload.update(task.result_summary)
+
+    upload_id = payload.get("supplier_upload_id")
+    if not upload_id:
+        raise ValueError("Supplier upload id is missing")
+
+    result = await db.execute(
+        select(SupplierUpload)
+        .options(selectinload(SupplierUpload.rows))
+        .where(SupplierUpload.id == UUID(str(upload_id)))
+    )
+    upload = result.scalar_one_or_none()
+    if not upload:
+        raise ValueError(f"SupplierUpload not found: {upload_id}")
+    if not upload.supplier_id:
+        raise ValueError("SupplierUpload has no supplier_id")
+    if upload.status == UploadStatus.PROCESSED and upload.rows_processed > 0:
+        task.result_summary = {
+            "supplier_upload_id": str(upload.id),
+            "rows_total": upload.rows_total,
+            "rows_processed": upload.rows_processed,
+            "rows_matched": upload.rows_matched,
+            "rows_needs_review": upload.rows_needs_review,
+            "rows_errors": upload.rows_errors,
+            "note": "Upload was already processed",
+        }
+        await _result(db, task, TaskResultType.UNCHANGED, entity_type="SupplierUpload", entity_id=upload.id, status="already_processed")
+        return
+
+    if not upload.file_url:
+        raise ValueError("SupplierUpload has no saved file path")
+    file_path = Path(upload.file_url)
+    if not file_path.exists():
+        raise ValueError(f"Uploaded file is not available: {upload.file_url}")
+
+    upload.status = UploadStatus.PROCESSING
+    db.add(upload)
+    await db.flush()
+
+    file_type = _parser_file_type(upload.file_type)
+    parsed = parse_file(file_path.read_bytes(), file_type)
+    await _log(
+        db,
+        task,
+        TaskLogLevel.INFO,
+        f"Parsed supplier file rows: {parsed.total_rows_found}; sheets: {parsed.sheets_parsed}",
+        {"errors": parsed.errors[:10]},
+    )
+
+    matched = 0
+    needs_review = 0
+    errors = len(parsed.errors)
+    processed = 0
+
+    for parsed_row in parsed.rows:
+        processed += 1
+        row = SupplierUploadRow(
+            upload_id=upload.id,
+            row_number=parsed_row.row_number,
+            raw_name=parsed_row.original_name,
+            normalized_name=_normalize(parsed_row.original_name or ""),
+            raw_brand=parsed_row.brand,
+            raw_manufacturer=parsed_row.manufacturer,
+            raw_unit=parsed_row.original_unit,
+            raw_price=parsed_row.original_price,
+            raw_quantity=parsed_row.quantity,
+            raw_article=parsed_row.sku,
+            parsed_data=parsed_row.raw_data,
+            status=UploadRowStatus.EXTRACTED,
+        )
+
+        try:
+            material = await _match_upload_material(db, parsed_row.original_name)
+            if not material:
+                row.status = UploadRowStatus.NEEDS_REVIEW
+                row.error_message = "Материал не найден в канонической базе"
+                needs_review += 1
+                db.add(row)
+                await db.flush()
+                await _result(
+                    db,
+                    task,
+                    TaskResultType.NEEDS_REVIEW,
+                    entity_type="SupplierUploadRow",
+                    entity_id=row.id,
+                    status="material_not_found",
+                    new_value=_upload_row_snapshot(row),
+                )
+                continue
+
+            row.material_id = material.id
+            row.match_confidence = Decimal("1.0")
+            row.status = UploadRowStatus.MATCHED
+            matched += 1
+            db.add(row)
+            await db.flush()
+
+            if parsed_row.original_price is not None:
+                await _upsert_supplier_price_from_upload(db, upload, row, parsed_row.original_price, payload)
+                await _write_supplier_price_history_from_upload(db, upload, row, parsed_row.original_price, payload)
+
+            await _result(
+                db,
+                task,
+                TaskResultType.UPDATED if parsed_row.original_price is not None else TaskResultType.UNCHANGED,
+                entity_type="SupplierUploadRow",
+                entity_id=row.id,
+                status="matched",
+                new_value=_upload_row_snapshot(row),
+            )
+        except Exception as exc:
+            row.status = UploadRowStatus.ERROR
+            row.error_message = str(exc)
+            errors += 1
+            db.add(row)
+            await db.flush()
+            await _result(
+                db,
+                task,
+                TaskResultType.ERROR,
+                entity_type="SupplierUploadRow",
+                entity_id=row.id,
+                status="error",
+                new_value=_upload_row_snapshot(row),
+            )
+
+    upload.rows_total = parsed.total_rows_found
+    upload.rows_processed = processed
+    upload.rows_matched = matched
+    upload.rows_needs_review = needs_review
+    upload.rows_errors = errors
+    upload.status = (
+        UploadStatus.PROCESSED
+        if processed and not needs_review and not errors
+        else UploadStatus.PARTIALLY_PROCESSED
+        if processed
+        else UploadStatus.FAILED
+    )
+    db.add(upload)
+    task.result_summary = {
+        "supplier_upload_id": str(upload.id),
+        "rows_total": upload.rows_total,
+        "rows_processed": upload.rows_processed,
+        "rows_matched": upload.rows_matched,
+        "rows_needs_review": upload.rows_needs_review,
+        "rows_errors": upload.rows_errors,
+        "parse_errors": parsed.errors[:10],
+    }
+    await _result(
+        db,
+        task,
+        TaskResultType.UPDATED,
+        entity_type="SupplierUpload",
+        entity_id=upload.id,
+        status=upload.status.value,
+        new_value=task.result_summary,
+    )
 
 
 async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) -> None:
@@ -478,6 +669,153 @@ async def _write_price_history(db: AsyncSession, catalog_product: CatalogProduct
         availability=catalog_product.availability,
     )
     db.add(history)
+
+
+def _parser_file_type(file_type: UploadFileType) -> FileType:
+    if file_type == UploadFileType.CSV:
+        return FileType.CSV
+    if file_type == UploadFileType.XLSX:
+        return FileType.XLSX
+    raise ValueError(f"Unsupported upload file type: {file_type}")
+
+
+async def _match_upload_material(db: AsyncSession, raw_name: str | None) -> Material | None:
+    if not raw_name:
+        return None
+    normalized = _normalize(raw_name)
+
+    alias_result = await db.execute(
+        select(MaterialAlias)
+        .options(selectinload(MaterialAlias.material))
+        .where(MaterialAlias.normalized_name == normalized)
+        .limit(1)
+    )
+    alias = alias_result.scalar_one_or_none()
+    if alias and alias.material:
+        return alias.material
+
+    result = await db.execute(
+        select(Material)
+        .where(func.lower(Material.canonical_name) == normalized)
+        .limit(1)
+    )
+    material = result.scalar_one_or_none()
+    if material:
+        return material
+
+    classification = classify_catalog_product(CatalogProduct(raw_name=raw_name))
+    if classification.canonical_name:
+        result = await db.execute(
+            select(Material)
+            .where(func.lower(Material.canonical_name) == _normalize(classification.canonical_name))
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+    return None
+
+
+async def _upsert_supplier_price_from_upload(
+    db: AsyncSession,
+    upload: SupplierUpload,
+    row: SupplierUploadRow,
+    price: Decimal,
+    payload: dict,
+) -> None:
+    if not row.material_id or not upload.supplier_id:
+        return
+    unit = row.raw_unit or payload.get("unit")
+    region = payload.get("region") or payload.get("city")
+
+    result = await db.execute(
+        select(SupplierPrice)
+        .where(SupplierPrice.supplier_id == upload.supplier_id)
+        .where(SupplierPrice.material_id == row.material_id)
+        .where(SupplierPrice.unit == unit)
+        .where(SupplierPrice.region == region)
+        .limit(1)
+    )
+    supplier_price = result.scalar_one_or_none()
+    if not supplier_price:
+        supplier_price = SupplierPrice(
+            supplier_id=upload.supplier_id,
+            material_id=row.material_id,
+            price=price,
+            currency=payload.get("currency") or "RUB",
+            unit=unit,
+            region=region,
+            availability=payload.get("availability") or "загружено из файла",
+            min_order_quantity=row.raw_quantity,
+            source_upload_id=upload.id,
+        )
+        db.add(supplier_price)
+        await db.flush()
+        return
+
+    supplier_price.price = price
+    supplier_price.currency = payload.get("currency") or supplier_price.currency or "RUB"
+    supplier_price.unit = unit
+    supplier_price.region = region
+    supplier_price.availability = payload.get("availability") or supplier_price.availability
+    supplier_price.min_order_quantity = row.raw_quantity or supplier_price.min_order_quantity
+    supplier_price.source_upload_id = upload.id
+    db.add(supplier_price)
+    await db.flush()
+
+
+async def _write_supplier_price_history_from_upload(
+    db: AsyncSession,
+    upload: SupplierUpload,
+    row: SupplierUploadRow,
+    price: Decimal,
+    payload: dict,
+) -> None:
+    if not row.material_id:
+        return
+    history = PriceHistory(
+        material_id=row.material_id,
+        catalog_product_id=None,
+        source_id=upload.source_id,
+        supplier_id=upload.supplier_id,
+        supplier_upload_id=upload.id,
+        price=price,
+        currency=payload.get("currency") or "RUB",
+        unit=row.raw_unit or payload.get("unit"),
+        region=payload.get("region") or payload.get("city"),
+        availability=payload.get("availability") or "загружено из файла",
+        price_date=_payload_price_date(payload),
+    )
+    db.add(history)
+    await db.flush()
+
+
+def _upload_row_snapshot(row: SupplierUploadRow) -> dict:
+    return {
+        "upload_id": str(row.upload_id),
+        "row_number": row.row_number,
+        "raw_name": row.raw_name,
+        "normalized_name": row.normalized_name,
+        "raw_price": str(row.raw_price) if row.raw_price is not None else None,
+        "raw_unit": row.raw_unit,
+        "raw_quantity": str(row.raw_quantity) if row.raw_quantity is not None else None,
+        "raw_article": row.raw_article,
+        "material_id": str(row.material_id) if row.material_id else None,
+        "status": row.status.value if row.status else None,
+        "error_message": row.error_message,
+    }
+
+
+def _payload_price_date(payload: dict) -> date | None:
+    value = payload.get("price_date")
+    if not value:
+        return None
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
 
 
 def _price_changed(old, new) -> bool:

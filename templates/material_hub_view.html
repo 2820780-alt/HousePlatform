@@ -187,6 +187,17 @@
       color: var(--muted);
       line-height: 1.4;
     }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .upload-note {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
     label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
     select, input, button {
       width: 100%;
@@ -406,6 +417,33 @@
       <div id="run-status"></div>
     </section>
 
+    <section>
+      <h2>Ручная загрузка прайса</h2>
+      <div class="upload-grid">
+        <div>
+          <label for="supplier-file">Файл CSV/XLSX</label>
+          <input id="supplier-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        </div>
+        <div>
+          <label for="supplier-name">Поставщик</label>
+          <input id="supplier-name" placeholder="Например: локальный поставщик">
+        </div>
+        <div>
+          <label for="supplier-region">Регион</label>
+          <input id="supplier-region" placeholder="Например: Краснодарский край">
+        </div>
+        <div>
+          <label for="supplier-city">Город</label>
+          <input id="supplier-city" placeholder="Например: Краснодар">
+        </div>
+        <div>
+          <button type="button" onclick="uploadSupplierFile()">Загрузить</button>
+        </div>
+      </div>
+      <div class="upload-note">Файл сохраняется, строки извлекаются, цены сопоставляются только с существующими материалами. Несопоставленные строки уйдут на проверку.</div>
+      <div id="upload-status"></div>
+    </section>
+
     <div class="dashboard">
       {% for card in dashboard_cards %}
       <a class="nav-card {{ card.tone }}" href="{{ card.href }}">
@@ -536,6 +574,39 @@
         .join("; ");
       status.textContent = "Готово. Завершено: " + completed + ", ошибок: " + failed + ". " + summary;
       setTimeout(() => window.location.reload(), 900);
+    }
+
+    async function uploadSupplierFile() {
+      const status = document.getElementById("upload-status");
+      const fileInput = document.getElementById("supplier-file");
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        status.style.display = "block";
+        status.textContent = "Выбери CSV или XLSX файл.";
+        return;
+      }
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("supplier_name", document.getElementById("supplier-name").value.trim() || "Ручная загрузка администратора");
+      form.append("region", document.getElementById("supplier-region").value.trim());
+      form.append("city", document.getElementById("supplier-city").value.trim());
+      form.append("process_now", "true");
+
+      status.style.display = "block";
+      status.textContent = "Загружаю и обрабатываю файл...";
+      const response = await fetch("/api/v1/dev/material-hub/upload-supplier-file", {
+        method: "POST",
+        body: form
+      });
+      if (!response.ok) {
+        status.textContent = "Ошибка загрузки: " + await response.text();
+        return;
+      }
+      const data = await response.json();
+      const summary = data.task && data.task.result_summary ? data.task.result_summary : {};
+      status.textContent = "Готово. Строк: " + (summary.rows_processed || 0) + ", сопоставлено: " + (summary.rows_matched || 0) + ", на проверку: " + (summary.rows_needs_review || 0) + ".";
+      setTimeout(() => window.location.reload(), 1200);
     }
 
     function toggleSourceSelection() {

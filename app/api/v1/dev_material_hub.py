@@ -3,7 +3,7 @@ from decimal import Decimal
 from uuid import UUID
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import selectinload
@@ -19,7 +19,10 @@ from app.models.enums import (
     SourceActionType,
     SourceStatus,
     SourceType,
+    SupplierStatus,
     TaskStatus,
+    UploadFileType,
+    UploadStatus,
 )
 from app.models.material import Material
 from app.models.material_alias import MaterialAlias
@@ -28,6 +31,8 @@ from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.price_history import PriceHistory
 from app.models.source import Source
 from app.models.source_task import SourceTask
+from app.models.supplier import Supplier
+from app.models.supplier_upload import SupplierUpload
 from app.schemas.material_hub import SourceRead, SourceTaskRead
 from app.services.source_task_runner import run_source_task
 from app.services.material_classification import (
@@ -41,6 +46,8 @@ from app.services.material_taxonomy import (
 )
 from app.services.rule_memory import build_rule_patterns, remember_material_rule
 from app.services.audit_service import log_event
+from app.processing.file_validator import validate_file
+from app.services.upload_storage import save_uploaded_file
 
 
 router = APIRouter(prefix="/dev/material-hub", tags=["dev-material-hub"])
@@ -137,6 +144,12 @@ class DevRunTaskResponse(BaseModel):
 
 class DevRunBatchTaskResponse(BaseModel):
     tasks: list[DevRunTaskResponse]
+
+
+class DevUploadSupplierFileResponse(BaseModel):
+    upload_id: UUID
+    source_id: UUID
+    task: SourceTaskRead
 
 
 class DevSourceManageRequest(BaseModel):
@@ -333,6 +346,70 @@ async def run_dev_material_hub_batch(data: DevRunBatchTaskRequest, db: DBSession
         task = await _create_and_run_task(db, source, data.action_type, parameters)
         results.append(DevRunTaskResponse(source=source, task=task))
     return DevRunBatchTaskResponse(tasks=results)
+
+
+@router.post("/upload-supplier-file", response_model=DevUploadSupplierFileResponse, status_code=201)
+async def upload_dev_supplier_file(
+    db: DBSession,
+    file: UploadFile = File(...),
+    supplier_name: str = Form("Ручная загрузка администратора"),
+    city: str | None = Form(None),
+    region: str | None = Form(None),
+    price_date: str | None = Form(None),
+    process_now: bool = Form(True),
+):
+    content = await file.read()
+    validation = validate_file(file.filename or "", file.content_type, len(content))
+    if not validation.valid:
+        raise HTTPException(status_code=422, detail=validation.error)
+
+    supplier = await _get_or_create_dev_supplier(db, supplier_name, city, region)
+    source = await _get_or_create_admin_upload_source(db, supplier.name)
+    upload = SupplierUpload(
+        supplier_id=supplier.id,
+        uploaded_by_user_id=None,
+        source_id=source.id,
+        file_name=file.filename or "upload",
+        file_type=UploadFileType(validation.file_type.value.upper()),
+        status=UploadStatus.UPLOADED,
+    )
+    db.add(upload)
+    await db.flush()
+    upload.file_url = save_uploaded_file(content, upload.file_name, upload.id)
+    db.add(upload)
+    await db.flush()
+
+    task = SourceTask(
+        source_id=source.id,
+        action_type=SourceActionType.UPLOAD_SUPPLIER_FILE,
+        status=TaskStatus.PENDING,
+        parameters={
+            "supplier_upload_id": str(upload.id),
+            "supplier_id": str(supplier.id),
+            "filename": upload.file_name,
+            "file_url": upload.file_url,
+            "file_type": validation.file_type.value,
+            "size_bytes": len(content),
+            "city": city,
+            "region": region,
+            "price_date": price_date,
+        },
+    )
+    db.add(task)
+    await db.flush()
+
+    if process_now:
+        task = await run_source_task(db, task.id)
+    else:
+        await db.refresh(task)
+
+    await log_event(db, "admin_supplier_upload_created", "SupplierUpload", upload.id, None, {
+        "source_task_id": str(task.id),
+        "source_id": str(source.id),
+        "supplier_id": str(supplier.id),
+    })
+    await db.refresh(task)
+    return DevUploadSupplierFileResponse(upload_id=upload.id, source_id=source.id, task=task)
 
 
 @router.post("/reclassify", response_model=DevReclassifyResponse)
@@ -979,6 +1056,62 @@ async def _get_or_create_manual_price_source(db: DBSession, source_name: str) ->
         name=name,
         source_type=SourceType.MANUAL_UPLOAD,
         priority=900,
+        status=SourceStatus.ACTIVE,
+    )
+    db.add(source)
+    await db.flush()
+    await db.refresh(source)
+    return source
+
+
+async def _get_or_create_dev_supplier(
+    db: DBSession,
+    supplier_name: str,
+    city: str | None,
+    region: str | None,
+) -> Supplier:
+    name = (supplier_name or "Ручная загрузка администратора").strip()
+    result = await db.execute(select(Supplier).where(Supplier.name == name))
+    supplier = result.scalar_one_or_none()
+    if supplier:
+        if city and supplier.city != city:
+            supplier.city = city
+        if region and supplier.region != region:
+            supplier.region = region
+        db.add(supplier)
+        await db.flush()
+        return supplier
+
+    supplier = Supplier(
+        name=name,
+        city=city,
+        region=region,
+        country="Россия",
+        status=SupplierStatus.POTENTIAL,
+        description="Создано через ручную загрузку администратора Material Hub",
+    )
+    db.add(supplier)
+    await db.flush()
+    await db.refresh(supplier)
+    return supplier
+
+
+async def _get_or_create_admin_upload_source(db: DBSession, supplier_name: str) -> Source:
+    source_name = f"manual-upload:{supplier_name}"
+    result = await db.execute(
+        select(Source).where(
+            Source.source_type == SourceType.MANUAL_UPLOAD,
+            Source.name == source_name,
+        )
+    )
+    source = result.scalar_one_or_none()
+    if source:
+        return source
+
+    source = Source(
+        name=source_name,
+        source_type=SourceType.MANUAL_UPLOAD,
+        priority=120,
         status=SourceStatus.ACTIVE,
     )
     db.add(source)

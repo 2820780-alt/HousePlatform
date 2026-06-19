@@ -171,18 +171,24 @@ def parse_csv(content: bytes) -> ParseResult:
     encodings = ["utf-8", "utf-8-sig", "cp1251", "latin-1"]
     separators = [",", ";", "\t", "|"]
     df = None
+    fallback_df = None
 
     for encoding in encodings:
         for sep in separators:
             try:
                 candidate = pd.read_csv(io.BytesIO(content), encoding=encoding, sep=sep, on_bad_lines="skip")
-                if candidate.shape[1] >= 1 and len(candidate) > 0:
+                if candidate.shape[1] >= 2 and len(candidate) > 0:
                     df = candidate
                     break
+                if fallback_df is None and candidate.shape[1] >= 1 and len(candidate) > 0:
+                    fallback_df = candidate
             except Exception:
                 continue
         if df is not None:
             break
+
+    if df is None:
+        df = fallback_df
 
     if df is None:
         return ParseResult(

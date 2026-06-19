@@ -22,6 +22,7 @@ from app.processing.file_validator import validate_file
 from app.schemas.common import PaginatedResponse
 from app.schemas.material_hub import SupplierUploadRead
 from app.services.audit_service import log_event
+from app.services.upload_storage import save_uploaded_file
 
 router = APIRouter(prefix="/supplier", tags=["supplier-upload"])
 
@@ -92,6 +93,9 @@ async def upload_document(
     )
     db.add(upload)
     await db.flush()
+    upload.file_url = save_uploaded_file(content, upload.file_name, upload.id)
+    db.add(upload)
+    await db.flush()
     await db.refresh(upload)
 
     task = SourceTask(
@@ -103,6 +107,7 @@ async def upload_document(
             "supplier_upload_id": str(upload.id),
             "supplier_id": str(supplier_id),
             "filename": file.filename,
+            "file_url": upload.file_url,
             "file_type": validation.file_type.value,
             "size_bytes": len(content),
             "city": city,

@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from app.processing.file_parser import parse_file
 from app.processing.file_validator import FileType, validate_file
 
 
@@ -72,3 +75,14 @@ def test_max_allowed_size_passes():
         size_50mb,
     )
     assert r.valid is True
+
+
+def test_semicolon_csv_price_is_split_into_columns():
+    content = "наименование;цена;единица\nOSB 2440x1220x12;1234.50;лист\n".encode("utf-8")
+
+    result = parse_file(content, FileType.CSV)
+
+    assert result.total_rows_found == 1
+    assert result.rows[0].original_name == "OSB 2440x1220x12"
+    assert result.rows[0].original_price == Decimal("1234.50")
+    assert result.rows[0].original_unit == "лист"
