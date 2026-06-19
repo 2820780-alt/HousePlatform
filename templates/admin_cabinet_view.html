@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кабинет администратора · HousePlatform</title>
+  <style>
+    :root { --bg:#090f24; --surface:rgba(23,31,67,.86); --surface-2:rgba(15,23,52,.92); --line:rgba(125,156,255,.22); --text:#eef6ff; --muted:#95a3c6; --accent:#10d7e8; --blue:#5b7cfa; --amber:#f5a524; --red:#ff3b7f; --shadow:0 18px 45px rgba(0,0,0,.35); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at top left, rgba(16,215,232,.18), transparent 34%), radial-gradient(circle at top right, rgba(255,59,127,.13), transparent 30%), linear-gradient(135deg,#090f24 0%,#111942 58%,#1b1538 100%); color:var(--text); font-family:Arial, Helvetica, sans-serif; font-size:14px; }
+    header { border-bottom:1px solid var(--line); background:rgba(10,16,38,.86); backdrop-filter:blur(18px); padding:16px 24px; position:sticky; top:0; z-index:2; }
+    main { padding:18px 24px 40px; }
+    h1 { margin:0 0 4px; font-size:22px; }
+    a { color:var(--accent); }
+    .muted { color:var(--muted); }
+    .dashboard { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+    .nav-card { min-height:150px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-decoration:none; color:var(--text); background:linear-gradient(145deg,var(--surface),var(--surface-2)); border:1px solid var(--line); border-left:5px solid var(--line); border-radius:6px; box-shadow:var(--shadow); transition:transform .16s ease, box-shadow .16s ease; }
+    .nav-card:hover { transform:translateY(-2px); box-shadow:0 22px 60px rgba(0,0,0,.45); }
+    .nav-card.ok { border-left-color:var(--accent); }
+    .nav-card.info { border-left-color:var(--blue); }
+    .nav-card.warn { border-left-color:var(--amber); }
+    .nav-card.danger { border-left-color:var(--red); }
+    .nav-card strong { display:block; font-size:16px; margin-bottom:6px; }
+    .nav-value { font-size:32px; line-height:1; font-weight:700; margin-bottom:7px; }
+    .card-action { display:inline-flex; width:max-content; margin-top:14px; padding:7px 10px; border:1px solid rgba(16,215,232,.45); border-radius:5px; color:var(--text); background:rgba(16,215,232,.1); font-weight:600; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Кабинет администратора</h1>
+    <div class="muted">Модуль 16 · единая панель администратора и модератора для включенных модулей.</div>
+  </header>
+
+  <main>
+    <div class="dashboard">
+      {% for card in cards %}
+      <a class="nav-card {{ card.tone }}" href="{{ card.href }}">
+        <div>
+          <strong>{{ card.title }}</strong>
+          <div class="nav-value">{{ card.value }}</div>
+          <span class="muted">{{ card.note }}</span>
+        </div>
+        <span class="card-action">{{ card.action }} →</span>
+      </a>
+      {% endfor %}
+    </div>
+  </main>
+</body>
+</html>

@@ -363,7 +363,6 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
         CatalogProduct,
         CatalogProduct.status == CatalogProductStatus.NEEDS_REVIEW,
     )
-    total_prices = await _count_model(db, PriceHistory)
     total_sources = await _count_model(db, Source)
 
     return [
@@ -410,14 +409,6 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
             "href": "/api/v1/admin/material-hub/view/products",
             "action": "Смотреть карточки",
             "tone": "warn" if products_needs_review else "info",
-        },
-        {
-            "title": "Динамика цен",
-            "value": total_prices,
-            "note": "история, изменения и первые аналитические срезы",
-            "href": "/api/v1/admin/price-dynamics/view",
-            "action": "Открыть аналитику цен",
-            "tone": "info",
         },
         {
             "title": "Источники",

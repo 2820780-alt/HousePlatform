@@ -37,6 +37,7 @@ async def price_dynamics_view(request: Request, db: DBSession):
             "materials_without_history": max(total_materials - materials_with_history, 0),
             "trend_rows": trend_rows,
             "category_rows": _build_category_rows(trend_rows),
+            "price_series": _build_price_series(rows),
         },
     )
 
@@ -129,6 +130,40 @@ def _build_category_rows(trend_rows: list[dict]) -> list[dict]:
             "avg_percent": avg_percent,
         })
     return sorted(category_rows, key=lambda item: item["category"])
+
+
+def _build_price_series(rows: list[dict]) -> list[dict]:
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        grouped[str(row["material"].id)].append(row)
+
+    series: list[dict] = []
+    for material_id, material_rows in grouped.items():
+        if len(material_rows) < 2:
+            continue
+        sorted_rows = sorted(material_rows, key=lambda item: item["price"].collected_at)
+        material = sorted_rows[-1]["material"]
+        category = sorted_rows[-1]["category"]
+        source = sorted_rows[-1]["source"]
+        points = [
+            {
+                "date": _format_datetime(item["price"].collected_at),
+                "price": float(item["price"].price),
+                "currency": item["price"].currency,
+            }
+            for item in sorted_rows
+        ]
+        series.append({
+            "material_id": material_id,
+            "name": material.canonical_name,
+            "category": category.name if category else "",
+            "manufacturer": material.manufacturer or "",
+            "region": sorted_rows[-1]["price"].region or "",
+            "source": _source_display_name(source),
+            "points": points,
+        })
+
+    return sorted(series, key=lambda item: item["name"])[:100]
 
 
 def _percent_change(latest_price: Decimal, previous_price: Decimal | None) -> Decimal | None:

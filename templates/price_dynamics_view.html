@@ -28,14 +28,23 @@
     th { position:sticky; top:0; z-index:1; background:#111942; color:var(--muted); font-weight:600; }
     .up { color:var(--bad); }
     .down { color:var(--good); }
+    .chart-wrap { display:grid; grid-template-columns:minmax(0, 1fr) 260px; gap:14px; align-items:stretch; }
+    .chart-panel { min-height:280px; border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.48); padding:12px; }
+    .chart-meta { border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.48); padding:12px; }
+    svg { width:100%; height:240px; display:block; }
+    .chart-line { fill:none; stroke:var(--accent); stroke-width:3; }
+    .chart-area { fill:rgba(16,215,232,.12); }
+    .chart-axis { stroke:rgba(149,163,198,.35); stroke-width:1; }
+    .chart-point { fill:var(--accent); }
     .empty { color:var(--muted); padding:10px 0; }
+    @media (max-width:920px) { .chart-wrap { grid-template-columns:1fr; } }
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:760px; } }
   </style>
 </head>
 <body>
   <header>
     <h1>Динамика цен</h1>
-    <div class="muted"><a href="/api/v1/admin/material-hub/view">← Кабинет администратора</a> · данные берутся из Material Hub и PriceHistory.</div>
+    <div class="muted"><a href="/api/v1/admin/cabinet/view">← Кабинет администратора</a> · <a href="/api/v1/admin/material-hub/view">Модуль 1 · Material Hub</a> · данные берутся из Material Hub и PriceHistory.</div>
   </header>
 
   <main>
@@ -66,6 +75,34 @@
           <input id="trend-region" oninput="filterTrends()" placeholder="Например: Краснодар">
         </div>
       </div>
+    </section>
+
+    <section>
+      <h2>График материала</h2>
+      {% if price_series %}
+      <div class="filters">
+        <div>
+          <label for="chart-material">Материал</label>
+          <select id="chart-material" onchange="renderPriceChart()">
+            {% for item in price_series %}
+              <option value="{{ item.material_id }}">{{ item.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-panel">
+          <svg id="price-chart" viewBox="0 0 760 240" role="img" aria-label="График изменения цены"></svg>
+        </div>
+        <div class="chart-meta">
+          <h2 id="chart-title">Материал</h2>
+          <div class="muted" id="chart-description"></div>
+          <div style="margin-top:12px" id="chart-change"></div>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty">Для графика нужна минимум две точки истории цены по одному материалу.</div>
+      {% endif %}
     </section>
 
     <section>
@@ -121,6 +158,50 @@
   </main>
 
   <script>
+    const PRICE_SERIES = {{ price_series|tojson }};
+
+    function renderPriceChart() {
+      const select = document.getElementById("chart-material");
+      const svg = document.getElementById("price-chart");
+      if (!select || !svg || !PRICE_SERIES.length) return;
+
+      const selected = PRICE_SERIES.find((item) => item.material_id === select.value) || PRICE_SERIES[0];
+      const points = selected.points || [];
+      const width = 760;
+      const height = 240;
+      const pad = 28;
+      const prices = points.map((point) => Number(point.price));
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const span = max - min || 1;
+      const xStep = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
+      const coords = points.map((point, index) => {
+        const x = pad + index * xStep;
+        const y = height - pad - ((Number(point.price) - min) / span) * (height - pad * 2);
+        return { x, y, point };
+      });
+      const line = coords.map((item) => `${item.x},${item.y}`).join(" ");
+      const area = `${pad},${height - pad} ${line} ${width - pad},${height - pad}`;
+
+      svg.innerHTML = `
+        <line class="chart-axis" x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}"></line>
+        <line class="chart-axis" x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}"></line>
+        <polygon class="chart-area" points="${area}"></polygon>
+        <polyline class="chart-line" points="${line}"></polyline>
+        ${coords.map((item) => `<circle class="chart-point" cx="${item.x}" cy="${item.y}" r="4"><title>${item.point.date}: ${item.point.price} ${item.point.currency}</title></circle>`).join("")}
+        <text x="${pad}" y="18" fill="#95a3c6" font-size="12">${max}</text>
+        <text x="${pad}" y="${height - 8}" fill="#95a3c6" font-size="12">${min}</text>
+      `;
+
+      const first = points[0];
+      const last = points[points.length - 1];
+      const diff = Number(last.price) - Number(first.price);
+      const percent = Number(first.price) ? (diff / Number(first.price) * 100) : 0;
+      document.getElementById("chart-title").textContent = selected.name;
+      document.getElementById("chart-description").textContent = [selected.category, selected.manufacturer, selected.region, selected.source].filter(Boolean).join(" · ");
+      document.getElementById("chart-change").innerHTML = `Период: ${first.date} — ${last.date}<br>Изменение: <span class="${diff > 0 ? "up" : diff < 0 ? "down" : ""}">${diff.toFixed(2)} ${last.currency} · ${percent.toFixed(2)}%</span>`;
+    }
+
     function filterTrends() {
       const query = (document.getElementById("trend-search").value || "").toLocaleLowerCase();
       const category = (document.getElementById("trend-category").value || "").toLocaleLowerCase();
@@ -135,6 +216,8 @@
         row.style.display = ok ? "" : "none";
       });
     }
+
+    renderPriceChart();
   </script>
 </body>
 </html>
