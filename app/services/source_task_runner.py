@@ -30,9 +30,9 @@ from app.models.source_task_result import SourceTaskResult
 from app.source_integrations import get_integration
 from app.source_integrations.base import SourceDocument, SourceProduct
 from app.services.material_classification import (
+    assess_material_quality,
     apply_classification_categories,
     classify_catalog_product,
-    needs_specification_review,
 )
 from app.services.material_taxonomy import (
     infer_baucenter_taxonomy,
@@ -141,7 +141,7 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
             price_changes += 1
 
         matched = await _match_or_create_material(db, catalog_product)
-        if matched == "candidate":
+        if matched in {"candidate", "needs_review"}:
             candidates += 1
         if price_changed and catalog_product.material_id and catalog_product.price is not None:
             await _write_price_history(db, catalog_product, catalog_product.price)
@@ -352,7 +352,7 @@ async def _get_or_create_manufacturer(db: AsyncSession, name: str | None, offici
 async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogProduct) -> str:
     normalized = catalog_product.normalized_name or _normalize(catalog_product.raw_name)
     classification = classify_catalog_product(catalog_product)
-    needs_review = needs_specification_review(catalog_product, classification)
+    quality = assess_material_quality(catalog_product, classification)
     category, subcategory = await apply_classification_categories(db, classification)
     taxonomy_path = infer_baucenter_taxonomy(
         catalog_product.raw_name,
@@ -363,7 +363,8 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
     if classification.region and not catalog_product.region:
         catalog_product.region = classification.region
 
-    rule = await find_rule_for_product(db, catalog_product)
+    allowed_category_ids = {item.id for item in (category, subcategory) if item}
+    rule = await find_rule_for_product(db, catalog_product, allowed_category_ids)
     if rule and rule.material:
         material = rule.material
         catalog_product.material_id = material.id
@@ -386,6 +387,14 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
         await db.flush()
         return "matched_by_rule_memory"
 
+    if not quality.can_create_material:
+        catalog_product.material_id = None
+        catalog_product.match_confidence = Decimal(str(classification.confidence))
+        catalog_product.status = CatalogProductStatus.NEEDS_REVIEW
+        db.add(catalog_product)
+        await db.flush()
+        return "needs_review"
+
     alias_result = await db.execute(
         select(MaterialAlias)
         .options(selectinload(MaterialAlias.material))
@@ -406,10 +415,7 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
     if material:
         catalog_product.material_id = material.id
         catalog_product.match_confidence = Decimal("1.0")
-        catalog_product.status = CatalogProductStatus.NEEDS_REVIEW if needs_review else CatalogProductStatus.ACTIVE
-        if needs_review and material.status == MaterialStatus.AUTO_CREATED:
-            material.status = MaterialStatus.NEEDS_REVIEW
-            db.add(material)
+        catalog_product.status = CatalogProductStatus.ACTIVE
         await sync_extracted_specifications(
             db,
             material,
@@ -429,7 +435,7 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
         subcategory_id=subcategory.id if subcategory else None,
         brand=classification.brand,
         manufacturer=classification.manufacturer,
-        status=MaterialStatus.NEEDS_REVIEW if needs_review else MaterialStatus.AUTO_CREATED,
+        status=MaterialStatus.AUTO_CREATED,
     )
     db.add(material)
     await db.flush()
@@ -445,7 +451,7 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
 
     catalog_product.material_id = material.id
     catalog_product.match_confidence = Decimal("1.0")
-    catalog_product.status = CatalogProductStatus.NEEDS_REVIEW if needs_review else CatalogProductStatus.ACTIVE
+    catalog_product.status = CatalogProductStatus.ACTIVE
     db.add(catalog_product)
     await sync_extracted_specifications(
         db,

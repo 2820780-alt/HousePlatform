@@ -71,7 +71,11 @@ async def remember_material_rule(
     await db.flush()
 
 
-async def find_rule_for_product(db: AsyncSession, product: CatalogProduct) -> RuleMemory | None:
+async def find_rule_for_product(
+    db: AsyncSession,
+    product: CatalogProduct,
+    allowed_category_ids: set[UUID] | None = None,
+) -> RuleMemory | None:
     product_patterns = build_rule_patterns(product.raw_name, product.normalized_name, product.raw_category)
     if not product_patterns:
         return None
@@ -82,6 +86,8 @@ async def find_rule_for_product(db: AsyncSession, product: CatalogProduct) -> Ru
     )
     rules = list(result.scalars().all())
     for rule in rules:
+        if allowed_category_ids is not None and rule.category_id and rule.category_id not in allowed_category_ids:
+            continue
         rule_pattern = normalize_rule_pattern(rule.normalized_pattern)
         if not rule_pattern:
             continue

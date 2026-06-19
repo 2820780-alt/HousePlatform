@@ -29,6 +29,13 @@ class MaterialClassification:
     rule_code: str = "fallback"
 
 
+@dataclass(frozen=True)
+class MaterialQualityDecision:
+    can_create_material: bool
+    needs_review: bool
+    reason: str
+
+
 CITY_FORMS = {
     "краснодаре": "Краснодар",
     "москве": "Москва",
@@ -37,6 +44,17 @@ CITY_FORMS = {
     "новороссийске": "Новороссийск",
     "сочи": "Сочи",
 }
+
+
+CATEGORY_PAGE_MARKERS = [
+    "для дома",
+    "каталог",
+    "материалы кнауф",
+    "металлические профили кнауф",
+    "профили для гипсокартона",
+    "огнезащитные материалы кнауф",
+    "фасады для дома",
+]
 
 
 KNauf_REVIEW_MARKERS = [
@@ -52,6 +70,24 @@ KNauf_REVIEW_MARKERS = [
     "профили",
     "огнезащитные материалы",
 ]
+
+
+def assess_material_quality(product: CatalogProduct, classification: MaterialClassification) -> MaterialQualityDecision:
+    text = f"{product.raw_name or ''} {product.raw_category or ''} {product.external_url or ''}".lower()
+    name = (product.raw_name or "").strip()
+
+    if not name:
+        return MaterialQualityDecision(False, True, "Нет названия товара")
+    if classification.rule_code == "fallback" or classification.category_path is None:
+        return MaterialQualityDecision(False, True, "Категория не определена")
+    if _looks_like_catalog_section(name, text):
+        return MaterialQualityDecision(False, True, "Похоже на раздел каталога, а не на товар")
+    if classification.confidence < 0.72:
+        return MaterialQualityDecision(False, True, "Низкая уверенность классификации")
+    if needs_specification_review(product, classification):
+        return MaterialQualityDecision(False, True, "Недостаточно характеристик для автосоздания Material")
+
+    return MaterialQualityDecision(True, False, "Достаточно данных для автосоздания Material")
 
 
 def needs_specification_review(product: CatalogProduct, classification: MaterialClassification) -> bool:
@@ -75,7 +111,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
 
     if product.raw_category and taxonomy_path:
         return MaterialClassification(
-            canonical_name=_normalize_product_line_name(name_without_region),
+            canonical_name=_normalize_by_taxonomy(name_without_region, text, taxonomy_path),
             category_path=_taxonomy_category_path(taxonomy_path),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
@@ -520,6 +556,37 @@ def _normalize_product_line_name(name: str) -> str:
     cleaned = re.sub(r"\bгост\s*[\d\-: ]+", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\bфинальная распродажа\b", "", cleaned, flags=re.IGNORECASE)
     return re.sub(r"\s+", " ", cleaned).strip(" -")
+
+
+def _normalize_by_taxonomy(name: str, text: str, taxonomy_path: TaxonomyPath) -> str:
+    if taxonomy_path.product_type == "Газобетонные блоки":
+        size = _extract_size(text)
+        density = _extract_density(text)
+        parts = ["Газобетонный блок"]
+        if size:
+            parts.append(size)
+        if density:
+            parts.append(density)
+        return " ".join(parts)
+    if taxonomy_path.product_type == "OSB":
+        return _normalize_board_name(name, "OSB")
+    if taxonomy_path.product_type == "Силовой кабель":
+        return _normalize_cable_name(name)
+    if taxonomy_path.product_type in {"Лампы накаливания", "Лампы и светильники"} and "лампа" in text:
+        return _normalize_lamp_name(name)
+    return _normalize_product_line_name(name)
+
+
+def _looks_like_catalog_section(name: str, text: str) -> bool:
+    normalized_name = name.strip().lower()
+    if normalized_name in CATEGORY_PAGE_MARKERS:
+        return True
+    if any(marker in normalized_name for marker in CATEGORY_PAGE_MARKERS):
+        return not _has_dimension_marker(text)
+    word_count = len(normalized_name.split())
+    if word_count <= 4 and not _has_dimension_marker(text) and not re.search(r"\d", normalized_name):
+        return _has_any(normalized_name, ["фасад", "профил", "материал", "кровля", "инструмент"])
+    return False
 
 
 def _format_cable_mark(value: str) -> str:
