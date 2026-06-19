@@ -331,12 +331,30 @@ def _passport(
     connections: str,
     metrics: list[dict] | None = None,
 ) -> dict:
+    display_names = {
+        1: "База материалов",
+        2: "База знаний",
+        3: "Аккаунты",
+        4: "Работы",
+        5: "Сметы",
+        6: "Проверка смет",
+        7: "Объект",
+        8: "Закупки",
+        9: "Тендеры",
+        10: "Маркетплейс",
+        11: "Аналитика",
+        12: "AI-помощник",
+        13: "Аудит",
+        14: "Динамика цен",
+        15: "Группы стройки",
+        16: "Кабинет",
+    }
     dashboard_metrics = metrics or []
     return {
         "number": number,
         "title": f"Модуль {number} · {name}",
         "module_name": name,
-        "short_title": f"Модуль {number}",
+        "display_name": display_names.get(number, name),
         "subtitle": subtitle,
         "description": description,
         "status": status,

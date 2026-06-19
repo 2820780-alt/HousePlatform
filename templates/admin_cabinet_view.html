@@ -123,8 +123,8 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 9px;
-      padding: 18px;
+      gap: 8px;
+      padding: 20px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
       border-radius: 50%;
       color: var(--text);
@@ -158,33 +158,34 @@
     .module-number {
       display: grid;
       place-items: center;
-      width: 42px;
-      height: 42px;
+      width: 34px;
+      height: 34px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
       border-radius: 50%;
       background: color-mix(in srgb, var(--card-accent) 15%, #071024);
       color: color-mix(in srgb, var(--card-accent) 74%, white);
       font-weight: 800;
+      font-size: 14px;
     }
-    .module-title { min-width: 0; max-width: 152px; }
-    .module-title strong { display: block; font-size: 15px; line-height: 1.16; }
+    .module-title { min-width: 0; max-width: 158px; }
+    .module-title strong { display: block; font-size: 16px; line-height: 1.15; }
     .module-title span { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
     .module-hint {
       color: var(--muted);
       font-size: 11px;
       line-height: 1.22;
       text-align: center;
-      max-width: 156px;
+      max-width: 148px;
     }
     .metric-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
-      width: 100%;
+      gap: 5px;
+      width: min(150px, 100%);
     }
     .mini-metric {
-      min-height: 43px;
-      padding: 6px;
+      min-height: 38px;
+      padding: 5px;
       border: 1px solid rgba(158, 184, 255, 0.14);
       border-radius: 6px;
       background: rgba(7, 13, 33, 0.38);
@@ -193,21 +194,8 @@
       border-color: rgba(245, 158, 11, 0.58);
       background: rgba(245, 158, 11, 0.1);
     }
-    .mini-metric strong { display: block; font-size: 16px; line-height: 1.05; overflow-wrap: anywhere; }
-    .mini-metric span { color: var(--muted); font-size: 10px; line-height: 1.12; }
-    .module-action {
-      display: inline-flex;
-      width: max-content;
-      max-width: 100%;
-      padding: 6px 9px;
-      border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
-      border-radius: 999px;
-      color: var(--text);
-      background: color-mix(in srgb, var(--card-accent) 11%, transparent);
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .module-node.future .module-action { display: none; }
+    .mini-metric strong { display: block; font-size: 15px; line-height: 1.05; overflow-wrap: anywhere; }
+    .mini-metric span { color: var(--muted); font-size: 9px; line-height: 1.1; }
     @media (max-width: 1100px) {
       header, main { padding-left: 16px; padding-right: 16px; }
       .orbit-shell {
@@ -269,8 +257,7 @@
           <div class="module-head">
             <div class="module-number">{{ card.number }}</div>
             <div class="module-title">
-              <strong>{{ card.short_title }}</strong>
-              <strong>{{ card.module_name }}</strong>
+              <strong>{{ card.display_name }}</strong>
               <span>{{ card.status }}</span>
             </div>
           </div>
@@ -285,7 +272,6 @@
             {% endfor %}
           </div>
           {% endif %}
-          <span class="module-action">Открыть -></span>
         </a>
       {% endfor %}
     </section>
