@@ -44,6 +44,28 @@
     main { padding: 18px 24px 40px; }
     a { color: var(--accent); }
     .top-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .module-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .module-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(16, 215, 232, 0.48);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 30%, rgba(16, 215, 232, 0.32), transparent 56%),
+        rgba(7, 13, 33, 0.62);
+      color: var(--accent);
+      font-weight: 800;
+      box-shadow: 0 0 26px rgba(16, 215, 232, 0.16);
+    }
+    .module-title-block h1 { margin: 0 0 3px; }
+    .module-title-block .muted { line-height: 1.35; }
     .muted { color: var(--muted); }
     section, .nav-card {
       background: linear-gradient(145deg, var(--surface), var(--surface-2));
@@ -275,11 +297,16 @@
 </head>
 <body>
   <header>
-    <h1>Material Hub</h1>
-    <div class="muted">Модуль 1 · сбор, обработка и хранение материалов, источников, документов и цен.</div>
+    <div class="module-identity">
+      <div class="module-mark">1</div>
+      <div class="module-title-block">
+        <h1>База материалов</h1>
+        <div class="muted">Сбор и хранение данных</div>
+      </div>
+    </div>
     <div class="top-links">
       <a href="/api/v1/admin/cabinet/view">← Кабинет администратора</a>
-      <a href="/api/v1/admin/price-dynamics/view">Модуль 14 · Динамика цен</a>
+      <a href="/api/v1/admin/price-dynamics/view">Динамика цен</a>
     </div>
   </header>
 

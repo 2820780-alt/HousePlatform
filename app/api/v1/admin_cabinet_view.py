@@ -350,6 +350,7 @@ def _passport(
         16: "Кабинет",
     }
     dashboard_metrics = metrics or []
+    events = _module_events(number, dashboard_metrics)
     return {
         "number": number,
         "title": f"Модуль {number} · {name}",
@@ -370,10 +371,56 @@ def _passport(
             {"label": "Документ", "value": document.split("/")[-1]},
         ],
         "dashboard_metrics": dashboard_metrics[:4],
+        "events": events,
         "implemented": bool(href),
         "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
     }
+
+
+def _module_events(number: int, metrics: list[dict]) -> list[dict]:
+    by_label = {str(metric.get("label", "")).lower(): metric for metric in metrics}
+
+    def metric_value(label_part: str, default=0):
+        for label, metric in by_label.items():
+            if label_part.lower() in label:
+                return metric.get("value", default)
+        return default
+
+    if number == 1:
+        pending = metric_value("спорные", 0)
+        active = metric_value("активные", 0)
+        events = []
+        if pending:
+            events.append({"kind": "warning", "label": "спорные", "value": pending})
+        if active:
+            events.append({"kind": "active", "label": "задачи", "value": active})
+        if not events:
+            events.append({"kind": "ok", "label": "данные", "value": "OK"})
+        return events
+
+    if number == 14:
+        points = metric_value("точек", 0)
+        market = metric_value("рынка", "")
+        events = [{"kind": "info", "label": "история", "value": points}]
+        if market:
+            events.append({"kind": "trend", "label": "рынок", "value": market})
+        return events
+
+    if number == 16:
+        active_modules = metric_value("активные", 0)
+        pending = metric_value("спорные", 0)
+        active_tasks = metric_value("задачи", 0)
+        events = [{"kind": "info", "label": "модули", "value": active_modules}]
+        if pending:
+            events.append({"kind": "warning", "label": "спорные", "value": pending})
+        if active_tasks:
+            events.append({"kind": "active", "label": "задачи", "value": active_tasks})
+        if len(events) == 1:
+            events.append({"kind": "ok", "label": "контур", "value": "OK"})
+        return events
+
+    return [{"kind": "ok", "label": "план", "value": "OK"}]
 
 
 def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
