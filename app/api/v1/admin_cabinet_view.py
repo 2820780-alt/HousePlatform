@@ -349,6 +349,24 @@ def _passport(
         15: "Группы стройки",
         16: "Кабинет",
     }
+    dashboard_descriptions = {
+        1: "Сбор и хранение данных",
+        2: "Технологии, нормы и правила",
+        3: "Пользователи и доступы",
+        4: "Работы и трудозатраты",
+        5: "Расчет стоимости работ",
+        6: "Контроль ошибок в сметах",
+        7: "Дом, объемы и элементы",
+        8: "Поставки и комплектация",
+        9: "Сбор предложений рынка",
+        10: "Витрина материалов и цен",
+        11: "Сводные показатели платформы",
+        12: "Помощь в поиске и анализе",
+        13: "История действий и изменений",
+        14: "История и изменение стоимости",
+        15: "Этапы и части строительства",
+        16: "Административный контур",
+    }
     dashboard_metrics = metrics or []
     events = _module_events(number, dashboard_metrics)
     return {
@@ -356,6 +374,7 @@ def _passport(
         "title": f"Модуль {number} · {name}",
         "module_name": name,
         "display_name": display_names.get(number, name),
+        "dashboard_description": dashboard_descriptions.get(number, subtitle),
         "subtitle": subtitle,
         "description": description,
         "status": status,
@@ -395,32 +414,29 @@ def _module_events(number: int, metrics: list[dict]) -> list[dict]:
             events.append({"kind": "warning", "label": "спорные", "value": pending})
         if active:
             events.append({"kind": "active", "label": "задачи", "value": active})
-        if not events:
-            events.append({"kind": "ok", "label": "данные", "value": "OK"})
         return events
 
     if number == 14:
         points = metric_value("точек", 0)
         market = metric_value("рынка", "")
-        events = [{"kind": "info", "label": "история", "value": points}]
+        events = []
+        if points:
+            events.append({"kind": "info", "label": "история", "value": points})
         if market:
             events.append({"kind": "trend", "label": "рынок", "value": market})
         return events
 
     if number == 16:
-        active_modules = metric_value("активные", 0)
         pending = metric_value("спорные", 0)
         active_tasks = metric_value("задачи", 0)
-        events = [{"kind": "info", "label": "модули", "value": active_modules}]
+        events = []
         if pending:
             events.append({"kind": "warning", "label": "спорные", "value": pending})
         if active_tasks:
             events.append({"kind": "active", "label": "задачи", "value": active_tasks})
-        if len(events) == 1:
-            events.append({"kind": "ok", "label": "контур", "value": "OK"})
         return events
 
-    return [{"kind": "ok", "label": "план", "value": "OK"}]
+    return []
 
 
 def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
