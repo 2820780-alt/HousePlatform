@@ -5,42 +5,206 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Кабинет администратора · HousePlatform</title>
   <style>
-    :root { --bg:#090f24; --surface:rgba(23,31,67,.86); --surface-2:rgba(15,23,52,.92); --line:rgba(125,156,255,.22); --text:#eef6ff; --muted:#95a3c6; --accent:#10d7e8; --blue:#5b7cfa; --amber:#f5a524; --red:#ff3b7f; --shadow:0 18px 45px rgba(0,0,0,.35); }
-    * { box-sizing:border-box; }
-    body { margin:0; background:radial-gradient(circle at top left, rgba(16,215,232,.18), transparent 34%), radial-gradient(circle at top right, rgba(255,59,127,.13), transparent 30%), linear-gradient(135deg,#090f24 0%,#111942 58%,#1b1538 100%); color:var(--text); font-family:Arial, Helvetica, sans-serif; font-size:14px; }
-    header { border-bottom:1px solid var(--line); background:rgba(10,16,38,.86); backdrop-filter:blur(18px); padding:16px 24px; position:sticky; top:0; z-index:2; }
-    main { padding:18px 24px 40px; }
-    h1 { margin:0 0 4px; font-size:22px; }
-    a { color:var(--accent); }
-    .muted { color:var(--muted); }
-    .dashboard { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
-    .nav-card { min-height:150px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-decoration:none; color:var(--text); background:linear-gradient(145deg,var(--surface),var(--surface-2)); border:1px solid var(--line); border-left:5px solid var(--line); border-radius:6px; box-shadow:var(--shadow); transition:transform .16s ease, box-shadow .16s ease; }
-    .nav-card:hover { transform:translateY(-2px); box-shadow:0 22px 60px rgba(0,0,0,.45); }
-    .nav-card.ok { border-left-color:var(--accent); }
-    .nav-card.info { border-left-color:var(--blue); }
-    .nav-card.warn { border-left-color:var(--amber); }
-    .nav-card.danger { border-left-color:var(--red); }
-    .nav-card strong { display:block; font-size:16px; margin-bottom:6px; }
-    .nav-value { font-size:32px; line-height:1; font-weight:700; margin-bottom:7px; }
-    .card-action { display:inline-flex; width:max-content; margin-top:14px; padding:7px 10px; border:1px solid rgba(16,215,232,.45); border-radius:5px; color:var(--text); background:rgba(16,215,232,.1); font-weight:600; }
+    :root {
+      --bg: #090f24;
+      --surface: rgba(22, 31, 69, 0.9);
+      --surface-2: rgba(13, 21, 50, 0.94);
+      --line: rgba(125, 156, 255, 0.22);
+      --text: #eef6ff;
+      --muted: #9ca9c9;
+      --accent: #10d7e8;
+      --blue: #5b7cfa;
+      --amber: #f5a524;
+      --red: #ff3b7f;
+      --soft: rgba(125, 156, 255, 0.12);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(16, 215, 232, 0.22), transparent 34%),
+        radial-gradient(circle at 82% 12%, rgba(245, 165, 36, 0.14), transparent 24%),
+        radial-gradient(circle at 70% 85%, rgba(255, 59, 127, 0.14), transparent 28%),
+        linear-gradient(135deg, #090f24 0%, #111942 55%, #191433 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+    header {
+      padding: 22px 28px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 14, 34, 0.82);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
+    h2 { margin: 0; font-size: 19px; letter-spacing: 0; }
+    a { color: var(--accent); }
+    main { padding: 22px 28px 44px; }
+    .muted { color: var(--muted); }
+    .workspace-note {
+      max-width: 920px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+    .module-card {
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(145deg, var(--surface), var(--surface-2));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+    .module-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(16, 215, 232, 0.48);
+      box-shadow: 0 30px 86px rgba(0, 0, 0, 0.48);
+    }
+    .module-band {
+      height: 7px;
+      background: linear-gradient(90deg, var(--accent), var(--blue));
+    }
+    .module-card.info .module-band { background: linear-gradient(90deg, var(--blue), var(--accent)); }
+    .module-body { padding: 18px; }
+    .module-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .module-kicker {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+    .module-description {
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 620px;
+    }
+    .module-icon {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(16, 215, 232, 0.35);
+      border-radius: 8px;
+      background: rgba(16, 215, 232, 0.1);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .metric {
+      min-height: 92px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(7, 13, 33, 0.54);
+    }
+    .metric.alert { border-color: rgba(245, 165, 36, 0.48); background: rgba(245, 165, 36, 0.08); }
+    .metric strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+      margin-bottom: 7px;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+    .module-footer {
+      padding: 0 18px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .card-action {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      padding: 8px 12px;
+      border: 1px solid rgba(16, 215, 232, 0.48);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(16, 215, 232, 0.1);
+      font-weight: 700;
+    }
+    .settings-hint {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+    @media (max-width: 900px) {
+      header, main { padding-left: 16px; padding-right: 16px; }
+      .modules-grid { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .module-card { min-height: 0; }
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Кабинет администратора</h1>
-    <div class="muted">Модуль 16 · единая панель администратора и модератора для включенных модулей.</div>
+    <div class="workspace-note">Модуль 16 · переходы только в включенные модули. Карточки показывают краткую выдержку и уведомления, а детализация остается внутри соответствующего модуля.</div>
   </header>
 
   <main>
-    <div class="dashboard">
+    <div class="modules-grid">
       {% for card in cards %}
-      <a class="nav-card {{ card.tone }}" href="{{ card.href }}">
+      <a class="module-card {{ card.tone }}" href="{{ card.href }}">
         <div>
-          <strong>{{ card.title }}</strong>
-          <div class="nav-value">{{ card.value }}</div>
-          <span class="muted">{{ card.note }}</span>
+          <div class="module-band"></div>
+          <div class="module-body">
+            <div class="module-top">
+              <div>
+                <div class="module-kicker">{{ card.subtitle }}</div>
+                <h2>{{ card.title }}</h2>
+              </div>
+              <div class="module-icon">{{ loop.index }}</div>
+            </div>
+            <div class="module-description">{{ card.description }}</div>
+            <div class="metric-grid">
+              {% for metric in card.metrics %}
+              <div class="metric {% if metric.alert %}alert{% endif %}">
+                <strong>{{ metric.value }}</strong>
+                <span>{{ metric.label }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
-        <span class="card-action">{{ card.action }} →</span>
+        <div class="module-footer">
+          <span class="card-action">{{ card.action }} →</span>
+          <span class="settings-hint">состав карточки позже можно настраивать</span>
+        </div>
       </a>
       {% endfor %}
     </div>
