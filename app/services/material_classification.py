@@ -167,7 +167,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
         canonical = _normalize_lamp_name(name_without_region)
         return MaterialClassification(
             canonical_name=canonical,
-            category_path=CategoryPath("Электротовары", "Освещение", "Лампы накаливания"),
+            category_path=CategoryPath("Электрика", "Освещение", "Лампы накаливания"),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -178,7 +178,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["kabel-vvg", "ввг", "кабель"]):
         return MaterialClassification(
             canonical_name=_normalize_cable_name(name_without_region),
-            category_path=CategoryPath("Электротовары", "Кабель и провод", "Силовой кабель"),
+            category_path=CategoryPath("Электрика", "Кабель и провод", "Силовой кабель"),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -200,7 +200,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["профиль", "профили", "profili metallicheskie"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Материалы для сухого строительства", "Профили для гипсокартона"),
+            category_path=CategoryPath("Профили и комплектующие", "Профили для гипсокартона"),
             brand=product.raw_brand or "Knauf",
             manufacturer=product.raw_manufacturer or "Knauf",
             region=region or product.region,
@@ -233,7 +233,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["гипсоволокнист", "гвл", "суперлист", "суперпол"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Листовые и плитные материалы", "Гипсоволокнистые листы"),
+            category_path=CategoryPath("Листовые и плитные материалы", "ГВЛ"),
             brand=product.raw_brand or "Knauf",
             manufacturer=product.raw_manufacturer or "Knauf",
             region=region or product.region,
@@ -244,7 +244,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["гипсокартон", "gipsokarton", "гипсоплита", "сайлентборд", "файерборд"]):
         return MaterialClassification(
             canonical_name=_normalize_sheet_name(name_without_region),
-            category_path=CategoryPath("Листовые и плитные материалы", "Гипсовые листовые материалы"),
+            category_path=CategoryPath("Листовые и плитные материалы", "ГКЛ"),
             brand=product.raw_brand or "Knauf",
             manufacturer=product.raw_manufacturer or "Knauf",
             region=region or product.region,
@@ -255,7 +255,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["акустика", "звукопоглощающая плита", "akustika"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Материалы для сухого строительства", "Акустические плиты"),
+            category_path=CategoryPath("Тепло/Звукоизоляция", "Акустические плиты"),
             brand=product.raw_brand or "Knauf",
             manufacturer=product.raw_manufacturer or "Knauf",
             region=region or product.region,
@@ -332,7 +332,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["каменная вата", "минеральная вата", "rocklight", "izovol", "техноблок", "плиты технические", "маты технические", "teploizolyaciya", "uteplit"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Теплоизоляция", "Каменная вата"),
+            category_path=CategoryPath("Тепло/Звукоизоляция", "Каменная вата"),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -343,7 +343,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     if _has_any(text, ["xps", "экструзион", "carbon eco"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Теплоизоляция", "XPS"),
+            category_path=CategoryPath("Тепло/Звукоизоляция", "XPS"),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -366,7 +366,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
             facade_category = "Декоративные фасадные системы"
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
-            category_path=CategoryPath("Фасады", facade_category, facade_subcategory),
+            category_path=CategoryPath("Фасад", facade_category, facade_subcategory),
             brand=product.raw_brand,
             manufacturer=product.raw_manufacturer,
             region=region or product.region,
@@ -582,17 +582,17 @@ def _dry_mix_category_path(text: str) -> CategoryPath:
     lower = text.lower()
     if _has_any(lower, ["шпатлев", "шпаклев"]):
         if _has_any(lower, ["полимер"]):
-            return CategoryPath("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки")
+            return CategoryPath("Сухие смеси", "Полимерные шпатлевки")
         if _has_any(lower, ["гипс"]):
-            return CategoryPath("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки")
-        return CategoryPath("Строительные материалы", "Сухие смеси", "Цементные шпатлевки")
+            return CategoryPath("Сухие смеси", "Гипсовые шпатлевки")
+        return CategoryPath("Сухие смеси", "Цементные шпатлевки")
     if _has_any(lower, ["штукатур"]):
         if _has_any(lower, ["гипс"]):
-            return CategoryPath("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки")
-        return CategoryPath("Строительные материалы", "Сухие смеси", "Цементные штукатурки")
+            return CategoryPath("Сухие смеси", "Гипсовые штукатурки")
+        return CategoryPath("Сухие смеси", "Цементные штукатурки")
     if _has_any(lower, ["газобетон", "ячеистого бетона", "kladki"]):
-        return CategoryPath("Строительные материалы", "Сухие смеси", "Клеи для кладки")
-    return CategoryPath("Строительные материалы", "Сухие смеси", "Сухие строительные смеси")
+        return CategoryPath("Сухие смеси", "Клеи для кладки")
+    return CategoryPath("Сухие смеси", "Сухие строительные смеси")
 
 
 def _normalize_sheet_name(name: str) -> str:
@@ -633,7 +633,8 @@ def _normalize_product_line_name(name: str) -> str:
 
 
 def _normalize_by_taxonomy(name: str, text: str, taxonomy_path: TaxonomyPath) -> str:
-    if taxonomy_path.product_type == "Газобетонные блоки":
+    leaf = taxonomy_path.product_type or taxonomy_path.category
+    if leaf == "Газобетонные блоки":
         size = _extract_size(text)
         density = _extract_density(text)
         parts = ["Газобетонный блок"]
@@ -642,11 +643,11 @@ def _normalize_by_taxonomy(name: str, text: str, taxonomy_path: TaxonomyPath) ->
         if density:
             parts.append(density)
         return " ".join(parts)
-    if taxonomy_path.product_type == "OSB":
+    if leaf == "OSB":
         return _normalize_board_name(name, "OSB")
-    if taxonomy_path.product_type == "Силовой кабель":
+    if leaf == "Силовой кабель":
         return _normalize_cable_name(name)
-    if taxonomy_path.product_type in {"Лампы накаливания", "Лампы и светильники"} and "лампа" in text:
+    if leaf in {"Лампы накаливания", "Лампы и светильники"} and "лампа" in text:
         if _has_any(text, ["светодиод", "led", " st8", "t8"]):
             return _normalize_led_lamp_name(name)
         if not _has_any(text, ["lampa-lon", "лампа лон", "лампа накаливания", "лон"]):

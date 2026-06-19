@@ -32,34 +32,35 @@ class SpecificationField:
 
 
 BAUCENTER_CATEGORY_MAP: tuple[tuple[tuple[str, ...], TaxonomyPath], ...] = (
-    (("плиты osb", "osb", "осп", "осб"), TaxonomyPath("Строительные материалы", "Листовые материалы", "OSB")),
-    (("фанера",), TaxonomyPath("Строительные материалы", "Листовые материалы", "Фанера")),
-    (("плиты хдф", "хдф", "hdf"), TaxonomyPath("Строительные материалы", "Листовые материалы", "ХДФ")),
-    (("гипсокартон", "гкл", "гипсоволокнист", "гвл"), TaxonomyPath("Строительные материалы", "Материалы для сухого строительства", "Гипсовые листы")),
-    (("профили для гипсокартона", "профиль потолочный", "профиль направляющий"), TaxonomyPath("Строительные материалы", "Материалы для сухого строительства", "Профили для гипсокартона")),
-    (("газобетон", "газобетонный блок", "стеновой блок", "bonolit", "vkblock", "вкблок"), TaxonomyPath("Строительные материалы", "Стеновые материалы", "Газобетонные блоки")),
-    (("шпатлевка гипсовая", "шпаклевка гипсовая"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки")),
-    (("шпатлевка полимерная", "шпаклевка полимерная", "полимерная шпатлевка"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки")),
-    (("шпатлев", "шпаклев", "шпатлевка цементная", "шпаклевка цементная"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Цементные шпатлевки")),
-    (("штукатурка гипсовая", "гипсовая штукатурка"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки")),
-    (("штукатур",), TaxonomyPath("Строительные материалы", "Сухие смеси", "Цементные штукатурки")),
-    (("клей для кладки", "кладочная смесь", "клей монтажный", "ячеистого бетона"), TaxonomyPath("Строительные материалы", "Сухие смеси", "Клеи для кладки")),
-    (("металлочереп", "монтеррей", "монтерей"), TaxonomyPath("Кровля и водосток", "Кровельные материалы", "Металлочерепица")),
-    (("гибкая черепица", "shinglas", "tegola"), TaxonomyPath("Кровля и водосток", "Кровельные материалы", "Гибкая черепица")),
-    (("снегозадерж", "snegozader"), TaxonomyPath("Кровля и водосток", "Комплектующие кровли", "Снегозадержатели")),
-    (("доборные элементы кровли", "конек", "ендова", "планка примыкания"), TaxonomyPath("Кровля и водосток", "Комплектующие кровли", "Доборные элементы")),
-    (("водосток", "желоб", "труба водосточная"), TaxonomyPath("Кровля и водосток", "Водосточные системы", "Комплектующие водостока")),
-    (("сайдинг",), TaxonomyPath("Фасады", "Фасадные материалы", "Сайдинг")),
-    (("фасадные панели",), TaxonomyPath("Фасады", "Фасадные материалы", "Фасадные панели")),
-    (("софит",), TaxonomyPath("Фасады", "Фасадные материалы", "Софиты")),
-    (("отлив", "доборные элементы фасада"), TaxonomyPath("Фасады", "Доборные элементы", "Отливы")),
+    (("плиты osb", "osb", "осп", "осб"), TaxonomyPath("Листовые и плитные материалы", "OSB")),
+    (("фанера",), TaxonomyPath("Листовые и плитные материалы", "Фанера")),
+    (("плиты хдф", "хдф", "hdf"), TaxonomyPath("Листовые и плитные материалы", "ХДФ")),
+    (("гипсокартон", "гкл"), TaxonomyPath("Листовые и плитные материалы", "ГКЛ")),
+    (("гипсоволокнист", "гвл"), TaxonomyPath("Листовые и плитные материалы", "ГВЛ")),
+    (("профили для гипсокартона", "профиль потолочный", "профиль направляющий"), TaxonomyPath("Профили и комплектующие", "Профили для гипсокартона")),
+    (("газобетон", "газобетонный блок", "стеновой блок", "bonolit", "vkblock", "вкблок"), TaxonomyPath("Стеновые материалы", "Газобетонные блоки")),
+    (("шпатлевка гипсовая", "шпаклевка гипсовая"), TaxonomyPath("Сухие смеси", "Гипсовые шпатлевки")),
+    (("шпатлевка полимерная", "шпаклевка полимерная", "полимерная шпатлевка"), TaxonomyPath("Сухие смеси", "Полимерные шпатлевки")),
+    (("шпатлев", "шпаклев", "шпатлевка цементная", "шпаклевка цементная"), TaxonomyPath("Сухие смеси", "Цементные шпатлевки")),
+    (("штукатурка гипсовая", "гипсовая штукатурка"), TaxonomyPath("Сухие смеси", "Гипсовые штукатурки")),
+    (("штукатур",), TaxonomyPath("Сухие смеси", "Цементные штукатурки")),
+    (("клей для кладки", "кладочная смесь", "клей монтажный", "ячеистого бетона"), TaxonomyPath("Сухие смеси", "Клеи для кладки")),
+    (("металлочереп", "монтеррей", "монтерей"), TaxonomyPath("Кровля", "Кровельные материалы", "Металлочерепица")),
+    (("гибкая черепица", "shinglas", "tegola"), TaxonomyPath("Кровля", "Гибкая черепица")),
+    (("снегозадерж", "snegozader"), TaxonomyPath("Кровля", "Комплектующие кровли", "Снегозадержатели")),
+    (("доборные элементы кровли", "конек", "ендова", "планка примыкания"), TaxonomyPath("Кровля", "Комплектующие кровли", "Доборные элементы")),
+    (("водосток", "желоб", "труба водосточная"), TaxonomyPath("Кровля", "Водосток", "Комплектующие водостока")),
+    (("сайдинг",), TaxonomyPath("Фасад", "Фасадные материалы", "Сайдинг")),
+    (("фасадные панели",), TaxonomyPath("Фасад", "Фасадные панели")),
+    (("софит",), TaxonomyPath("Фасад", "Софиты")),
+    (("отлив", "доборные элементы фасада"), TaxonomyPath("Фасад", "Доборные элементы", "Отливы")),
     (("саморезы с прессшайбой", "прессшайб"), TaxonomyPath("Крепеж", "Саморезы", "С прессшайбой")),
     (("саморезы для гипсокартона",), TaxonomyPath("Крепеж", "Саморезы", "Для гипсокартона")),
     (("саморезы семечки", "семечки для профиля"), TaxonomyPath("Крепеж", "Саморезы", "Для профиля")),
     (("саморез",), TaxonomyPath("Крепеж", "Саморезы", None)),
     (("анкеры", "анкер", "дюбель"), TaxonomyPath("Крепеж", "Анкеры и дюбели", None)),
-    (("лампа", "освещение", "светильник", "трековые"), TaxonomyPath("Электрика и освещение", "Освещение", "Лампы и светильники")),
-    (("кабель", "провод", "ввг"), TaxonomyPath("Электрика и освещение", "Кабель и провод", "Силовой кабель")),
+    (("лампа", "освещение", "светильник", "трековые"), TaxonomyPath("Электрика", "Освещение", "Лампы и светильники")),
+    (("кабель", "провод", "ввг"), TaxonomyPath("Электрика", "Кабель и провод", "Силовой кабель")),
     (("запчасти для смесителей", "прокладки", "смесител"), TaxonomyPath("Сантехника", "Смесители и комплектующие", "Запчасти и прокладки")),
     (("прокладки для труб",), TaxonomyPath("Сантехника", "Трубы и фитинги", "Прокладки")),
     (("душевые системы",), TaxonomyPath("Сантехника", "Душевые системы", None)),
@@ -71,7 +72,7 @@ BAUCENTER_CATEGORY_MAP: tuple[tuple[tuple[str, ...], TaxonomyPath], ...] = (
 
 
 SPECIFICATION_TEMPLATES: dict[tuple[str, str, str | None], tuple[SpecificationField, ...]] = {
-    ("Кровля и водосток", "Кровельные материалы", "Металлочерепица"): (
+    ("Кровля", "Кровельные материалы", "Металлочерепица"): (
         SpecificationField("Профиль", "profile", is_required=True, weight_for_matching=Decimal("1.8")),
         SpecificationField("Толщина", "thickness", "number", "мм", True, Decimal("2.0")),
         SpecificationField("Тип покрытия", "coating_type", is_required=True, weight_for_matching=Decimal("1.7")),
@@ -79,73 +80,73 @@ SPECIFICATION_TEMPLATES: dict[tuple[str, str, str | None], tuple[SpecificationFi
         SpecificationField("Длина", "length", "number", "мм", False, Decimal("0.8")),
         SpecificationField("Ширина полезная", "working_width", "number", "мм", False, Decimal("0.8")),
     ),
-    ("Кровля и водосток", "Кровельные материалы", "Гибкая черепица"): (
+    ("Кровля", "Гибкая черепица", None): (
         SpecificationField("Коллекция", "collection", is_required=True, weight_for_matching=Decimal("1.6")),
         SpecificationField("Форма нарезки", "cut_shape", weight_for_matching=Decimal("1.2")),
         SpecificationField("Цвет", "color", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Площадь упаковки", "package_area", "number", "м2", False, Decimal("0.8")),
     ),
-    ("Фасады", "Фасадные материалы", "Сайдинг"): (
+    ("Фасад", "Фасадные материалы", "Сайдинг"): (
         SpecificationField("Тип", "siding_type", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Профиль", "profile", weight_for_matching=Decimal("1.2")),
         SpecificationField("Цвет", "color", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Длина", "length", "number", "мм"),
     ),
-    ("Фасады", "Фасадные материалы", "Фасадные панели"): (
+    ("Фасад", "Фасадные панели", None): (
         SpecificationField("Фактура", "texture", is_required=True, weight_for_matching=Decimal("1.3")),
         SpecificationField("Коллекция", "collection", weight_for_matching=Decimal("1.1")),
         SpecificationField("Цвет", "color", is_required=True, weight_for_matching=Decimal("1.4")),
     ),
-    ("Фасады", "Доборные элементы", "Отливы"): (
+    ("Фасад", "Доборные элементы", "Отливы"): (
         SpecificationField("Ширина", "width", "number", "мм", True, Decimal("1.8")),
         SpecificationField("Толщина", "thickness", "number", "мм", True, Decimal("1.6")),
         SpecificationField("Покрытие", "coating_type", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Цвет RAL", "ral_color", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Длина", "length", "number", "м"),
     ),
-    ("Строительные материалы", "Стеновые материалы", "Газобетонные блоки"): (
+    ("Стеновые материалы", "Газобетонные блоки", None): (
         SpecificationField("Длина", "length", "number", "мм", True, Decimal("1.5")),
         SpecificationField("Ширина", "width", "number", "мм", True, Decimal("1.7")),
         SpecificationField("Высота", "height", "number", "мм", True, Decimal("1.5")),
         SpecificationField("Плотность", "density", is_required=True, weight_for_matching=Decimal("1.8")),
         SpecificationField("Класс прочности", "strength_class", weight_for_matching=Decimal("1.1")),
     ),
-    ("Строительные материалы", "Листовые материалы", "OSB"): (
+    ("Листовые и плитные материалы", "OSB", None): (
         SpecificationField("Толщина", "thickness", "number", "мм", True, Decimal("2.0")),
         SpecificationField("Длина", "length", "number", "мм", True, Decimal("1.2")),
         SpecificationField("Ширина", "width", "number", "мм", True, Decimal("1.2")),
         SpecificationField("Влагостойкость", "moisture_resistance", "boolean", None, False, Decimal("0.8")),
     ),
-    ("Строительные материалы", "Листовые материалы", "Фанера"): (
+    ("Листовые и плитные материалы", "Фанера", None): (
         SpecificationField("Толщина", "thickness", "number", "мм", True, Decimal("1.8")),
         SpecificationField("Сорт", "grade", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Марка", "plywood_mark", weight_for_matching=Decimal("1.2")),
         SpecificationField("Длина", "length", "number", "мм"),
         SpecificationField("Ширина", "width", "number", "мм"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Клеи для кладки"): (
+    ("Сухие смеси", "Клеи для кладки", None): (
         SpecificationField("Назначение", "application", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Вес мешка", "package_weight", "number", "кг", True, Decimal("1.2")),
         SpecificationField("Основание", "base_material", weight_for_matching=Decimal("1.1")),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Цементные шпатлевки"): (
+    ("Сухие смеси", "Цементные шпатлевки", None): (
         SpecificationField("Вес мешка", "package_weight", "number", "кг"),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Гипсовые шпатлевки"): (
+    ("Сухие смеси", "Гипсовые шпатлевки", None): (
         SpecificationField("Вес мешка", "package_weight", "number", "кг"),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Полимерные шпатлевки"): (
+    ("Сухие смеси", "Полимерные шпатлевки", None): (
         SpecificationField("Вес мешка", "package_weight", "number", "кг"),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Цементные штукатурки"): (
+    ("Сухие смеси", "Цементные штукатурки", None): (
         SpecificationField("Вес мешка", "package_weight", "number", "кг"),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
-    ("Строительные материалы", "Сухие смеси", "Гипсовые штукатурки"): (
+    ("Сухие смеси", "Гипсовые штукатурки", None): (
         SpecificationField("Вес мешка", "package_weight", "number", "кг"),
         SpecificationField("Расход", "consumption_rate", "number", "кг/м2"),
     ),
@@ -155,13 +156,13 @@ SPECIFICATION_TEMPLATES: dict[tuple[str, str, str | None], tuple[SpecificationFi
         SpecificationField("Наконечник", "tip_type", is_required=True, weight_for_matching=Decimal("1.2")),
         SpecificationField("Количество в упаковке", "package_quantity", "number", "шт"),
     ),
-    ("Кровля и водосток", "Комплектующие кровли", "Снегозадержатели"): (
+    ("Кровля", "Комплектующие кровли", "Снегозадержатели"): (
         SpecificationField("Тип", "snow_guard_type", is_required=True, weight_for_matching=Decimal("1.4")),
         SpecificationField("Длина", "length", "number", "м", False, Decimal("1.1")),
         SpecificationField("Покрытие", "coating_type", is_required=False, weight_for_matching=Decimal("1.1")),
         SpecificationField("Цвет RAL", "ral_color", is_required=False, weight_for_matching=Decimal("1.1")),
     ),
-    ("Электрика и освещение", "Кабель и провод", "Силовой кабель"): (
+    ("Электрика", "Кабель и провод", "Силовой кабель"): (
         SpecificationField("Марка кабеля", "cable_mark", is_required=True, weight_for_matching=Decimal("2.0")),
         SpecificationField("Количество жил", "cores", "number", "шт", True, Decimal("1.5")),
         SpecificationField("Сечение", "cross_section", "number", "мм2", True, Decimal("1.7")),

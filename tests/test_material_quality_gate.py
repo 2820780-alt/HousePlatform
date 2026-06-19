@@ -49,8 +49,9 @@ def test_aerated_concrete_name_region_and_quality():
     assert classification.canonical_name == "Газобетонный блок 625*200*250 D500"
     assert classification.region == "Краснодар"
     assert classification.category_path is not None
-    assert classification.category_path.category == "Стеновые материалы"
-    assert classification.category_path.subcategory == "Газобетонные блоки"
+    assert classification.category_path.parent == "Стеновые материалы"
+    assert classification.category_path.category == "Газобетонные блоки"
+    assert classification.category_path.subcategory is None
     assert quality.can_create_material is True
 
 

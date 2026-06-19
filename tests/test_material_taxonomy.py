@@ -14,9 +14,9 @@ def test_infer_baucenter_osb_category_and_filters():
     )
 
     assert path is not None
-    assert path.section == "Строительные материалы"
-    assert path.category == "Листовые материалы"
-    assert path.product_type == "OSB"
+    assert path.section == "Листовые и плитные материалы"
+    assert path.category == "OSB"
+    assert path.product_type is None
 
     values = extract_specification_values("Плита OSB влагостойкая 2440х1220х12 мм", "Плиты OSB", path)
 
@@ -90,8 +90,9 @@ def test_split_dry_mix_subcategories_and_consumption():
     )
 
     assert path is not None
-    assert path.category == "Сухие смеси"
-    assert path.product_type == "Полимерные шпатлевки"
+    assert path.section == "Сухие смеси"
+    assert path.category == "Полимерные шпатлевки"
+    assert path.product_type is None
 
     values = extract_specification_values(
         "Шпатлевка полимерная финишная 20 кг расход 1,2 кг/м2",
@@ -111,8 +112,9 @@ def test_split_gypsum_plaster_subcategory():
     )
 
     assert path is not None
-    assert path.category == "Сухие смеси"
-    assert path.product_type == "Гипсовые штукатурки"
+    assert path.section == "Сухие смеси"
+    assert path.category == "Гипсовые штукатурки"
+    assert path.product_type is None
 
 
 def test_classify_technonikol_roll_waterproofing():
@@ -142,7 +144,7 @@ def test_classify_technonikol_stone_wool():
     classification = classify_catalog_product(product)
 
     assert classification.category_path is not None
-    assert classification.category_path.parent == "Теплоизоляция"
+    assert classification.category_path.parent == "Тепло/Звукоизоляция"
     assert classification.category_path.category == "Каменная вата"
 
 
@@ -157,7 +159,7 @@ def test_classify_knauf_acoustic_board():
     classification = classify_catalog_product(product)
 
     assert classification.category_path is not None
-    assert classification.category_path.parent == "Материалы для сухого строительства"
+    assert classification.category_path.parent == "Тепло/Звукоизоляция"
     assert classification.category_path.category == "Акустические плиты"
 
 
@@ -173,8 +175,9 @@ def test_vkblock_dry_mix_wins_over_gazobeton_keyword():
 
     assert classification.canonical_name == "Клей для кладки газобетона ВК-100"
     assert classification.category_path is not None
-    assert classification.category_path.category == "Сухие смеси"
-    assert classification.category_path.subcategory == "Клеи для кладки"
+    assert classification.category_path.parent == "Сухие смеси"
+    assert classification.category_path.category == "Клеи для кладки"
+    assert classification.category_path.subcategory is None
 
 
 def test_led_lamp_is_not_incandescent():
