@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import Enum as SAEnum, ForeignKey, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -26,11 +26,11 @@ class SourceTaskResult(Base):
     admin_decision: Mapped[AdminDecision | None] = mapped_column(
         SAEnum(AdminDecision, name="task_admin_decision", create_constraint=True)
     )
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow(),
+        onupdate=lambda: datetime.utcnow(),
     )
 
     task = relationship("SourceTask", back_populates="results")

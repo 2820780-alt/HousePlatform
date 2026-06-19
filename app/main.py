@@ -25,7 +25,7 @@ app = FastAPI(
 async def health_check():
     return {
         "status": "ok",
-        "version": "Master_Prompt_v1.0",
+        "version": "Master_Prompt_v1.1",
         "environment": settings.APP_ENV,
     }
 

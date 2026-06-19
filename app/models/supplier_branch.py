@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import String, Text, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -17,6 +17,6 @@ class SupplierBranch(Base):
     contacts: Mapped[dict | None] = mapped_column(JSON)
     delivery_zone: Mapped[str | None] = mapped_column(Text)
     is_main: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
 
     supplier = relationship("Supplier", back_populates="branches")

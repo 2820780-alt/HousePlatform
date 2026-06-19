@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -16,7 +16,7 @@ class MaterialCategorySchema(Base):
     dedup_rules: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     unit_rules: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     normalization_rules: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
+    updated_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
 
     category = relationship("MaterialCategory", back_populates="schema")

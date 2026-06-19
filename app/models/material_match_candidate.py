@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import Enum as SAEnum, ForeignKey, Numeric, Text
@@ -27,11 +27,11 @@ class MaterialMatchCandidate(Base):
         nullable=False,
         index=True,
     )
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow(),
+        onupdate=lambda: datetime.utcnow(),
     )
 
     catalog_product = relationship("CatalogProduct", back_populates="match_candidates")

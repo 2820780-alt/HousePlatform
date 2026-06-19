@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import Enum as SAEnum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,11 +30,11 @@ class Source(Base):
     last_price_update_at: Mapped[datetime | None] = mapped_column()
     last_document_update_at: Mapped[datetime | None] = mapped_column()
     last_knowledge_scan_at: Mapped[datetime | None] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow(),
+        onupdate=lambda: datetime.utcnow(),
     )
 
     catalog_products = relationship("CatalogProduct", back_populates="source")

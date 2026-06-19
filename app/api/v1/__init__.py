@@ -6,6 +6,7 @@ from app.api.v1 import (
     admin_moderation,
     admin_suppliers,
     auth,
+    dev_material_hub,
     material_hub_view,
     supplier_branches,
     supplier_profile,
@@ -20,6 +21,7 @@ api_router.include_router(admin_material_hub.router)
 api_router.include_router(admin_materials.router)
 api_router.include_router(admin_moderation.router)
 api_router.include_router(material_hub_view.router)
+api_router.include_router(dev_material_hub.router)
 api_router.include_router(supplier_profile.router)
 api_router.include_router(supplier_branches.router)
 api_router.include_router(supplier_upload.router)

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import Boolean, ForeignKey, Numeric, String
@@ -19,11 +19,11 @@ class SpecificationTemplate(Base):
     unit: Mapped[str | None] = mapped_column(String(50))
     is_required: Mapped[bool] = mapped_column(Boolean, default=False)
     weight_for_matching: Mapped[Decimal] = mapped_column(Numeric(5, 4), default=Decimal("1.0"))
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow(),
+        onupdate=lambda: datetime.utcnow(),
     )
 
     category = relationship("MaterialCategory", back_populates="specification_templates")

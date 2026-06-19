@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import Date, ForeignKey, Numeric, String
@@ -24,11 +24,11 @@ class SupplierPrice(Base):
     delivery_terms: Mapped[str | None] = mapped_column(String(500))
     valid_until: Mapped[date | None] = mapped_column(Date, index=True)
     source_upload_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("supplier_uploads.id"), index=True)
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.utcnow(),
+        onupdate=lambda: datetime.utcnow(),
     )
 
     material = relationship("Material", back_populates="supplier_prices")

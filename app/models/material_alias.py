@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import String, Text, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -15,6 +15,6 @@ class MaterialAlias(Base):
     normalized_name: Mapped[str] = mapped_column(Text, nullable=False)
     source_supplier_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("suppliers.id"), index=True)
     confidence_score: Mapped[Decimal] = mapped_column(Numeric(5, 4), default=Decimal("0.5"))
-    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
 
     material = relationship("Material", back_populates="aliases")

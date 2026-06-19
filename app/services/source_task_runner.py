@@ -1,8 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -12,7 +12,6 @@ from app.models.enums import (
     DocumentStatus,
     DocumentType,
     MaterialStatus,
-    MatchCandidateStatus,
     SourceActionType,
     SourceStatus,
     TaskLogLevel,
@@ -30,6 +29,16 @@ from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
 from app.source_integrations import get_integration
 from app.source_integrations.base import SourceDocument, SourceProduct
+from app.services.material_classification import (
+    apply_classification_categories,
+    classify_catalog_product,
+    needs_specification_review,
+)
+from app.services.material_taxonomy import (
+    infer_baucenter_taxonomy,
+    sync_extracted_specifications,
+)
+from app.services.rule_memory import find_rule_for_product
 
 
 async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
@@ -54,7 +63,7 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
         return task
 
     task.status = TaskStatus.RUNNING
-    task.started_at = datetime.now(timezone.utc)
+    task.started_at = datetime.utcnow()
     task.error_message = None
     db.add(task)
     await _log(db, task, TaskLogLevel.INFO, f"Started {task.action_type.value}")
@@ -79,7 +88,7 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
             return task
 
         task.status = TaskStatus.COMPLETED
-        task.finished_at = datetime.now(timezone.utc)
+        task.finished_at = datetime.utcnow()
         db.add(task)
         await _log(db, task, TaskLogLevel.INFO, "Task completed")
     except Exception as exc:
@@ -287,7 +296,7 @@ async def _upsert_material_document(
         title=document.title,
         file_url=document.file_url,
         source_url=document.source_url,
-        status=DocumentStatus.NEEDS_REVIEW,
+        status=DocumentStatus.ACTIVE,
     )
     db.add(material_document)
     await db.flush()
@@ -342,22 +351,85 @@ async def _get_or_create_manufacturer(db: AsyncSession, name: str | None, offici
 
 async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogProduct) -> str:
     normalized = catalog_product.normalized_name or _normalize(catalog_product.raw_name)
-    result = await db.execute(select(Material).where(Material.canonical_name == normalized))
-    material = result.scalar_one_or_none()
+    classification = classify_catalog_product(catalog_product)
+    needs_review = needs_specification_review(catalog_product, classification)
+    category, subcategory = await apply_classification_categories(db, classification)
+    taxonomy_path = infer_baucenter_taxonomy(
+        catalog_product.raw_name,
+        catalog_product.raw_category,
+        catalog_product.external_url,
+    )
+    specification_category = subcategory or category
+    if classification.region and not catalog_product.region:
+        catalog_product.region = classification.region
+
+    rule = await find_rule_for_product(db, catalog_product)
+    if rule and rule.material:
+        material = rule.material
+        catalog_product.material_id = material.id
+        catalog_product.match_confidence = min(Decimal("1.0"), Decimal("0.85") + rule.get_confidence_boost())
+        catalog_product.status = CatalogProductStatus.ACTIVE
+        if rule.category_id:
+            if material.subcategory_id != rule.category_id and material.category_id != rule.category_id:
+                material.subcategory_id = rule.category_id
+                db.add(material)
+        await sync_extracted_specifications(
+            db,
+            material,
+            catalog_product.source_id,
+            specification_category,
+            taxonomy_path,
+            catalog_product.raw_name,
+            catalog_product.raw_category,
+        )
+        db.add(catalog_product)
+        await db.flush()
+        return "matched_by_rule_memory"
+
+    alias_result = await db.execute(
+        select(MaterialAlias)
+        .options(selectinload(MaterialAlias.material))
+        .where(MaterialAlias.normalized_name == normalized)
+        .limit(1)
+    )
+    alias = alias_result.scalar_one_or_none()
+    material = alias.material if alias else None
+
+    if not material:
+        result = await db.execute(
+            select(Material)
+            .where(func.lower(Material.canonical_name) == normalized)
+            .limit(1)
+        )
+        material = result.scalar_one_or_none()
 
     if material:
         catalog_product.material_id = material.id
         catalog_product.match_confidence = Decimal("1.0")
-        catalog_product.status = CatalogProductStatus.ACTIVE
+        catalog_product.status = CatalogProductStatus.NEEDS_REVIEW if needs_review else CatalogProductStatus.ACTIVE
+        if needs_review and material.status == MaterialStatus.AUTO_CREATED:
+            material.status = MaterialStatus.NEEDS_REVIEW
+            db.add(material)
+        await sync_extracted_specifications(
+            db,
+            material,
+            catalog_product.source_id,
+            specification_category,
+            taxonomy_path,
+            catalog_product.raw_name,
+            catalog_product.raw_category,
+        )
         db.add(catalog_product)
         await db.flush()
         return "matched"
 
     material = Material(
-        canonical_name=normalized,
-        brand=catalog_product.raw_brand,
-        manufacturer=catalog_product.raw_manufacturer,
-        status=MaterialStatus.AUTO_CREATED,
+        canonical_name=classification.canonical_name,
+        category_id=category.id if category else None,
+        subcategory_id=subcategory.id if subcategory else None,
+        brand=classification.brand,
+        manufacturer=classification.manufacturer,
+        status=MaterialStatus.NEEDS_REVIEW if needs_review else MaterialStatus.AUTO_CREATED,
     )
     db.add(material)
     await db.flush()
@@ -372,20 +444,20 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
     db.add(alias)
 
     catalog_product.material_id = material.id
-    catalog_product.match_confidence = Decimal("0.75")
-    catalog_product.status = CatalogProductStatus.NEEDS_REVIEW
+    catalog_product.match_confidence = Decimal("1.0")
+    catalog_product.status = CatalogProductStatus.NEEDS_REVIEW if needs_review else CatalogProductStatus.ACTIVE
     db.add(catalog_product)
-
-    candidate = MaterialMatchCandidate(
-        catalog_product_id=catalog_product.id,
-        candidate_material_id=material.id,
-        match_score=Decimal("0.75"),
-        match_reason="Auto-created material from new source product; admin review recommended.",
-        status=MatchCandidateStatus.NEEDS_REVIEW,
+    await sync_extracted_specifications(
+        db,
+        material,
+        catalog_product.source_id,
+        specification_category,
+        taxonomy_path,
+        catalog_product.raw_name,
+        catalog_product.raw_category,
     )
-    db.add(candidate)
     await db.flush()
-    return "candidate"
+    return "created"
 
 
 async def _write_price_history(db: AsyncSession, catalog_product: CatalogProduct, price) -> None:
@@ -475,7 +547,7 @@ async def _result(
 
 async def _fail_task(db: AsyncSession, task: SourceTask, message: str) -> None:
     task.status = TaskStatus.FAILED
-    task.finished_at = datetime.now(timezone.utc)
+    task.finished_at = datetime.utcnow()
     task.error_message = message
     db.add(task)
     await _log(db, task, TaskLogLevel.ERROR, message)
@@ -483,7 +555,7 @@ async def _fail_task(db: AsyncSession, task: SourceTask, message: str) -> None:
 
 
 def _mark_source_timestamp(task: SourceTask) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     if task.action_type == SourceActionType.INITIAL_MATERIAL_SCAN:
         task.source.last_full_scan_at = now
     elif task.action_type == SourceActionType.UPDATE_PRICES:
