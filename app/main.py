@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="HousePlatform API",
+    title="Атом API",
     version="1.0.0",
     debug=settings.APP_DEBUG,
     lifespan=lifespan,

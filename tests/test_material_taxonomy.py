@@ -2,6 +2,8 @@ from app.services.material_taxonomy import (
     extract_specification_values,
     infer_baucenter_taxonomy,
 )
+from app.models.catalog_product import CatalogProduct
+from app.services.material_classification import classify_catalog_product
 
 
 def test_infer_baucenter_osb_category_and_filters():
@@ -111,3 +113,79 @@ def test_split_gypsum_plaster_subcategory():
     assert path is not None
     assert path.category == "Сухие смеси"
     assert path.product_type == "Гипсовые штукатурки"
+
+
+def test_classify_technonikol_roll_waterproofing():
+    product = CatalogProduct(
+        raw_name="Техноэласт",
+        raw_category="rulonnye bitumnye materialy",
+        raw_brand="ТЕХНОНИКОЛЬ",
+        raw_manufacturer="ТЕХНОНИКОЛЬ",
+    )
+
+    classification = classify_catalog_product(product)
+
+    assert classification.category_path is not None
+    assert classification.category_path.parent == "Кровля"
+    assert classification.category_path.category == "Кровельные материалы"
+    assert classification.category_path.subcategory == "Рулонная гидроизоляция"
+
+
+def test_classify_technonikol_stone_wool():
+    product = CatalogProduct(
+        raw_name="Плиты из каменной ваты IZOVOL",
+        raw_category="kamennaya vata izovol",
+        raw_brand="ТЕХНОНИКОЛЬ",
+        raw_manufacturer="ТЕХНОНИКОЛЬ",
+    )
+
+    classification = classify_catalog_product(product)
+
+    assert classification.category_path is not None
+    assert classification.category_path.parent == "Теплоизоляция"
+    assert classification.category_path.category == "Каменная вата"
+
+
+def test_classify_knauf_acoustic_board():
+    product = CatalogProduct(
+        raw_name="Звукопоглощающая плита КНАУФ-Акустика Б",
+        raw_category="listovye i plitnye materialy",
+        raw_brand="Knauf",
+        raw_manufacturer="Knauf",
+    )
+
+    classification = classify_catalog_product(product)
+
+    assert classification.category_path is not None
+    assert classification.category_path.parent == "Материалы для сухого строительства"
+    assert classification.category_path.category == "Акустические плиты"
+
+
+def test_vkblock_dry_mix_wins_over_gazobeton_keyword():
+    product = CatalogProduct(
+        raw_name="ВК-100 Клей монтажный для кладки из ячеистого бетона ГОСТ 31357-2007 в Краснодаре",
+        raw_category="vkblok iz gazobetona",
+        raw_brand="ВКБлок",
+        raw_manufacturer="ВКБлок",
+    )
+
+    classification = classify_catalog_product(product)
+
+    assert classification.canonical_name == "Клей для кладки газобетона ВК-100"
+    assert classification.category_path is not None
+    assert classification.category_path.category == "Сухие смеси"
+    assert classification.category_path.subcategory == "Клеи для кладки"
+
+
+def test_led_lamp_is_not_incandescent():
+    product = CatalogProduct(
+        raw_name="Лампа светодиод. 18W 4000К 1600Лм G13 T8 220V (1200мм.)",
+        raw_category="Освещение",
+        raw_brand="",
+        raw_manufacturer="",
+    )
+
+    classification = classify_catalog_product(product)
+
+    assert classification.canonical_name.startswith("Лампа светодиодная")
+    assert "накаливания" not in classification.canonical_name.lower()

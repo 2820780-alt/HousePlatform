@@ -1,4 +1,4 @@
-# Core Assets HousePlatform
+# Core Assets Атом
 
 ## Главные активы платформы
 

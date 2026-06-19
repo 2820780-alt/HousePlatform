@@ -152,6 +152,6 @@ def _positive_int_or_none(value) -> int | None:
 
 def _headers() -> dict[str, str]:
     return {
-        "User-Agent": "Mozilla/5.0 (compatible; HousePlatformMaterialHub/1.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; AtomMaterialHub/1.0)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }

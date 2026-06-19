@@ -109,6 +109,18 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
     name_without_region, region = _extract_region(raw_name)
     taxonomy_path = infer_baucenter_taxonomy(product.raw_name, product.raw_category, product.external_url)
 
+    if _has_any(text, ["клей", "klej", "kley", "кладочная смесь", "smes suhaya", "шпатлев", "штукатур"]):
+        canonical = _normalize_mix_name(name_without_region)
+        return MaterialClassification(
+            canonical_name=canonical,
+            category_path=_dry_mix_category_path(text),
+            brand=product.raw_brand,
+            manufacturer=product.raw_manufacturer,
+            region=region or product.region,
+            confidence=0.84,
+            rule_code="dry_mix",
+        )
+
     if product.raw_category and taxonomy_path:
         return MaterialClassification(
             canonical_name=_normalize_by_taxonomy(name_without_region, text, taxonomy_path),
@@ -240,6 +252,17 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
             rule_code="sheet_gypsum_material",
         )
 
+    if _has_any(text, ["акустика", "звукопоглощающая плита", "akustika"]):
+        return MaterialClassification(
+            canonical_name=_normalize_product_line_name(name_without_region),
+            category_path=CategoryPath("Материалы для сухого строительства", "Акустические плиты"),
+            brand=product.raw_brand or "Knauf",
+            manufacturer=product.raw_manufacturer or "Knauf",
+            region=region or product.region,
+            confidence=0.82,
+            rule_code="sheet_acoustic_board",
+        )
+
     if _has_any(text, ["фанера", "fanera"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
@@ -273,6 +296,28 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
             rule_code="sheet_osb",
         )
 
+    if _has_any(text, ["мастика", "праймер", "фиксер", "aquamast"]):
+        return MaterialClassification(
+            canonical_name=_normalize_product_line_name(name_without_region),
+            category_path=CategoryPath("Кровля", "Комплектующие кровли", "Мастики и праймеры"),
+            brand=product.raw_brand or "ТЕХНОНИКОЛЬ",
+            manufacturer=product.raw_manufacturer or "ТЕХНОНИКОЛЬ",
+            region=region or product.region,
+            confidence=0.82,
+            rule_code="roof_mastics_primers",
+        )
+
+    if _has_any(text, ["рулонные битумные материалы", "rulonnye bitumnye materialy", "рулонная гидроизоляция", "рубемаст", "стеклоизол", "техноэласт", "унифлекс", "линокром", "биполь", "бикрост", "бикроэласт", "экофлекс"]):
+        return MaterialClassification(
+            canonical_name=_normalize_product_line_name(name_without_region),
+            category_path=CategoryPath("Кровля", "Кровельные материалы", "Рулонная гидроизоляция"),
+            brand=product.raw_brand or "ТЕХНОНИКОЛЬ",
+            manufacturer=product.raw_manufacturer or "ТЕХНОНИКОЛЬ",
+            region=region or product.region,
+            confidence=0.8,
+            rule_code="roof_roll_waterproofing",
+        )
+
     if _has_any(text, ["shinglas", "гибкая черепица", "cherepitsa"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
@@ -284,7 +329,7 @@ def classify_catalog_product(product: CatalogProduct) -> MaterialClassification:
             rule_code="roof_flexible_shingles",
         )
 
-    if _has_any(text, ["каменная вата", "rocklight", "техноблок", "teploizolyaciya", "uteplit"]):
+    if _has_any(text, ["каменная вата", "минеральная вата", "rocklight", "izovol", "техноблок", "плиты технические", "маты технические", "teploizolyaciya", "uteplit"]):
         return MaterialClassification(
             canonical_name=_normalize_product_line_name(name_without_region),
             category_path=CategoryPath("Теплоизоляция", "Каменная вата"),
@@ -486,6 +531,24 @@ def _normalize_lamp_name(name: str) -> str:
     return " ".join(parts) if len(parts) > 1 else normalized
 
 
+def _normalize_led_lamp_name(name: str) -> str:
+    normalized = _remove_brand_and_noise(name, [])
+    watt = re.search(r"(\d+)\s*(?:w|вт)", normalized, re.IGNORECASE)
+    kelvin = re.search(r"(\d{4})\s*К", normalized, re.IGNORECASE)
+    socket = re.search(r"\b(E\d{2}|G\d{2})\b", normalized, re.IGNORECASE)
+    length = re.search(r"\(?\s*(\d{3,4})\s*мм", normalized, re.IGNORECASE)
+    parts = ["Лампа светодиодная"]
+    if watt:
+        parts.append(f"{watt.group(1)}Вт")
+    if socket:
+        parts.append(socket.group(1).upper())
+    if kelvin:
+        parts.append(f"{kelvin.group(1)}К")
+    if length:
+        parts.append(f"{length.group(1)}мм")
+    return " ".join(parts) if len(parts) > 1 else normalized
+
+
 def _normalize_cable_name(name: str) -> str:
     cleaned = _remove_brand_and_noise(name, [])
     mark = re.search(r"(ВВГ(?:нг)?(?:\([А-ЯA-Z]\))?(?:-?П)?(?:-?LS)?)", cleaned, re.IGNORECASE)
@@ -584,6 +647,10 @@ def _normalize_by_taxonomy(name: str, text: str, taxonomy_path: TaxonomyPath) ->
     if taxonomy_path.product_type == "Силовой кабель":
         return _normalize_cable_name(name)
     if taxonomy_path.product_type in {"Лампы накаливания", "Лампы и светильники"} and "лампа" in text:
+        if _has_any(text, ["светодиод", "led", " st8", "t8"]):
+            return _normalize_led_lamp_name(name)
+        if not _has_any(text, ["lampa-lon", "лампа лон", "лампа накаливания", "лон"]):
+            return _normalize_product_line_name(name)
         return _normalize_lamp_name(name)
     return _normalize_product_line_name(name)
 

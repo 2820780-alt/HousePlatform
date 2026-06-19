@@ -212,7 +212,7 @@ def _clean_text(value: str) -> str:
 
 def _headers() -> dict[str, str]:
     return {
-        "User-Agent": "HousePlatformBot/0.1 (+https://github.com/2820780-alt/HousePlatform)",
+        "User-Agent": "AtomBot/0.1 (+https://github.com/2820780-alt/HousePlatform)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.7",
     }
