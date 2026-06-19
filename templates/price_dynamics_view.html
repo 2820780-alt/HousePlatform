@@ -23,19 +23,26 @@
     .filters { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:10px; align-items:end; }
     label { display:block; color:var(--muted); font-size:12px; margin-bottom:4px; }
     input, select { width:100%; min-height:34px; border:1px solid var(--line); border-radius:5px; padding:7px 9px; background:rgba(7,13,33,.72); color:var(--text); font:inherit; }
+    select[multiple] { min-height:108px; }
     table { width:100%; border-collapse:collapse; min-width:920px; }
     th, td { border-bottom:1px solid var(--line); padding:8px 7px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
     th { position:sticky; top:0; z-index:1; background:#111942; color:var(--muted); font-weight:600; }
     .up { color:var(--bad); }
     .down { color:var(--good); }
-    .chart-wrap { display:grid; grid-template-columns:minmax(0, 1fr) 260px; gap:14px; align-items:stretch; }
-    .chart-panel { min-height:280px; border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.48); padding:12px; }
+    .chart-wrap { display:grid; grid-template-columns:minmax(0, 1fr) 280px; gap:14px; align-items:stretch; }
+    .chart-panel { min-height:330px; border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.48); padding:12px; }
     .chart-meta { border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.48); padding:12px; }
-    svg { width:100%; height:240px; display:block; }
+    svg { width:100%; height:290px; display:block; }
     .chart-line { fill:none; stroke:var(--accent); stroke-width:3; }
     .chart-area { fill:rgba(16,215,232,.12); }
-    .chart-axis { stroke:rgba(149,163,198,.35); stroke-width:1; }
+    .chart-axis { stroke:rgba(149,163,198,.38); stroke-width:1; }
+    .chart-grid { stroke:rgba(149,163,198,.14); stroke-width:1; }
     .chart-point { fill:var(--accent); }
+    .axis-label { fill:#95a3c6; font-size:12px; }
+    .axis-title { fill:#eef6ff; font-size:13px; font-weight:700; }
+    .legend { display:grid; gap:7px; margin-top:12px; }
+    .legend-item { display:flex; gap:8px; align-items:center; color:var(--muted); }
+    .legend-color { width:12px; height:12px; border-radius:3px; flex:0 0 12px; }
     .empty { color:var(--muted); padding:10px 0; }
     @media (max-width:920px) { .chart-wrap { grid-template-columns:1fr; } }
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:760px; } }
@@ -56,167 +63,306 @@
     </div>
 
     <section>
-      <h2>Фильтры анализа</h2>
+      <h2>Что анализируем</h2>
       <div class="filters">
         <div>
-          <label for="trend-search">Материал или источник</label>
-          <input id="trend-search" oninput="filterTrends()" placeholder="Например: газобетон, Бауцентр">
+          <label for="analysis-type">Разрез анализа</label>
+          <select id="analysis-type" onchange="rebuildTargetOptions(); renderPriceChart();">
+            <option value="market">Весь рынок</option>
+            <option value="category">Категория</option>
+            <option value="group">Строительная группа</option>
+            <option value="material">Конкретный материал</option>
+            <option value="source">Источник или поставщик</option>
+          </select>
         </div>
         <div>
-          <label for="trend-category">Категория</label>
-          <input id="trend-category" oninput="filterTrends()" placeholder="Например: кровля">
+          <label for="analysis-target">Значения для сравнения</label>
+          <select id="analysis-target" onchange="renderPriceChart()"></select>
         </div>
         <div>
-          <label for="trend-manufacturer">Производитель</label>
-          <input id="trend-manufacturer" oninput="filterTrends()" placeholder="Например: ВКБлок">
+          <label for="manufacturer-filter">Производитель или бренд</label>
+          <input id="manufacturer-filter" oninput="renderPriceChart()" placeholder="Например: ВКБлок, Grand Line">
         </div>
         <div>
-          <label for="trend-region">Город или регион</label>
-          <input id="trend-region" oninput="filterTrends()" placeholder="Например: Краснодар">
+          <label for="period-filter">Период</label>
+          <select id="period-filter" onchange="renderPriceChart()">
+            <option value="all">Весь период</option>
+            <option value="30">30 дней</option>
+            <option value="90">90 дней</option>
+            <option value="180">180 дней</option>
+            <option value="365">1 год</option>
+          </select>
+        </div>
+        <div>
+          <label for="region-filter">Регион</label>
+          <input id="region-filter" oninput="renderPriceChart()" placeholder="Все регионы или Краснодар">
+        </div>
+        <div>
+          <label for="source-filter">Источник или поставщик</label>
+          <input id="source-filter" oninput="renderPriceChart()" placeholder="Все источники или Бауцентр">
         </div>
       </div>
     </section>
 
     <section>
-      <h2>График материала</h2>
+      <h2>График</h2>
       {% if price_series %}
-      <div class="filters">
-        <div>
-          <label for="chart-material">Материал</label>
-          <select id="chart-material" onchange="renderPriceChart()">
-            {% for item in price_series %}
-              <option value="{{ item.material_id }}">{{ item.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
       <div class="chart-wrap">
         <div class="chart-panel">
-          <svg id="price-chart" viewBox="0 0 760 240" role="img" aria-label="График изменения цены"></svg>
+          <svg id="price-chart" viewBox="0 0 820 290" role="img" aria-label="График изменения цены"></svg>
         </div>
         <div class="chart-meta">
-          <h2 id="chart-title">Материал</h2>
+          <h2 id="chart-title">Динамика цен</h2>
           <div class="muted" id="chart-description"></div>
           <div style="margin-top:12px" id="chart-change"></div>
+          <div class="legend" id="chart-legend"></div>
+          <div class="muted" style="margin-top:12px">Ось Y: цена. Ось X: период.</div>
         </div>
       </div>
       {% else %}
-      <div class="empty">Для графика нужна минимум две точки истории цены по одному материалу.</div>
+      <div class="empty">Для графика нужна история цен.</div>
       {% endif %}
     </section>
 
     <section>
-      <h2>Изменение по категориям</h2>
-      {% if category_rows %}
-      <table>
-        <thead><tr><th>Категория</th><th>Материалов</th><th>С изменением</th><th>Среднее изменение</th></tr></thead>
-        <tbody>
-        {% for row in category_rows %}
-          <tr>
-            <td>{{ row.category }}</td>
-            <td>{{ row.materials_total }}</td>
-            <td>{{ row.materials_with_change }}</td>
-            <td>{% if row.avg_percent is not none %}<span class="{{ 'up' if row.avg_percent > 0 else 'down' if row.avg_percent < 0 else '' }}">{{ row.avg_percent }}%</span>{% else %}<span class="muted">нужно больше истории</span>{% endif %}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}<div class="empty">Пока нет данных для анализа категорий.</div>{% endif %}
-    </section>
-
-    <section>
-      <h2>Материалы</h2>
-      {% if trend_rows %}
-      <table id="trend-table">
+      <h2>Материалы в текущей выборке</h2>
+      <table id="selection-table">
         <thead><tr>
-          <th>Материал</th><th>Категория</th><th>Производитель</th><th>Регион</th><th>Источник</th><th>Текущая цена</th><th>Предыдущая цена</th><th>Изменение</th><th>Дата</th>
+          <th>Материал</th><th>Категория</th><th>Группа</th><th>Производитель</th><th>Бренд</th><th>Регион</th><th>Источник</th><th>Точек истории</th>
         </tr></thead>
-        <tbody>
-        {% for row in trend_rows %}
-          <tr data-category="{{ row.category.name if row.category else '' }}" data-manufacturer="{{ row.material.manufacturer or '' }}" data-region="{{ row.latest.region or '' }}">
-            <td>{{ row.material.canonical_name }}</td>
-            <td>{{ row.category.name if row.category else "" }}</td>
-            <td>{{ row.material.manufacturer or "" }}</td>
-            <td>{{ row.latest.region or "" }}</td>
-            <td>{{ source_display_name(row.source) }}</td>
-            <td>{{ row.latest.price }} {{ row.latest.currency }}{% if row.latest.unit %} / {{ row.latest.unit }}{% endif %}</td>
-            <td>{% if row.previous %}{{ row.previous.price }} {{ row.previous.currency }}{% else %}<span class="muted">нет предыдущей цены</span>{% endif %}</td>
-            <td>
-              {% if row.diff is not none %}
-                <span class="{{ 'up' if row.diff > 0 else 'down' if row.diff < 0 else '' }}">{{ row.diff }} {{ row.latest.currency }}{% if row.percent is not none %} · {{ row.percent }}%{% endif %}</span>
-              {% else %}
-                <span class="muted">нужно минимум 2 точки</span>
-              {% endif %}
-            </td>
-            <td>{{ dt(row.latest.collected_at) }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
+        <tbody id="selection-body"></tbody>
       </table>
-      {% else %}<div class="empty">Пока нет истории цен.</div>{% endif %}
     </section>
   </main>
 
   <script>
     const PRICE_SERIES = {{ price_series|tojson }};
+    const CHART_COLORS = ["#10d7e8", "#ff3b7f", "#8b5cf6", "#28d17c", "#f59e0b", "#60a5fa", "#f472b6", "#a3e635"];
+
+    function uniqueValues(field) {
+      return Array.from(new Set(PRICE_SERIES.map((item) => item[field]).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+    }
+
+    function rebuildTargetOptions() {
+      const type = document.getElementById("analysis-type").value;
+      const target = document.getElementById("analysis-target");
+      let values = [];
+      if (type === "category") values = uniqueValues("category");
+      if (type === "group") values = uniqueValues("group");
+      if (type === "material") values = PRICE_SERIES.map((item) => item.name).sort((a, b) => a.localeCompare(b));
+      if (type === "source") values = uniqueValues("source");
+
+      target.innerHTML = "";
+      if (type === "market") {
+        target.disabled = true;
+        target.multiple = false;
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Все материалы";
+        target.appendChild(option);
+        return;
+      }
+
+      target.disabled = false;
+      target.multiple = true;
+      values.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        target.appendChild(option);
+      });
+      Array.from(target.options).slice(0, 3).forEach((option) => { option.selected = true; });
+      if (!values.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Нет данных";
+        target.appendChild(option);
+      }
+    }
+
+    function selectedTargetValues() {
+      return Array.from(document.getElementById("analysis-target").selectedOptions || []).map((option) => option.value).filter(Boolean);
+    }
+
+    function filteredSeries() {
+      const maker = (document.getElementById("manufacturer-filter").value || "").toLocaleLowerCase();
+      const region = (document.getElementById("region-filter").value || "").toLocaleLowerCase();
+      const source = (document.getElementById("source-filter").value || "").toLocaleLowerCase();
+      const period = document.getElementById("period-filter").value;
+      const cutoff = period === "all" ? null : cutoffDate(Number(period));
+
+      return PRICE_SERIES
+        .filter((item) => {
+          const makerText = `${item.manufacturer || ""} ${item.brand || ""}`.toLocaleLowerCase();
+          const matchesMaker = !maker || makerText.includes(maker);
+          const matchesRegion = !region || (item.region || "").toLocaleLowerCase().includes(region);
+          const matchesSource = !source || (item.source || "").toLocaleLowerCase().includes(source);
+          return matchesMaker && matchesRegion && matchesSource;
+        })
+        .map((item) => ({
+          ...item,
+          points: item.points.filter((point) => !cutoff || parsePointDate(point.date) >= cutoff)
+        }))
+        .filter((item) => item.points.length > 0);
+    }
+
+    function comparisonBuckets(series) {
+      const type = document.getElementById("analysis-type").value;
+      if (type === "market") return [{ label: "Весь рынок", series }];
+
+      const fieldByType = { category: "category", group: "group", material: "name", source: "source" };
+      const field = fieldByType[type];
+      const targets = selectedTargetValues();
+      return targets.map((target) => ({
+        label: target,
+        series: series.filter((item) => item[field] === target)
+      })).filter((bucket) => bucket.series.length > 0);
+    }
+
+    function cutoffDate(days) {
+      const latest = PRICE_SERIES.flatMap((item) => item.points).map((point) => parsePointDate(point.date)).filter(Boolean).sort((a, b) => b - a)[0];
+      if (!latest) return null;
+      const cutoff = new Date(latest);
+      cutoff.setDate(cutoff.getDate() - days);
+      return cutoff;
+    }
+
+    function parsePointDate(value) {
+      if (!value) return null;
+      return new Date(value.replace(" ", "T"));
+    }
+
+    function aggregatePoints(series) {
+      const byDate = new Map();
+      series.forEach((item) => {
+        item.points.forEach((point) => {
+          const dateKey = point.date.slice(0, 10);
+          const current = byDate.get(dateKey) || { sum: 0, count: 0, currency: point.currency };
+          current.sum += Number(point.price);
+          current.count += 1;
+          byDate.set(dateKey, current);
+        });
+      });
+      return Array.from(byDate.entries())
+        .map(([date, value]) => ({ date, price: value.sum / value.count, currency: value.currency }))
+        .sort((a, b) => parsePointDate(a.date) - parsePointDate(b.date));
+    }
 
     function renderPriceChart() {
-      const select = document.getElementById("chart-material");
       const svg = document.getElementById("price-chart");
-      if (!select || !svg || !PRICE_SERIES.length) return;
+      if (!svg) return;
+      const series = filteredSeries();
+      const buckets = comparisonBuckets(series);
+      const bucketPoints = buckets.map((bucket, index) => ({
+        ...bucket,
+        color: CHART_COLORS[index % CHART_COLORS.length],
+        points: aggregatePoints(bucket.series)
+      })).filter((bucket) => bucket.points.length > 0);
+      const points = bucketPoints.flatMap((bucket) => bucket.points);
+      renderSelectionTable(buckets.flatMap((bucket) => bucket.series));
 
-      const selected = PRICE_SERIES.find((item) => item.material_id === select.value) || PRICE_SERIES[0];
-      const points = selected.points || [];
-      const width = 760;
-      const height = 240;
-      const pad = 28;
+      if (!points.length) {
+        svg.innerHTML = `<text x="28" y="40" fill="#95a3c6" font-size="14">Нет данных по выбранному фильтру</text>`;
+        document.getElementById("chart-title").textContent = "Нет данных";
+        document.getElementById("chart-description").textContent = "Измените фильтр анализа.";
+        document.getElementById("chart-change").textContent = "";
+        document.getElementById("chart-legend").innerHTML = "";
+        return;
+      }
+
+      const width = 820;
+      const height = 290;
+      const padLeft = 58;
+      const padRight = 24;
+      const padTop = 26;
+      const padBottom = 48;
       const prices = points.map((point) => Number(point.price));
       const min = Math.min(...prices);
       const max = Math.max(...prices);
       const span = max - min || 1;
-      const xStep = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
-      const coords = points.map((point, index) => {
-        const x = pad + index * xStep;
-        const y = height - pad - ((Number(point.price) - min) / span) * (height - pad * 2);
-        return { x, y, point };
+      const dates = Array.from(new Set(points.map((point) => point.date))).sort((a, b) => parsePointDate(a) - parsePointDate(b));
+      const xStep = dates.length > 1 ? (width - padLeft - padRight) / (dates.length - 1) : 0;
+      const xByDate = new Map(dates.map((date, index) => [date, padLeft + index * xStep]));
+      const coordsByBucket = bucketPoints.map((bucket) => ({
+        ...bucket,
+        coords: bucket.points.map((point) => {
+          const x = xByDate.get(point.date) || padLeft;
+          const y = height - padBottom - ((Number(point.price) - min) / span) * (height - padTop - padBottom);
+          return { x, y, point };
+        })
+      }));
+      const coords = coordsByBucket.flatMap((bucket) => bucket.coords);
+      const first = points.sort((a, b) => parsePointDate(a.date) - parsePointDate(b.date))[0];
+      const last = points.sort((a, b) => parsePointDate(a.date) - parsePointDate(b.date))[points.length - 1];
+      const lines = coordsByBucket.map((bucket) => {
+        const line = bucket.coords.map((item) => `${item.x},${item.y}`).join(" ");
+        return `<polyline fill="none" stroke="${bucket.color}" stroke-width="3" points="${line}"></polyline>`;
+      }).join("");
+      const circles = coordsByBucket.map((bucket) => bucket.coords.map((item) => `<circle fill="${bucket.color}" cx="${item.x}" cy="${item.y}" r="4"><title>${bucket.label}: ${item.point.date}: ${item.point.price.toFixed(2)} ${item.point.currency}</title></circle>`).join("")).join("");
+      const bucketChanges = bucketPoints.map((bucket) => {
+        const firstPoint = bucket.points[0];
+        const lastPoint = bucket.points[bucket.points.length - 1];
+        const diff = Number(lastPoint.price) - Number(firstPoint.price);
+        const percent = Number(firstPoint.price) ? (diff / Number(firstPoint.price) * 100) : 0;
+        return { label: bucket.label, color: bucket.color, diff, percent, currency: lastPoint.currency };
       });
-      const line = coords.map((item) => `${item.x},${item.y}`).join(" ");
-      const area = `${pad},${height - pad} ${line} ${width - pad},${height - pad}`;
 
       svg.innerHTML = `
-        <line class="chart-axis" x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}"></line>
-        <line class="chart-axis" x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}"></line>
-        <polygon class="chart-area" points="${area}"></polygon>
-        <polyline class="chart-line" points="${line}"></polyline>
-        ${coords.map((item) => `<circle class="chart-point" cx="${item.x}" cy="${item.y}" r="4"><title>${item.point.date}: ${item.point.price} ${item.point.currency}</title></circle>`).join("")}
-        <text x="${pad}" y="18" fill="#95a3c6" font-size="12">${max}</text>
-        <text x="${pad}" y="${height - 8}" fill="#95a3c6" font-size="12">${min}</text>
+        <line class="chart-axis" x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}"></line>
+        <line class="chart-axis" x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}"></line>
+        <line class="chart-grid" x1="${padLeft}" y1="${padTop}" x2="${width - padRight}" y2="${padTop}"></line>
+        <line class="chart-grid" x1="${padLeft}" y1="${(height - padBottom + padTop) / 2}" x2="${width - padRight}" y2="${(height - padBottom + padTop) / 2}"></line>
+        ${lines}
+        ${circles}
+        <text class="axis-title" x="8" y="${padTop + 4}">Цена</text>
+        <text class="axis-title" x="${width - 78}" y="${height - 12}">Период</text>
+        <text class="axis-label" x="${padLeft - 48}" y="${padTop + 4}">${max.toFixed(2)}</text>
+        <text class="axis-label" x="${padLeft - 48}" y="${height - padBottom + 4}">${min.toFixed(2)}</text>
+        <text class="axis-label" x="${padLeft}" y="${height - 18}">${first.date}</text>
+        <text class="axis-label" x="${Math.max(padLeft, width - padRight - 126)}" y="${height - 18}">${last.date}</text>
       `;
 
-      const first = points[0];
-      const last = points[points.length - 1];
-      const diff = Number(last.price) - Number(first.price);
-      const percent = Number(first.price) ? (diff / Number(first.price) * 100) : 0;
-      document.getElementById("chart-title").textContent = selected.name;
-      document.getElementById("chart-description").textContent = [selected.category, selected.manufacturer, selected.region, selected.source].filter(Boolean).join(" · ");
-      document.getElementById("chart-change").innerHTML = `Период: ${first.date} — ${last.date}<br>Изменение: <span class="${diff > 0 ? "up" : diff < 0 ? "down" : ""}">${diff.toFixed(2)} ${last.currency} · ${percent.toFixed(2)}%</span>`;
+      const type = document.getElementById("analysis-type").selectedOptions[0].textContent;
+      const target = selectedTargetValues().join(", ") || "Все материалы";
+      document.getElementById("chart-title").textContent = `${type}: ${target}`;
+      document.getElementById("chart-description").textContent = `Материалов в выборке: ${series.length}. Значение графика: средняя цена по точкам выбранной выборки.`;
+      document.getElementById("chart-change").innerHTML = `Период: ${first.date} — ${last.date}`;
+      document.getElementById("chart-legend").innerHTML = bucketChanges.map((item) => `
+        <div class="legend-item">
+          <span class="legend-color" style="background:${item.color}"></span>
+          <span>${escapeHtml(item.label)}: <span class="${item.diff > 0 ? "up" : item.diff < 0 ? "down" : ""}">${item.diff.toFixed(2)} ${item.currency} · ${item.percent.toFixed(2)}%</span></span>
+        </div>
+      `).join("");
     }
 
-    function filterTrends() {
-      const query = (document.getElementById("trend-search").value || "").toLocaleLowerCase();
-      const category = (document.getElementById("trend-category").value || "").toLocaleLowerCase();
-      const manufacturer = (document.getElementById("trend-manufacturer").value || "").toLocaleLowerCase();
-      const region = (document.getElementById("trend-region").value || "").toLocaleLowerCase();
-      document.querySelectorAll("#trend-table tbody tr").forEach((row) => {
-        const text = row.textContent.toLocaleLowerCase();
-        const ok = text.includes(query)
-          && (!category || (row.dataset.category || "").toLocaleLowerCase().includes(category))
-          && (!manufacturer || (row.dataset.manufacturer || "").toLocaleLowerCase().includes(manufacturer))
-          && (!region || (row.dataset.region || "").toLocaleLowerCase().includes(region));
-        row.style.display = ok ? "" : "none";
-      });
+    function renderSelectionTable(series) {
+      const body = document.getElementById("selection-body");
+      if (!body) return;
+      body.innerHTML = series.slice(0, 100).map((item) => `
+        <tr>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.category || "")}</td>
+          <td>${escapeHtml(item.group || "")}</td>
+          <td>${escapeHtml(item.manufacturer || "")}</td>
+          <td>${escapeHtml(item.brand || "")}</td>
+          <td>${escapeHtml(item.region || "")}</td>
+          <td>${escapeHtml(item.source || "")}</td>
+          <td>${item.points.length}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="8" class="empty">Нет материалов в текущей выборке</td></tr>`;
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    rebuildTargetOptions();
     renderPriceChart();
   </script>
 </body>

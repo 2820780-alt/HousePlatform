@@ -18,6 +18,17 @@ from app.models.source import Source
 router = APIRouter(prefix="/admin/price-dynamics/view", tags=["price-dynamics-view"])
 templates = Jinja2Templates(directory="templates")
 
+CONSTRUCTION_GROUP_RULES = [
+    ("Фундамент", ["бетон", "арматур", "опалуб", "фундамент", "гидроизоляц", "пиломатериал", "крепеж"]),
+    ("Коробка", ["стен", "газобет", "кирпич", "блок", "сухие смеси", "клад", "штукатур", "шпатлев"]),
+    ("Кровля", ["кров", "череп", "водост", "снегозадерж", "добор", "утепл", "пароизоляц"]),
+    ("Фасады", ["фасад", "сайдинг", "панел", "софит", "отлив"]),
+    ("Инженерные сети", ["электр", "кабель", "провод", "сантех", "труб", "водоснаб", "канализ"]),
+    ("Отделка", ["гипс", "профил", "лист", "плит", "краск", "ламинат", "обои"]),
+    ("Бани и сауны", ["бан", "саун", "печ", "каменк"]),
+    ("Инструмент и расходники", ["инструмент", "крепеж", "саморез", "дюбел", "анк", "сверл"]),
+]
+
 
 @router.get("", response_class=HTMLResponse)
 async def price_dynamics_view(request: Request, db: DBSession):
@@ -157,6 +168,8 @@ def _build_price_series(rows: list[dict]) -> list[dict]:
             "material_id": material_id,
             "name": material.canonical_name,
             "category": category.name if category else "",
+            "group": _construction_group(category.name if category else "", material.canonical_name),
+            "brand": material.brand or "",
             "manufacturer": material.manufacturer or "",
             "region": sorted_rows[-1]["price"].region or "",
             "source": _source_display_name(source),
@@ -164,6 +177,14 @@ def _build_price_series(rows: list[dict]) -> list[dict]:
         })
 
     return sorted(series, key=lambda item: item["name"])[:100]
+
+
+def _construction_group(category_name: str, material_name: str) -> str:
+    text = f"{category_name} {material_name}".lower()
+    for group_name, markers in CONSTRUCTION_GROUP_RULES:
+        if any(marker in text for marker in markers):
+            return group_name
+    return "Без строительной группы"
 
 
 def _percent_change(latest_price: Decimal, previous_price: Decimal | None) -> Decimal | None:
