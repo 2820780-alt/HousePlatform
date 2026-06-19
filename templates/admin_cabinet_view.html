@@ -116,14 +116,15 @@
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 230px;
-      min-height: 156px;
+      width: 210px;
+      min-height: 210px;
       transform: translate(-50%, -50%);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 13px;
+      justify-content: center;
+      align-items: center;
+      gap: 9px;
+      padding: 18px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
       border-radius: 50%;
       color: var(--text);
@@ -153,35 +154,33 @@
       box-shadow: 0 24px 68px rgba(0, 0, 0, 0.46);
     }
     .module-node.future { opacity: 0.76; }
-    .module-head {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 9px;
-      align-items: center;
-    }
+    .module-head { display: grid; place-items: center; gap: 7px; text-align: center; }
     .module-number {
       display: grid;
       place-items: center;
-      width: 36px;
-      height: 36px;
+      width: 42px;
+      height: 42px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
       border-radius: 50%;
       background: color-mix(in srgb, var(--card-accent) 15%, #071024);
       color: color-mix(in srgb, var(--card-accent) 74%, white);
       font-weight: 800;
     }
-    .module-title { min-width: 0; }
-    .module-title strong { display: block; font-size: 14px; line-height: 1.15; }
-    .module-title span { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
-    .module-description {
+    .module-title { min-width: 0; max-width: 152px; }
+    .module-title strong { display: block; font-size: 15px; line-height: 1.16; }
+    .module-title span { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .module-hint {
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.34;
+      font-size: 11px;
+      line-height: 1.22;
+      text-align: center;
+      max-width: 156px;
     }
     .metric-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
+      width: 100%;
     }
     .mini-metric {
       min-height: 43px;
@@ -208,6 +207,7 @@
       font-size: 11px;
       font-weight: 700;
     }
+    .module-node.future .module-action { display: none; }
     @media (max-width: 1100px) {
       header, main { padding-left: 16px; padding-right: 16px; }
       .orbit-shell {
@@ -236,7 +236,7 @@
 <body>
   <header>
     <h1>Кабинет администратора</h1>
-    <div class="lead">Центр управления HousePlatform. Карточки показывают рабочие показатели и переходы; подробное описание модуля открывается внутри карточки-паспорта.</div>
+    <div class="lead">Центр управления HousePlatform. На карте только важные показатели и переходы к рабочим модулям.</div>
   </header>
 
   <main>
@@ -269,20 +269,23 @@
           <div class="module-head">
             <div class="module-number">{{ card.number }}</div>
             <div class="module-title">
-              <strong>{{ card.title }}</strong>
+              <strong>{{ card.short_title }}</strong>
+              <strong>{{ card.module_name }}</strong>
               <span>{{ card.status }}</span>
             </div>
           </div>
-          <div class="module-description">{{ card.description }}</div>
+          <div class="module-hint">{{ card.subtitle }}</div>
+          {% if card.dashboard_metrics %}
           <div class="metric-row">
-            {% for metric in card.metrics[:2] %}
+            {% for metric in card.dashboard_metrics %}
             <div class="mini-metric {% if metric.alert %}alert{% endif %}">
               <strong>{{ metric.value }}</strong>
               <span>{{ metric.label }}</span>
             </div>
             {% endfor %}
           </div>
-          <span class="module-action">{{ card.action }}{% if card.implemented %} ->{% endif %}</span>
+          {% endif %}
+          <span class="module-action">Открыть -></span>
         </a>
       {% endfor %}
     </section>

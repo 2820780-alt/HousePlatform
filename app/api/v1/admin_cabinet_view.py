@@ -306,6 +306,12 @@ def _module_passports(
             "Сводные счетчики и публичные данные включенных модулей.",
             "Навигацию, карточки модулей, быстрые переходы.",
             "Не хранит доменные данные других модулей.",
+            [
+                {"label": "Активные модули", "value": 3},
+                {"label": "Материалов", "value": material_total},
+                {"label": "Спорные", "value": pending_candidates, "alert": pending_candidates > 0},
+                {"label": "Задачи", "value": active_tasks, "alert": active_tasks > 0},
+            ],
         ),
     ]
 
@@ -325,9 +331,12 @@ def _passport(
     connections: str,
     metrics: list[dict] | None = None,
 ) -> dict:
+    dashboard_metrics = metrics or []
     return {
         "number": number,
         "title": f"Модуль {number} · {name}",
+        "module_name": name,
+        "short_title": f"Модуль {number}",
         "subtitle": subtitle,
         "description": description,
         "status": status,
@@ -342,6 +351,7 @@ def _passport(
             {"label": "Статус", "value": status},
             {"label": "Документ", "value": document.split("/")[-1]},
         ],
+        "dashboard_metrics": dashboard_metrics[:2],
         "implemented": bool(href),
         "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
