@@ -39,6 +39,7 @@ from app.services.material_taxonomy import (
     sync_extracted_specifications,
 )
 from app.services.rule_memory import build_rule_patterns, remember_material_rule
+from app.services.audit_service import log_event
 
 
 router = APIRouter(prefix="/dev/material-hub", tags=["dev-material-hub"])
@@ -476,6 +477,15 @@ async def edit_dev_material(data: DevMaterialEditRequest, db: DBSession):
     if subcategory and category and subcategory.parent_id != category.id:
         raise HTTPException(status_code=400, detail="Subcategory does not belong to category")
 
+    old_values = {
+        "canonical_name": material.canonical_name,
+        "category_id": str(material.category_id) if material.category_id else None,
+        "subcategory_id": str(material.subcategory_id) if material.subcategory_id else None,
+        "brand": material.brand,
+        "manufacturer": material.manufacturer,
+        "status": material.status.value,
+    }
+
     material.canonical_name = canonical_name
     material.category_id = category.id if category else None
     material.subcategory_id = subcategory.id if subcategory else None
@@ -511,6 +521,24 @@ async def edit_dev_material(data: DevMaterialEditRequest, db: DBSession):
         source="admin_edit",
         attributes={"comment": data.comment or ""},
     )
+    await log_event(
+        db,
+        "material_admin_edit",
+        "Material",
+        material.id,
+        details={
+            "old": old_values,
+            "new": {
+                "canonical_name": material.canonical_name,
+                "category_id": str(material.category_id) if material.category_id else None,
+                "subcategory_id": str(material.subcategory_id) if material.subcategory_id else None,
+                "brand": material.brand,
+                "manufacturer": material.manufacturer,
+                "status": material.status.value,
+            },
+            "comment": data.comment or "",
+        },
+    )
 
     await db.flush()
     return DevMaterialEditResponse(material_id=material.id, status="updated")
@@ -538,7 +566,17 @@ async def bulk_edit_dev_materials(data: DevMaterialBulkEditRequest, db: DBSessio
 
     brand = data.brand.strip() if data.brand else None
     manufacturer = data.manufacturer.strip() if data.manufacturer else None
+    audit_items: list[dict] = []
     for material in materials:
+        old_values = {
+            "material_id": str(material.id),
+            "canonical_name": material.canonical_name,
+            "category_id": str(material.category_id) if material.category_id else None,
+            "subcategory_id": str(material.subcategory_id) if material.subcategory_id else None,
+            "brand": material.brand,
+            "manufacturer": material.manufacturer,
+            "status": material.status.value,
+        }
         if category:
             material.category_id = category.id
         if subcategory:
@@ -559,6 +597,28 @@ async def bulk_edit_dev_materials(data: DevMaterialBulkEditRequest, db: DBSessio
             source="admin_bulk_edit",
             attributes={"comment": data.comment or ""},
         )
+        audit_items.append({
+            "old": old_values,
+            "new": {
+                "material_id": str(material.id),
+                "category_id": str(material.category_id) if material.category_id else None,
+                "subcategory_id": str(material.subcategory_id) if material.subcategory_id else None,
+                "brand": material.brand,
+                "manufacturer": material.manufacturer,
+                "status": material.status.value,
+            },
+        })
+
+    await log_event(
+        db,
+        "material_admin_bulk_edit",
+        "Material",
+        details={
+            "count": len(materials),
+            "items": audit_items,
+            "comment": data.comment or "",
+        },
+    )
 
     await db.flush()
     return DevMaterialBulkEditResponse(updated=len(materials), status="updated")

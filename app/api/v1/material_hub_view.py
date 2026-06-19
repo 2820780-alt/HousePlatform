@@ -251,6 +251,7 @@ async def _render_data_page(
             "tasks": await _load_tasks(db),
             "products": await _load_catalog_products(db),
             "materials": await _load_materials(db),
+            "materials_total": await _count_active_materials(db),
             "categories": await _load_categories(db),
             "material_prices": await _load_material_price_map(db),
             "prices": await _load_prices(db),
@@ -431,6 +432,15 @@ async def _count_where(db: DBSession, model, condition) -> int:
     return result.scalar() or 0
 
 
+async def _count_active_materials(db: DBSession) -> int:
+    result = await db.execute(
+        select(func.count(Material.id)).where(
+            Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED])
+        )
+    )
+    return result.scalar() or 0
+
+
 async def _load_sources(db: DBSession) -> list[Source]:
     result = await db.execute(
         select(Source).order_by(Source.priority.asc(), Source.name.asc()).limit(100)
@@ -467,11 +477,12 @@ async def _load_materials(db: DBSession) -> list[Material]:
         select(Material)
         .options(
             selectinload(Material.category),
+            selectinload(Material.subcategory),
             selectinload(Material.documents),
         )
         .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
         .order_by(Material.created_at.desc())
-        .limit(50)
+        .limit(2000)
     )
     return list(result.scalars().all())
 
@@ -723,7 +734,7 @@ async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.ARCHIVED))
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.REJECTED))
         .order_by(CatalogProduct.price.asc())
-        .limit(500)
+        .limit(5000)
     )
     prices: dict[str, dict] = {}
     for product in result.scalars().all():

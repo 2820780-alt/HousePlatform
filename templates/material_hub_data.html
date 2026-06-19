@@ -13,7 +13,7 @@
     h1 { margin:0 0 4px; font-size:22px; }
     h2 { margin:0 0 12px; font-size:17px; }
     a { color:var(--accent); }
-    section { margin-bottom:16px; padding:14px; overflow:auto; background:linear-gradient(145deg,var(--surface),var(--surface-2)); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); }
+    section { margin-bottom:16px; padding:14px; overflow:hidden; background:linear-gradient(145deg,var(--surface),var(--surface-2)); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); }
     .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:16px; }
     .filters { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:10px; align-items:end; }
     label { display:block; color:var(--muted); font-size:12px; margin-bottom:4px; }
@@ -24,6 +24,7 @@
     .empty { color:var(--muted); padding:10px 0; }
     .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 7px; background:rgba(7,13,33,.72); white-space:nowrap; }
     code { background:var(--soft); border:1px solid var(--line); border-radius:4px; padding:1px 4px; color:#dce8ff; }
+    .table-scroll { max-height:70vh; overflow:auto; border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.34); }
     table { width:max-content; border-collapse:collapse; min-width:100%; table-layout:fixed; }
     th, td { border-bottom:1px solid var(--line); padding:8px 7px; text-align:left; vertical-align:top; overflow:hidden; text-overflow:clip; overflow-wrap:anywhere; }
     th { color:var(--muted); font-weight:600; white-space:normal; position:sticky; top:0; z-index:4; user-select:none; text-align:center; background:#111942; }
@@ -56,50 +57,6 @@
 
   <main>
     {% if view_mode in ["all", "materials"] %}
-    <section id="manual-price">
-      <h2>Ручной ввод цены</h2>
-      <div class="filters">
-        <div>
-          <label for="manual-material-id">Материал</label>
-          <select id="manual-material-id">
-            <option value="">Выберите материал</option>
-            {% for material in materials %}
-              <option value="{{ material.id }}">{{ material.canonical_name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label for="manual-price-value">Цена</label>
-          <input id="manual-price-value" type="number" min="0" step="0.01" placeholder="Например: 34990">
-        </div>
-        <div>
-          <label for="manual-price-unit">Единица</label>
-          <input id="manual-price-unit" placeholder="шт., м2, мешок">
-        </div>
-        <div>
-          <label for="manual-price-currency">Валюта</label>
-          <input id="manual-price-currency" value="RUB">
-        </div>
-        <div>
-          <label for="manual-price-region">Город/регион</label>
-          <input id="manual-price-region" placeholder="Краснодар">
-        </div>
-        <div>
-          <label for="manual-price-availability">Наличие</label>
-          <input id="manual-price-availability" placeholder="В наличии, под заказ">
-        </div>
-        <div>
-          <label for="manual-price-source">Источник</label>
-          <input id="manual-price-source" value="Ручной ввод">
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button type="button" onclick="saveManualPrice()">Сохранить цену</button>
-        </div>
-      </div>
-      <div id="manual-price-status" class="muted">Повторное сохранение для того же материала, источника, города и единицы обновит текущую цену и добавит точку в историю.</div>
-    </section>
-
     <section id="prices">
       <h2>Основная таблица материалов для смет</h2>
       <div class="filters">
@@ -430,6 +387,42 @@
           <input id="material-search" oninput="applyMaterialFilters()" placeholder="Название, категория, бренд, производитель">
         </div>
         <div>
+          <label for="material-category-filter">Категория</label>
+          <input id="material-category-filter" oninput="applyMaterialFilters()" placeholder="Например: Кровля">
+        </div>
+        <div>
+          <label for="material-subcategory-filter">Подкатегория</label>
+          <input id="material-subcategory-filter" oninput="applyMaterialFilters()" placeholder="Например: OSB">
+        </div>
+        <div>
+          <label for="material-maker-filter">Производитель или бренд</label>
+          <input id="material-maker-filter" oninput="applyMaterialFilters()" placeholder="Например: ВКБлок">
+        </div>
+        <div>
+          <label for="material-source-filter">Источник</label>
+          <input id="material-source-filter" oninput="applyMaterialFilters()" placeholder="Например: Бауцентр">
+        </div>
+        <div>
+          <label for="material-region-filter">Регион</label>
+          <input id="material-region-filter" oninput="applyMaterialFilters()" placeholder="Например: Краснодар">
+        </div>
+        <div>
+          <label for="material-price-min">Цена от</label>
+          <input id="material-price-min" type="number" min="0" step="0.01" oninput="applyMaterialFilters()">
+        </div>
+        <div>
+          <label for="material-price-max">Цена до</label>
+          <input id="material-price-max" type="number" min="0" step="0.01" oninput="applyMaterialFilters()">
+        </div>
+        <div>
+          <label for="material-category-state-filter">Классификация</label>
+          <select id="material-category-state-filter" onchange="applyMaterialFilters()">
+            <option value="">Все материалы</option>
+            <option value="without-category">Без категории</option>
+            <option value="with-category">С категорией</option>
+          </select>
+        </div>
+        <div>
           <label for="material-status-filter">Статус</label>
           <select id="material-status-filter" onchange="applyMaterialFilters()">
             <option value="">Все статусы</option>
@@ -458,25 +451,42 @@
         </div>
       </div>
       {% if materials %}
+      <div class="muted" style="margin-bottom:8px">Загружено для работы: {{ materials|length }}{% if materials_total %} из {{ materials_total }}{% endif %}. Таблица показывает выбранную страницу после фильтров.</div>
+      <div class="table-scroll">
       <table id="material-table">
         <thead><tr>
           <th><button type="button" onclick="sortTable('material-table', 0, 'date')">Создан</button></th>
           <th><button type="button" onclick="sortTable('material-table', 1, 'text')">Каноническое имя</button></th>
           <th><button type="button" onclick="sortTable('material-table', 2, 'text')">Категория</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 3, 'text')">Бренд</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 4, 'text')">Производитель</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 5, 'number')">Лучшая цена</button></th>
+          <th><button type="button" onclick="sortTable('material-table', 3, 'text')">Подкатегория</button></th>
+          <th><button type="button" onclick="sortTable('material-table', 4, 'text')">Бренд</button></th>
+          <th><button type="button" onclick="sortTable('material-table', 5, 'text')">Производитель</button></th>
+          <th><button type="button" onclick="sortTable('material-table', 6, 'number')">Лучшая цена</button></th>
           <th>Документы</th>
-          <th><button type="button" onclick="sortTable('material-table', 7, 'text')">Статус</button></th>
-          <th>Цена</th>
+          <th><button type="button" onclick="sortTable('material-table', 8, 'text')">Статус</button></th>
+          <th>Правка</th>
         </tr></thead>
         <tbody>
         {% for material in materials %}
           {% set price_info = material_prices.get(material.id|string) %}
-          <tr data-status="{{ material.status.value }}" data-has-documents="{{ 'yes' if material.documents else 'no' }}" data-has-price="{{ 'yes' if price_info else 'no' }}">
+          <tr
+            data-status="{{ material.status.value }}"
+            data-has-documents="{{ 'yes' if material.documents else 'no' }}"
+            data-has-price="{{ 'yes' if price_info else 'no' }}"
+            data-category-id="{{ material.category_id or '' }}"
+            data-subcategory-id="{{ material.subcategory_id or '' }}"
+            data-category="{{ material.category.name if material.category else '' }}"
+            data-subcategory="{{ material.subcategory.name if material.subcategory else '' }}"
+            data-brand="{{ material.brand or '' }}"
+            data-manufacturer="{{ material.manufacturer or '' }}"
+            data-region="{{ price_info.region if price_info else '' }}"
+            data-source="{{ price_info.source if price_info else '' }}"
+            data-price="{{ price_info.price if price_info else '' }}"
+          >
             <td>{{ dt(material.created_at) }}</td>
             <td>{{ material.canonical_name }}</td>
             <td>{{ material.category.name if material.category else "" }}</td>
+            <td>{{ material.subcategory.name if material.subcategory else "" }}</td>
             <td>{{ material.brand or "" }}</td>
             <td>{{ material.manufacturer or "" }}</td>
             <td data-sort-value="{{ price_info.price if price_info else '' }}">
@@ -495,11 +505,14 @@
               {% else %}<span class="muted">нет прямых документов</span>{% endif %}
             </td>
             <td>{{ enum_label(material.status) }}</td>
-            <td><button type="button" onclick="selectManualPriceMaterial('{{ material.id }}')">Ввести</button></td>
+            <td>
+              <button class="icon-button" type="button" title="Изменить материал" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
+            </td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
       {% else %}<div class="empty">Материалов пока нет.</div>{% endif %}
     </section>
     {% endif %}
@@ -910,8 +923,10 @@
               <option value="200">200</option>
             </select>
           </label>
+          <button type="button" onclick="setTablePage('${table.id}', 'first')">Первая</button>
           <button type="button" onclick="changeTablePage('${table.id}', -1)">Назад</button>
           <button type="button" onclick="changeTablePage('${table.id}', 1)">Вперед</button>
+          <button type="button" onclick="setTablePage('${table.id}', 'last')">Последняя</button>
         `;
         table.parentNode.insertBefore(controls, table);
         applyPagination(table.id);
@@ -934,6 +949,16 @@
       const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
       const page = Math.min(totalPages, Math.max(1, Number(table.dataset.page || 1) + delta));
       table.dataset.page = String(page);
+      applyPagination(tableId);
+    }
+
+    function setTablePage(tableId, target) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      const visibleRows = visibleTableRows(table);
+      const pageSize = Number(table.dataset.pageSize || 50);
+      const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+      table.dataset.page = target === "last" ? String(totalPages) : "1";
       applyPagination(tableId);
     }
 
@@ -965,7 +990,7 @@
       if (info) {
         const shownFrom = visibleRows.length ? start + 1 : 0;
         const shownTo = Math.min(end, visibleRows.length);
-        info.textContent = `${shownFrom}-${shownTo} из ${visibleRows.length}`;
+        info.textContent = `Показано ${shownFrom}-${shownTo} из ${visibleRows.length}`;
       }
     }
 
@@ -1353,15 +1378,49 @@
 
     function applyMaterialFilters() {
       const query = (document.getElementById("material-search").value || "").toLocaleLowerCase();
+      const category = (document.getElementById("material-category-filter").value || "").toLocaleLowerCase();
+      const subcategory = (document.getElementById("material-subcategory-filter").value || "").toLocaleLowerCase();
+      const maker = (document.getElementById("material-maker-filter").value || "").toLocaleLowerCase();
+      const source = (document.getElementById("material-source-filter").value || "").toLocaleLowerCase();
+      const region = (document.getElementById("material-region-filter").value || "").toLocaleLowerCase();
+      const minPrice = Number(document.getElementById("material-price-min").value || 0);
+      const maxPriceRaw = document.getElementById("material-price-max").value;
+      const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : null;
+      const categoryState = document.getElementById("material-category-state-filter").value;
       const status = document.getElementById("material-status-filter").value;
       const documentFilter = document.getElementById("material-document-filter").value;
       const priceFilter = document.getElementById("material-price-filter").value;
       document.querySelectorAll("#material-table tbody tr").forEach((row) => {
         const matchesText = row.textContent.toLocaleLowerCase().includes(query);
+        const rowPrice = Number(row.dataset.price || 0);
+        const makerText = `${row.dataset.brand || ""} ${row.dataset.manufacturer || ""}`.toLocaleLowerCase();
+        const matchesCategory = !category || (row.dataset.category || "").toLocaleLowerCase().includes(category);
+        const matchesSubcategory = !subcategory || (row.dataset.subcategory || "").toLocaleLowerCase().includes(subcategory);
+        const matchesMaker = !maker || makerText.includes(maker);
+        const matchesSource = !source || (row.dataset.source || "").toLocaleLowerCase().includes(source);
+        const matchesRegion = !region || (row.dataset.region || "").toLocaleLowerCase().includes(region);
+        const matchesMinPrice = !minPrice || (row.dataset.hasPrice === "yes" && rowPrice >= minPrice);
+        const matchesMaxPrice = maxPrice === null || (row.dataset.hasPrice === "yes" && rowPrice <= maxPrice);
+        const matchesCategoryState = !categoryState
+          || (categoryState === "without-category" ? !row.dataset.categoryId : !!row.dataset.categoryId);
         const matchesStatus = !status || row.dataset.status === status;
         const matchesDocuments = !documentFilter || (documentFilter === "with" ? row.dataset.hasDocuments === "yes" : row.dataset.hasDocuments === "no");
         const matchesPrice = !priceFilter || (priceFilter === "with" ? row.dataset.hasPrice === "yes" : row.dataset.hasPrice === "no");
-        setRowFilterVisible(row, matchesText && matchesStatus && matchesDocuments && matchesPrice);
+        setRowFilterVisible(
+          row,
+          matchesText
+            && matchesCategory
+            && matchesSubcategory
+            && matchesMaker
+            && matchesSource
+            && matchesRegion
+            && matchesMinPrice
+            && matchesMaxPrice
+            && matchesCategoryState
+            && matchesStatus
+            && matchesDocuments
+            && matchesPrice
+        );
       });
       document.getElementById("material-table").dataset.page = "1";
       applyPagination("material-table");
