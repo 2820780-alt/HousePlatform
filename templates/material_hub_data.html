@@ -517,6 +517,129 @@
     </section>
     {% endif %}
 
+    {% if view_mode in ["all", "categories"] %}
+    <section id="category-editor">
+      <h2>Редактор категорий и подкатегорий</h2>
+      <div class="filters">
+        <div>
+          <label for="new-category-name">Название</label>
+          <input id="new-category-name" placeholder="Например: Кровля">
+        </div>
+        <div>
+          <label for="new-category-parent">Родительская категория</label>
+          <select id="new-category-parent">
+            <option value="">Верхний уровень</option>
+            {% for category in categories %}
+              {% if category.status != "ARCHIVED" %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="new-category-description">Описание</label>
+          <input id="new-category-description" placeholder="Необязательно">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="button" onclick="createCategory()">Создать категорию</button>
+        </div>
+      </div>
+      <div id="category-editor-status" class="muted"></div>
+      {% if categories %}
+      <div class="table-scroll">
+      <table id="category-table">
+        <thead><tr>
+          <th><button type="button" onclick="sortTable('category-table', 0, 'text')">Категория</button></th>
+          <th><button type="button" onclick="sortTable('category-table', 1, 'text')">Родитель</button></th>
+          <th><button type="button" onclick="sortTable('category-table', 2, 'text')">Статус</button></th>
+          <th>Slug</th>
+          <th>Действия</th>
+        </tr></thead>
+        <tbody>
+        {% for category in categories %}
+          <tr data-category-id="{{ category.id }}" data-parent-id="{{ category.parent_id or '' }}" data-status="{{ category.status }}">
+            <td>{{ category.name }}</td>
+            <td>{{ category.parent.name if category.parent else "" }}</td>
+            <td>{{ category.status }}</td>
+            <td><code>{{ category.slug }}</code></td>
+            <td>
+              <button type="button" onclick="fillCategoryForm('{{ category.id }}', {{ category.name|tojson }}, '{{ category.parent_id or '' }}', {{ category.description|tojson }}, '{{ category.status }}')">Изменить</button>
+              <button type="button" onclick="archiveCategory('{{ category.id }}')">Архив</button>
+              <button type="button" onclick="deleteCategory('{{ category.id }}')">Удалить</button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+      <div class="filters" style="margin-top:12px">
+        <div>
+          <label for="merge-source-category">Объединить категорию</label>
+          <select id="merge-source-category">
+            <option value="">Источник дубля</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="merge-target-category">В категорию</label>
+          <select id="merge-target-category">
+            <option value="">Куда перенести</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="merge-category-comment">Комментарий</label>
+          <input id="merge-category-comment" placeholder="Почему объединяем">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="button" onclick="mergeCategory()">Объединить безопасно</button>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if view_mode in ["all", "classification"] %}
+    <section id="classification-review">
+      <h2>Требует классификации</h2>
+      <div class="muted">Материалы без категории. Назначьте категорию через карандаш и сохраните решение — оно попадет в память правил.</div>
+      {% if unclassified_materials %}
+      <div class="table-scroll" style="margin-top:10px">
+      <table id="classification-table">
+        <thead><tr>
+          <th><button type="button" onclick="sortTable('classification-table', 0, 'text')">Материал</button></th>
+          <th><button type="button" onclick="sortTable('classification-table', 1, 'text')">Бренд</button></th>
+          <th><button type="button" onclick="sortTable('classification-table', 2, 'text')">Производитель</button></th>
+          <th><button type="button" onclick="sortTable('classification-table', 3, 'text')">Статус</button></th>
+          <th>Действие</th>
+        </tr></thead>
+        <tbody>
+        {% for material in unclassified_materials %}
+          <tr>
+            <td>{{ material.canonical_name }}</td>
+            <td>{{ material.brand or "" }}</td>
+            <td>{{ material.manufacturer or "" }}</td>
+            <td>{{ enum_label(material.status) }}</td>
+            <td>
+              <button class="icon-button" type="button" title="Назначить классификацию" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <div class="empty">Нет материалов без категории.</div>
+      {% endif %}
+    </section>
+    {% endif %}
+
     {% if view_mode in ["all", "tasks"] %}
     <section id="tasks">
       <h2>Последние задачи</h2>
@@ -1374,6 +1497,123 @@
       }
       status.textContent = "Статус источника обновлен.";
       setTimeout(() => window.location.reload(), 600);
+    }
+
+    async function createCategory() {
+      const status = document.getElementById("category-editor-status");
+      const payload = {
+        name: document.getElementById("new-category-name").value.trim(),
+        parent_id: document.getElementById("new-category-parent").value || null,
+        description: document.getElementById("new-category-description").value || null,
+        status: "ACTIVE"
+      };
+      if (!payload.name) {
+        status.textContent = "Укажите название категории.";
+        status.className = "bad";
+        return;
+      }
+      const response = await fetch("/api/v1/dev/material-hub/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        status.textContent = payloadResponse.detail || "Не удалось создать категорию.";
+        status.className = "bad";
+        return;
+      }
+      status.textContent = "Категория создана.";
+      status.className = "muted";
+      setTimeout(() => window.location.reload(), 600);
+    }
+
+    function fillCategoryForm(categoryId, name, parentId, description, status) {
+      document.getElementById("new-category-name").value = name || "";
+      document.getElementById("new-category-parent").value = parentId || "";
+      document.getElementById("new-category-description").value = description || "";
+      const statusNode = document.getElementById("category-editor-status");
+      statusNode.innerHTML = `Редактирование: ${name}. <button type="button" onclick="updateCategory('${categoryId}', '${status || "ACTIVE"}')">Сохранить изменения</button>`;
+    }
+
+    async function updateCategory(categoryId, categoryStatus) {
+      const status = document.getElementById("category-editor-status");
+      const payload = {
+        name: document.getElementById("new-category-name").value.trim(),
+        parent_id: document.getElementById("new-category-parent").value || null,
+        description: document.getElementById("new-category-description").value || null,
+        status: categoryStatus || "ACTIVE"
+      };
+      const response = await fetch(`/api/v1/dev/material-hub/categories/${categoryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        status.textContent = payloadResponse.detail || "Не удалось обновить категорию.";
+        status.className = "bad";
+        return;
+      }
+      status.textContent = "Категория обновлена.";
+      status.className = "muted";
+      setTimeout(() => window.location.reload(), 600);
+    }
+
+    async function archiveCategory(categoryId) {
+      const status = document.getElementById("category-editor-status");
+      const response = await fetch(`/api/v1/dev/material-hub/categories/${categoryId}/archive`, { method: "POST" });
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        status.textContent = payloadResponse.detail || "Не удалось архивировать категорию.";
+        status.className = "bad";
+        return;
+      }
+      status.textContent = "Категория архивирована.";
+      status.className = "muted";
+      setTimeout(() => window.location.reload(), 600);
+    }
+
+    async function deleteCategory(categoryId) {
+      const status = document.getElementById("category-editor-status");
+      const response = await fetch(`/api/v1/dev/material-hub/categories/${categoryId}`, { method: "DELETE" });
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        status.textContent = payloadResponse.detail || "Удалить нельзя: есть связанные материалы или дочерние категории.";
+        status.className = "bad";
+        return;
+      }
+      status.textContent = "Категория удалена.";
+      status.className = "muted";
+      setTimeout(() => window.location.reload(), 600);
+    }
+
+    async function mergeCategory() {
+      const status = document.getElementById("category-editor-status");
+      const sourceId = document.getElementById("merge-source-category").value;
+      const targetId = document.getElementById("merge-target-category").value;
+      if (!sourceId || !targetId || sourceId === targetId) {
+        status.textContent = "Выберите две разные категории.";
+        status.className = "bad";
+        return;
+      }
+      const response = await fetch(`/api/v1/dev/material-hub/categories/${sourceId}/merge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_category_id: targetId,
+          comment: document.getElementById("merge-category-comment").value || null
+        })
+      });
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        status.textContent = payloadResponse.detail || "Не удалось объединить категории.";
+        status.className = "bad";
+        return;
+      }
+      status.textContent = `Готово: перенесено материалов ${payloadResponse.moved_material_categories + payloadResponse.moved_material_subcategories}, дочерних категорий ${payloadResponse.moved_children}.`;
+      status.className = "muted";
+      setTimeout(() => window.location.reload(), 900);
     }
 
     function applyMaterialFilters() {

@@ -1,10 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
+import re
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DBSession
@@ -207,6 +208,33 @@ class DevMaterialBulkEditRequest(BaseModel):
 
 class DevMaterialBulkEditResponse(BaseModel):
     updated: int
+    status: str
+
+
+class DevCategoryManageRequest(BaseModel):
+    name: str
+    parent_id: UUID | None = None
+    description: str | None = None
+    sort_order: int = 0
+    status: str = "ACTIVE"
+
+
+class DevCategoryMergeRequest(BaseModel):
+    target_category_id: UUID
+    comment: str | None = None
+
+
+class DevCategoryResponse(BaseModel):
+    category_id: UUID
+    status: str
+
+
+class DevCategoryMergeResponse(BaseModel):
+    source_category_id: UUID
+    target_category_id: UUID
+    moved_material_categories: int
+    moved_material_subcategories: int
+    moved_children: int
     status: str
 
 
@@ -624,6 +652,142 @@ async def bulk_edit_dev_materials(data: DevMaterialBulkEditRequest, db: DBSessio
     return DevMaterialBulkEditResponse(updated=len(materials), status="updated")
 
 
+@router.post("/categories", response_model=DevCategoryResponse, status_code=201)
+async def create_dev_category(data: DevCategoryManageRequest, db: DBSession):
+    _ensure_development()
+    name = data.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Category name is required")
+    parent = await _get_category_or_none(db, data.parent_id)
+    slug = await _unique_category_slug(db, name, data.parent_id)
+    category = MaterialCategory(
+        name=name,
+        slug=slug,
+        parent_id=parent.id if parent else None,
+        level=(parent.level + 1) if parent else 0,
+        description=data.description,
+        sort_order=data.sort_order,
+        status=_normalize_category_status(data.status),
+    )
+    db.add(category)
+    await db.flush()
+    await log_event(
+        db,
+        "category_created",
+        "MaterialCategory",
+        category.id,
+        details={"name": category.name, "parent_id": str(category.parent_id) if category.parent_id else None},
+    )
+    return DevCategoryResponse(category_id=category.id, status="created")
+
+
+@router.patch("/categories/{category_id}", response_model=DevCategoryResponse)
+async def update_dev_category(category_id: UUID, data: DevCategoryManageRequest, db: DBSession):
+    _ensure_development()
+    category = await _get_category_or_none(db, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    parent = await _get_category_or_none(db, data.parent_id)
+    if parent and parent.id == category.id:
+        raise HTTPException(status_code=400, detail="Category cannot be parent of itself")
+
+    old_values = _category_audit_values(category)
+    category.name = data.name.strip() or category.name
+    category.parent_id = parent.id if parent else None
+    category.level = (parent.level + 1) if parent else 0
+    category.description = data.description
+    category.sort_order = data.sort_order
+    category.status = _normalize_category_status(data.status)
+    db.add(category)
+    await db.flush()
+    await log_event(
+        db,
+        "category_updated",
+        "MaterialCategory",
+        category.id,
+        details={"old": old_values, "new": _category_audit_values(category)},
+    )
+    return DevCategoryResponse(category_id=category.id, status="updated")
+
+
+@router.post("/categories/{category_id}/archive", response_model=DevCategoryResponse)
+async def archive_dev_category(category_id: UUID, db: DBSession):
+    _ensure_development()
+    category = await _get_category_or_none(db, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    category.status = "ARCHIVED"
+    db.add(category)
+    await db.flush()
+    await log_event(db, "category_archived", "MaterialCategory", category.id, details=_category_audit_values(category))
+    return DevCategoryResponse(category_id=category.id, status="archived")
+
+
+@router.delete("/categories/{category_id}", response_model=DevCategoryResponse)
+async def delete_dev_category(category_id: UUID, db: DBSession):
+    _ensure_development()
+    category = await _get_category_or_none(db, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    linked_count = await _category_linked_count(db, category.id)
+    child_count = await db.scalar(select(func.count(MaterialCategory.id)).where(MaterialCategory.parent_id == category.id))
+    if linked_count or child_count:
+        raise HTTPException(status_code=409, detail="Category has linked materials or child categories; archive or merge it")
+    await db.execute(delete(MaterialCategory).where(MaterialCategory.id == category.id))
+    await log_event(db, "category_deleted", "MaterialCategory", category.id, details=_category_audit_values(category))
+    return DevCategoryResponse(category_id=category.id, status="deleted")
+
+
+@router.post("/categories/{category_id}/merge", response_model=DevCategoryMergeResponse)
+async def merge_dev_category(category_id: UUID, data: DevCategoryMergeRequest, db: DBSession):
+    _ensure_development()
+    source = await _get_category_or_none(db, category_id)
+    target = await _get_category_or_none(db, data.target_category_id)
+    if not source or not target:
+        raise HTTPException(status_code=404, detail="Source or target category not found")
+    if source.id == target.id:
+        raise HTTPException(status_code=400, detail="Cannot merge category into itself")
+
+    moved_material_categories = await _update_count(
+        db,
+        update(Material).where(Material.category_id == source.id).values(category_id=target.id),
+    )
+    moved_material_subcategories = await _update_count(
+        db,
+        update(Material).where(Material.subcategory_id == source.id).values(subcategory_id=target.id),
+    )
+    moved_children = await _update_count(
+        db,
+        update(MaterialCategory).where(MaterialCategory.parent_id == source.id).values(parent_id=target.id, level=target.level + 1),
+    )
+    source.status = "ARCHIVED"
+    source.description = _append_note(source.description, f"Merged into {target.name}: {data.comment or ''}".strip())
+    db.add(source)
+    await db.flush()
+    await log_event(
+        db,
+        "category_merged",
+        "MaterialCategory",
+        source.id,
+        details={
+            "source": _category_audit_values(source),
+            "target": _category_audit_values(target),
+            "moved_material_categories": moved_material_categories,
+            "moved_material_subcategories": moved_material_subcategories,
+            "moved_children": moved_children,
+            "comment": data.comment or "",
+        },
+    )
+    return DevCategoryMergeResponse(
+        source_category_id=source.id,
+        target_category_id=target.id,
+        moved_material_categories=moved_material_categories,
+        moved_material_subcategories=moved_material_subcategories,
+        moved_children=moved_children,
+        status="merged",
+    )
+
+
 @router.post("/candidates/{candidate_id}/approve")
 async def approve_dev_match_candidate(candidate_id: UUID, data: DevModerationDecision, db: DBSession):
     _ensure_development()
@@ -831,6 +995,72 @@ async def _get_category_or_none(db: DBSession, category_id: UUID | None) -> Mate
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     return category
+
+
+async def _unique_category_slug(db: DBSession, name: str, parent_id: UUID | None) -> str:
+    base = _slugify(name)
+    if parent_id:
+        base = f"{base}-{str(parent_id)[:8]}"
+    slug = base
+    suffix = 2
+    while True:
+        existing = await db.scalar(select(MaterialCategory.id).where(MaterialCategory.slug == slug))
+        if not existing:
+            return slug
+        slug = f"{base}-{suffix}"
+        suffix += 1
+
+
+def _slugify(value: str) -> str:
+    translit = {
+        "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e", "ж": "zh",
+        "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o",
+        "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "h", "ц": "c",
+        "ч": "ch", "ш": "sh", "щ": "sch", "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+    }
+    lowered = value.lower()
+    converted = "".join(translit.get(char, char) for char in lowered)
+    slug = re.sub(r"[^a-z0-9]+", "-", converted).strip("-")
+    return slug or "category"
+
+
+def _normalize_category_status(value: str | None) -> str:
+    status = (value or "ACTIVE").upper()
+    return status if status in {"ACTIVE", "ARCHIVED"} else "ACTIVE"
+
+
+def _category_audit_values(category: MaterialCategory) -> dict:
+    return {
+        "id": str(category.id),
+        "name": category.name,
+        "slug": category.slug,
+        "parent_id": str(category.parent_id) if category.parent_id else None,
+        "status": category.status,
+        "level": category.level,
+        "sort_order": category.sort_order,
+    }
+
+
+async def _category_linked_count(db: DBSession, category_id: UUID) -> int:
+    material_count = await db.scalar(
+        select(func.count(Material.id)).where(
+            (Material.category_id == category_id) | (Material.subcategory_id == category_id)
+        )
+    )
+    return material_count or 0
+
+
+async def _update_count(db: DBSession, statement) -> int:
+    result = await db.execute(statement)
+    return result.rowcount or 0
+
+
+def _append_note(description: str | None, note: str) -> str:
+    if not note:
+        return description or ""
+    if description:
+        return f"{description}\n{note}"
+    return note
 
 
 def _manual_price_external_id(

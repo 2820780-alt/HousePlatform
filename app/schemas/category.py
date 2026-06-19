@@ -15,6 +15,7 @@ class CategoryRead(BaseModel):
     parent_id: UUID | None = None
     name: str
     slug: str
+    status: str = "ACTIVE"
     level: int
     sort_order: int
     created_at: datetime

@@ -234,6 +234,16 @@ async def material_hub_prices(request: Request, db: DBSession):
     return await _render_data_page(request, db, False, "prices", "История цен")
 
 
+@router.get("/categories", response_class=HTMLResponse)
+async def material_hub_categories(request: Request, db: DBSession):
+    return await _render_data_page(request, db, False, "categories", "Редактор категорий")
+
+
+@router.get("/classification", response_class=HTMLResponse)
+async def material_hub_classification(request: Request, db: DBSession):
+    return await _render_data_page(request, db, False, "classification", "Требует классификации")
+
+
 async def _render_data_page(
     request: Request,
     db: DBSession,
@@ -253,6 +263,7 @@ async def _render_data_page(
             "materials": await _load_materials(db),
             "materials_total": await _count_active_materials(db),
             "categories": await _load_categories(db),
+            "unclassified_materials": await _load_unclassified_materials(db),
             "material_prices": await _load_material_price_map(db),
             "prices": await _load_prices(db),
             "materials_without_price_history": await _load_materials_without_price_history(db),
@@ -365,6 +376,8 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
         CatalogProduct.status == CatalogProductStatus.NEEDS_REVIEW,
     )
     total_sources = await _count_model(db, Source)
+    unclassified_materials = await _count_unclassified_materials(db)
+    total_categories = await _count_model(db, MaterialCategory)
 
     return [
         {
@@ -419,6 +432,22 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
             "action": "Управлять источниками",
             "tone": "plain",
         },
+        {
+            "title": "Требует классификации",
+            "value": unclassified_materials,
+            "note": "без категории или с конфликтом классификации",
+            "href": "/api/v1/admin/material-hub/view/classification",
+            "action": "Разобрать материалы",
+            "tone": "warn" if unclassified_materials else "ok",
+        },
+        {
+            "title": "Категории",
+            "value": total_categories,
+            "note": "справочник категорий и подкатегорий",
+            "href": "/api/v1/admin/material-hub/view/categories",
+            "action": "Открыть редактор",
+            "tone": "info",
+        },
     ]
 
 
@@ -437,6 +466,15 @@ async def _count_active_materials(db: DBSession) -> int:
         select(func.count(Material.id)).where(
             Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED])
         )
+    )
+    return result.scalar() or 0
+
+
+async def _count_unclassified_materials(db: DBSession) -> int:
+    result = await db.execute(
+        select(func.count(Material.id))
+        .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
+        .where(Material.category_id.is_(None))
     )
     return result.scalar() or 0
 
@@ -487,9 +525,27 @@ async def _load_materials(db: DBSession) -> list[Material]:
     return list(result.scalars().all())
 
 
+async def _load_unclassified_materials(db: DBSession) -> list[Material]:
+    result = await db.execute(
+        select(Material)
+        .options(
+            selectinload(Material.category),
+            selectinload(Material.subcategory),
+            selectinload(Material.documents),
+        )
+        .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
+        .where(Material.category_id.is_(None))
+        .order_by(Material.updated_at.desc())
+        .limit(300)
+    )
+    return list(result.scalars().all())
+
+
 async def _load_categories(db: DBSession) -> list[MaterialCategory]:
     result = await db.execute(
-        select(MaterialCategory).order_by(
+        select(MaterialCategory)
+        .options(selectinload(MaterialCategory.parent))
+        .order_by(
             MaterialCategory.level.asc(),
             MaterialCategory.name.asc(),
         )
