@@ -3,19 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Кабинет администратора · Атом</title>
+  <title>АТОМ · Панель администратора</title>
   <style>
     :root {
-      --bg: #070b1c;
-      --panel: rgba(12, 20, 48, 0.78);
-      --panel-strong: rgba(17, 28, 66, 0.9);
-      --line: rgba(158, 184, 255, 0.22);
-      --text: #eef6ff;
-      --muted: #98a9cd;
+      --bg: #050917;
+      --bg-2: #09122b;
+      --surface: rgba(12, 22, 52, 0.78);
+      --surface-2: rgba(16, 31, 75, 0.72);
+      --line: rgba(119, 172, 255, 0.22);
+      --line-strong: rgba(32, 211, 255, 0.44);
+      --text: #eef7ff;
+      --muted: #8fa4c8;
       --cyan: #18d7f2;
-      --violet: #8b5cf6;
+      --blue: #3b82f6;
+      --green: #22c55e;
       --amber: #f59e0b;
-      --shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
+      --red: #ff3b7f;
+      --violet: #a855f7;
+      --shadow: 0 24px 74px rgba(0, 0, 0, 0.42);
     }
     * { box-sizing: border-box; }
     body {
@@ -23,306 +28,747 @@
       min-height: 100vh;
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
       background:
-        radial-gradient(circle at 50% 42%, rgba(24, 215, 242, 0.16), transparent 27%),
-        radial-gradient(circle at 12% 10%, rgba(34, 197, 94, 0.2), transparent 28%),
-        radial-gradient(circle at 88% 16%, rgba(139, 92, 246, 0.22), transparent 24%),
-        radial-gradient(circle at 78% 88%, rgba(245, 158, 11, 0.16), transparent 26%),
-        linear-gradient(135deg, #070b1c 0%, #111a40 52%, #211332 100%);
+        radial-gradient(circle at 46% 34%, rgba(24, 215, 242, 0.18), transparent 28%),
+        radial-gradient(circle at 88% 8%, rgba(168, 85, 247, 0.2), transparent 28%),
+        radial-gradient(circle at 12% 92%, rgba(34, 197, 94, 0.14), transparent 28%),
+        linear-gradient(135deg, var(--bg) 0%, #0b1535 54%, #160d2c 100%);
+      overflow-x: hidden;
     }
+    body.nav-collapsed .sidebar { width: 76px; }
+    body.nav-collapsed .nav-label,
+    body.nav-collapsed .sidebar-brand span,
+    body.nav-collapsed .sidebar-footer { display: none; }
+    body.nav-collapsed .app-shell { grid-template-columns: 76px minmax(0, 1fr); }
     a { color: inherit; text-decoration: none; }
-    header {
+    button, input, select {
+      font: inherit;
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: rgba(6, 13, 31, 0.74);
+      border-radius: 8px;
+    }
+    button { cursor: pointer; }
+    .app-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+      transition: grid-template-columns 0.18s ease;
+    }
+    .sidebar {
       position: sticky;
       top: 0;
-      z-index: 5;
-      padding: 20px 28px 16px;
+      height: 100vh;
+      padding: 16px 12px;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(6, 13, 31, 0.96), rgba(9, 17, 42, 0.88));
+      backdrop-filter: blur(18px);
+      overflow-y: auto;
+      transition: width 0.18s ease;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 48px;
+      padding: 8px 9px 14px;
       border-bottom: 1px solid var(--line);
-      background: rgba(7, 11, 28, 0.78);
+      margin-bottom: 12px;
+    }
+    .atom-logo {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border: 1px solid rgba(24, 215, 242, 0.62);
+      border-radius: 50%;
+      color: var(--cyan);
+      font-weight: 900;
+      background: radial-gradient(circle, rgba(24, 215, 242, 0.42), rgba(5, 9, 23, 0.8) 52%);
+      box-shadow: 0 0 26px rgba(24, 215, 242, 0.28);
+    }
+    .atom-logo::before,
+    .atom-logo::after {
+      content: "";
+      position: absolute;
+      inset: 8px -5px;
+      border: 1px solid rgba(24, 215, 242, 0.5);
+      border-radius: 50%;
+      transform: rotate(34deg);
+    }
+    .atom-logo::after { transform: rotate(-34deg); }
+    .sidebar-brand strong { display: block; font-size: 18px; letter-spacing: 0; }
+    .sidebar-brand small { color: var(--muted); }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #cdd9f4;
+    }
+    .nav-item:hover,
+    .nav-item.active {
+      border-color: rgba(24, 215, 242, 0.34);
+      background: rgba(24, 215, 242, 0.08);
+      color: var(--text);
+    }
+    .nav-icon {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border-radius: 7px;
+      background: rgba(64, 119, 255, 0.12);
+      color: var(--cyan);
+    }
+    .sidebar-footer {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid rgba(34, 197, 94, 0.24);
+      border-radius: 10px;
+      background: rgba(34, 197, 94, 0.08);
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .content {
+      min-width: 0;
+      padding: 16px 18px 28px;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: auto minmax(260px, 1fr) auto auto auto auto auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 66px;
+      margin: -16px -18px 16px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 9, 23, 0.72);
       backdrop-filter: blur(18px);
     }
-    h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
-    .lead {
-      max-width: 980px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-    main { padding: 22px 28px 40px; }
-    .orbit-shell {
-      position: relative;
-      min-height: 780px;
-      border: 1px solid rgba(158, 184, 255, 0.14);
-      border-radius: 10px;
-      background:
-        linear-gradient(145deg, rgba(9, 17, 43, 0.72), rgba(14, 20, 50, 0.48)),
-        repeating-radial-gradient(circle at 50% 50%, rgba(158, 184, 255, 0.08) 0 1px, transparent 1px 118px);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .orbit-line {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      border: 1px solid rgba(158, 184, 255, 0.11);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-    .orbit-line.one { width: 36%; aspect-ratio: 1; }
-    .orbit-line.two { width: 58%; aspect-ratio: 1; }
-    .orbit-line.three { width: 78%; aspect-ratio: 1; }
-    .center-node {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 270px;
-      min-height: 270px;
-      transform: translate(-50%, -50%);
+    .icon-button {
+      width: 40px;
+      height: 40px;
       display: grid;
       place-items: center;
-      text-align: center;
-      border-radius: 50%;
-      border: 1px solid rgba(24, 215, 242, 0.48);
-      background:
-        radial-gradient(circle at 50% 35%, rgba(24, 215, 242, 0.28), transparent 42%),
-        linear-gradient(145deg, rgba(18, 35, 76, 0.94), rgba(11, 18, 44, 0.98));
-      box-shadow:
-        0 0 0 10px rgba(24, 215, 242, 0.05),
-        0 0 54px rgba(24, 215, 242, 0.28),
-        var(--shadow);
-      z-index: 3;
-      padding: 28px;
+      border-radius: 9px;
+      background: rgba(24, 215, 242, 0.08);
     }
-    .center-core,
-    .node-core {
-      display: grid;
-      place-items: center;
-      gap: 6px;
-      text-align: center;
-      max-width: 150px;
-      margin: auto;
+    .settings-button {
+      min-height: 40px;
+      padding: 0 12px;
+      border-radius: 9px;
+      background: rgba(24, 215, 242, 0.08);
+      font-weight: 700;
+      white-space: nowrap;
     }
-    .center-node h2 { margin: 0; font-size: 24px; letter-spacing: 0; }
-    .center-node p { margin: 0; color: var(--muted); line-height: 1.22; font-size: 12px; }
-    .event-pair {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      width: 150px;
-      z-index: 1;
-    }
-    .event-pair.top { top: 22px; }
-    .event-pair.bottom { bottom: 22px; }
-    .event-badge {
-      min-height: 30px;
+    .global-search {
       display: grid;
       grid-template-columns: auto 1fr;
-      gap: 5px;
       align-items: center;
-      padding: 5px 6px;
-      border: 1px solid rgba(158, 184, 255, 0.15);
-      border-radius: 999px;
-      background: rgba(7, 13, 33, 0.38);
-      color: var(--muted);
-      line-height: 1;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(7, 14, 35, 0.72);
     }
-    .event-symbol {
+    .global-search input {
+      width: 100%;
+      border: 0;
+      min-height: 38px;
+      outline: none;
+      background: transparent;
+    }
+    .top-select {
+      display: grid;
+      grid-template-columns: auto auto;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .top-select select {
+      min-height: 40px;
+      min-width: 118px;
+      padding: 0 10px;
+    }
+    .profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 40px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(7, 14, 35, 0.72);
+      white-space: nowrap;
+    }
+    .avatar {
       display: grid;
       place-items: center;
-      width: 17px;
-      height: 17px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
-      color: #071024;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #061026;
+      font-weight: 800;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .kpi-card,
+    .panel,
+    .module-card,
+    .quick-action {
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, var(--surface), rgba(7, 14, 35, 0.78));
+      box-shadow: var(--shadow);
+    }
+    .kpi-card {
+      min-height: 112px;
+      padding: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 42px;
+      opacity: 0.72;
+      background: linear-gradient(180deg, transparent, rgba(24, 215, 242, 0.12));
+    }
+    .kpi-card.success { border-color: rgba(34, 197, 94, 0.28); }
+    .kpi-card.warn { border-color: rgba(245, 158, 11, 0.36); }
+    .kpi-card.danger { border-color: rgba(255, 59, 127, 0.38); }
+    .kpi-card.info { border-color: rgba(24, 215, 242, 0.32); }
+    .kpi-title { color: var(--muted); font-size: 12px; margin-bottom: 7px; }
+    .kpi-value { font-size: 25px; font-weight: 800; letter-spacing: 0; margin-bottom: 5px; }
+    .kpi-delta { color: var(--green); font-size: 12px; }
+    .kpi-card.warn .kpi-delta { color: var(--amber); }
+    .kpi-card.danger .kpi-delta { color: var(--red); }
+    .mock-tag {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.36);
+      color: #ffd28a;
       font-size: 10px;
-      font-weight: 900;
-      background: #8ea3c8;
     }
-    .event-badge.warning { border-color: rgba(245, 158, 11, 0.56); background: rgba(245, 158, 11, 0.09); }
-    .event-badge.warning .event-symbol {
-      background: #f59e0b;
-      clip-path: polygon(50% 4%, 98% 94%, 2% 94%);
-      border-radius: 0;
-      padding-top: 5px;
+    .spark {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+      height: 30px;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      align-items: end;
+      gap: 3px;
+      z-index: 1;
     }
-    .event-badge.error { border-color: rgba(239, 68, 68, 0.62); background: rgba(239, 68, 68, 0.1); }
-    .event-badge.error .event-symbol { background: #ef4444; color: white; }
-    .event-badge.active { border-color: rgba(24, 215, 242, 0.56); background: rgba(24, 215, 242, 0.08); }
-    .event-badge.active .event-symbol { background: #18d7f2; }
-    .event-badge.info .event-symbol { background: #8b5cf6; color: white; }
-    .event-badge.trend .event-symbol { background: #39d98a; }
-    .event-badge.ok { border-color: rgba(57, 217, 138, 0.48); background: rgba(57, 217, 138, 0.08); }
-    .event-badge.ok .event-symbol { background: #39d98a; }
-    .event-text strong { display: block; color: var(--text); font-size: 12px; overflow-wrap: anywhere; }
-    .event-text span { display: block; color: var(--muted); font-size: 8px; margin-top: 2px; }
-    .module-node {
+    .spark span {
+      min-height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--cyan), rgba(24, 215, 242, 0.18));
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(720px, 1fr) 360px;
+      gap: 14px;
+      align-items: start;
+    }
+    .atom-map {
+      position: relative;
+      min-height: 640px;
+      border-radius: 14px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(24, 215, 242, 0.16), transparent 18%),
+        radial-gradient(circle at 50% 50%, rgba(24, 215, 242, 0.06), transparent 45%),
+        linear-gradient(145deg, rgba(7, 14, 35, 0.82), rgba(13, 20, 50, 0.78));
+      border: 1px solid rgba(24, 215, 242, 0.18);
+      box-shadow: var(--shadow);
+    }
+    .orbit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(119, 172, 255, 0.13);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+      pointer-events: none;
+    }
+    .orbit.one { width: 35%; aspect-ratio: 1.5; --rot: 16deg; }
+    .orbit.two { width: 58%; aspect-ratio: 1.55; --rot: -18deg; }
+    .orbit.three { width: 78%; aspect-ratio: 1.5; --rot: 8deg; }
+    .nucleus {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 190px;
+      height: 190px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 50%;
+      border: 1px solid rgba(24, 215, 242, 0.68);
+      background: radial-gradient(circle at 50% 35%, rgba(24, 215, 242, 0.34), rgba(9, 17, 42, 0.98) 64%);
+      box-shadow: 0 0 0 10px rgba(24, 215, 242, 0.05), 0 0 72px rgba(24, 215, 242, 0.32);
+      z-index: 3;
+    }
+    .nucleus h1 { margin: 0 0 4px; font-size: 29px; letter-spacing: 0; color: #a9f5ff; }
+    .nucleus p { margin: 0; color: var(--muted); line-height: 1.3; }
+    .module-card {
       --card-accent: var(--cyan);
-      --x: 50%;
-      --y: 50%;
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 210px;
-      min-height: 210px;
+      width: 205px;
+      min-height: 112px;
       transform: translate(-50%, -50%);
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
-      border-radius: 50%;
-      color: var(--text);
+      padding: 12px;
+      border-radius: 11px;
+      border-color: color-mix(in srgb, var(--card-accent) 42%, transparent);
       background:
-        radial-gradient(circle at 72% 18%, color-mix(in srgb, var(--card-accent) 26%, transparent), transparent 44%),
-        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 12%, var(--panel-strong)), rgba(9, 15, 38, 0.96));
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+        radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--card-accent) 28%, transparent), transparent 36%),
+        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 11%, rgba(13, 22, 52, 0.92)), rgba(7, 14, 35, 0.92));
       transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
-      z-index: 2;
+      z-index: 4;
     }
-    .module-node::before {
+    .module-card::before {
       content: "";
       position: absolute;
       left: 50%;
       top: 50%;
-      width: var(--link-width, 180px);
+      width: var(--link-width, 160px);
       height: 1px;
-      background: linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 55%, transparent), transparent);
-      transform-origin: left center;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 62%, transparent), transparent);
       transform: rotate(var(--link-angle, 0deg));
+      transform-origin: left center;
       z-index: -1;
-      opacity: 0.62;
+      opacity: 0.72;
     }
-    .module-node.implemented:hover {
-      transform: translate(-50%, -50%) scale(1.04);
-      border-color: color-mix(in srgb, var(--card-accent) 72%, white 10%);
-      box-shadow: 0 24px 68px rgba(0, 0, 0, 0.46);
+    .module-card:hover {
+      transform: translate(-50%, -50%) scale(1.035);
+      border-color: color-mix(in srgb, var(--card-accent) 74%, white 8%);
+      box-shadow: 0 22px 74px rgba(0, 0, 0, 0.46);
     }
-    .module-node.future { opacity: 0.76; }
-    .module-head { display: grid; place-items: center; gap: 7px; text-align: center; }
+    .module-card.future { opacity: 0.72; }
+    .module-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 9px;
+    }
     .module-number {
       display: grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
-      border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: color-mix(in srgb, var(--card-accent) 15%, #071024);
-      color: color-mix(in srgb, var(--card-accent) 74%, white);
+      background: color-mix(in srgb, var(--card-accent) 20%, #071024);
+      color: color-mix(in srgb, var(--card-accent) 75%, white);
+      border: 1px solid color-mix(in srgb, var(--card-accent) 56%, transparent);
       font-weight: 800;
-      font-size: 14px;
     }
-    .module-title { min-width: 0; max-width: 148px; }
-    .module-title strong { display: block; font-size: 16px; line-height: 1.15; }
-    .module-hint {
-      color: var(--muted);
+    .module-name { font-weight: 800; line-height: 1.15; }
+    .module-desc { color: var(--muted); line-height: 1.28; font-size: 12px; min-height: 31px; }
+    .module-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 9px;
+    }
+    .metric-chip {
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(119, 172, 255, 0.18);
+      background: rgba(6, 13, 31, 0.62);
+      color: #d8e7ff;
       font-size: 11px;
-      line-height: 1.22;
-      text-align: center;
-      max-width: 126px;
+    }
+    .metric-chip.alert { border-color: rgba(245, 158, 11, 0.5); color: #ffd28a; }
+    .analytics-column { display: grid; gap: 12px; }
+    .panel {
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 16px; }
+    .panel-sub { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+    .chart {
+      height: 148px;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      align-items: end;
+      gap: 5px;
+      padding: 12px 8px 4px;
+      border: 1px solid rgba(119, 172, 255, 0.13);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(24, 215, 242, 0.06), rgba(7, 14, 35, 0.4));
+    }
+    .chart span {
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--cyan), rgba(59, 130, 246, 0.18));
+      min-height: 8px;
+    }
+    .analysis-filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .analysis-filters select {
+      min-height: 34px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+    .delta-big { font-size: 23px; font-weight: 900; color: var(--green); }
+    .donut-list { display: grid; gap: 8px; margin-top: 10px; }
+    .donut-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); }
+    .mover-list { display: grid; gap: 7px; }
+    .mover {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(119, 172, 255, 0.12);
+      color: var(--muted);
+    }
+    .mover strong { color: var(--text); font-size: 12px; overflow-wrap: anywhere; }
+    .mover .up { color: var(--red); }
+    .mover .down { color: var(--green); }
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .event-list,
+    .source-list,
+    .quick-grid { display: grid; gap: 8px; }
+    .event-row,
+    .source-row,
+    .quick-action {
+      padding: 9px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 9px;
+      background: rgba(7, 14, 35, 0.46);
+    }
+    .event-row { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; }
+    .event-dot {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #061026;
+      font-weight: 900;
+    }
+    .event-row.warn .event-dot { background: var(--amber); }
+    .event-row.danger .event-dot { background: var(--red); color: white; }
+    .event-row.success .event-dot { background: var(--green); }
+    .event-title { font-weight: 800; }
+    .event-note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .source-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+    }
+    .source-row strong { color: var(--text); }
+    .status-pill {
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(34, 197, 94, 0.38);
+      color: var(--green);
+      font-size: 11px;
+    }
+    .status-pill.ERROR { border-color: rgba(255, 59, 127, 0.42); color: var(--red); }
+    .quick-grid { grid-template-columns: 1fr 1fr; }
+    .quick-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+    .quick-action:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+    .quick-icon {
+      width: 27px;
+      height: 27px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: rgba(24, 215, 242, 0.12);
+      color: var(--cyan);
+    }
+    .mock-note { color: #ffd28a; font-size: 11px; }
+    @media (max-width: 1500px) {
+      .kpi-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .analytics-column { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (max-width: 1100px) {
-      header, main { padding-left: 16px; padding-right: 16px; }
-      .orbit-shell {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; width: auto; }
+      body.nav-collapsed .app-shell { grid-template-columns: 1fr; }
+      body.nav-collapsed .sidebar { width: auto; }
+      body.nav-collapsed .nav-label,
+      body.nav-collapsed .sidebar-brand span,
+      body.nav-collapsed .sidebar-footer { display: initial; }
+      .topbar { grid-template-columns: auto 1fr; }
+      .top-select, .profile-pill { display: none; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .atom-map {
         min-height: 0;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 14px;
-        padding: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+        padding: 14px;
       }
-      .orbit-line { display: none; }
-      .center-node,
-      .module-node {
+      .orbit { display: none; }
+      .nucleus,
+      .module-card {
         position: relative;
         left: auto;
         top: auto;
-        width: 100%;
-        min-height: 0;
         transform: none;
       }
-      .center-node { border-radius: 10px; grid-column: 1 / -1; }
-      .module-node { border-radius: 10px; }
-      .module-node::before { display: none; }
-      .event-pair {
-        position: static;
-        transform: none;
-        width: 100%;
-      }
+      .nucleus { width: 100%; height: auto; min-height: 132px; border-radius: 12px; grid-column: 1 / -1; }
+      .module-card { width: 100%; min-height: 124px; border-radius: 12px; }
+      .module-card::before { display: none; }
+      .module-card:hover { transform: translateY(-2px); }
+      .analytics-column, .bottom-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .content { padding: 12px; }
+      .topbar { margin: -12px -12px 12px; padding: 10px 12px; }
+      .global-search { display: none; }
+      .kpi-grid, .quick-grid { grid-template-columns: 1fr; }
+      .analysis-filters { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Кабинет администратора</h1>
-    <div class="lead">Центр управления Атом. На карте только важные показатели и переходы к рабочим модулям.</div>
-  </header>
-
-  <main>
-    <section class="orbit-shell" aria-label="Карта модулей Атом">
-      <div class="orbit-line one"></div>
-      <div class="orbit-line two"></div>
-      <div class="orbit-line three"></div>
-
-      <div class="center-node">
-        <div class="event-pair top">
-          {% for event in center_card.events[:2] %}
-          <div class="event-badge {{ event.kind }}">
-            <span class="event-symbol">{% if event.kind == "warning" %}!{% elif event.kind == "error" %}x{% elif event.kind == "ok" %}✓{% elif event.kind == "trend" %}%{% else %}i{% endif %}</span>
-            <span class="event-text"><strong>{{ event.value }}</strong><span>{{ event.label }}</span></span>
-          </div>
-          {% endfor %}
-        </div>
-        <div class="center-core">
-          <h2>Атом</h2>
-          <p>Административный контур</p>
-        </div>
-        <div class="event-pair bottom">
-          {% for event in center_card.events[2:4] %}
-          <div class="event-badge {{ event.kind }}">
-            <span class="event-symbol">{% if event.kind == "warning" %}!{% elif event.kind == "error" %}x{% elif event.kind == "ok" %}✓{% elif event.kind == "trend" %}%{% else %}i{% endif %}</span>
-            <span class="event-text"><strong>{{ event.value }}</strong><span>{{ event.label }}</span></span>
-          </div>
-          {% endfor %}
-        </div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Навигация">
+      <div class="sidebar-brand">
+        <div class="atom-logo">A</div>
+        <span>
+          <strong>АТОМ</strong>
+          <small>строительная платформа</small>
+        </span>
       </div>
+      <nav class="nav-list">
+        {% for item in side_nav %}
+        <a class="nav-item {% if item.active %}active{% endif %}" href="{{ item.href }}">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+      <div class="sidebar-footer">
+        <strong>Состояние системы</strong><br>
+        Сервер: онлайн<br>
+        Синхронизация: активна<br>
+        Резервное копирование: ежедневно
+      </div>
+    </aside>
 
-      {% for card in cards %}
-        {% if card.implemented %}
-        <a class="module-node implemented" href="{{ card.href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
-        {% else %}
-        <a class="module-node future" href="{{ card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
-        {% endif %}
-          {% if card.events %}
-          <div class="event-pair top">
-            {% for event in card.events[:2] %}
-            <div class="event-badge {{ event.kind }}">
-              <span class="event-symbol">{% if event.kind == "warning" %}!{% elif event.kind == "error" %}x{% elif event.kind == "ok" %}✓{% elif event.kind == "trend" %}%{% else %}i{% endif %}</span>
-              <span class="event-text"><strong>{{ event.value }}</strong><span>{{ event.label }}</span></span>
-            </div>
+    <main class="content">
+      <header class="topbar">
+        <button class="icon-button" type="button" onclick="document.body.classList.toggle('nav-collapsed')" title="Свернуть меню">☰</button>
+        <label class="global-search">
+          <span>⌕</span>
+          <input placeholder="Поиск по материалам, проектам, поставщикам, документам...">
+        </label>
+        <label class="top-select">Период:
+          <select>
+            {% for period in periods %}<option>{{ period }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="top-select">Проект:
+          <select>
+            {% for project in project_options %}<option>{{ project }}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="icon-button" title="Уведомления">◔</button>
+        <button class="settings-button" title="Настроить дашборд">Настроить дашборд</button>
+        <div class="profile-pill"><span class="avatar">A</span><span>Администратор</span></div>
+      </header>
+
+      <section class="kpi-grid" aria-label="Главные показатели">
+        {% for kpi in top_kpis %}
+        <article class="kpi-card {{ kpi.tone }}">
+          <div class="kpi-title">{{ kpi.label }}{% if kpi.is_mock %}<span class="mock-tag">mock</span>{% endif %}</div>
+          <div class="kpi-value">{{ kpi.value }}</div>
+          <div class="kpi-delta">{{ kpi.delta }}</div>
+          <div class="spark">
+            {% for point in kpi.spark %}
+            <span style="height: {{ point }}px"></span>
             {% endfor %}
           </div>
-          {% endif %}
-          <div class="node-core">
+        </article>
+        {% endfor %}
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="atom-map" aria-label="Атомная карта модулей">
+          <div class="orbit one"></div>
+          <div class="orbit two"></div>
+          <div class="orbit three"></div>
+          <div class="nucleus">
+            <div>
+              <h1>АТОМ</h1>
+              <p>Центр управления<br>платформой</p>
+            </div>
+          </div>
+
+          {% for card in cards %}
+          <a class="module-card {% if not card.implemented %}future{% endif %}" href="{{ card.href if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-number">{{ card.number }}</div>
-              <div class="module-title">
-                <strong>{{ card.display_name }}</strong>
-              </div>
+              <div class="module-name">{{ card.display_name }}</div>
             </div>
-            <div class="module-hint">{{ card.dashboard_description }}</div>
-          </div>
-          {% if card.events %}
-          <div class="event-pair bottom">
-            {% for event in card.events[2:4] %}
-            <div class="event-badge {{ event.kind }}">
-              <span class="event-symbol">{% if event.kind == "warning" %}!{% elif event.kind == "error" %}x{% elif event.kind == "ok" %}✓{% elif event.kind == "trend" %}%{% else %}i{% endif %}</span>
-              <span class="event-text"><strong>{{ event.value }}</strong><span>{{ event.label }}</span></span>
+            <div class="module-desc">{{ card.dashboard_description }}</div>
+            <div class="module-metrics">
+              {% if card.dashboard_metrics %}
+                {% for metric in card.dashboard_metrics[:2] %}
+                <span class="metric-chip {% if metric.alert %}alert{% endif %}">{{ metric.label }}: {{ metric.value }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="metric-chip">{{ card.status }}</span>
+              {% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </section>
+
+        <aside class="analytics-column">
+          <section class="panel">
+            <h2>Изменение стоимости строительства</h2>
+            <div class="panel-sub">Расчетный виджет для типового дома. Фактический расчет подключится после смет и групп строительства.</div>
+            <div class="analysis-filters">
+              <select><option>Дом 120 м2</option><option>Текущий проект</option></select>
+              <select><option>Коробка</option><option>Фундамент</option><option>Кровля</option><option>Инженерия</option></select>
+              <select><option>Материалы</option><option>Материалы + работы</option></select>
+              <select><option>Месяц</option><option>Квартал</option><option>Год</option></select>
+            </div>
+            <div class="delta-big">{{ analytics.construction_delta_rub }} · {{ analytics.construction_delta_percent }}</div>
+            <div class="panel-sub">Текущая оценка: {{ analytics.construction_cost }} <span class="mock-note">mock</span></div>
+            <div class="chart">
+              {% for point in analytics.chart %}
+              <span style="height: {{ point * 2 }}px"></span>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Индекс стоимости по категориям</h2>
+            <div class="donut-list">
+              {% for row in analytics.category_index %}
+              <div class="donut-row">
+                <span class="dot" style="background: {{ row.color }}"></span>
+                <span>{{ row.label }}</span>
+                <strong>{{ row.value }}</strong>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Материалы с изменением цены</h2>
+            <div class="panel-sub">Рост</div>
+            <div class="mover-list">
+              {% for item in analytics.price_growth %}
+              <div class="mover"><strong>{{ item.name }}</strong><span class="up">{{ item.label }}{% if item.mock %} <span class="mock-note">mock</span>{% endif %}</span></div>
+              {% endfor %}
+            </div>
+            <div class="panel-sub" style="margin-top:12px">Снижение</div>
+            <div class="mover-list">
+              {% for item in analytics.price_drop %}
+              <div class="mover"><strong>{{ item.name }}</strong><span class="down">{{ item.label }}{% if item.mock %} <span class="mock-note">mock</span>{% endif %}</span></div>
+              {% endfor %}
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="bottom-grid" aria-label="Информационные блоки">
+        <article class="panel">
+          <h2>События и уведомления</h2>
+          <div class="event-list">
+            {% for event in system_events %}
+            <div class="event-row {{ event.tone }}">
+              <span class="event-dot">{% if event.tone == "danger" %}!{% elif event.tone == "warn" %}!{% elif event.tone == "success" %}✓{% else %}i{% endif %}</span>
+              <span><span class="event-title">{{ event.title }}</span><span class="event-note">{{ event.note }}</span></span>
             </div>
             {% endfor %}
           </div>
-          {% endif %}
-        </a>
-      {% endfor %}
-    </section>
-  </main>
+        </article>
+
+        <article class="panel">
+          <h2>Источники данных</h2>
+          <div class="source-list">
+            {% for source in sources_overview %}
+            <div class="source-row">
+              <span><strong>{{ source.name }}</strong><br><small>{{ source.type }}</small></span>
+              <span class="status-pill {{ source.status }}">{{ source.status }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Новые технологии</h2>
+          <div class="event-row info">
+            <span class="event-dot">i</span>
+            <span><span class="event-title">Кандидаты базы знаний</span><span class="event-note">данные готовятся в Модуле 1, полноценная база знаний будет отдельным модулем</span></span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Быстрые действия</h2>
+          <div class="quick-grid">
+            {% for action in quick_actions %}
+            <a class="quick-action" href="{{ action.href }}">
+              <span class="quick-icon">{{ action.icon }}</span>
+              <span>{{ action.label }}{% if action.mock %}<br><small class="mock-note">скоро</small>{% endif %}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

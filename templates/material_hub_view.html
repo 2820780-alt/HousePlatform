@@ -43,14 +43,32 @@
     h2 { margin: 0 0 12px; font-size: 17px; }
     main { padding: 18px 24px 40px; }
     a { color: var(--accent); }
-    .top-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .module-header-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+    }
+    .top-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    .top-links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(16, 215, 232, 0.32);
+      border-radius: 8px;
+      background: rgba(16, 215, 232, 0.08);
+      color: var(--text);
+      font-weight: 700;
+    }
     .module-identity {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 8px;
+      min-width: 0;
     }
     .module-mark {
+      position: relative;
       display: grid;
       place-items: center;
       width: 42px;
@@ -64,6 +82,16 @@
       font-weight: 800;
       box-shadow: 0 0 26px rgba(16, 215, 232, 0.16);
     }
+    .module-mark::before,
+    .module-mark::after {
+      content: "";
+      position: absolute;
+      inset: 8px -6px;
+      border: 1px solid rgba(16, 215, 232, 0.4);
+      border-radius: 50%;
+      transform: rotate(33deg);
+    }
+    .module-mark::after { transform: rotate(-33deg); }
     .module-title-block h1 { margin: 0 0 3px; }
     .module-title-block .muted { line-height: 1.35; }
     .muted { color: var(--muted); }
@@ -303,21 +331,26 @@
       .form-grid { grid-template-columns: 1fr; }
       .run-head { display: block; }
       .run-button { min-width: 0; }
+      .module-header-grid { grid-template-columns: 1fr; }
+      .top-links { justify-content: flex-start; }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="module-identity">
-      <div class="module-mark">1</div>
-      <div class="module-title-block">
-        <h1>База материалов</h1>
-        <div class="muted">Сбор и хранение данных</div>
+    <div class="module-header-grid">
+      <div class="module-identity">
+        <div class="module-mark">1</div>
+        <div class="module-title-block">
+          <h1>База материалов</h1>
+          <div class="muted">АТОМ · Material Hub · сбор, нормализация, источники, документы и цены</div>
+        </div>
       </div>
-    </div>
-    <div class="top-links">
-      <a href="/api/v1/admin/cabinet/view">← Кабинет администратора</a>
-      <a href="/api/v1/admin/price-dynamics/view">Динамика цен</a>
+      <div class="top-links">
+        <a href="/api/v1/admin/cabinet/view">Кабинет администратора</a>
+        <a href="/api/v1/admin/price-dynamics/view">Динамика цен</a>
+        <a href="/api/v1/admin/material-hub/view/materials">Основная таблица</a>
+      </div>
     </div>
   </header>
 

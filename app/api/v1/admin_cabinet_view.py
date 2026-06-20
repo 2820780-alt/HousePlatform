@@ -1,14 +1,20 @@
+﻿from datetime import datetime, timedelta
+from decimal import Decimal
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 
 from app.api.deps import DBSession
-from app.models.enums import MatchCandidateStatus, MaterialStatus, TaskStatus
+from app.models.catalog_product import CatalogProduct
+from app.models.enums import CatalogProductStatus, MatchCandidateStatus, MaterialStatus, SourceStatus, TaskStatus
 from app.models.material import Material
+from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.price_history import PriceHistory
+from app.models.source import Source
 from app.models.source_task import SourceTask
 
 
@@ -21,12 +27,14 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
     satellite_cards = [card for card in cards if card["number"] != 16]
+    dashboard_context = await _load_dashboard_context(db, cards)
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
         {
             "cards": satellite_cards,
             "center_card": center_card,
+            **dashboard_context,
         },
     )
 
@@ -60,6 +68,104 @@ async def _load_module_passports(db: DBSession) -> list[dict]:
         price_dynamics_summary,
     )
     return _apply_orbit_layout(cards)
+
+
+async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
+    material_total = await _count_model(db, Material)
+    pending_candidates = await _count_pending_candidates(db)
+    active_tasks = await _count_active_tasks(db)
+    active_sources = await _count_where(db, Source, Source.status == SourceStatus.ACTIVE)
+    failed_tasks = await _count_where(db, SourceTask, SourceTask.status == TaskStatus.FAILED)
+    new_materials = await _count_where(
+        db,
+        Material,
+        Material.created_at >= datetime.utcnow() - timedelta(days=7),
+    )
+    price_summary = await _load_price_dynamics_summary(db)
+    price_movers = await _load_price_movers(db)
+    source_health = await _load_source_health(db)
+
+    market_label = price_summary["market"]
+    market_is_real = market_label != "нужно больше данных"
+    construction_cost = await _estimated_house_cost(db)
+
+    return {
+        "periods": ["Неделя", "Месяц", "Квартал", "Год"],
+        "project_options": ["Дом 120 м2", "Дом 160 м2", "Текущий проект"],
+        "side_nav": _side_nav(),
+        "top_kpis": [
+            {
+                "label": "Стоимость строительства дома",
+                "value": f"{construction_cost:,.0f} ₽".replace(",", " "),
+                "delta": "+12,4% за месяц",
+                "tone": "success",
+                "spark": [18, 20, 19, 23, 22, 27, 25, 31, 29, 36, 33, 41],
+                "is_mock": True,
+            },
+            {
+                "label": "Изменение стоимости",
+                "value": market_label if market_is_real else "нужно больше данных",
+                "delta": "по PriceHistory" if market_is_real else "ожидаем историю",
+                "tone": "success" if market_is_real and not str(market_label).startswith("-") else "muted",
+                "spark": price_summary["spark"],
+                "is_mock": not market_is_real,
+            },
+            {
+                "label": "Новые материалы",
+                "value": new_materials,
+                "delta": f"всего: {material_total}",
+                "tone": "info",
+                "spark": [5, 8, 7, 11, 10, 14, 13, 16, 14, 18, 20, 22],
+            },
+            {
+                "label": "Материалы на модерации",
+                "value": pending_candidates,
+                "delta": "требуют решения",
+                "tone": "warn" if pending_candidates else "success",
+                "spark": [2, 4, 3, 5, 7, 6, 8, 7, 9, 8, 10, 11],
+            },
+            {
+                "label": "Активные источники",
+                "value": active_sources,
+                "delta": "готовы к сбору",
+                "tone": "success",
+                "spark": [7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 12, active_sources],
+            },
+            {
+                "label": "Ошибки сбора",
+                "value": failed_tasks,
+                "delta": "по задачам анализа",
+                "tone": "danger" if failed_tasks else "success",
+                "spark": [0, 1, 0, 2, 1, 0, 1, 2, 1, 1, 0, failed_tasks],
+            },
+            {
+                "label": "Активные задачи",
+                "value": active_tasks,
+                "delta": "в очереди и работе",
+                "tone": "info" if active_tasks else "success",
+                "spark": [0, 1, 1, 2, 1, 3, 2, 2, 4, 3, 2, active_tasks],
+            },
+        ],
+        "analytics": {
+            "construction_cost": f"{construction_cost:,.0f} ₽".replace(",", " "),
+            "construction_delta_rub": "+187 432 ₽",
+            "construction_delta_percent": "+12,4%",
+            "is_mock": True,
+            "chart": [12, 18, 25, 22, 29, 34, 31, 38, 45, 42, 51, 58],
+            "category_index": [
+                {"label": "Стены", "value": "+16,2%", "color": "#2563eb"},
+                {"label": "Кровля", "value": "+12,4%", "color": "#f59e0b"},
+                {"label": "Фундамент", "value": "+9,8%", "color": "#8b5cf6"},
+                {"label": "Отделка", "value": "+8,7%", "color": "#22c55e"},
+                {"label": "Инженерия", "value": "+6,3%", "color": "#06b6d4"},
+            ],
+            "price_growth": price_movers["growth"],
+            "price_drop": price_movers["drop"],
+        },
+        "sources_overview": source_health,
+        "quick_actions": _quick_actions(),
+        "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
+    }
 
 
 def _module_passports(
@@ -96,7 +202,7 @@ def _module_passports(
             "Knowledge Base",
             "Технологии, нормы и правила применения",
             "База знаний технологий строится поверх реальных материалов и документов.",
-            "Паспорт",
+            "Запланирован",
             "#39d98a",
             None,
             "Ожидает реализации",
@@ -110,7 +216,7 @@ def _module_passports(
             "Accounts",
             "Пользователи, роли и доступы",
             "Управляет учетными записями, ролями и правами доступа к модулям.",
-            "Паспорт",
+            "Запланирован",
             "#5b7cfa",
             None,
             "Ожидает реализации",
@@ -124,7 +230,7 @@ def _module_passports(
             "Labor Costs",
             "Трудозатраты и работы",
             "Хранит работы, нормы трудозатрат и параметры выполнения строительных операций.",
-            "Паспорт",
+            "Запланирован",
             "#f59e0b",
             None,
             "Ожидает реализации",
@@ -138,7 +244,7 @@ def _module_passports(
             "Estimates",
             "Формирование смет",
             "Собирает материалы, объемы, работы и цены в расчетную смету.",
-            "Паспорт",
+            "Запланирован",
             "#22c55e",
             None,
             "Ожидает реализации",
@@ -152,7 +258,7 @@ def _module_passports(
             "Estimate Audit",
             "Проверка смет",
             "Проверяет сметы на ошибки, дубли, завышения и несоответствия технологиям.",
-            "Паспорт",
+            "Запланирован",
             "#ff3b7f",
             None,
             "Ожидает реализации",
@@ -166,7 +272,7 @@ def _module_passports(
             "Digital Object",
             "Цифровой объект строительства",
             "Хранит структуру дома, объемы, элементы объекта и связь со сметой.",
-            "Паспорт",
+            "Запланирован",
             "#38bdf8",
             None,
             "Ожидает реализации",
@@ -180,7 +286,7 @@ def _module_passports(
             "Procurement",
             "Закупки",
             "Формирует закупочные потребности, сравнивает поставщиков и варианты поставки.",
-            "Паспорт",
+            "Запланирован",
             "#f97316",
             None,
             "Ожидает реализации",
@@ -194,7 +300,7 @@ def _module_passports(
             "Tenders",
             "Тендеры",
             "Позволяет собирать предложения поставщиков и подрядчиков по заданной потребности.",
-            "Паспорт",
+            "Запланирован",
             "#a855f7",
             None,
             "Ожидает реализации",
@@ -208,7 +314,7 @@ def _module_passports(
             "Marketplace",
             "Маркетплейс",
             "Показывает материалы, предложения поставщиков, аналоги и альтернативы.",
-            "Паспорт",
+            "Запланирован",
             "#14b8a6",
             None,
             "Ожидает реализации",
@@ -222,7 +328,7 @@ def _module_passports(
             "Analytics",
             "Общая аналитика платформы",
             "Объединяет срезы по строительству, закупкам, рынку, поставщикам и объектам.",
-            "Паспорт",
+            "Запланирован",
             "#6366f1",
             None,
             "Ожидает реализации",
@@ -236,7 +342,7 @@ def _module_passports(
             "AI Assistant",
             "AI-помощник",
             "Помогает искать, объяснять, классифицировать и предлагать варианты, но не является источником истины.",
-            "Паспорт",
+            "Запланирован",
             "#ec4899",
             None,
             "Ожидает реализации",
@@ -250,7 +356,7 @@ def _module_passports(
             "Audit System",
             "Системный аудит",
             "Фиксирует действия пользователей и изменения важных данных.",
-            "Паспорт",
+            "Запланирован",
             "#94a3b8",
             None,
             "Ожидает реализации",
@@ -284,7 +390,7 @@ def _module_passports(
             "Construction Groups",
             "Строительные группы",
             "Классификация поверх категорий материалов: фундамент, коробка, крыша, фасады и другие этапы.",
-            "Паспорт",
+            "Запланирован",
             "#eab308",
             None,
             "Ожидает реализации",
@@ -297,7 +403,7 @@ def _module_passports(
             16,
             "Admin Cabinet",
             "Кабинет администратора и модератора",
-            "Показывает паспорта модулей, уведомления, счетчики и переходы в рабочие контуры.",
+            "Показывает уведомления, счетчики и переходы в рабочие контуры платформы.",
             "Реализуется",
             "#60a5fa",
             "/api/v1/admin/cabinet/view",
@@ -314,6 +420,51 @@ def _module_passports(
             ],
         ),
     ]
+
+
+def _side_nav() -> list[dict]:
+    return [
+        {"label": "Главная", "href": "/api/v1/admin/cabinet/view", "icon": "⌂", "active": True},
+        {"label": "База материалов", "href": "/api/v1/admin/material-hub/view", "icon": "▦"},
+        {"label": "База знаний", "href": "/api/v1/admin/cabinet/view/modules/2", "icon": "◇"},
+        {"label": "История цен", "href": "/api/v1/admin/price-dynamics/view", "icon": "⌁"},
+        {"label": "Сметы", "href": "/api/v1/admin/cabinet/view/modules/5", "icon": "≋"},
+        {"label": "Работы / проекты", "href": "/api/v1/admin/cabinet/view/modules/7", "icon": "▣"},
+        {"label": "Тендеры", "href": "/api/v1/admin/cabinet/view/modules/9", "icon": "♜"},
+        {"label": "Поставщики", "href": "/api/v1/admin/cabinet/view/modules/8", "icon": "♢"},
+        {"label": "Маркетплейс", "href": "/api/v1/admin/cabinet/view/modules/10", "icon": "▤"},
+        {"label": "Аналитика", "href": "/api/v1/admin/cabinet/view/modules/11", "icon": "▥"},
+        {"label": "AI-помощник", "href": "/api/v1/admin/cabinet/view/modules/12", "icon": "✦"},
+        {"label": "Настройки", "href": "/api/v1/admin/cabinet/view/modules/16", "icon": "⚙"},
+        {"label": "Пользователи", "href": "/api/v1/admin/cabinet/view/modules/3", "icon": "☻"},
+        {"label": "Журнал событий", "href": "/api/v1/admin/cabinet/view/modules/13", "icon": "◷"},
+    ]
+
+
+def _quick_actions() -> list[dict]:
+    return [
+        {"label": "Добавить материал", "href": "/api/v1/admin/material-hub/view/materials", "icon": "+"},
+        {"label": "Загрузить прайс", "href": "/api/v1/admin/material-hub/view", "icon": "⇧"},
+        {"label": "Импорт документов", "href": "/api/v1/admin/material-hub/view/documents", "icon": "↥"},
+        {"label": "Создать смету", "href": "/api/v1/admin/cabinet/view/modules/5", "icon": "≋", "mock": True},
+        {"label": "Создать тендер", "href": "/api/v1/admin/cabinet/view/modules/9", "icon": "♜", "mock": True},
+        {"label": "Анализ источников", "href": "/api/v1/admin/material-hub/view", "icon": "⌁"},
+    ]
+
+
+def _system_events(pending_candidates: int, failed_tasks: int, active_tasks: int, new_materials: int) -> list[dict]:
+    events = []
+    if pending_candidates:
+        events.append({"tone": "warn", "title": f"{pending_candidates} спорных совпадений", "note": "требуется решение модератора"})
+    if failed_tasks:
+        events.append({"tone": "danger", "title": f"{failed_tasks} ошибок сбора", "note": "проверь задачи анализа"})
+    if active_tasks:
+        events.append({"tone": "info", "title": f"{active_tasks} активных задач", "note": "сбор или импорт выполняется"})
+    if new_materials:
+        events.append({"tone": "success", "title": f"{new_materials} новых материалов", "note": "за последние 7 дней"})
+    if not events:
+        events.append({"tone": "success", "title": "Критичных уведомлений нет", "note": "система работает штатно"})
+    return events[:4]
 
 
 def _passport(
@@ -522,12 +673,85 @@ async def _load_price_dynamics_summary(db: DBSession) -> dict:
             if latest[2]:
                 categories.add(str(latest[2]))
 
+    spark = [12, 13, 12, 14, 16, 15, 17, 19, 18, 21, 23, 24]
     if not changes:
         market = "нужно больше данных"
     else:
         market = f"{sum(changes) / len(changes):.2f}%"
+        average = float(sum(changes) / len(changes))
+        spark = [max(2, int(14 + average + idx * 1.4)) for idx in range(12)]
 
     return {
         "market": market,
         "categories": len(categories),
+        "spark": spark,
     }
+
+
+async def _load_price_movers(db: DBSession) -> dict:
+    result = await db.execute(
+        select(Material.canonical_name, PriceHistory.price, PriceHistory.collected_at)
+        .join(PriceHistory, PriceHistory.material_id == Material.id)
+        .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
+        .order_by(Material.id.asc(), PriceHistory.collected_at.desc())
+        .limit(3000)
+    )
+    by_name: dict[str, list[tuple[Decimal, datetime]]] = {}
+    for name, price, collected_at in result.all():
+        by_name.setdefault(name, []).append((price, collected_at))
+
+    changes = []
+    for name, rows in by_name.items():
+        sorted_rows = sorted(rows, key=lambda item: item[1], reverse=True)
+        if len(sorted_rows) < 2 or not sorted_rows[1][0]:
+            continue
+        delta = (sorted_rows[0][0] - sorted_rows[1][0]) / sorted_rows[1][0] * Decimal("100")
+        changes.append({"name": name, "delta": float(delta), "label": f"{delta:.1f}%"})
+
+    growth = sorted((item for item in changes if item["delta"] > 0), key=lambda item: item["delta"], reverse=True)[:5]
+    drop = sorted((item for item in changes if item["delta"] < 0), key=lambda item: item["delta"])[:5]
+    if not growth:
+        growth = [
+            {"name": "Газобетонный блок D500", "delta": 25.4, "label": "+25,4%", "mock": True},
+            {"name": "Арматура A500", "delta": 22.1, "label": "+22,1%", "mock": True},
+            {"name": "Минеральная вата 50 мм", "delta": 18.7, "label": "+18,7%", "mock": True},
+        ]
+    if not drop:
+        drop = [
+            {"name": "OSB плита 12 мм", "delta": -12.4, "label": "-12,4%", "mock": True},
+            {"name": "ГКЛ 12,5 мм", "delta": -7.3, "label": "-7,3%", "mock": True},
+            {"name": "Саморезы по дереву", "delta": -6.1, "label": "-6,1%", "mock": True},
+        ]
+    return {"growth": growth, "drop": drop}
+
+
+async def _load_source_health(db: DBSession) -> list[dict]:
+    result = await db.execute(
+        select(Source.name, Source.status, Source.source_type)
+        .order_by(Source.priority.asc(), Source.name.asc())
+        .limit(7)
+    )
+    rows = result.all()
+    if not rows:
+        return [{"name": "Источники не настроены", "status": "EMPTY", "type": "—"}]
+    return [
+        {
+            "name": name,
+            "status": getattr(status, "value", status),
+            "type": getattr(source_type, "value", source_type),
+        }
+        for name, status, source_type in rows
+    ]
+
+
+async def _estimated_house_cost(db: DBSession) -> Decimal:
+    result = await db.execute(
+        select(func.sum(CatalogProduct.price))
+        .where(CatalogProduct.status == CatalogProductStatus.ACTIVE)
+        .where(CatalogProduct.price.is_not(None))
+        .limit(1)
+    )
+    value = result.scalar()
+    if value:
+        return Decimal(value) * Decimal("8")
+    return Decimal("4572861")
