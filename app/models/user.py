@@ -44,6 +44,12 @@ class User(Base):
     workspace_members = relationship("WorkspaceMember", back_populates="user")
     dashboard_profiles = relationship("DashboardProfile", back_populates="user")
     favorite_modules = relationship("FavoriteModule", back_populates="user")
+    role_assignments = relationship("UserRoleAssignment", back_populates="user")
+    module_access = relationship("ModuleAccess", back_populates="user")
+    function_access = relationship("FunctionAccess", back_populates="user")
+    sessions = relationship("UserSession", back_populates="user")
+    preferences = relationship("UserPreference", back_populates="user")
+    audit_logs = relationship("AuditLog", back_populates="user")
 
     def __repr__(self):
         return f"<User {self.email} role={self.role}>"

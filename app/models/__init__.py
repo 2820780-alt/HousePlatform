@@ -1,4 +1,5 @@
 from app.models.audit_event import AuditEvent
+from app.models.audit_log import AuditLog
 from app.models.brand import Brand
 from app.models.catalog_product import CatalogProduct
 from app.models.classification_rule import ClassificationRule
@@ -41,11 +42,17 @@ from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
 from app.models.material_type import MaterialType
 from app.models.favorite_module import FavoriteModule
+from app.models.function_access import FunctionAccess
 from app.models.knowledge_candidate import KnowledgeCandidate
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.knowledge_resource_link import KnowledgeResourceLink
 from app.models.material_analog import MaterialAnalog
+from app.models.module_access import ModuleAccess
+from app.models.permission import Permission
 from app.models.price_history import PriceHistory
+from app.models.role import Role
+from app.models.role_permission import RolePermission
+from app.models.role_template import RoleTemplate
 from app.models.rule_memory import RuleMemory
 from app.models.source import Source
 from app.models.source_task import SourceTask
@@ -63,6 +70,9 @@ from app.models.unit_alias import UnitAlias
 from app.models.unit_conversion import UnitConversion
 from app.models.unit_conversion_rule import UnitConversionRule
 from app.models.user import User
+from app.models.user_preference import UserPreference
+from app.models.user_role_assignment import UserRoleAssignment
+from app.models.user_session import UserSession
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 
@@ -70,6 +80,7 @@ __all__ = [
     "AccessStatus",
     "AdminDecision",
     "AuditEvent",
+    "AuditLog",
     "Brand",
     "CatalogProduct",
     "CatalogProductStatus",
@@ -81,6 +92,7 @@ __all__ = [
     "DocumentStatus",
     "DocumentType",
     "FavoriteModule",
+    "FunctionAccess",
     "Manufacturer",
     "MatchCandidateStatus",
     "Material",
@@ -98,7 +110,12 @@ __all__ = [
     "MaterialAnalog",
     "MaterialType",
     "MaterialStatus",
+    "ModuleAccess",
+    "Permission",
     "PriceHistory",
+    "Role",
+    "RolePermission",
+    "RoleTemplate",
     "RuleMemory",
     "Source",
     "SourceActionType",
@@ -127,7 +144,10 @@ __all__ = [
     "UploadRowStatus",
     "UploadStatus",
     "User",
+    "UserPreference",
     "UserRole",
+    "UserRoleAssignment",
+    "UserSession",
     "UserStatus",
     "VerificationStatus",
     "Workspace",

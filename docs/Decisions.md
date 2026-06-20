@@ -579,3 +579,30 @@ DashboardProfile, DashboardWidget, DashboardWidgetPlacement и FavoriteModule.
 Принято.
 
 ---
+
+## Решение №028
+
+Дата:
+20.06.2026
+
+Название:
+Module_03 вводит настраиваемые роли и права без удаления совместимого User.role.
+
+Причина:
+Текущие API уже используют enum-поле User.role для базовых проверок ADMIN и
+SUPPLIER. Немедленное удаление или замена этого поля сломала бы существующие
+маршруты поставщиков и администрирования. При этом платформа должна перейти к
+гибким ролям, правам, рабочим пространствам и персональным дашбордам.
+
+Последствия:
+Добавляются Role, Permission, RolePermission, UserRoleAssignment, ModuleAccess,
+FunctionAccess, UserSession, UserPreference, RoleTemplate и AuditLog.
+
+User.role остается совместимым полем текущего API. Новая модель доступа
+становится целевой архитектурой для следующих этапов, а серверные проверки
+будут постепенно переводиться на Role/Permission/ModuleAccess.
+
+Статус:
+Принято.
+
+---
