@@ -4,7 +4,7 @@
 
 ## Текущие версии
 
-- Модуль 1 / Materials: `Module_01_Materials_v1.2.md`
+- Модуль 1 / Materials: `Module_01_Material_Hub_v2.0.md`
 - Модули 2-13: текущие базовые версии `v1.0`
 - Модуль 14 / PriceDynamics: `Module_14_PriceDynamics_v1.0.md`
 - Модуль 15 / ConstructionGroups: `Module_15_ConstructionGroups_v1.0.md`

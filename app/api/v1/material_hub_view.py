@@ -20,12 +20,15 @@ from app.models.material import Material
 from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
+from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
+from app.models.knowledge_resource import KnowledgeResource
 from app.models.price_history import PriceHistory
 from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
+from app.models.unit_conversion_rule import UnitConversionRule
 
 
 router = APIRouter(prefix="/admin/material-hub/view", tags=["material-hub-view"])
@@ -378,6 +381,9 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
     total_sources = await _count_model(db, Source)
     unclassified_materials = await _count_unclassified_materials(db)
     total_categories = await _count_model(db, MaterialCategory)
+    total_knowledge_resources = await _count_model(db, KnowledgeResource)
+    conversion_issues = await _count_quality_issue(db, "CONVERSION_DATA_REQUIRED")
+    total_conversion_rules = await _count_model(db, UnitConversionRule)
 
     return [
         {
@@ -448,6 +454,22 @@ async def _load_dashboard_cards(db: DBSession) -> list[dict]:
             "action": "Открыть редактор",
             "tone": "info",
         },
+        {
+            "title": "Ресурсы знаний",
+            "value": total_knowledge_resources,
+            "note": "ссылки, метаданные и связи документов v2.0",
+            "href": "/api/v1/admin/material-hub/view/documents",
+            "action": "Смотреть ресурсы",
+            "tone": "info",
+        },
+        {
+            "title": "Требует конвертации",
+            "value": conversion_issues,
+            "note": f"правил конвертации: {total_conversion_rules}",
+            "href": "/api/v1/admin/material-hub/view/materials",
+            "action": "Проверить материалы",
+            "tone": "warn" if conversion_issues else "ok",
+        },
     ]
 
 
@@ -458,6 +480,16 @@ async def _count_model(db: DBSession, model) -> int:
 
 async def _count_where(db: DBSession, model, condition) -> int:
     result = await db.execute(select(func.count(model.id)).where(condition))
+    return result.scalar() or 0
+
+
+async def _count_quality_issue(db: DBSession, issue_type: str) -> int:
+    result = await db.execute(
+        select(func.count(MaterialQualityIssue.id)).where(
+            MaterialQualityIssue.issue_type == issue_type,
+            MaterialQualityIssue.status == "OPEN",
+        )
+    )
     return result.scalar() or 0
 
 

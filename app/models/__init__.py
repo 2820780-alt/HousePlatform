@@ -1,6 +1,8 @@
 from app.models.audit_event import AuditEvent
 from app.models.brand import Brand
 from app.models.catalog_product import CatalogProduct
+from app.models.classification_rule import ClassificationRule
+from app.models.construction_group import ConstructionGroup
 from app.models.enums import (
     AccessStatus,
     AdminDecision,
@@ -32,8 +34,13 @@ from app.models.material_category import MaterialCategory
 from app.models.material_category_schema import MaterialCategorySchema
 from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
+from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
+from app.models.material_type import MaterialType
 from app.models.knowledge_candidate import KnowledgeCandidate
+from app.models.knowledge_resource import KnowledgeResource
+from app.models.knowledge_resource_link import KnowledgeResourceLink
+from app.models.material_analog import MaterialAnalog
 from app.models.price_history import PriceHistory
 from app.models.rule_memory import RuleMemory
 from app.models.source import Source
@@ -60,6 +67,8 @@ __all__ = [
     "Brand",
     "CatalogProduct",
     "CatalogProductStatus",
+    "ClassificationRule",
+    "ConstructionGroup",
     "DocumentStatus",
     "DocumentType",
     "Manufacturer",
@@ -71,8 +80,13 @@ __all__ = [
     "MaterialCategorySchema",
     "MaterialDocument",
     "MaterialMatchCandidate",
+    "MaterialQualityIssue",
     "MaterialSpecification",
     "KnowledgeCandidate",
+    "KnowledgeResource",
+    "KnowledgeResourceLink",
+    "MaterialAnalog",
+    "MaterialType",
     "MaterialStatus",
     "PriceHistory",
     "RuleMemory",

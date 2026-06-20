@@ -16,6 +16,7 @@ class KnowledgeCandidate(Base):
     material_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("materials.id"), index=True)
     category_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("material_categories.id"), index=True)
     document_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("material_documents.id"), index=True)
+    knowledge_resource_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("knowledge_resources.id"), index=True)
     candidate_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     extracted_text: Mapped[str | None] = mapped_column(Text)
@@ -34,3 +35,4 @@ class KnowledgeCandidate(Base):
     material = relationship("Material")
     category = relationship("MaterialCategory")
     document = relationship("MaterialDocument")
+    knowledge_resource = relationship("KnowledgeResource", back_populates="candidates")

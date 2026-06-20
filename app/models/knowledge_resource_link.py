@@ -1,30 +1,25 @@
 import uuid
 from datetime import datetime
-from decimal import Decimal
 
-from sqlalchemy import ForeignKey, JSON, Numeric, String, Text
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
 
-class UnitConversionRule(Base):
-    __tablename__ = "unit_conversion_rules"
+class KnowledgeResourceLink(Base):
+    __tablename__ = "knowledge_resource_links"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    resource_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("knowledge_resources.id"), nullable=False, index=True)
     material_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("materials.id"), index=True)
+    construction_group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("construction_groups.id"), index=True)
     category_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("material_categories.id"), index=True)
     subcategory_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("material_categories.id"), index=True)
     material_type_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("material_types.id"), index=True)
-    from_unit: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    to_unit: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    formula_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    formula: Mapped[dict | None] = mapped_column(JSON)
-    required_specifications: Mapped[list | None] = mapped_column(JSON)
-    coefficient: Mapped[Decimal | None] = mapped_column(Numeric(18, 8))
-    source: Mapped[str | None] = mapped_column(Text)
-    confidence: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
-    status: Mapped[str] = mapped_column(String(30), default="NEEDS_REVIEW", nullable=False, index=True)
+    manufacturer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("manufacturers.id"), index=True)
+    link_type: Mapped[str] = mapped_column(String(50), default="APPLIES_TO", nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(30), default="ACTIVE", nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
@@ -32,7 +27,11 @@ class UnitConversionRule(Base):
         onupdate=lambda: datetime.utcnow(),
     )
 
+    resource = relationship("KnowledgeResource", back_populates="links")
     material = relationship("Material")
+    construction_group = relationship("ConstructionGroup")
     category = relationship("MaterialCategory", foreign_keys=[category_id])
     subcategory = relationship("MaterialCategory", foreign_keys=[subcategory_id])
     material_type = relationship("MaterialType")
+    manufacturer = relationship("Manufacturer")
+
