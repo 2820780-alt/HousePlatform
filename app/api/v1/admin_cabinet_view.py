@@ -8,7 +8,10 @@ from sqlalchemy import func, select
 
 from app.api.deps import DBSession
 from app.models.catalog_product import CatalogProduct
+from app.models.dashboard_profile import DashboardProfile
+from app.models.dashboard_widget import DashboardWidget
 from app.models.enums import CatalogProductStatus, MatchCandidateStatus, MaterialStatus, SourceStatus, TaskStatus
+from app.models.favorite_module import FavoriteModule
 from app.models.material import Material
 from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
@@ -16,6 +19,7 @@ from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.price_history import PriceHistory
 from app.models.source import Source
 from app.models.source_task import SourceTask
+from app.models.workspace import Workspace
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -84,6 +88,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     price_summary = await _load_price_dynamics_summary(db)
     price_movers = await _load_price_movers(db)
     source_health = await _load_source_health(db)
+    personalization = await _load_personalization_context(db, cards)
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -165,6 +170,79 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "sources_overview": source_health,
         "quick_actions": _quick_actions(),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
+        "personalization": personalization,
+    }
+
+
+async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dict:
+    workspace_result = await db.execute(
+        select(Workspace)
+        .where(Workspace.status == "ACTIVE")
+        .order_by(Workspace.created_at.asc())
+        .limit(12)
+    )
+    workspaces = list(workspace_result.scalars().all())
+
+    profile_result = await db.execute(
+        select(DashboardProfile)
+        .where(DashboardProfile.status == "ACTIVE")
+        .order_by(DashboardProfile.is_default.desc(), DashboardProfile.created_at.asc())
+        .limit(1)
+    )
+    profile = profile_result.scalar_one_or_none()
+
+    favorite_numbers: list[int] = []
+    if profile and profile.workspace_id:
+        favorite_result = await db.execute(
+            select(FavoriteModule.module_number)
+            .where(
+                FavoriteModule.workspace_id == profile.workspace_id,
+                FavoriteModule.status == "ACTIVE",
+            )
+            .order_by(FavoriteModule.sort_order.asc())
+        )
+        favorite_numbers = [int(number) for number in favorite_result.scalars().all()]
+    if not favorite_numbers and profile and profile.favorite_modules:
+        favorite_numbers = [int(number) for number in profile.favorite_modules]
+    if not favorite_numbers:
+        favorite_numbers = [1, 14, 16]
+
+    widget_result = await db.execute(
+        select(DashboardWidget)
+        .where(DashboardWidget.status == "ACTIVE")
+        .order_by(DashboardWidget.module_number.asc(), DashboardWidget.title.asc())
+        .limit(12)
+    )
+    widgets = list(widget_result.scalars().all())
+    module_by_number = {card["number"]: card for card in cards}
+
+    return {
+        "active_workspace": workspaces[0].name if workspaces else "Административное пространство",
+        "workspaces": [workspace.name for workspace in workspaces] or ["Административное пространство"],
+        "active_profile": profile.name if profile else "Администратор: обзор платформы",
+        "role": "Администратор",
+        "role_options": [
+            "Администратор",
+            "Модератор данных",
+            "Менеджер поставщиков",
+            "Аналитик",
+        ],
+        "favorite_modules": [
+            module_by_number[number]
+            for number in favorite_numbers
+            if number in module_by_number
+        ],
+        "widgets": [
+            {
+                "title": widget.title,
+                "description": widget.description or "",
+                "module_number": widget.module_number,
+                "type": widget.widget_type,
+                "size": widget.default_size,
+            }
+            for widget in widgets
+        ],
+        "is_default_context": True,
     }
 
 

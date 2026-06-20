@@ -41,6 +41,9 @@ class User(Base):
 
     # Relationships
     supplier_accounts = relationship("SupplierAccount", back_populates="user")
+    workspace_members = relationship("WorkspaceMember", back_populates="user")
+    dashboard_profiles = relationship("DashboardProfile", back_populates="user")
+    favorite_modules = relationship("FavoriteModule", back_populates="user")
 
     def __repr__(self):
         return f"<User {self.email} role={self.role}>"

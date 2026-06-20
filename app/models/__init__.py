@@ -3,6 +3,9 @@ from app.models.brand import Brand
 from app.models.catalog_product import CatalogProduct
 from app.models.classification_rule import ClassificationRule
 from app.models.construction_group import ConstructionGroup
+from app.models.dashboard_profile import DashboardProfile
+from app.models.dashboard_widget import DashboardWidget
+from app.models.dashboard_widget_placement import DashboardWidgetPlacement
 from app.models.enums import (
     AccessStatus,
     AdminDecision,
@@ -37,6 +40,7 @@ from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
 from app.models.material_type import MaterialType
+from app.models.favorite_module import FavoriteModule
 from app.models.knowledge_candidate import KnowledgeCandidate
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.knowledge_resource_link import KnowledgeResourceLink
@@ -59,6 +63,8 @@ from app.models.unit_alias import UnitAlias
 from app.models.unit_conversion import UnitConversion
 from app.models.unit_conversion_rule import UnitConversionRule
 from app.models.user import User
+from app.models.workspace import Workspace
+from app.models.workspace_member import WorkspaceMember
 
 __all__ = [
     "AccessStatus",
@@ -69,8 +75,12 @@ __all__ = [
     "CatalogProductStatus",
     "ClassificationRule",
     "ConstructionGroup",
+    "DashboardProfile",
+    "DashboardWidget",
+    "DashboardWidgetPlacement",
     "DocumentStatus",
     "DocumentType",
+    "FavoriteModule",
     "Manufacturer",
     "MatchCandidateStatus",
     "Material",
@@ -120,4 +130,6 @@ __all__ = [
     "UserRole",
     "UserStatus",
     "VerificationStatus",
+    "Workspace",
+    "WorkspaceMember",
 ]

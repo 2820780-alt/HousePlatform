@@ -215,6 +215,117 @@
       background: rgba(7, 14, 35, 0.72);
       white-space: nowrap;
     }
+    .personalization-strip {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1fr) minmax(260px, 1.4fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .context-card {
+      min-height: 84px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 92% 12%, rgba(24, 215, 242, 0.13), transparent 38%),
+        linear-gradient(145deg, rgba(12, 22, 52, 0.78), rgba(7, 14, 35, 0.68));
+      box-shadow: var(--shadow);
+    }
+    .context-card h2 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+    .context-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .context-row strong { color: var(--text); }
+    .context-selects {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .context-selects select {
+      min-height: 34px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+    .favorite-modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .favorite-module {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 6px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.24);
+      border-radius: 999px;
+      background: rgba(24, 215, 242, 0.08);
+      color: #dff8ff;
+      font-size: 12px;
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+    .favorite-module:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+    }
+    .fav-number {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(24, 215, 242, 0.14);
+      color: var(--cyan);
+      font-weight: 800;
+    }
+    .dashboard-config {
+      display: none;
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid rgba(168, 85, 247, 0.32);
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 96% 16%, rgba(168, 85, 247, 0.16), transparent 34%),
+        rgba(7, 14, 35, 0.72);
+      box-shadow: var(--shadow);
+    }
+    .dashboard-config.open { display: block; }
+    .dashboard-config-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+    .dashboard-config h2 { margin: 0 0 4px; font-size: 17px; }
+    .dashboard-config p { margin: 0; color: var(--muted); }
+    .widget-catalog {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+    .widget-card {
+      padding: 10px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 10px;
+      background: rgba(6, 13, 31, 0.54);
+    }
+    .widget-card strong { display: block; margin-bottom: 5px; }
+    .widget-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
     .avatar {
       display: grid;
       place-items: center;
@@ -547,6 +658,7 @@
       body.nav-collapsed .sidebar-footer { display: initial; }
       .topbar { grid-template-columns: auto 1fr; }
       .top-select, .profile-pill { display: none; }
+      .personalization-strip { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .atom-map {
         min-height: 0;
@@ -575,6 +687,7 @@
       .global-search { display: none; }
       .kpi-grid, .quick-grid { grid-template-columns: 1fr; }
       .analysis-filters { grid-template-columns: 1fr; }
+      .context-selects { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -622,9 +735,70 @@
           </select>
         </label>
         <button class="icon-button" title="Уведомления">◔</button>
-        <button class="settings-button" title="Настроить дашборд">Настроить дашборд</button>
+        <button class="settings-button" type="button" title="Настроить дашборд" onclick="document.getElementById('dashboard-config').classList.toggle('open')">Настроить дашборд</button>
         <div class="profile-pill"><span class="avatar">A</span><span>Администратор</span></div>
       </header>
+
+      <section class="personalization-strip" aria-label="Персональный контекст">
+        <article class="context-card">
+          <h2>Рабочий контекст</h2>
+          <div class="context-selects">
+            <select aria-label="Рабочее пространство">
+              {% for workspace in personalization.workspaces %}
+              <option {% if workspace == personalization.active_workspace %}selected{% endif %}>{{ workspace }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Роль">
+              {% for role in personalization.role_options %}
+              <option {% if role == personalization.role %}selected{% endif %}>{{ role }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="context-row"><span>Профиль:</span><strong>{{ personalization.active_profile }}</strong></div>
+        </article>
+
+        <article class="context-card">
+          <h2>Избранные модули</h2>
+          <div class="favorite-modules">
+            {% for module in personalization.favorite_modules %}
+            <a class="favorite-module" href="{{ module.href }}">
+              <span class="fav-number">{{ module.number }}</span>
+              <span>{{ module.display_name }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="context-card">
+          <h2>Подготовка к персонализации</h2>
+          <div class="context-row"><span>Виджеты:</span><strong>{{ personalization.widgets|length }} доступно</strong></div>
+          <div class="context-row"><span>RBAC:</span><strong>структура ролей готовится</strong></div>
+          <div class="context-row"><span>Состояние:</span><strong>дефолтный профиль до подключения пользователя</strong></div>
+        </article>
+      </section>
+
+      <section id="dashboard-config" class="dashboard-config" aria-label="Настройка дашборда">
+        <div class="dashboard-config-head">
+          <div>
+            <h2>Настройка дашборда</h2>
+            <p>Каталог виджетов и избранных модулей уже подготовлен. Сохранение персональных настроек включим после подключения реального пользователя и ролей.</p>
+          </div>
+          <button class="icon-button" type="button" onclick="document.getElementById('dashboard-config').classList.remove('open')" title="Закрыть">×</button>
+        </div>
+        <div class="widget-catalog">
+          {% for widget in personalization.widgets %}
+          <article class="widget-card">
+            <strong>{{ widget.title }}</strong>
+            <span class="event-note">{{ widget.description }}</span>
+            <div class="widget-meta">
+              <span class="metric-chip">Тип: {{ widget.type }}</span>
+              <span class="metric-chip">Размер: {{ widget.size }}</span>
+              {% if widget.module_number %}<span class="metric-chip">Модуль {{ widget.module_number }}</span>{% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
 
       <section class="kpi-grid" aria-label="Главные показатели">
         {% for kpi in top_kpis %}
