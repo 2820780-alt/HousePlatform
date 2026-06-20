@@ -27,8 +27,9 @@
     .empty { color:var(--muted); padding:10px 0; }
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:760px; } }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <h1>Документы</h1>
     <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · храним ссылки на файлы и страницы источников, сами PDF пока не архивируем.</div>
@@ -95,6 +96,7 @@
         </div>
       </div>
 
+      <div class="atom-table-wrap">
       <table id="document-table">
         <thead><tr>
           <th><button type="button" onclick="sortTable(0, 'text')">Тип</button></th>
@@ -123,6 +125,7 @@
         {% endfor %}
         </tbody>
       </table>
+      </div>
       {% else %}<div class="empty">Документов пока нет.</div>{% endif %}
     </section>
   </main>

@@ -37,8 +37,9 @@
     th { color:var(--muted); font-weight:600; white-space:nowrap; }
     @media (max-width: 820px) { main, header { padding-left:14px; padding-right:14px; } .compare-grid { grid-template-columns:1fr; } table { min-width:680px; } }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <h1>Модерация совпадений</h1>
     <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · показываем одну спорную пару за раз. Осталось на проверке: {{ pending_candidates_total }}.</div>
@@ -115,6 +116,7 @@
       <h2>Недавние решения</h2>
       <div class="muted" style="margin-bottom:10px">Решения за последние сутки. Отсюда можно вернуться и отменить действие.</div>
       {% if reviewed_candidates %}
+      <div class="atom-table-wrap">
       <table>
         <thead><tr><th>Решение</th><th>Позиция источника</th><th>Material</th><th>Комментарий</th><th>Действие</th></tr></thead>
         <tbody>
@@ -131,6 +133,7 @@
         {% endfor %}
         </tbody>
       </table>
+      </div>
       {% else %}<div class="empty">За последние сутки решений нет.</div>{% endif %}
     </section>
   </main>

@@ -113,8 +113,9 @@
       .metric-grid { grid-template-columns: 1fr; }
     }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <a class="back-link" href="/api/v1/admin/cabinet/view">Назад к карте модулей</a>
     <h1>{{ card.title }}</h1>

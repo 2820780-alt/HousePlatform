@@ -690,8 +690,9 @@
       .context-selects { grid-template-columns: 1fr; }
     }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Навигация">
       <div class="sidebar-brand">
@@ -787,7 +788,7 @@
         </div>
         <div class="widget-catalog">
           {% for widget in personalization.widgets %}
-          <article class="widget-card">
+          <article class="widget-card" data-widget-key="{{ widget.type }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
             <div class="widget-meta">
@@ -828,7 +829,7 @@
           </div>
 
           {% for card in cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %}" href="{{ card.href if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-number="{{ card.number }}" href="{{ card.href if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-number">{{ card.number }}</div>
               <div class="module-name">{{ card.display_name }}</div>

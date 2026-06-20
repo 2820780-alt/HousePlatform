@@ -55,8 +55,9 @@
     .modal-header button { width:auto; }
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } .grid { grid-template-columns:1fr; } table { min-width:760px; } .module-header-grid { grid-template-columns:1fr; } .header-links { justify-content:flex-start; } }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <div class="module-header-grid">
       <div class="module-identity">

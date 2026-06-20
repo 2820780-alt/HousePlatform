@@ -70,8 +70,9 @@
     @media (max-width:920px) { .chart-wrap { grid-template-columns:1fr; } .wide { grid-column:span 1; } th { top:67px; } }
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:820px; } .module-header-grid { grid-template-columns:1fr; } .header-links { justify-content:flex-start; } }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <div class="module-header-grid">
       <div class="module-identity">
@@ -216,12 +217,14 @@
 
     <section>
       <h2>Материалы в текущей выборке</h2>
+      <div class="atom-table-wrap">
       <table id="selection-table">
         <thead><tr>
           <th>Материал</th><th>Категория</th><th>Подкатегория</th><th>Группа</th><th>Подгруппа</th><th>Производитель</th><th>Бренд</th><th>Регион</th><th>Источник</th><th>Точек</th>
         </tr></thead>
         <tbody id="selection-body"></tbody>
       </table>
+      </div>
     </section>
   </main>
 

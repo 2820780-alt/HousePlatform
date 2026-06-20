@@ -335,8 +335,9 @@
       .top-links { justify-content: flex-start; }
     }
   </style>
+  {% include "_atom_ui_standards.html" %}
 </head>
-<body>
+<body data-atom-page data-rbac-ready>
   <header>
     <div class="module-header-grid">
       <div class="module-identity">
@@ -479,7 +480,7 @@
 
     <div class="dashboard">
       {% for card in dashboard_cards %}
-      <a class="nav-card {{ card.tone }}" href="{{ card.href }}">
+      <a class="nav-card {{ card.tone }}" data-module-number="1" href="{{ card.href }}">
         <div>
           <strong>{{ card.title }}</strong>
           <div class="nav-value">{{ card.value }}</div>
