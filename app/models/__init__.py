@@ -44,6 +44,7 @@ from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
 from app.models.material_type import MaterialType
+from app.models.module_action_registry import ModuleActionRegistry
 from app.models.favorite_module import FavoriteModule
 from app.models.function_access import FunctionAccess
 from app.models.knowledge_candidate import KnowledgeCandidate
@@ -120,6 +121,7 @@ __all__ = [
     "MaterialType",
     "MaterialStatus",
     "ModuleAccess",
+    "ModuleActionRegistry",
     "Permission",
     "PilotRegion",
     "PlatformCity",
