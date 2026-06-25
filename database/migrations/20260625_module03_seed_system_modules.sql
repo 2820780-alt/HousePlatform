@@ -1,0 +1,73 @@
+-- Module 03 / Sprint 2. Seed starting system modules in PlatformModuleRegistry.
+
+BEGIN;
+
+INSERT INTO platform_module_registry (
+    module_code,
+    canonical_module_code,
+    title,
+    short_title,
+    version,
+    legacy_number,
+    display_number,
+    visual_number,
+    display_order,
+    status,
+    route,
+    redirect_route,
+    icon,
+    color,
+    is_system,
+    is_active,
+    is_public,
+    is_visible_in_sidebar,
+    is_visible_on_dashboard,
+    is_visible_on_atom_map,
+    is_available_for_widgets,
+    merged_into_module_code,
+    legacy_codes,
+    feature_codes
+)
+VALUES
+    ('MODULE_01_MATERIAL_HUB', 'MODULE_01_MATERIAL_HUB', 'Material Hub', 'Materials', 'v2.0', 1, 1, 1, 10, 'ACTIVE', '/api/v1/admin/material-hub/view', NULL, 'layers', '#17d6ff', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_02_KNOWLEDGE_BASE', 'MODULE_02_KNOWLEDGE_BASE', 'Knowledge Base', 'Knowledge', 'v1.0', 2, 2, 2, 20, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/2', NULL, 'book-open', '#22c55e', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_03_USERS_ROLES', 'MODULE_03_USERS_ROLES', 'Users / Roles / Workspaces', 'Access', 'v1.3', 3, 3, 3, 30, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/3', NULL, 'shield-check', '#38bdf8', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_04_WORKS_COSTS', 'MODULE_04_WORKS_COSTS', 'Works Costs', 'Works', 'v1.0', 4, 4, 4, 40, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/4', NULL, 'hammer', '#f59e0b', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_05_ESTIMATES', 'MODULE_05_ESTIMATES', 'Estimates', 'Estimates', 'v1.0', 5, 5, 5, 50, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/5', NULL, 'calculator', '#0ea5e9', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_06_ESTIMATE_AUDIT', 'MODULE_06_ESTIMATE_AUDIT', 'Estimate Audit', 'Audit', 'v1.0', 6, 6, 6, 60, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/6', NULL, 'clipboard-check', '#a855f7', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_07_DIGITAL_OBJECT', 'MODULE_07_DIGITAL_OBJECT', 'Digital Object', 'Object', 'v1.0', 7, 7, 7, 70, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/7', NULL, 'home', '#14b8a6', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_08_PROCUREMENT', 'MODULE_08_PROCUREMENT', 'Procurement', 'Procurement', 'v1.0', 8, 8, 8, 80, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/8', NULL, 'shopping-cart', '#06b6d4', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_09_TENDERS', 'MODULE_09_TENDERS', 'Tenders', 'Tenders', 'v1.0', 9, 9, 9, 90, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/9', NULL, 'trophy', '#ec4899', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_10_MARKETPLACE', 'MODULE_10_MARKETPLACE', 'Marketplace', 'Market', 'v1.0', 10, 10, 10, 100, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/10', NULL, 'store', '#fb7185', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_11_ANALYTICS', 'MODULE_11_ANALYTICS', 'Analytics', 'Analytics', 'v1.0', 11, 11, 11, 110, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/11', NULL, 'chart-line', '#8b5cf6', true, true, true, true, true, true, true, NULL, NULL, '["PRICE_DYNAMICS"]'::jsonb),
+    ('MODULE_12_AI_ASSISTANT', 'MODULE_12_AI_ASSISTANT', 'AI Assistant', 'AI', 'v1.0', 12, 12, 12, 120, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/12', NULL, 'sparkles', '#d946ef', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_13_AUDIT', 'MODULE_13_AUDIT', 'Audit System', 'Audit', 'v1.0', 13, 13, 13, 130, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/13', NULL, 'file-search', '#64748b', true, true, true, true, true, true, true, NULL, NULL, NULL),
+    ('MODULE_14_PRICE_HISTORY', 'MODULE_11_ANALYTICS', 'Price History', 'Prices', 'legacy', 14, 14, 14, 140, 'MERGED', '/modules/price-history', '/modules/analytics?section=price-dynamics', 'chart-no-axes-combined', '#8b5cf6', true, false, false, false, false, false, false, 'MODULE_11_ANALYTICS', '["MODULE_14_PRICE_DYNAMICS"]'::jsonb, '["PRICE_DYNAMICS"]'::jsonb),
+    ('MODULE_15_CONSTRUCTION_GROUPS', 'MODULE_15_CONSTRUCTION_GROUPS', 'Construction Groups', 'Groups', 'v1.0', 15, 15, 15, 150, 'ACTIVE', '/api/v1/admin/cabinet/view/modules/15', NULL, 'network', '#10b981', true, true, true, true, true, true, true, NULL, NULL, NULL)
+ON CONFLICT (module_code) DO UPDATE SET
+    canonical_module_code = EXCLUDED.canonical_module_code,
+    title = EXCLUDED.title,
+    short_title = EXCLUDED.short_title,
+    version = EXCLUDED.version,
+    legacy_number = EXCLUDED.legacy_number,
+    display_number = EXCLUDED.display_number,
+    visual_number = EXCLUDED.visual_number,
+    display_order = EXCLUDED.display_order,
+    status = EXCLUDED.status,
+    route = EXCLUDED.route,
+    redirect_route = EXCLUDED.redirect_route,
+    icon = EXCLUDED.icon,
+    color = EXCLUDED.color,
+    is_system = EXCLUDED.is_system,
+    is_active = EXCLUDED.is_active,
+    is_public = EXCLUDED.is_public,
+    is_visible_in_sidebar = EXCLUDED.is_visible_in_sidebar,
+    is_visible_on_dashboard = EXCLUDED.is_visible_on_dashboard,
+    is_visible_on_atom_map = EXCLUDED.is_visible_on_atom_map,
+    is_available_for_widgets = EXCLUDED.is_available_for_widgets,
+    merged_into_module_code = EXCLUDED.merged_into_module_code,
+    legacy_codes = EXCLUDED.legacy_codes,
+    feature_codes = EXCLUDED.feature_codes,
+    updated_at = now();
+
+COMMIT;
