@@ -10,13 +10,14 @@ from app.api.deps import DBSession
 from app.models.catalog_product import CatalogProduct
 from app.models.dashboard_profile import DashboardProfile
 from app.models.dashboard_widget import DashboardWidget
-from app.models.enums import CatalogProductStatus, MatchCandidateStatus, MaterialStatus, SourceStatus, TaskStatus
+from app.models.enums import CatalogProductStatus, MatchCandidateStatus, MaterialStatus, RegionStatus, SourceStatus, TaskStatus
 from app.models.favorite_module import FavoriteModule
 from app.models.material import Material
 from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.price_history import PriceHistory
+from app.models.platform_region import PlatformRegion
 from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.workspace import Workspace
@@ -89,6 +90,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     price_movers = await _load_price_movers(db)
     source_health = await _load_source_health(db)
     personalization = await _load_personalization_context(db, cards)
+    active_region = await _load_active_region_context(db)
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -171,6 +173,47 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "quick_actions": _quick_actions(),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "personalization": personalization,
+        "active_region": active_region,
+        "current_user_profile": {
+            "display_name": "Администратор",
+            "role": personalization["role"],
+            "active_region_code": active_region["code"],
+            "is_mock": True,
+        },
+    }
+
+
+async def _load_active_region_context(db: DBSession) -> dict:
+    result = await db.execute(
+        select(PlatformRegion)
+        .where(
+            PlatformRegion.status == RegionStatus.ACTIVE,
+            PlatformRegion.is_active.is_(True),
+        )
+        .order_by(
+            PlatformRegion.is_pilot_region.desc(),
+            PlatformRegion.display_order.asc(),
+            PlatformRegion.name.asc(),
+        )
+        .limit(1)
+    )
+    region = result.scalar_one_or_none()
+    if region is None:
+        return {
+            "code": None,
+            "name": "регион не выбран",
+            "country": None,
+            "is_pilot": False,
+            "source": "PlatformRegionRegistry",
+            "is_configured": False,
+        }
+    return {
+        "code": region.code,
+        "name": region.name,
+        "country": region.country,
+        "is_pilot": bool(region.is_pilot_region),
+        "source": "PlatformRegionRegistry",
+        "is_configured": True,
     }
 
 

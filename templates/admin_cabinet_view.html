@@ -164,7 +164,7 @@
       top: 0;
       z-index: 10;
       display: grid;
-      grid-template-columns: auto minmax(260px, 1fr) auto auto auto auto auto;
+      grid-template-columns: auto minmax(260px, 1fr) auto auto auto auto auto auto;
       gap: 12px;
       align-items: center;
       min-height: 66px;
@@ -231,6 +231,31 @@
       border-radius: 999px;
       background: rgba(7, 14, 35, 0.72);
       white-space: nowrap;
+    }
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 7px 10px;
+      border: 1px solid rgba(24, 215, 242, 0.3);
+      border-radius: 999px;
+      background: rgba(24, 215, 242, 0.08);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .region-badge strong { color: var(--text); }
+    .region-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(24, 215, 242, 0.82);
+    }
+    .region-badge.missing::before {
+      background: var(--amber);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
     }
     .personalization-strip {
       display: grid;
@@ -684,7 +709,7 @@
       body.nav-collapsed .sidebar-brand span,
       body.nav-collapsed .sidebar-footer { display: initial; }
       .topbar { grid-template-columns: auto 1fr; }
-      .top-select, .profile-pill { display: none; }
+      .top-select, .profile-pill, .region-badge { display: none; }
       .personalization-strip { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .atom-map {
@@ -762,9 +787,13 @@
             {% for project in project_options %}<option>{{ project }}</option>{% endfor %}
           </select>
         </label>
+        <div class="region-badge {% if not active_region.is_configured %}missing{% endif %}" title="Источник: {{ active_region.source }}">
+          {% if active_region.is_pilot %}Регион MVP:{% else %}Активный регион:{% endif %}
+          <strong>{{ active_region.name }}</strong>
+        </div>
         <button class="icon-button" title="Уведомления">◔</button>
         <button class="settings-button" type="button" title="Настроить дашборд" onclick="document.getElementById('dashboard-config').classList.toggle('open')">Настроить дашборд</button>
-        <div class="profile-pill"><span class="avatar">A</span><span>Администратор</span></div>
+        <div class="profile-pill"><span class="avatar">A</span><span>{{ current_user_profile.display_name }}</span></div>
       </header>
 
       <section class="personalization-strip" aria-label="Персональный контекст">
@@ -783,6 +812,7 @@
             </select>
           </div>
           <div class="context-row"><span>Профиль:</span><strong>{{ personalization.active_profile }}</strong></div>
+          <div class="context-row"><span>Регион:</span><strong>{{ active_region.name }}</strong></div>
         </article>
 
         <article class="context-card">
