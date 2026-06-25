@@ -4,9 +4,11 @@ from app.models.brand import Brand
 from app.models.catalog_product import CatalogProduct
 from app.models.classification_rule import ClassificationRule
 from app.models.construction_group import ConstructionGroup
+from app.models.active_region import ActiveRegion
 from app.models.dashboard_profile import DashboardProfile
 from app.models.dashboard_widget import DashboardWidget
 from app.models.dashboard_widget_placement import DashboardWidgetPlacement
+from app.models.delivery_zone import DeliveryZone
 from app.models.enums import (
     AccessStatus,
     AdminDecision,
@@ -15,6 +17,7 @@ from app.models.enums import (
     DocumentType,
     MatchCandidateStatus,
     MaterialStatus,
+    RegionStatus,
     SourceActionType,
     SourceStatus,
     SourceType,
@@ -50,6 +53,9 @@ from app.models.material_analog import MaterialAnalog
 from app.models.module_access import ModuleAccess
 from app.models.permission import Permission
 from app.models.platform_module_registry import PlatformModuleRegistry
+from app.models.platform_city import PlatformCity
+from app.models.platform_region import PlatformRegion
+from app.models.pilot_region import PilotRegion
 from app.models.price_history import PriceHistory
 from app.models.role import Role
 from app.models.role_permission import RolePermission
@@ -80,6 +86,7 @@ from app.models.workspace_member import WorkspaceMember
 __all__ = [
     "AccessStatus",
     "AdminDecision",
+    "ActiveRegion",
     "AuditEvent",
     "AuditLog",
     "Brand",
@@ -90,6 +97,7 @@ __all__ = [
     "DashboardProfile",
     "DashboardWidget",
     "DashboardWidgetPlacement",
+    "DeliveryZone",
     "DocumentStatus",
     "DocumentType",
     "FavoriteModule",
@@ -113,8 +121,12 @@ __all__ = [
     "MaterialStatus",
     "ModuleAccess",
     "Permission",
+    "PilotRegion",
+    "PlatformCity",
     "PlatformModuleRegistry",
+    "PlatformRegion",
     "PriceHistory",
+    "RegionStatus",
     "Role",
     "RolePermission",
     "RoleTemplate",

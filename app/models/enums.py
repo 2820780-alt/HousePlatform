@@ -28,6 +28,13 @@ class AccessStatus(str, enum.Enum):
     REVOKED = "revoked"
 
 
+class RegionStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    ACTIVE = "ACTIVE"
+    DISABLED = "DISABLED"
+    ARCHIVED = "ARCHIVED"
+
+
 class SourceType(str, enum.Enum):
     MANUFACTURER = "MANUFACTURER"
     RETAIL = "RETAIL"
