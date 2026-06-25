@@ -49,6 +49,7 @@ from app.models.knowledge_resource_link import KnowledgeResourceLink
 from app.models.material_analog import MaterialAnalog
 from app.models.module_access import ModuleAccess
 from app.models.permission import Permission
+from app.models.platform_module_registry import PlatformModuleRegistry
 from app.models.price_history import PriceHistory
 from app.models.role import Role
 from app.models.role_permission import RolePermission
@@ -112,6 +113,7 @@ __all__ = [
     "MaterialStatus",
     "ModuleAccess",
     "Permission",
+    "PlatformModuleRegistry",
     "PriceHistory",
     "Role",
     "RolePermission",
