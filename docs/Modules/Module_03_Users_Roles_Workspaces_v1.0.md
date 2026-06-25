@@ -148,6 +148,20 @@ Functions
 Scope доступа хранится отдельно от уровня действия. Значения вроде `VIEW_OWN`,
 `ADMIN_OWN`, `LIMITED_VIEW` и `VIEW_RELEVANT` не являются `AccessLevel`.
 
+Целевая модель проверки:
+
+```text
+AccessLevel + AccessScope
+```
+
+Примеры scope:
+
+- `NONE`;
+- `GLOBAL`;
+- `OWN`;
+- `RELEVANT`;
+- `LIMITED`.
+
 Доступ может быть назначен роли, пользователю или рабочему пространству.
 
 ## Доступ к функциям
