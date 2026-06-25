@@ -46,6 +46,7 @@ docker-compose.override.yml
 # Backups (large dumps)
 backup/dumps/
 backup/logs/
+backup/git/
 
 # Coverage
 htmlcov/
