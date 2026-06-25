@@ -25,5 +25,5 @@ class Workspace(Base):
     )
 
     members = relationship("WorkspaceMember", back_populates="workspace")
+    workspace_roles = relationship("WorkspaceRole", back_populates="workspace")
     dashboard_profiles = relationship("DashboardProfile", back_populates="workspace")
-

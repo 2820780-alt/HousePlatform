@@ -63,6 +63,7 @@ Functions
 - `UserRoleAssignment`;
 - `Workspace`;
 - `WorkspaceMember`;
+- `WorkspaceRole`;
 - `DashboardProfile`;
 - `DashboardWidget`;
 - `DashboardWidgetPlacement`;
@@ -118,6 +119,20 @@ Functions
 ## Права
 
 Права назначаются отдельно от ролей.
+
+Целевая структура Permission:
+
+```text
+moduleCode
+actionCode
+accessLevel
+accessScope
+conditions
+isActive
+```
+
+`moduleCode` ссылается на `PlatformModuleRegistry.moduleCode`, а не на
+визуальный номер модуля.
 
 Примеры:
 

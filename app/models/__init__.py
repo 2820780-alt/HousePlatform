@@ -83,6 +83,7 @@ from app.models.user_role_assignment import UserRoleAssignment
 from app.models.user_session import UserSession
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
+from app.models.workspace_role import WorkspaceRole
 
 __all__ = [
     "AccessStatus",
@@ -168,4 +169,5 @@ __all__ = [
     "VerificationStatus",
     "Workspace",
     "WorkspaceMember",
+    "WorkspaceRole",
 ]

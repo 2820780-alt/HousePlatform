@@ -26,5 +26,6 @@ class Role(Base):
 
     permissions = relationship("RolePermission", back_populates="role")
     user_roles = relationship("UserRoleAssignment", back_populates="role")
+    workspace_roles = relationship("WorkspaceRole", back_populates="role")
     module_access = relationship("ModuleAccess", back_populates="role")
     function_access = relationship("FunctionAccess", back_populates="role")
