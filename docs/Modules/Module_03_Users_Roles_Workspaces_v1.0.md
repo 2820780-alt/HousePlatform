@@ -140,8 +140,13 @@ Functions
 
 - `NO_ACCESS`;
 - `VIEW`;
+- `CREATE`;
 - `EDIT`;
+- `APPROVE`;
 - `ADMIN`.
+
+Scope доступа хранится отдельно от уровня действия. Значения вроде `VIEW_OWN`,
+`ADMIN_OWN`, `LIMITED_VIEW` и `VIEW_RELEVANT` не являются `AccessLevel`.
 
 Доступ может быть назначен роли, пользователю или рабочему пространству.
 
