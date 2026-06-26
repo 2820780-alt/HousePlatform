@@ -25,12 +25,17 @@ class DashboardUserContext:
     workspaceType: str | None = None
     activeRegionCode: str | None = None
     activeRegionName: str | None = None
+    activeCabinetId: str | None = None
+    activeCabinetType: str | None = None
     availableRegionCodes: list[str] = field(default_factory=list)
     allowedModuleCodes: list[str] = field(default_factory=list)
     allowedWidgetCodes: list[str] = field(default_factory=list)
     allowedFeatureCodes: list[str] = field(default_factory=list)
+    allowedActionCodes: list[str] = field(default_factory=list)
     favoriteModuleCodes: list[str] = field(default_factory=list)
     dashboardLayout: dict[str, Any] = field(default_factory=dict)
+    cabinetDashboardPreset: dict[str, Any] = field(default_factory=dict)
+    userDashboardLayout: dict[str, Any] = field(default_factory=dict)
     authMode: str = "mock"
 
     def to_template_dict(self) -> dict[str, Any]:
@@ -41,7 +46,10 @@ class DashboardUserContext:
         data["workspace"] = self.workspaceTitle
         data["allowedModules"] = self.allowedModuleCodes
         data["allowedWidgets"] = self.allowedWidgetCodes
+        data["allowedActions"] = self.allowedActionCodes
         data["favoriteModules"] = self.favoriteModuleCodes
+        data["cabinetDashboardPreset"] = self.cabinetDashboardPreset
+        data["userDashboardLayout"] = self.userDashboardLayout
         data["is_mock"] = self.authMode == "mock"
         return data
 
@@ -96,6 +104,8 @@ class DashboardUserContextAdapter:
             workspaceType="ADMINISTRATION",
             activeRegionCode=active_region_code,
             activeRegionName=active_region.get("name"),
+            activeCabinetId="cabinet-admin-mock",
+            activeCabinetType="ADMIN",
             availableRegionCodes=[active_region_code] if active_region_code else [],
             allowedModuleCodes=allowed_module_codes,
             allowedWidgetCodes=allowed_widget_codes,
@@ -105,8 +115,18 @@ class DashboardUserContextAdapter:
                 "ATOM_MAP_VIEW",
                 "PRICE_DYNAMICS",
             ],
+            allowedActionCodes=[
+                "MATERIAL_CREATE",
+                "SUPPLIER_PRICE_UPLOAD",
+                "MATERIAL_MODERATION_OPEN",
+                "SOURCE_LIST_OPEN",
+                "DOCUMENT_LIST_OPEN",
+                "SOURCE_TASK_CREATE",
+                "DASHBOARD_CONFIGURE",
+            ],
             favoriteModuleCodes=favorite_module_codes[:8],
             dashboardLayout=dashboard_layout,
+            userDashboardLayout=dashboard_layout,
             authMode="mock",
         )
 
@@ -144,6 +164,11 @@ class DashboardPermissionAdapter:
     @staticmethod
     def can_edit_dashboard_layout(context: DashboardUserContext | dict[str, Any]) -> bool:
         return DashboardPermissionAdapter.can_use_feature(context, "DASHBOARD_PERSONALIZE")
+
+    @staticmethod
+    def can_use_action(context: DashboardUserContext | dict[str, Any], action_code: str) -> bool:
+        data = _context_dict(context)
+        return action_code in data.get("allowedActionCodes", [])
 
 
 class DashboardRegionContextAdapter:
@@ -195,6 +220,10 @@ def can_see_admin_widgets(context: DashboardUserContext | dict[str, Any]) -> boo
 
 def can_edit_dashboard_layout(context: DashboardUserContext | dict[str, Any]) -> bool:
     return DashboardPermissionAdapter.can_edit_dashboard_layout(context)
+
+
+def can_use_action(context: DashboardUserContext | dict[str, Any], action_code: str) -> bool:
+    return DashboardPermissionAdapter.can_use_action(context, action_code)
 
 
 def can_change_region(context: DashboardUserContext | dict[str, Any]) -> bool:

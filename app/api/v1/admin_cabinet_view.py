@@ -32,8 +32,10 @@ from app.models.workspace import Workspace
 from app.services.dashboard_auth_adapters import (
     can_access_module,
     can_see_planned_modules,
+    can_use_action,
     get_dashboard_user_context,
 )
+from app.services.dashboard_cabinet_context import get_current_cabinet_context
 from app.services.dashboard_module_registry import (
     get_canonical_module_code,
     get_dashboard_module_registry,
@@ -237,7 +239,9 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         active_region=active_region,
         cards=cards,
     )
+    cabinet_context = get_current_cabinet_context(dashboard_user_context)
     current_user_profile_mock = dashboard_user_context.to_template_dict()
+    current_cabinet_context_mock = cabinet_context.to_dict()
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -317,7 +321,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
             "price_drop": price_movers["drop"],
         },
         "sources_overview": source_health,
-        "quick_actions": _quick_actions(),
+        "quick_actions": _quick_actions(dashboard_user_context, current_cabinet_context_mock),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "admin_widgets": _admin_widgets(
             material_total=material_total,
@@ -342,6 +346,9 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "planned_modules": get_planned_dashboard_modules(dashboard_user_context),
         "active_region": active_region,
         "dashboard_user_context": dashboard_user_context,
+        "currentCabinetContextMock": current_cabinet_context_mock,
+        "cabinetDashboardPreset": current_cabinet_context_mock["cabinetDashboardPreset"],
+        "userDashboardLayout": current_user_profile_mock["userDashboardLayout"],
         "currentUserProfileMock": current_user_profile_mock,
         "current_user_profile": current_user_profile_mock,
     }
@@ -756,15 +763,21 @@ def _side_nav() -> list[dict]:
     ]
 
 
-def _quick_actions() -> list[dict]:
+def _quick_actions(user_context, cabinet_context: dict) -> list[dict]:
+    preset_action_codes = set((cabinet_context.get("cabinetDashboardPreset") or {}).get("quickActionCodes") or [])
+    actions = [
+        {"action_code": "MATERIAL_CREATE", "label": "Добавить материал", "href": "/api/v1/admin/material-hub/view/materials", "icon": "+"},
+        {"action_code": "SUPPLIER_PRICE_UPLOAD", "label": "Загрузить прайс", "href": "/api/v1/admin/material-hub/view", "icon": "⇧"},
+        {"action_code": "MATERIAL_MODERATION_OPEN", "label": "Открыть модерацию", "href": "/api/v1/admin/material-hub/view/moderation", "icon": "!"},
+        {"action_code": "SOURCE_LIST_OPEN", "label": "Открыть источники", "href": "/api/v1/admin/material-hub/view/sources", "icon": "⌁"},
+        {"action_code": "DOCUMENT_LIST_OPEN", "label": "Открыть документы", "href": "/api/v1/admin/material-hub/view/documents", "icon": "□"},
+        {"action_code": "SOURCE_TASK_CREATE", "label": "Создать задачу анализа", "href": "/api/v1/admin/material-hub/view", "icon": "▶"},
+        {"action_code": "DASHBOARD_CONFIGURE", "label": "Настроить Dashboard", "href": "#dashboard-config", "icon": "⚙"},
+    ]
     return [
-        {"label": "Добавить материал", "href": "/api/v1/admin/material-hub/view/materials", "icon": "+"},
-        {"label": "Загрузить прайс", "href": "/api/v1/admin/material-hub/view", "icon": "⇧"},
-        {"label": "Открыть модерацию", "href": "/api/v1/admin/material-hub/view/moderation", "icon": "!"},
-        {"label": "Открыть источники", "href": "/api/v1/admin/material-hub/view/sources", "icon": "⌁"},
-        {"label": "Открыть документы", "href": "/api/v1/admin/material-hub/view/documents", "icon": "□"},
-        {"label": "Создать задачу анализа", "href": "/api/v1/admin/material-hub/view", "icon": "▶"},
-        {"label": "Настроить Dashboard", "href": "#dashboard-config", "icon": "⚙"},
+        action
+        for action in actions
+        if action["action_code"] in preset_action_codes and can_use_action(user_context, action["action_code"])
     ]
 
 
