@@ -50,7 +50,7 @@
       position: absolute;
       left: calc(100% + 12px);
       top: 50%;
-      z-index: 80;
+      z-index: 1000;
       min-width: max-content;
       max-width: 260px;
       padding: 8px 10px;
@@ -82,6 +82,8 @@
     .app-shell {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
+      width: 100%;
+      max-width: 100vw;
       min-height: 100vh;
       align-items: start;
       transition: grid-template-columns 0.18s ease;
@@ -89,6 +91,7 @@
     .sidebar {
       position: sticky;
       top: 0;
+      z-index: 90;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -181,6 +184,10 @@
       line-height: 1.35;
     }
     .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 100%;
       min-width: 0;
       min-height: 100vh;
       overflow: visible;
@@ -471,9 +478,11 @@
     }
     .dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(860px, 1fr) 360px;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
       gap: 14px;
       align-items: start;
+      width: 100%;
+      min-width: 0;
     }
     .atom-map {
       position: relative;
@@ -515,18 +524,18 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      border: 3px solid rgba(119, 172, 255, 0.28);
+      border: 4px solid rgba(119, 190, 255, 0.42);
       border-radius: 50%;
       transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
       pointer-events: none;
       box-shadow:
-        0 0 34px rgba(24, 215, 242, 0.24),
-        0 0 76px rgba(24, 215, 242, 0.1),
-        inset 0 0 26px rgba(24, 215, 242, 0.12);
+        0 0 42px rgba(24, 215, 242, 0.42),
+        0 0 92px rgba(24, 215, 242, 0.18),
+        inset 0 0 32px rgba(24, 215, 242, 0.2);
     }
-    .orbit.one { width: 52%; aspect-ratio: 1.76; --rot: 16deg; border-color: rgba(24, 215, 242, 0.58); }
-    .orbit.two { width: 78%; aspect-ratio: 1.62; --rot: -18deg; border-color: rgba(59, 130, 246, 0.44); }
-    .orbit.three { width: 94%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.3); }
+    .orbit.one { width: 52%; aspect-ratio: 1.76; --rot: 16deg; border-color: rgba(24, 215, 242, 0.82); }
+    .orbit.two { width: 78%; aspect-ratio: 1.62; --rot: -18deg; border-color: rgba(59, 130, 246, 0.66); }
+    .orbit.three { width: 94%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.5); }
     .atom-links {
       position: absolute;
       inset: 0;
@@ -539,27 +548,27 @@
     .atom-link {
       fill: none;
       stroke: var(--link-color);
-      stroke-width: 1.12;
+      stroke-width: 1.42;
       stroke-linecap: round;
       stroke-linejoin: round;
-      opacity: 0.88;
-      filter: drop-shadow(0 0 1.1px var(--link-color)) drop-shadow(0 0 3.2px var(--link-color));
+      opacity: 0.96;
+      filter: drop-shadow(0 0 1.8px var(--link-color)) drop-shadow(0 0 6px var(--link-color));
       animation: atom-curve-pulse 4s ease-in-out infinite;
     }
     .atom-link.inner {
-      stroke-width: 0.92;
-      opacity: 0.78;
+      stroke-width: 1.18;
+      opacity: 0.9;
     }
     .atom-node {
       fill: color-mix(in srgb, var(--link-color) 78%, white 22%);
       stroke: rgba(255, 255, 255, 0.72);
       stroke-width: 0.24;
-      filter: drop-shadow(0 0 1.4px var(--link-color)) drop-shadow(0 0 4px var(--link-color));
+      filter: drop-shadow(0 0 2px var(--link-color)) drop-shadow(0 0 7px var(--link-color));
       animation: atom-node-pulse 3.2s ease-in-out infinite;
     }
     .atom-map:has(.module-card:hover) .atom-link,
     .atom-map:has(.module-card:hover) .atom-node {
-      opacity: 0.28;
+      opacity: 0.34;
     }
     .atom-map:has(.module-card[data-module-code="MODULE_01_MATERIAL_HUB"]:hover) .atom-link[data-module-code="MODULE_01_MATERIAL_HUB"],
     .atom-map:has(.module-card[data-module-code="MODULE_01_MATERIAL_HUB"]:hover) .atom-node[data-module-code="MODULE_01_MATERIAL_HUB"],
@@ -574,12 +583,12 @@
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-link[data-module-code="MODULE_12_AI_ASSISTANT"],
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-node[data-module-code="MODULE_12_AI_ASSISTANT"] {
       opacity: 1;
-      stroke-width: 1.42;
-      filter: drop-shadow(0 0 1.7px var(--link-color)) drop-shadow(0 0 5px var(--link-color));
+      stroke-width: 1.95;
+      filter: drop-shadow(0 0 2.4px var(--link-color)) drop-shadow(0 0 8px var(--link-color));
     }
     @keyframes atom-curve-pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 0.92; }
+      0%, 100% { opacity: 0.64; }
+      50% { opacity: 1; }
     }
     @keyframes atom-node-pulse {
       0%, 100% { r: 1.15; opacity: 0.78; }
