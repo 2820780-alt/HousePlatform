@@ -448,7 +448,7 @@
     }
     .atom-map {
       position: relative;
-      min-height: 760px;
+      min-height: 820px;
       border-radius: 14px;
       overflow: hidden;
       background:
@@ -470,13 +470,13 @@
       transform: translate(-50%, -50%);
     }
     .atom-map::before {
-      width: 410px;
-      height: 410px;
+      width: 620px;
+      height: 620px;
       background:
-        radial-gradient(circle, rgba(24, 215, 242, 0.18), transparent 58%),
-        conic-gradient(from 42deg, transparent 0 12%, rgba(24, 215, 242, 0.24) 13% 14%, transparent 15% 38%, rgba(168, 85, 247, 0.16) 39% 40%, transparent 41% 100%);
+        radial-gradient(circle, rgba(24, 215, 242, 0.22), transparent 54%),
+        conic-gradient(from 42deg, transparent 0 10%, rgba(24, 215, 242, 0.38) 11% 13%, transparent 14% 34%, rgba(168, 85, 247, 0.24) 35% 37%, transparent 38% 61%, rgba(59, 130, 246, 0.26) 62% 64%, transparent 65% 100%);
       filter: blur(1px);
-      opacity: 0.82;
+      opacity: 0.9;
       z-index: 1;
     }
     .atom-map::after {
@@ -484,32 +484,35 @@
       height: 18px;
       background: #a9f5ff;
       box-shadow:
-        0 -205px 0 -3px rgba(24, 215, 242, 0.78),
-        185px -82px 0 -4px rgba(59, 130, 246, 0.78),
-        190px 92px 0 -4px rgba(245, 158, 11, 0.78),
-        -178px 92px 0 -4px rgba(168, 85, 247, 0.78),
-        -192px -72px 0 -4px rgba(34, 197, 94, 0.72);
-      opacity: 0.74;
+        0 -270px 0 -2px rgba(24, 215, 242, 0.88),
+        255px -110px 0 -3px rgba(59, 130, 246, 0.86),
+        260px 120px 0 -3px rgba(245, 158, 11, 0.86),
+        -248px 122px 0 -3px rgba(168, 85, 247, 0.86),
+        -258px -104px 0 -3px rgba(34, 197, 94, 0.82);
+      opacity: 0.86;
       z-index: 2;
     }
     .orbit {
       position: absolute;
       left: 50%;
       top: 50%;
-      border: 1px solid rgba(119, 172, 255, 0.13);
+      border: 2px solid rgba(119, 172, 255, 0.18);
       border-radius: 50%;
       transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
       pointer-events: none;
+      box-shadow:
+        0 0 24px rgba(24, 215, 242, 0.14),
+        inset 0 0 18px rgba(24, 215, 242, 0.08);
     }
-    .orbit.one { width: 42%; aspect-ratio: 1.65; --rot: 16deg; border-color: rgba(24, 215, 242, 0.2); }
-    .orbit.two { width: 68%; aspect-ratio: 1.58; --rot: -18deg; }
-    .orbit.three { width: 86%; aspect-ratio: 1.52; --rot: 8deg; }
+    .orbit.one { width: 48%; aspect-ratio: 1.7; --rot: 16deg; border-color: rgba(24, 215, 242, 0.34); }
+    .orbit.two { width: 74%; aspect-ratio: 1.6; --rot: -18deg; border-color: rgba(59, 130, 246, 0.28); }
+    .orbit.three { width: 92%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.2); }
     .nucleus {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 260px;
-      height: 260px;
+      width: 286px;
+      height: 286px;
       transform: translate(-50%, -50%);
       display: grid;
       place-items: center;
@@ -521,9 +524,9 @@
         radial-gradient(circle at 50% 50%, rgba(24, 215, 242, 0.24), transparent 58%),
         linear-gradient(145deg, rgba(8, 25, 57, 0.98), rgba(5, 9, 23, 0.98));
       box-shadow:
-        0 0 0 12px rgba(24, 215, 242, 0.05),
-        0 0 0 34px rgba(24, 215, 242, 0.025),
-        0 0 98px rgba(24, 215, 242, 0.42),
+        0 0 0 14px rgba(24, 215, 242, 0.06),
+        0 0 0 42px rgba(24, 215, 242, 0.03),
+        0 0 128px rgba(24, 215, 242, 0.5),
         inset 0 0 46px rgba(24, 215, 242, 0.14);
       z-index: 3;
     }
@@ -576,16 +579,18 @@
       left: 50%;
       top: 50%;
       width: var(--link-width, 160px);
-      height: 2px;
+      height: 6px;
       border-radius: 999px;
       background:
-        radial-gradient(circle at 0 50%, color-mix(in srgb, var(--card-accent) 92%, white 8%), transparent 10px),
-        linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 76%, transparent), color-mix(in srgb, var(--card-accent) 20%, transparent) 56%, transparent);
+        radial-gradient(circle at 0 50%, color-mix(in srgb, var(--card-accent) 96%, white 12%), transparent 17px),
+        linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 82%, transparent), color-mix(in srgb, var(--card-accent) 36%, transparent) 62%, transparent);
       transform: rotate(var(--link-angle, 0deg));
       transform-origin: left center;
       z-index: -1;
-      opacity: 0.66;
-      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 55%, transparent));
+      opacity: 0.78;
+      filter:
+        drop-shadow(0 0 10px color-mix(in srgb, var(--card-accent) 72%, transparent))
+        drop-shadow(0 0 24px color-mix(in srgb, var(--card-accent) 34%, transparent));
       animation: atom-link-pulse 3.8s ease-in-out infinite;
     }
     .module-card::after {
@@ -611,11 +616,13 @@
     @keyframes atom-link-pulse {
       0%, 100% {
         opacity: 0.46;
-        filter: drop-shadow(0 0 5px color-mix(in srgb, var(--card-accent) 42%, transparent));
+        filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 52%, transparent));
       }
       50% {
         opacity: 0.9;
-        filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 68%, transparent));
+        filter:
+          drop-shadow(0 0 16px color-mix(in srgb, var(--card-accent) 78%, transparent))
+          drop-shadow(0 0 34px color-mix(in srgb, var(--card-accent) 42%, transparent));
       }
     }
     .module-card:hover {
@@ -624,10 +631,12 @@
       box-shadow: 0 26px 88px rgba(0, 0, 0, 0.5), 0 0 34px color-mix(in srgb, var(--card-accent) 24%, transparent);
     }
     .module-card:hover::before {
-      height: 3px;
+      height: 8px;
       opacity: 1;
       animation-duration: 1.4s;
-      filter: drop-shadow(0 0 18px color-mix(in srgb, var(--card-accent) 86%, transparent));
+      filter:
+        drop-shadow(0 0 22px color-mix(in srgb, var(--card-accent) 92%, transparent))
+        drop-shadow(0 0 46px color-mix(in srgb, var(--card-accent) 46%, transparent));
     }
     .module-card:hover::after {
       opacity: 1;
