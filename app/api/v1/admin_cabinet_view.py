@@ -46,11 +46,20 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     center_card = next(card for card in cards if card["number"] == 16)
     dashboard_context = await _load_dashboard_context(db, cards)
     satellite_cards = _select_atom_map_cards(cards, dashboard_context["dashboard_user_context"])
+    all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])
+    selected_atom_module_codes = [card["module_code"] for card in satellite_cards]
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
         {
             "cards": satellite_cards,
+            "all_atom_cards": all_atom_cards,
+            "selected_atom_module_codes": selected_atom_module_codes,
+            "all_modules_panel": _build_all_modules_panel(
+                all_atom_cards,
+                selected_atom_module_codes,
+                dashboard_context["planned_modules"],
+            ),
             "center_card": center_card,
             "module_registry": get_dashboard_module_registry(),
             **dashboard_context,
@@ -95,6 +104,49 @@ def _can_show_atom_card(card: dict, user_context) -> bool:
     if card.get("atom_status") in {"planned", "draft"} and not can_see_planned_modules(user_context):
         return False
     return can_access_module(user_context, card["canonical_module_code"])
+
+
+def _select_all_atom_cards(cards: list[dict], user_context) -> list[dict]:
+    return [
+        card
+        for card in sorted(cards, key=lambda item: item.get("display_order", item["number"]))
+        if _can_show_atom_card(card, user_context)
+    ]
+
+
+def _build_all_modules_panel(
+    atom_cards: list[dict],
+    selected_module_codes: list[str],
+    planned_modules: list[dict],
+) -> dict:
+    selected_codes = set(selected_module_codes)
+    active_modules = [
+        {
+            "module_code": card["module_code"],
+            "canonical_module_code": card["canonical_module_code"],
+            "title": card["display_name"],
+            "description": card["dashboard_description"],
+            "status": card["atom_status"],
+            "state": "selected" if card["module_code"] in selected_codes else "hidden",
+            "is_selected": card["module_code"] in selected_codes,
+            "route": card["route"],
+            "passport_href": card["passport_href"],
+            "accent": card["accent"],
+        }
+        for card in atom_cards
+    ]
+    system_modules = [
+        module
+        for module in get_dashboard_module_registry()
+        if module["status"] in {"merged", "archived", "deprecated", "disabled"}
+    ]
+    return {
+        "limit": 6,
+        "selected_count": len(selected_module_codes),
+        "active_modules": active_modules,
+        "planned_modules": planned_modules,
+        "system_modules": system_modules,
+    }
 
 
 @router.get("/modules/{module_number}", response_class=HTMLResponse)

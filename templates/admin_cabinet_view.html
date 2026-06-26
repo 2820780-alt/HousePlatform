@@ -395,6 +395,79 @@
       gap: 10px;
       margin-top: 10px;
     }
+    .module-manager {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .module-manager-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border: 1px solid rgba(24, 215, 242, 0.22);
+      border-radius: 10px;
+      background: rgba(24, 215, 242, 0.07);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .module-manager-status strong { color: var(--text); }
+    .module-manager-message {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+    .module-manager-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .module-manager-card {
+      padding: 12px;
+      border: 1px solid rgba(119, 172, 255, 0.18);
+      border-radius: 10px;
+      background:
+        radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--module-accent, var(--cyan)) 18%, transparent), transparent 38%),
+        rgba(6, 13, 31, 0.56);
+    }
+    .module-manager-card strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .module-manager-card p {
+      min-height: 34px;
+      margin: 6px 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .module-manager-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .module-manager-actions button,
+    .module-manager-actions a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid rgba(24, 215, 242, 0.24);
+      border-radius: 8px;
+      background: rgba(24, 215, 242, 0.08);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .module-manager-actions button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+    .module-manager-card[data-selected="true"] {
+      border-color: rgba(34, 197, 94, 0.42);
+    }
     .registry-section-title {
       margin-top: 14px;
       padding-top: 12px;
@@ -620,6 +693,10 @@
       stroke-width: 0.34;
       filter: drop-shadow(0 0 3px var(--link-color)) drop-shadow(0 0 12px var(--link-color));
       animation: atom-node-pulse 3.2s ease-in-out infinite;
+    }
+    .atom-connection.atom-hidden,
+    .module-card.atom-hidden {
+      display: none;
     }
     .atom-map:has(.module-card:hover) .atom-link,
     .atom-map:has(.module-card:hover) .atom-node {
@@ -1199,6 +1276,31 @@
           </article>
           {% endfor %}
         </div>
+        <div class="registry-section-title">
+          <h3>Все модули · Атомная карта</h3>
+          <p>Можно менять состав текущей атомной карты в mock-режиме. Лимит: {{ all_modules_panel.limit }} модулей.</p>
+        </div>
+        <div class="module-manager" data-module-manager data-limit="{{ all_modules_panel.limit }}">
+          <div class="module-manager-status">
+            <span>На атоме: <strong data-atom-selected-count>{{ all_modules_panel.selected_count }}</strong> / {{ all_modules_panel.limit }}</span>
+            <span class="module-manager-message" data-module-manager-message></span>
+          </div>
+          <div class="module-manager-grid">
+            {% for module in all_modules_panel.active_modules %}
+            <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="{{ 'true' if module.is_selected else 'false' }}" style="--module-accent: {{ module.accent }}">
+              <strong>{{ module.title }}</strong>
+              <span class="metric-chip">{{ 'Избранное' if module.is_selected else 'Скрыто' }}</span>
+              <p>{{ module.description }}</p>
+              <div class="module-manager-actions">
+                <button type="button" data-module-action="add" data-module-code="{{ module.module_code }}">+ Добавить на атом</button>
+                <button type="button" data-module-action="remove" data-module-code="{{ module.module_code }}">− Убрать с атома</button>
+                <a href="{{ module.route }}">Открыть</a>
+                <a href="{{ module.passport_href }}">Настроить</a>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
         {% if planned_modules %}
         <div class="registry-section-title">
           <h3>Все модули · Будущие модули</h3>
@@ -1219,6 +1321,26 @@
             <div class="planned-module-actions">
               <span class="event-note">{{ module.shortTitle }}</span>
               <button class="disabled-action" type="button" disabled>Недоступно</button>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if all_modules_panel.system_modules %}
+        <div class="registry-section-title">
+          <h3>Все модули · Системные записи</h3>
+          <p>Merged, archived, deprecated и disabled записи видны только как служебная информация.</p>
+        </div>
+        <div class="planned-module-catalog" aria-label="Системные записи модулей">
+          {% for module in all_modules_panel.system_modules %}
+          <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
+            <strong>{{ module.title }}</strong>
+            <span class="metric-chip">{{ module.status }}</span>
+            <p>{{ module.description }}</p>
+            {% if module.redirectRoute %}<p>Redirect: {{ module.redirectRoute }}</p>{% endif %}
+            <div class="planned-module-actions">
+              <span class="event-note">{{ module.shortTitle }}</span>
+              <button class="disabled-action" type="button" disabled>Системная запись</button>
             </div>
           </article>
           {% endfor %}
@@ -1247,8 +1369,8 @@
           <div class="orbit two"></div>
           <div class="orbit three"></div>
           <svg class="atom-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            {% for card in cards %}
-            <g style="--link-color: {{ card.accent }}">
+            {% for card in all_atom_cards %}
+            <g class="atom-connection {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-module-code="{{ card.module_code }}" style="--link-color: {{ card.accent }}">
               <path class="atom-link inner" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.inner_path }}"></path>
               <path class="atom-link outer" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.outer_path }}"></path>
               <circle class="atom-node" data-module-code="{{ card.module_code }}" cx="{{ card.atom_link.node[0] }}" cy="{{ card.atom_link.node[1] }}" r="1.25"></circle>
@@ -1262,8 +1384,8 @@
             </div>
           </div>
 
-          {% for card in cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-status="{{ card.atom_status }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          {% for card in all_atom_cards %}
+          <a class="module-card {% if not card.implemented %}future{% endif %} {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-atom-module-card data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-status="{{ card.atom_status }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-icon">{{ card.dashboard_icon }}</div>
               <div class="module-title-group">
@@ -1389,5 +1511,74 @@
       </section>
     </main>
   </div>
+  <script>
+    (() => {
+      const manager = document.querySelector("[data-module-manager]");
+      if (!manager) return;
+      const limit = Number(manager.dataset.limit || 6);
+      const countNode = document.querySelector("[data-atom-selected-count]");
+      const messageNode = document.querySelector("[data-module-manager-message]");
+
+      const getVisibleCards = () => Array.from(document.querySelectorAll("[data-atom-module-card]:not(.atom-hidden)"));
+      const getCard = (moduleCode) => document.querySelector(`[data-atom-module-card][data-module-code="${moduleCode}"]`);
+      const getConnection = (moduleCode) => document.querySelector(`.atom-connection[data-module-code="${moduleCode}"]`);
+      const getRow = (moduleCode) => document.querySelector(`[data-module-row="${moduleCode}"]`);
+
+      function setMessage(text) {
+        if (!messageNode) return;
+        messageNode.textContent = text || "";
+      }
+
+      function setModuleVisible(moduleCode, isVisible) {
+        const card = getCard(moduleCode);
+        const connection = getConnection(moduleCode);
+        const row = getRow(moduleCode);
+        if (card) card.classList.toggle("atom-hidden", !isVisible);
+        if (connection) connection.classList.toggle("atom-hidden", !isVisible);
+        if (row) {
+          row.dataset.selected = String(isVisible);
+          const chip = row.querySelector(".metric-chip");
+          if (chip) chip.textContent = isVisible ? "Избранное" : "Скрыто";
+        }
+      }
+
+      function updateControls() {
+        const selectedCount = getVisibleCards().length;
+        if (countNode) countNode.textContent = String(selectedCount);
+        document.querySelectorAll("[data-module-row]").forEach((row) => {
+          const moduleCode = row.dataset.moduleRow;
+          const isSelected = row.dataset.selected === "true";
+          const addButton = row.querySelector('[data-module-action="add"]');
+          const removeButton = row.querySelector('[data-module-action="remove"]');
+          if (addButton) addButton.disabled = isSelected || selectedCount >= limit;
+          if (removeButton) removeButton.disabled = !isSelected;
+        });
+      }
+
+      manager.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-module-action]");
+        if (!button) return;
+        const moduleCode = button.dataset.moduleCode;
+        const action = button.dataset.moduleAction;
+        if (!moduleCode) return;
+        setMessage("");
+
+        if (action === "add") {
+          if (getVisibleCards().length >= limit) {
+            setMessage(`Лимит атомной карты: ${limit} модулей`);
+            updateControls();
+            return;
+          }
+          setModuleVisible(moduleCode, true);
+        }
+        if (action === "remove") {
+          setModuleVisible(moduleCode, false);
+        }
+        updateControls();
+      });
+
+      updateControls();
+    })();
+  </script>
 </body>
 </html>
