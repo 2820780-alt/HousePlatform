@@ -375,6 +375,14 @@
       box-shadow: var(--shadow);
     }
     .dashboard-config.open { display: block; }
+    body.dashboard-editing .dashboard-config { display: block; }
+    body.dashboard-editing .atom-map {
+      outline: 1px solid rgba(24, 215, 242, 0.36);
+      outline-offset: 4px;
+    }
+    body.dashboard-editing .module-card {
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), 0 0 18px color-mix(in srgb, var(--card-accent) 18%, transparent);
+    }
     .dashboard-config-head {
       display: flex;
       justify-content: space-between;
@@ -523,7 +531,32 @@
       border-radius: 10px;
       background: rgba(6, 13, 31, 0.54);
     }
+    .widget-card[data-widget-enabled="false"] {
+      opacity: 0.56;
+      filter: grayscale(0.45);
+    }
     .widget-card strong { display: block; margin-bottom: 5px; }
+    .widget-control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .widget-control-row select {
+      min-height: 30px;
+      max-width: 160px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+    }
     .widget-meta {
       display: flex;
       flex-wrap: wrap;
@@ -649,6 +682,7 @@
       display: none;
     }
     .orbit {
+      display: none;
       position: absolute;
       left: 50%;
       top: 50%;
@@ -672,6 +706,26 @@
       pointer-events: none;
       z-index: 2;
       overflow: visible;
+    }
+    .svg-orbit {
+      fill: none;
+      stroke-width: 4px;
+      vector-effect: non-scaling-stroke;
+      opacity: 0.92;
+      filter: drop-shadow(0 0 1px currentColor) drop-shadow(0 0 3px currentColor);
+    }
+    .svg-orbit.one {
+      color: rgba(24, 215, 242, 0.95);
+      stroke: rgba(24, 215, 242, 0.95);
+    }
+    .svg-orbit.two {
+      color: rgba(59, 130, 246, 0.82);
+      stroke: rgba(59, 130, 246, 0.82);
+    }
+    .svg-orbit.three {
+      color: rgba(168, 85, 247, 0.62);
+      stroke: rgba(168, 85, 247, 0.62);
+      opacity: 0.72;
     }
     .atom-link {
       fill: none;
@@ -1212,7 +1266,7 @@
           <strong>{{ active_region.name }}</strong>
         </div>
         <button class="icon-button" title="Уведомления">◔</button>
-        <button class="settings-button" type="button" title="Настроить дашборд" onclick="document.getElementById('dashboard-config').classList.toggle('open')">Настроить дашборд</button>
+        <button class="settings-button" type="button" title="Настроить дашборд" onclick="toggleDashboardEditMode()">Настроить дашборд</button>
         <div class="profile-pill"><span class="avatar">A</span><span>{{ currentUserProfileMock.display_name }}</span></div>
       </header>
 
@@ -1262,7 +1316,7 @@
             <h2>Настройка дашборда</h2>
             <p>Каталог виджетов и избранных модулей уже подготовлен. Сохранение персональных настроек включим после подключения реального пользователя и ролей.</p>
           </div>
-          <button class="icon-button" type="button" onclick="document.getElementById('dashboard-config').classList.remove('open')" title="Закрыть">×</button>
+          <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
         <div class="widget-catalog">
           {% for widget in personalization.widgets %}
@@ -1273,6 +1327,17 @@
               <span class="metric-chip">Тип: {{ widget.type }}</span>
               <span class="metric-chip">Размер: {{ widget.size }}</span>
               {% if widget.module_number %}<span class="metric-chip">Модуль {{ widget.module_number }}</span>{% endif %}
+            </div>
+            <div class="widget-control-row">
+              <label class="toggle-label">
+                <input type="checkbox" data-widget-toggle checked>
+                <span>Включен</span>
+              </label>
+              <select aria-label="Данные виджета">
+                <option>Сводка</option>
+                <option>Текущий период</option>
+                <option>Проблемные данные</option>
+              </select>
             </div>
           </article>
           {% endfor %}
@@ -1370,6 +1435,9 @@
           <div class="orbit two"></div>
           <div class="orbit three"></div>
           <svg class="atom-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="svg-orbit one" d="M 50 26 C 62 33, 70 41, 75 50 C 70 59, 62 67, 50 74 C 38 67, 30 59, 25 50 C 30 41, 38 33, 50 26"></path>
+            <path class="svg-orbit two" d="M 25 31.7 C 39 17, 61 17, 75 31.7 C 89 45, 89 55, 75 68.3 C 61 83, 39 83, 25 68.3 C 11 55, 11 45, 25 31.7"></path>
+            <path class="svg-orbit three" d="M 17 50 C 17 33, 83 33, 83 50 C 83 67, 17 67, 17 50"></path>
             {% for card in all_atom_cards %}
             <g class="atom-connection {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-module-code="{{ card.module_code }}" style="--link-color: {{ card.accent }}">
               <path class="atom-link inner" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.inner_path }}"></path>
@@ -1512,8 +1580,26 @@
     </main>
   </div>
   <script>
+    function setDashboardEditMode(isEditing) {
+      const config = document.getElementById("dashboard-config");
+      document.body.classList.toggle("dashboard-editing", Boolean(isEditing));
+      if (config) config.classList.toggle("open", Boolean(isEditing));
+    }
+
+    function toggleDashboardEditMode() {
+      setDashboardEditMode(!document.body.classList.contains("dashboard-editing"));
+    }
+
     (() => {
       const manager = document.querySelector("[data-module-manager]");
+      document.querySelectorAll("[data-widget-toggle]").forEach((toggle) => {
+        const widgetCard = toggle.closest(".widget-card");
+        if (!widgetCard) return;
+        widgetCard.dataset.widgetEnabled = String(toggle.checked);
+        toggle.addEventListener("change", () => {
+          widgetCard.dataset.widgetEnabled = String(toggle.checked);
+        });
+      });
       if (!manager) return;
       const limit = Number(manager.dataset.limit || 6);
       const countNode = document.querySelector("[data-atom-selected-count]");

@@ -972,27 +972,59 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
     link_map = {
         1: {
             "node": (50, 26),
-            "inner_path": "M 50 26 C 49 22, 49 18, 50 14",
+            "inner_path": "M 50 26 L 50 14",
         },
         2: {
-            "node": (70, 31),
-            "inner_path": "M 70 31 C 73 28, 77 27, 80 25",
+            "node": (75, 31.7),
+            "inner_path": "M 75 31.7 L 80 25",
+        },
+        3: {
+            "node": (75, 50),
+            "inner_path": "M 75 50 L 83 50",
+        },
+        4: {
+            "node": (75, 50),
+            "inner_path": "M 75 50 L 91 50",
         },
         5: {
-            "node": (70, 69),
-            "inner_path": "M 70 69 C 73 72, 77 73, 80 75",
+            "node": (75, 68.3),
+            "inner_path": "M 75 68.3 L 80 75",
+        },
+        6: {
+            "node": (58, 73),
+            "inner_path": "M 58 73 L 70 88",
+        },
+        7: {
+            "node": (50, 80),
+            "inner_path": "M 50 80 L 50 92",
         },
         8: {
-            "node": (30, 69),
-            "inner_path": "M 30 69 C 27 72, 23 73, 20 75",
+            "node": (25, 68.3),
+            "inner_path": "M 25 68.3 L 20 75",
+        },
+        9: {
+            "node": (25, 50),
+            "inner_path": "M 25 50 L 17 50",
+        },
+        10: {
+            "node": (25, 50),
+            "inner_path": "M 25 50 L 9 50",
         },
         11: {
-            "node": (30, 31),
-            "inner_path": "M 30 31 C 27 28, 23 27, 20 25",
+            "node": (25, 31.7),
+            "inner_path": "M 25 31.7 L 20 25",
         },
         12: {
             "node": (50, 74),
-            "inner_path": "M 50 74 C 49 78, 49 82, 50 86",
+            "inner_path": "M 50 74 L 50 86",
+        },
+        13: {
+            "node": (35, 34),
+            "inner_path": "M 35 34 L 31 34",
+        },
+        15: {
+            "node": (65, 66),
+            "inner_path": "M 65 66 L 69 66",
         },
     }
     for card in cards:
