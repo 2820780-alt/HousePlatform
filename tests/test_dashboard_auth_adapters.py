@@ -15,10 +15,11 @@ def test_dashboard_user_context_mock_uses_module_codes_and_region_registry_data(
             "active_workspace": "Администрирование",
             "favorite_modules": [
                 {"module_code": "MODULE_01_MATERIAL_HUB"},
-                {"module_code": "MODULE_11_ANALYTICS"},
+                {"module_code": "MODULE_14_PRICE_HISTORY"},
             ],
             "widgets": [
                 {"type": "KPI", "title": "Материалы", "size": "S", "module_number": 1},
+                {"type": "CHART", "title": "Динамика цен", "size": "M", "module_number": 14},
             ],
         },
         active_region={"code": "KRASNODAR_KRAI", "name": "Краснодарский край"},
@@ -42,6 +43,8 @@ def test_dashboard_user_context_mock_uses_module_codes_and_region_registry_data(
     assert "MODULE_01_MATERIAL_HUB" in context.allowedModuleCodes
     assert "MODULE_02_KNOWLEDGE_BASE" in context.allowedModuleCodes
     assert context.favoriteModuleCodes == ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
+    assert context.dashboardLayout["widgets"][1]["moduleCode"] == "MODULE_11_ANALYTICS"
+    assert context.dashboardLayout["widgets"][1]["legacyModuleCode"] == "MODULE_14_PRICE_HISTORY"
 
 
 def test_dashboard_permission_helpers_work_over_mock_context():

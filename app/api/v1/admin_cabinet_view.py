@@ -26,6 +26,13 @@ from app.services.dashboard_auth_adapters import (
     can_see_planned_modules,
     get_dashboard_user_context,
 )
+from app.services.dashboard_module_registry import (
+    get_canonical_module_code,
+    get_dashboard_module_registry,
+    get_dashboard_module_registry_item_by_number,
+    is_module_available_for_dashboard,
+    resolve_module_route,
+)
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -44,25 +51,33 @@ async def admin_cabinet_view(request: Request, db: DBSession):
         {
             "cards": satellite_cards,
             "center_card": center_card,
+            "module_registry": get_dashboard_module_registry(),
             **dashboard_context,
         },
     )
 
 
 def _select_atom_map_cards(cards: list[dict], user_context) -> list[dict]:
-    priority_numbers = [1, 2, 5, 8, 11, 12]
-    cards_by_number = {
-        card["number"]: card
+    priority_module_codes = [
+        "MODULE_01_MATERIAL_HUB",
+        "MODULE_02_KNOWLEDGE_BASE",
+        "MODULE_05_ESTIMATES",
+        "MODULE_08_PROCUREMENT",
+        "MODULE_11_ANALYTICS",
+        "MODULE_12_AI_ASSISTANT",
+    ]
+    cards_by_code = {
+        card["canonical_module_code"]: card
         for card in cards
         if _can_show_atom_card(card, user_context)
     }
-    selected = [cards_by_number[number] for number in priority_numbers if number in cards_by_number]
+    selected = [cards_by_code[module_code] for module_code in priority_module_codes if module_code in cards_by_code]
     if len(selected) < 6:
-        selected_numbers = {card["number"] for card in selected}
+        selected_codes = {card["canonical_module_code"] for card in selected}
         selected.extend(
             card
-            for card in cards
-            if card["number"] not in selected_numbers and card["number"] != 16
+            for card in sorted(cards, key=lambda item: item.get("display_order", item["number"]))
+            if card["canonical_module_code"] not in selected_codes and _can_show_atom_card(card, user_context)
         )
     return selected[:6]
 
@@ -70,7 +85,11 @@ def _select_atom_map_cards(cards: list[dict], user_context) -> list[dict]:
 def _can_show_atom_card(card: dict, user_context) -> bool:
     if card["number"] == 16:
         return False
-    if card.get("atom_status") in {"disabled", "archived"}:
+    if not card.get("is_visible_on_atom_map", True):
+        return False
+    if card.get("registry_status") in {"merged", "disabled", "archived", "deprecated"}:
+        return False
+    if card.get("atom_status") in {"disabled", "archived", "merged"}:
         return False
     if card.get("atom_status") in {"planned", "draft"} and not can_see_planned_modules(user_context):
         return False
@@ -294,6 +313,8 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
     )
     widgets = list(widget_result.scalars().all())
     module_by_number = {card["number"]: card for card in cards}
+    module_by_code = {card["module_code"]: card for card in cards}
+    module_by_canonical_code = {card["canonical_module_code"]: card for card in cards}
 
     return {
         "active_workspace": workspaces[0].name if workspaces else "Административное пространство",
@@ -307,21 +328,61 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
             "Аналитик",
         ],
         "favorite_modules": [
-            module_by_number[number]
-            for number in favorite_numbers
-            if number in module_by_number
+            card
+            for card in _resolve_favorite_module_cards(
+                favorite_numbers,
+                module_by_number,
+                module_by_code,
+                module_by_canonical_code,
+            )
         ],
         "widgets": [
-            {
-                "title": widget.title,
-                "description": widget.description or "",
-                "module_number": widget.module_number,
-                "type": widget.widget_type,
-                "size": widget.default_size,
-            }
+            _dashboard_widget_context(widget)
             for widget in widgets
         ],
         "is_default_context": True,
+    }
+
+
+def _resolve_favorite_module_cards(
+    favorite_numbers: list[int],
+    module_by_number: dict[int, dict],
+    module_by_code: dict[str, dict],
+    module_by_canonical_code: dict[str, dict],
+) -> list[dict]:
+    favorite_cards: list[dict] = []
+    seen_codes: set[str] = set()
+    for number in favorite_numbers:
+        registry_item = get_dashboard_module_registry_item_by_number(number)
+        canonical_code = get_canonical_module_code(registry_item.moduleCode if registry_item else None)
+        card = None
+        if canonical_code:
+            card = module_by_canonical_code.get(canonical_code) or module_by_code.get(canonical_code)
+        if card is None:
+            card = module_by_number.get(number)
+        if card is None:
+            continue
+        card_code = card["canonical_module_code"]
+        if card_code in seen_codes:
+            continue
+        seen_codes.add(card_code)
+        favorite_cards.append(card)
+    return favorite_cards
+
+
+def _dashboard_widget_context(widget: DashboardWidget) -> dict:
+    registry_item = get_dashboard_module_registry_item_by_number(widget.module_number)
+    module_code = registry_item.moduleCode if registry_item else None
+    canonical_module_code = get_canonical_module_code(module_code)
+    return {
+        "title": widget.title,
+        "description": widget.description or "",
+        "module_number": widget.module_number,
+        "module_code": module_code,
+        "canonical_module_code": canonical_module_code,
+        "feature_codes": registry_item.featureCodes if registry_item else [],
+        "type": widget.widget_type,
+        "size": widget.default_size,
     }
 
 
@@ -693,30 +754,17 @@ def _passport(
         15: "◎",
         16: "⚙",
     }
-    module_codes = {
-        1: "MODULE_01_MATERIAL_HUB",
-        2: "MODULE_02_KNOWLEDGE_BASE",
-        3: "MODULE_03_USERS_ROLES",
-        4: "MODULE_04_WORKS_COSTS",
-        5: "MODULE_05_ESTIMATES",
-        6: "MODULE_06_ESTIMATE_AUDIT",
-        7: "MODULE_07_DIGITAL_OBJECT",
-        8: "MODULE_08_PROCUREMENT",
-        9: "MODULE_09_TENDERS",
-        10: "MODULE_10_MARKETPLACE",
-        11: "MODULE_11_ANALYTICS",
-        12: "MODULE_12_AI_ASSISTANT",
-        13: "MODULE_13_AUDIT",
-        14: "MODULE_14_PRICE_HISTORY",
-        15: "MODULE_15_CONSTRUCTION_GROUPS",
-        16: "MODULE_16_ADMIN_CABINET",
-    }
+    registry_item = get_dashboard_module_registry_item_by_number(number)
     dashboard_metrics = metrics or []
     events = _module_events(number, dashboard_metrics)
-    implemented = bool(href)
-    module_code = module_codes.get(number, f"MODULE_{number:02d}")
+    registry_status = registry_item.status if registry_item else "active"
+    implemented = bool(href) and registry_status not in {"planned", "draft", "disabled", "archived", "merged"}
+    module_code = registry_item.moduleCode if registry_item else f"MODULE_{number:02d}"
+    canonical_module_code = get_canonical_module_code(module_code) or module_code
     kpis = dashboard_metrics[:2]
-    atom_status = _mock_atom_status(number, implemented, events)
+    atom_status = "merged" if registry_status == "merged" else _mock_atom_status(number, implemented, events)
+    resolved_route = resolve_module_route(module_code)
+    is_available_for_dashboard = is_module_available_for_dashboard(module_code)
     visual_state_labels = {
         "normal": "Штатно",
         "active": "Работает",
@@ -731,8 +779,22 @@ def _passport(
     }
     return {
         "number": number,
+        "registry_id": registry_item.id if registry_item else None,
         "module_code": module_code,
-        "canonical_module_code": "MODULE_11_ANALYTICS" if module_code == "MODULE_14_PRICE_HISTORY" else module_code,
+        "canonical_module_code": canonical_module_code,
+        "feature_codes": registry_item.featureCodes if registry_item else [],
+        "expected_feature_codes": registry_item.expectedFeatureCodes if registry_item else [],
+        "legacy_codes": registry_item.legacyCodes if registry_item else [],
+        "legacy_number": registry_item.legacyNumber if registry_item else number,
+        "display_number": registry_item.displayNumber if registry_item else number,
+        "visual_number": registry_item.visualNumber if registry_item else number,
+        "display_order": registry_item.displayOrder if registry_item else number * 10,
+        "registry_status": registry_status,
+        "merged_into_module_code": registry_item.mergedIntoModuleCode if registry_item else None,
+        "redirect_route": registry_item.redirectRoute if registry_item else None,
+        "is_visible_in_sidebar": registry_item.isVisibleInSidebar if registry_item else True,
+        "is_visible_on_atom_map": registry_item.isVisibleOnAtomMap if registry_item else True,
+        "is_available_for_dashboard": is_available_for_dashboard,
         "title": f"Модуль {number} · {name}",
         "module_name": name,
         "display_name": display_names.get(number, name),
@@ -751,7 +813,7 @@ def _passport(
         "accent": accent,
         "color": accent,
         "href": href,
-        "route": href or f"/api/v1/admin/cabinet/view/modules/{number}",
+        "route": href or resolved_route or f"/api/v1/admin/cabinet/view/modules/{number}",
         "action": action,
         "document": document,
         "reads": reads,
@@ -764,7 +826,7 @@ def _passport(
         "dashboard_metrics": dashboard_metrics[:4],
         "events": events,
         "implemented": implemented,
-        "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
+        "href": href or resolved_route or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
     }
 

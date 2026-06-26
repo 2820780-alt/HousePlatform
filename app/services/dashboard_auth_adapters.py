@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.services.dashboard_module_registry import (
+    get_canonical_module_code,
+    get_dashboard_module_registry_item_by_number,
+    normalize_dashboard_layout,
+)
+
 
 ADMIN_ROLE_CODES = {"ADMIN", "SUPER_ADMIN", "DEV_ADMIN"}
 DEV_AUTH_MODES = {"mock", "dev"}
@@ -48,12 +54,12 @@ class DashboardUserContextAdapter:
         cards: list[dict[str, Any]],
     ) -> DashboardUserContext:
         allowed_module_codes = sorted({
-            card["canonical_module_code"]
+            get_canonical_module_code(card["canonical_module_code"])
             for card in cards
-            if card.get("atom_status") not in {"disabled", "archived"}
+            if card.get("atom_status") not in {"disabled", "archived", "merged"}
         })
         favorite_module_codes = [
-            module["module_code"]
+            get_canonical_module_code(module["module_code"])
             for module in personalization["favorite_modules"]
             if module.get("module_code")
         ] or ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
@@ -62,6 +68,18 @@ class DashboardUserContextAdapter:
             for widget in personalization["widgets"]
         ]
         active_region_code = active_region.get("code")
+
+        dashboard_layout = normalize_dashboard_layout({
+            "version": "mock-v1",
+            "atomMap": {
+                "maxVisibleModules": 6,
+                "favoriteModulesOnly": True,
+            },
+            "widgets": [
+                _widget_layout(widget)
+                for widget in personalization["widgets"]
+            ],
+        })
 
         return DashboardUserContext(
             userId="dev-admin-mock",
@@ -81,22 +99,7 @@ class DashboardUserContextAdapter:
                 "PRICE_DYNAMICS",
             ],
             favoriteModuleCodes=favorite_module_codes[:8],
-            dashboardLayout={
-                "version": "mock-v1",
-                "atomMap": {
-                    "maxVisibleModules": 6,
-                    "favoriteModulesOnly": True,
-                },
-                "widgets": [
-                    {
-                        "type": widget["type"],
-                        "title": widget["title"],
-                        "size": widget["size"],
-                        "moduleNumberLegacy": widget["module_number"],
-                    }
-                    for widget in personalization["widgets"]
-                ],
-            },
+            dashboardLayout=dashboard_layout,
             authMode="mock",
         )
 
@@ -105,7 +108,8 @@ class DashboardPermissionAdapter:
     @staticmethod
     def can_access_module(context: DashboardUserContext | dict[str, Any], module_code: str) -> bool:
         data = _context_dict(context)
-        return module_code in data.get("allowedModuleCodes", [])
+        canonical_module_code = get_canonical_module_code(module_code)
+        return canonical_module_code in data.get("allowedModuleCodes", [])
 
     @staticmethod
     def can_access_widget(context: DashboardUserContext | dict[str, Any], widget_code: str) -> bool:
@@ -191,3 +195,18 @@ def _context_dict(context: DashboardUserContext | dict[str, Any]) -> dict[str, A
     if isinstance(context, DashboardUserContext):
         return asdict(context)
     return context
+
+
+def _widget_layout(widget: dict[str, Any]) -> dict[str, Any]:
+    module_number = widget.get("module_number")
+    registry_item = get_dashboard_module_registry_item_by_number(module_number)
+    module_code = registry_item.moduleCode if registry_item else None
+    canonical_module_code = get_canonical_module_code(module_code)
+    return {
+        "type": widget["type"],
+        "title": widget["title"],
+        "size": widget["size"],
+        "moduleNumberLegacy": module_number,
+        "moduleCode": module_code,
+        "canonicalModuleCode": canonical_module_code,
+    }
