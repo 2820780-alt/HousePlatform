@@ -596,7 +596,8 @@ def _normalize_widget_layout(widget: Any) -> Any:
     if not isinstance(widget, dict):
         return widget
     normalized = dict(widget)
-    module_code = normalized.get("moduleCode") or normalized.get("sourceModuleCode")
+    normalized.pop("sourceModuleNumber", None)
+    module_code = normalized.get("sourceModuleCode") or normalized.get("moduleCode")
     if not module_code and normalized.get("moduleNumberLegacy") is not None:
         item = get_dashboard_module_registry_item_by_number(normalized.get("moduleNumberLegacy"))
         module_code = item.moduleCode if item else None
@@ -604,8 +605,13 @@ def _normalize_widget_layout(widget: Any) -> Any:
         canonical = get_canonical_module_code(module_code)
         if canonical and canonical != module_code:
             normalized.setdefault("legacyModuleCode", module_code)
+        normalized["sourceModuleCode"] = canonical
         normalized["moduleCode"] = canonical
         normalized["canonicalModuleCode"] = canonical
+    if "widgetCode" not in normalized:
+        widget_type = normalized.get("type", "STATUS")
+        title = normalized.get("title", "widget")
+        normalized["widgetCode"] = f"{normalized.get('canonicalModuleCode', 'DASHBOARD')}.{widget_type}.{title}"
     return normalized
 
 

@@ -34,6 +34,7 @@ from app.services.dashboard_module_registry import (
     is_module_available_for_dashboard,
     resolve_module_route,
 )
+from app.services.dashboard_widget_config import dashboard_widget_config_from_model
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -393,8 +394,8 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
             )
         ],
         "widgets": [
-            _dashboard_widget_context(widget)
-            for widget in widgets
+            _dashboard_widget_context(widget, position=index + 1)
+            for index, widget in enumerate(widgets)
         ],
         "is_default_context": True,
     }
@@ -426,20 +427,8 @@ def _resolve_favorite_module_cards(
     return favorite_cards
 
 
-def _dashboard_widget_context(widget: DashboardWidget) -> dict:
-    registry_item = get_dashboard_module_registry_item_by_number(widget.module_number)
-    module_code = registry_item.moduleCode if registry_item else None
-    canonical_module_code = get_canonical_module_code(module_code)
-    return {
-        "title": widget.title,
-        "description": widget.description or "",
-        "module_number": widget.module_number,
-        "module_code": module_code,
-        "canonical_module_code": canonical_module_code,
-        "feature_codes": registry_item.featureCodes if registry_item else [],
-        "type": widget.widget_type,
-        "size": widget.default_size,
-    }
+def _dashboard_widget_context(widget: DashboardWidget, position: int = 100) -> dict:
+    return dashboard_widget_config_from_model(widget, position=position).to_dict()
 
 
 def _module_passports(

@@ -1365,24 +1365,33 @@
         </div>
         <div class="widget-catalog">
           {% for widget in personalization.widgets %}
-          <article class="widget-card" data-widget-key="{{ widget.type }}">
+          <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
             <div class="widget-meta">
               <span class="metric-chip">Тип: {{ widget.type }}</span>
               <span class="metric-chip">Размер: {{ widget.size }}</span>
-              {% if widget.module_number %}<span class="metric-chip">Модуль {{ widget.module_number }}</span>{% endif %}
+              {% if widget.sourceModuleCode %}<span class="metric-chip">{{ widget.sourceModuleCode }}</span>{% endif %}
+              {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
             </div>
             <div class="widget-control-row">
               <label class="toggle-label">
-                <input type="checkbox" data-widget-toggle checked>
+                <input type="checkbox" data-widget-toggle {% if widget.enabled %}checked{% endif %}>
                 <span>Включен</span>
               </label>
               <select aria-label="Данные виджета">
-                <option>Сводка</option>
-                <option>Текущий период</option>
-                <option>Проблемные данные</option>
+                <option {% if widget.dataSource == "summary" %}selected{% endif %}>Сводка</option>
+                <option {% if widget.dataSource == "period" %}selected{% endif %}>Текущий период</option>
+                <option {% if widget.dataSource == "issues" %}selected{% endif %}>Проблемные данные</option>
               </select>
+            </div>
+          </article>
+          {% else %}
+          <article class="widget-card" data-widget-enabled="false">
+            <strong>Виджеты не настроены</strong>
+            <span class="event-note">После подключения registry здесь появятся доступные KPI, списки, очереди задач и графики.</span>
+            <div class="widget-meta">
+              <span class="metric-chip">Empty state</span>
             </div>
           </article>
           {% endfor %}

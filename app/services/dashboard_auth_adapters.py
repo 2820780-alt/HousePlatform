@@ -5,9 +5,9 @@ from typing import Any
 
 from app.services.dashboard_module_registry import (
     get_canonical_module_code,
-    get_dashboard_module_registry_item_by_number,
     normalize_dashboard_layout,
 )
+from app.services.dashboard_widget_config import widget_config_from_dict
 
 
 ADMIN_ROLE_CODES = {"ADMIN", "SUPER_ADMIN", "DEV_ADMIN"}
@@ -64,8 +64,8 @@ class DashboardUserContextAdapter:
             if module.get("module_code")
         ] or ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
         allowed_widget_codes = [
-            f"{widget['type']}:{widget['title']}"
-            for widget in personalization["widgets"]
+            widget_config_from_dict(widget, position=index + 1).widgetCode
+            for index, widget in enumerate(personalization["widgets"])
         ]
         active_region_code = active_region.get("code")
 
@@ -76,8 +76,8 @@ class DashboardUserContextAdapter:
                 "favoriteModulesOnly": True,
             },
             "widgets": [
-                _widget_layout(widget)
-                for widget in personalization["widgets"]
+                _widget_layout(widget, position=index + 1)
+                for index, widget in enumerate(personalization["widgets"])
             ],
         })
 
@@ -114,7 +114,10 @@ class DashboardPermissionAdapter:
     @staticmethod
     def can_access_widget(context: DashboardUserContext | dict[str, Any], widget_code: str) -> bool:
         data = _context_dict(context)
-        return widget_code in data.get("allowedWidgetCodes", [])
+        if widget_code in data.get("allowedWidgetCodes", []):
+            return True
+        widgets = (data.get("dashboardLayout") or {}).get("widgets") or []
+        return any(f"{widget.get('type')}:{widget.get('title')}" == widget_code for widget in widgets)
 
     @staticmethod
     def can_use_feature(context: DashboardUserContext | dict[str, Any], feature_code: str) -> bool:
@@ -197,16 +200,7 @@ def _context_dict(context: DashboardUserContext | dict[str, Any]) -> dict[str, A
     return context
 
 
-def _widget_layout(widget: dict[str, Any]) -> dict[str, Any]:
-    module_number = widget.get("module_number")
-    registry_item = get_dashboard_module_registry_item_by_number(module_number)
-    module_code = registry_item.moduleCode if registry_item else None
-    canonical_module_code = get_canonical_module_code(module_code)
-    return {
-        "type": widget["type"],
-        "title": widget["title"],
-        "size": widget["size"],
-        "moduleNumberLegacy": module_number,
-        "moduleCode": module_code,
-        "canonicalModuleCode": canonical_module_code,
-    }
+def _widget_layout(widget: dict[str, Any], position: int = 100) -> dict[str, Any]:
+    config = widget_config_from_dict(widget, position=position).to_dict()
+    config["moduleCode"] = config["canonicalModuleCode"]
+    return config
