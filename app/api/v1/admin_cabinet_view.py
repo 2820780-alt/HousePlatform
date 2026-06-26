@@ -45,17 +45,17 @@ async def admin_cabinet_view(request: Request, db: DBSession):
 
 
 def _select_atom_map_cards(cards: list[dict]) -> list[dict]:
-    priority_numbers = [1, 2, 3, 5, 8, 9, 11, 12]
+    priority_numbers = [1, 2, 5, 8, 11, 12]
     cards_by_number = {card["number"]: card for card in cards if card["number"] != 16}
     selected = [cards_by_number[number] for number in priority_numbers if number in cards_by_number]
-    if len(selected) < 8:
+    if len(selected) < 6:
         selected_numbers = {card["number"] for card in selected}
         selected.extend(
             card
             for card in cards
             if card["number"] not in selected_numbers and card["number"] != 16
         )
-    return selected[:8]
+    return selected[:6]
 
 
 @router.get("/modules/{module_number}", response_class=HTMLResponse)
@@ -671,22 +671,51 @@ def _passport(
         15: "◎",
         16: "⚙",
     }
+    module_codes = {
+        1: "MODULE_01_MATERIAL_HUB",
+        2: "MODULE_02_KNOWLEDGE_BASE",
+        3: "MODULE_03_USERS_ROLES",
+        4: "MODULE_04_WORKS_COSTS",
+        5: "MODULE_05_ESTIMATES",
+        6: "MODULE_06_ESTIMATE_AUDIT",
+        7: "MODULE_07_DIGITAL_OBJECT",
+        8: "MODULE_08_PROCUREMENT",
+        9: "MODULE_09_TENDERS",
+        10: "MODULE_10_MARKETPLACE",
+        11: "MODULE_11_ANALYTICS",
+        12: "MODULE_12_AI_ASSISTANT",
+        13: "MODULE_13_AUDIT",
+        14: "MODULE_14_PRICE_HISTORY",
+        15: "MODULE_15_CONSTRUCTION_GROUPS",
+        16: "MODULE_16_ADMIN_CABINET",
+    }
     dashboard_metrics = metrics or []
     events = _module_events(number, dashboard_metrics)
     implemented = bool(href)
+    module_code = module_codes.get(number, f"MODULE_{number:02d}")
+    kpis = dashboard_metrics[:2]
     return {
         "number": number,
+        "module_code": module_code,
+        "canonical_module_code": "MODULE_11_ANALYTICS" if module_code == "MODULE_14_PRICE_HISTORY" else module_code,
         "title": f"Модуль {number} · {name}",
         "module_name": name,
         "display_name": display_names.get(number, name),
         "dashboard_description": dashboard_descriptions.get(number, subtitle),
         "dashboard_icon": dashboard_icons.get(number, "◌"),
         "visual_state": "Работает" if implemented else "Планируется",
+        "atom_status": "active" if implemented else "planned",
+        "is_visible": True,
+        "is_favorite": number in {1, 2, 3, 5, 8, 9, 11, 12},
+        "kpi1": f"{kpis[0]['label']}: {kpis[0]['value']}" if len(kpis) > 0 else None,
+        "kpi2": f"{kpis[1]['label']}: {kpis[1]['value']}" if len(kpis) > 1 else None,
         "subtitle": subtitle,
         "description": description,
         "status": status,
         "accent": accent,
+        "color": accent,
         "href": href,
+        "route": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "action": action,
         "document": document,
         "reads": reads,
@@ -748,30 +777,35 @@ def _module_events(number: int, metrics: list[dict]) -> list[dict]:
 
 def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
     layout = {
-        1: ("50%", "15%", "250px", "90deg"),
-        2: ("76%", "21%", "285px", "132deg"),
-        3: ("82%", "48%", "315px", "180deg"),
-        4: ("91%", "50%", "330px", "180deg"),
-        5: ("76%", "79%", "285px", "228deg"),
-        6: ("70%", "88%", "250px", "238deg"),
-        7: ("50%", "92%", "280px", "270deg"),
-        8: ("24%", "79%", "285px", "312deg"),
-        9: ("18%", "48%", "315px", "0deg"),
-        10: ("9%", "50%", "330px", "0deg"),
-        11: ("24%", "21%", "285px", "48deg"),
-        12: ("50%", "85%", "250px", "270deg"),
-        13: ("31%", "34%", "190px", "30deg"),
-        14: ("69%", "34%", "190px", "150deg"),
-        15: ("69%", "66%", "190px", "210deg"),
+        1: ("50%", "14%", "250px", "90deg", 1, 1),
+        2: ("80%", "25%", "318px", "140deg", 2, 2),
+        3: ("83%", "50%", "326px", "180deg", 2, 3),
+        4: ("91%", "50%", "330px", "180deg", 3, 4),
+        5: ("80%", "75%", "318px", "220deg", 2, 3),
+        6: ("70%", "88%", "250px", "238deg", 3, 6),
+        7: ("50%", "92%", "280px", "270deg", 3, 7),
+        8: ("20%", "75%", "318px", "320deg", 2, 4),
+        9: ("17%", "50%", "326px", "0deg", 2, 6),
+        10: ("9%", "50%", "330px", "0deg", 3, 10),
+        11: ("20%", "25%", "318px", "40deg", 2, 5),
+        12: ("50%", "86%", "250px", "270deg", 1, 6),
+        13: ("31%", "34%", "190px", "30deg", 1, 13),
+        14: ("69%", "34%", "190px", "150deg", 1, 14),
+        15: ("69%", "66%", "190px", "210deg", 1, 15),
     }
     for card in cards:
-        x, y, link_width, link_angle = layout.get(card["number"], ("50%", "50%", "180px", "0deg"))
+        x, y, link_width, link_angle, orbit_level, position = layout.get(
+            card["number"],
+            ("50%", "50%", "180px", "0deg", 1, card["number"]),
+        )
         card["orbit"] = {
             "x": x,
             "y": y,
             "link_width": link_width,
             "link_angle": link_angle,
         }
+        card["orbit_level"] = orbit_level
+        card["position"] = position
     return cards
 
 

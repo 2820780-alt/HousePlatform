@@ -60,15 +60,14 @@
     .sidebar {
       position: sticky;
       top: 0;
-      height: 100vh;
-      max-height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       padding: 16px 12px;
       border-right: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(6, 13, 31, 0.96), rgba(9, 17, 42, 0.88));
       backdrop-filter: blur(18px);
-      overflow: hidden;
+      overflow: visible;
       transition: width 0.18s ease;
     }
     .sidebar-brand {
@@ -112,8 +111,7 @@
       gap: 5px;
       flex: 1 1 auto;
       min-height: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: visible;
       padding-right: 2px;
       scrollbar-gutter: stable;
     }
@@ -444,13 +442,13 @@
     }
     .dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(720px, 1fr) 360px;
+      grid-template-columns: minmax(860px, 1fr) 360px;
       gap: 14px;
       align-items: start;
     }
     .atom-map {
       position: relative;
-      min-height: 640px;
+      min-height: 760px;
       border-radius: 14px;
       overflow: hidden;
       background:
@@ -503,9 +501,9 @@
       transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
       pointer-events: none;
     }
-    .orbit.one { width: 42%; aspect-ratio: 1.55; --rot: 16deg; border-color: rgba(24, 215, 242, 0.2); }
-    .orbit.two { width: 62%; aspect-ratio: 1.55; --rot: -18deg; }
-    .orbit.three { width: 82%; aspect-ratio: 1.5; --rot: 8deg; }
+    .orbit.one { width: 42%; aspect-ratio: 1.65; --rot: 16deg; border-color: rgba(24, 215, 242, 0.2); }
+    .orbit.two { width: 68%; aspect-ratio: 1.58; --rot: -18deg; }
+    .orbit.three { width: 86%; aspect-ratio: 1.52; --rot: 8deg; }
     .nucleus {
       position: absolute;
       left: 50%;
@@ -557,10 +555,10 @@
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 246px;
-      min-height: 148px;
+      width: 292px;
+      min-height: 168px;
       transform: translate(-50%, -50%);
-      padding: 14px;
+      padding: 16px;
       border-radius: 13px;
       border-width: 1px;
       border-color: color-mix(in srgb, var(--card-accent) 42%, transparent);
@@ -600,20 +598,20 @@
     .module-icon {
       display: grid;
       place-items: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
       background:
         radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--card-accent) 38%, transparent), transparent 65%),
         color-mix(in srgb, var(--card-accent) 18%, #071024);
       color: color-mix(in srgb, var(--card-accent) 75%, white);
       border: 1px solid color-mix(in srgb, var(--card-accent) 56%, transparent);
-      font-size: 21px;
+      font-size: 24px;
       font-weight: 800;
       box-shadow: 0 0 22px color-mix(in srgb, var(--card-accent) 22%, transparent);
     }
     .module-title-group { min-width: 0; }
-    .module-name { font-weight: 800; line-height: 1.15; font-size: 16px; }
+    .module-name { font-weight: 800; line-height: 1.15; font-size: 18px; }
     .module-state {
       display: inline-flex;
       align-items: center;
@@ -630,7 +628,7 @@
       background: currentColor;
       box-shadow: 0 0 10px currentColor;
     }
-    .module-desc { color: var(--muted); line-height: 1.32; font-size: 12px; min-height: 32px; }
+    .module-desc { color: var(--muted); line-height: 1.34; font-size: 13px; min-height: 38px; }
     .module-metrics {
       display: flex;
       flex-wrap: wrap;
@@ -643,7 +641,7 @@
       border: 1px solid rgba(119, 172, 255, 0.18);
       background: rgba(6, 13, 31, 0.62);
       color: #d8e7ff;
-      font-size: 11px;
+      font-size: 12px;
     }
     .metric-chip.alert { border-color: rgba(245, 158, 11, 0.5); color: #ffd28a; }
     .analytics-column { display: grid; gap: 12px; }
@@ -976,7 +974,7 @@
           </div>
 
           {% for card in cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-number="{{ card.number }}" href="{{ card.href if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-icon">{{ card.dashboard_icon }}</div>
               <div class="module-title-group">
