@@ -32,7 +32,6 @@ from app.models.workspace import Workspace
 from app.services.dashboard_auth_adapters import (
     can_access_module,
     can_see_planned_modules,
-    can_use_action,
     get_dashboard_user_context,
 )
 from app.services.dashboard_cabinet_context import get_current_cabinet_context
@@ -46,6 +45,7 @@ from app.services.dashboard_module_registry import (
 )
 from app.services.dashboard_quick_actions import get_quick_actions_for_dashboard
 from app.services.dashboard_widget_config import dashboard_widget_config_from_model
+from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget
 from app.services.dashboard_widget_registry import (
     get_available_dashboard_widgets,
     get_dashboard_widget_registry,
@@ -247,6 +247,27 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
     construction_cost = await _estimated_house_cost(db)
+    admin_widgets = _admin_widgets(
+        material_total=material_total,
+        materials_without_category=materials_without_category,
+        materials_on_moderation=materials_on_moderation,
+        materials_without_documents=materials_without_documents,
+        pending_candidates=pending_candidates,
+        active_sources=active_sources,
+        error_sources=error_sources,
+        active_tasks=active_tasks,
+        failed_tasks=failed_tasks,
+        last_successful_task_at=last_successful_task_at,
+        document_total=document_total,
+        documents_without_links=documents_without_links,
+        documents_on_review=documents_on_review,
+        expired_documents=expired_documents,
+        new_documents=new_documents,
+        price_summary=price_summary,
+        price_movers=price_movers,
+    )
+    for widget in admin_widgets:
+        widget["payload"] = atom_widget_payload_from_admin_widget(widget)
 
     return {
         "periods": ["Неделя", "Месяц", "Квартал", "Год"],
@@ -324,25 +345,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "sources_overview": source_health,
         "quick_actions": get_quick_actions_for_dashboard(dashboard_user_context, current_cabinet_context_mock),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
-        "admin_widgets": _admin_widgets(
-            material_total=material_total,
-            materials_without_category=materials_without_category,
-            materials_on_moderation=materials_on_moderation,
-            materials_without_documents=materials_without_documents,
-            pending_candidates=pending_candidates,
-            active_sources=active_sources,
-            error_sources=error_sources,
-            active_tasks=active_tasks,
-            failed_tasks=failed_tasks,
-            last_successful_task_at=last_successful_task_at,
-            document_total=document_total,
-            documents_without_links=documents_without_links,
-            documents_on_review=documents_on_review,
-            expired_documents=expired_documents,
-            new_documents=new_documents,
-            price_summary=price_summary,
-            price_movers=price_movers,
-        ),
+        "admin_widgets": admin_widgets,
         "personalization": personalization,
         "planned_modules": get_planned_dashboard_modules(dashboard_user_context),
         "active_region": active_region,

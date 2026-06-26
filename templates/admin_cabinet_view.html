@@ -1823,7 +1823,14 @@
 
       <section class="admin-widget-grid" aria-label="Административные виджеты">
         {% for widget in admin_widgets %}
-        <article class="admin-widget-card" data-widget-source-module="{{ widget.module_code }}" data-widget-type="{{ widget.type }}">
+        <article
+          class="admin-widget-card"
+          data-widget-source-module="{{ widget.module_code }}"
+          data-widget-type="{{ widget.type }}"
+          data-widget-payload-code="{{ widget.payload.widgetCode }}"
+          data-widget-payload-source="{{ widget.payload.sourceModuleCode }}"
+          data-widget-payload-status="{{ widget.payload.status }}"
+        >
           <div class="admin-widget-head">
             <h2>{{ widget.title }}</h2>
             <div class="admin-widget-meta">
