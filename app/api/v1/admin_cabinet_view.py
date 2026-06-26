@@ -21,6 +21,11 @@ from app.models.platform_region import PlatformRegion
 from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.workspace import Workspace
+from app.services.dashboard_auth_adapters import (
+    can_access_module,
+    can_see_planned_modules,
+    get_dashboard_user_context,
+)
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -31,8 +36,8 @@ templates = Jinja2Templates(directory="templates")
 async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
-    satellite_cards = _select_atom_map_cards(cards)
     dashboard_context = await _load_dashboard_context(db, cards)
+    satellite_cards = _select_atom_map_cards(cards, dashboard_context["dashboard_user_context"])
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
@@ -44,9 +49,13 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     )
 
 
-def _select_atom_map_cards(cards: list[dict]) -> list[dict]:
+def _select_atom_map_cards(cards: list[dict], user_context) -> list[dict]:
     priority_numbers = [1, 2, 5, 8, 11, 12]
-    cards_by_number = {card["number"]: card for card in cards if card["number"] != 16}
+    cards_by_number = {
+        card["number"]: card
+        for card in cards
+        if _can_show_atom_card(card, user_context)
+    }
     selected = [cards_by_number[number] for number in priority_numbers if number in cards_by_number]
     if len(selected) < 6:
         selected_numbers = {card["number"] for card in selected}
@@ -56,6 +65,16 @@ def _select_atom_map_cards(cards: list[dict]) -> list[dict]:
             if card["number"] not in selected_numbers and card["number"] != 16
         )
     return selected[:6]
+
+
+def _can_show_atom_card(card: dict, user_context) -> bool:
+    if card["number"] == 16:
+        return False
+    if card.get("atom_status") in {"disabled", "archived"}:
+        return False
+    if card.get("atom_status") in {"planned", "draft"} and not can_see_planned_modules(user_context):
+        return False
+    return can_access_module(user_context, card["canonical_module_code"])
 
 
 @router.get("/modules/{module_number}", response_class=HTMLResponse)
@@ -105,7 +124,12 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     source_health = await _load_source_health(db)
     personalization = await _load_personalization_context(db, cards)
     active_region = await _load_active_region_context(db)
-    current_user_profile_mock = _build_current_user_profile_mock(personalization, active_region, cards)
+    dashboard_user_context = get_dashboard_user_context(
+        personalization=personalization,
+        active_region=active_region,
+        cards=cards,
+    )
+    current_user_profile_mock = dashboard_user_context.to_template_dict()
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -189,6 +213,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "personalization": personalization,
         "active_region": active_region,
+        "dashboard_user_context": dashboard_user_context,
         "currentUserProfileMock": current_user_profile_mock,
         "current_user_profile": current_user_profile_mock,
     }
@@ -225,54 +250,6 @@ async def _load_active_region_context(db: DBSession) -> dict:
         "is_pilot": bool(region.is_pilot_region),
         "source": "PlatformRegionRegistry",
         "is_configured": True,
-    }
-
-
-def _build_current_user_profile_mock(personalization: dict, active_region: dict, cards: list[dict]) -> dict:
-    active_module_codes = [
-        card["module_code"]
-        for card in cards
-        if card.get("implemented") and card.get("atom_status") not in {"disabled", "archived"}
-    ]
-    favorite_module_codes = [
-        module["module_code"]
-        for module in personalization["favorite_modules"]
-        if module.get("module_code")
-    ]
-    if not favorite_module_codes:
-        favorite_module_codes = ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
-    allowed_widgets = [
-        f"{widget['type']}:{widget['title']}"
-        for widget in personalization["widgets"]
-    ]
-    return {
-        "display_name": "Администратор",
-        "role": "ADMIN",
-        "roleLabel": personalization["role"],
-        "workspace": personalization["active_workspace"],
-        "allowedModules": active_module_codes,
-        "allowedWidgets": allowed_widgets,
-        "favoriteModules": favorite_module_codes[:8],
-        "dashboardLayout": {
-            "version": "mock-v1",
-            "atomMap": {
-                "maxVisibleModules": 6,
-                "favoriteModulesOnly": True,
-            },
-            "widgets": [
-                {
-                    "type": widget["type"],
-                    "title": widget["title"],
-                    "size": widget["size"],
-                    "moduleNumberLegacy": widget["module_number"],
-                }
-                for widget in personalization["widgets"]
-            ],
-        },
-        "activeRegionCode": active_region["code"],
-        "activeRegionName": active_region["name"],
-        "availableRegionCodes": [active_region["code"]] if active_region["code"] else [],
-        "is_mock": True,
     }
 
 
