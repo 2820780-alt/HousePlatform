@@ -965,6 +965,7 @@ def _passport(
     canonical_module_code = get_canonical_module_code(module_code) or module_code
     kpis = dashboard_metrics[:2]
     atom_status = "merged" if registry_status == "merged" else _mock_atom_status(number, implemented, events)
+    atom_indicators = _module_indicators(number, dashboard_metrics, events, atom_status, status)
     resolved_route = resolve_module_route(module_code)
     is_available_for_dashboard = is_module_available_for_dashboard(module_code)
     visual_state_labels = {
@@ -1005,6 +1006,7 @@ def _passport(
         "visual_state": visual_state_labels.get(atom_status, "Штатно"),
         "atom_status": atom_status,
         "state_tone": _atom_state_tone(atom_status),
+        "atom_indicators": atom_indicators,
         "is_visible": True,
         "is_favorite": number in {1, 2, 3, 5, 8, 9, 11, 12},
         "kpi1": f"{kpis[0]['label']}: {kpis[0]['value']}" if len(kpis) > 0 else None,
@@ -1055,6 +1057,69 @@ def _atom_state_tone(status: str) -> str:
     if status in {"disabled", "archived"}:
         return "disabled"
     return "success"
+
+
+def _module_indicators(
+    number: int,
+    metrics: list[dict],
+    events: list[dict],
+    atom_status: str,
+    fallback_status: str,
+) -> list[dict]:
+    tone_by_event = {
+        "error": "danger",
+        "warning": "warn",
+        "active": "info",
+        "info": "info",
+        "trend": "info",
+    }
+    icon_by_tone = {
+        "danger": "x",
+        "warn": "!",
+        "info": "+",
+        "success": "✓",
+        "future": "◇",
+        "muted": "·",
+    }
+    indicators: list[dict] = []
+
+    for event in events:
+        tone = tone_by_event.get(event.get("kind"), "info")
+        label = str(event.get("label", "событие"))
+        value = event.get("value")
+        text = f"{label}: {value}" if value not in (None, "") else label
+        indicators.append({"tone": tone, "icon": icon_by_tone[tone], "text": text})
+
+    for metric in metrics:
+        if len(indicators) >= 3:
+            break
+        label = str(metric.get("label", "показатель"))
+        value = metric.get("value")
+        tone = "warn" if metric.get("alert") else "info"
+        if number in {2, 7, 13} and not metric.get("alert"):
+            tone = "success"
+        indicators.append({
+            "tone": tone,
+            "icon": icon_by_tone[tone],
+            "text": f"{label}: {value}" if value not in (None, "") else label,
+        })
+
+    if not indicators:
+        tone = _atom_state_tone(atom_status)
+        if tone == "disabled":
+            tone = "muted"
+        indicators.append({
+            "tone": tone,
+            "icon": icon_by_tone.get(tone, "·"),
+            "text": fallback_status,
+        })
+
+    if atom_status in {"planned", "draft"}:
+        indicators = [{"tone": "future", "icon": "◇", "text": "планируется"}] + indicators
+    elif atom_status in {"disabled", "archived", "merged", "deprecated"}:
+        indicators = [{"tone": "muted", "icon": "·", "text": atom_status}] + indicators
+
+    return indicators[:3]
 
 
 def _module_events(number: int, metrics: list[dict]) -> list[dict]:

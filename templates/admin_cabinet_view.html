@@ -1107,48 +1107,49 @@
       background: currentColor;
       box-shadow: 0 0 10px currentColor;
     }
-    .module-desc {
-      display: -webkit-box;
-      min-height: 0;
-      overflow: hidden;
-      color: var(--muted);
-      font-size: 11.5px;
-      line-height: 1.28;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-    }
-    .module-alerts {
-      display: flex;
-      flex-wrap: wrap;
+    .module-indicators {
+      display: grid;
       gap: 4px;
-      max-height: 20px;
+      margin-top: auto;
       overflow: hidden;
-      margin-top: 0;
     }
-    .module-alert {
+    .module-indicator {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      border-radius: 999px;
+      min-width: 0;
+      gap: 6px;
+      padding: 3px 7px;
+      border-radius: 8px;
       border: 1px solid rgba(119, 172, 255, 0.18);
       background: rgba(6, 13, 31, 0.62);
       color: #d8e7ff;
       font-size: 10px;
+      line-height: 1.18;
     }
-    .module-alert.warning { border-color: rgba(245, 158, 11, 0.48); color: #ffd28a; }
-    .module-alert.active,
-    .module-alert.info,
-    .module-alert.trend { border-color: rgba(24, 215, 242, 0.38); color: #a9f5ff; }
-    .module-alert.error { border-color: rgba(255, 59, 127, 0.52); color: #ffabc8; }
-    .module-metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      max-height: 22px;
+    .module-indicator-icon {
+      display: inline-grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: currentColor;
+      color: #06101f;
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .module-indicator-text {
       overflow: hidden;
-      margin-top: auto;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+    .module-indicator.danger { border-color: rgba(255, 59, 127, 0.5); color: #ffabc8; }
+    .module-indicator.warn { border-color: rgba(245, 158, 11, 0.5); color: #ffd28a; }
+    .module-indicator.info { border-color: rgba(24, 215, 242, 0.42); color: #a9f5ff; }
+    .module-indicator.success { border-color: rgba(34, 197, 94, 0.48); color: #9cf2bd; }
+    .module-indicator.future { border-color: rgba(168, 85, 247, 0.48); color: #d8b4fe; }
+    .module-indicator.muted { border-color: rgba(148, 163, 184, 0.26); color: #9aa9bf; }
     .metric-chip {
       padding: 2px 6px;
       border-radius: 999px;
@@ -1750,22 +1751,13 @@
                 <div class="module-state {{ card.state_tone }}">{{ card.visual_state }}</div>
               </div>
             </div>
-            <div class="module-desc">{{ card.dashboard_description }}</div>
-            {% if card.events %}
-            <div class="module-alerts">
-              {% for event in card.events[:2] %}
-              <span class="module-alert {{ event.kind }}">{{ event.label }}: {{ event.value }}</span>
+            <div class="module-indicators" aria-label="Индикаторы модуля {{ card.display_name }}">
+              {% for indicator in card.atom_indicators %}
+              <span class="module-indicator {{ indicator.tone }}">
+                <span class="module-indicator-icon" aria-hidden="true">{{ indicator.icon }}</span>
+                <span class="module-indicator-text">{{ indicator.text }}</span>
+              </span>
               {% endfor %}
-            </div>
-            {% endif %}
-            <div class="module-metrics">
-              {% if card.dashboard_metrics %}
-                {% for metric in card.dashboard_metrics[:2] %}
-                <span class="metric-chip {% if metric.alert %}alert{% endif %}">{{ metric.label }}: {{ metric.value }}</span>
-                {% endfor %}
-              {% else %}
-                <span class="metric-chip">{{ card.status }}</span>
-              {% endif %}
             </div>
           </a>
           {% endfor %}
