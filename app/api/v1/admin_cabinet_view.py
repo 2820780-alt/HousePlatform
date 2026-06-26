@@ -919,34 +919,34 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
     }
     link_map = {
         1: {
-            "node": (50, 24),
-            "inner_path": "M 50 50 C 50 41, 50 32, 50 24",
-            "outer_path": "M 50 24 C 50 20, 50 17, 50 14",
+            "node": (50, 26),
+            "inner_path": "M 50 26 C 49 22, 49 18, 50 14",
+            "outer_path": "M 50 26 C 52 22, 52 18, 50 14",
         },
         2: {
-            "node": (70, 30),
-            "inner_path": "M 50 50 C 56 41, 63 34, 70 30",
-            "outer_path": "M 70 30 C 73 27, 76 26, 80 25",
+            "node": (69, 31),
+            "inner_path": "M 69 31 C 72 27, 76 25, 80 25",
+            "outer_path": "M 69 31 C 74 32, 77 30, 80 25",
         },
         5: {
-            "node": (70, 70),
-            "inner_path": "M 50 50 C 58 56, 64 63, 70 70",
-            "outer_path": "M 70 70 C 74 72, 77 74, 80 75",
+            "node": (69, 69),
+            "inner_path": "M 69 69 C 72 73, 76 75, 80 75",
+            "outer_path": "M 69 69 C 74 68, 77 70, 80 75",
         },
         8: {
-            "node": (30, 70),
-            "inner_path": "M 50 50 C 42 56, 36 63, 30 70",
-            "outer_path": "M 30 70 C 26 72, 23 74, 20 75",
+            "node": (31, 69),
+            "inner_path": "M 31 69 C 28 73, 24 75, 20 75",
+            "outer_path": "M 31 69 C 26 68, 23 70, 20 75",
         },
         11: {
-            "node": (30, 30),
-            "inner_path": "M 50 50 C 44 41, 37 34, 30 30",
-            "outer_path": "M 30 30 C 27 27, 24 26, 20 25",
+            "node": (31, 31),
+            "inner_path": "M 31 31 C 28 27, 24 25, 20 25",
+            "outer_path": "M 31 31 C 26 32, 23 30, 20 25",
         },
         12: {
-            "node": (50, 76),
-            "inner_path": "M 50 50 C 50 59, 50 68, 50 76",
-            "outer_path": "M 50 76 C 50 80, 50 83, 50 86",
+            "node": (50, 74),
+            "inner_path": "M 50 74 C 49 78, 49 82, 50 86",
+            "outer_path": "M 50 74 C 52 78, 52 82, 50 86",
         },
     }
     for card in cards:

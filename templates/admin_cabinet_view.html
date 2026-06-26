@@ -579,18 +579,18 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      border: 4px solid rgba(119, 190, 255, 0.42);
+      border: 5px solid rgba(119, 205, 255, 0.58);
       border-radius: 50%;
       transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
       pointer-events: none;
       box-shadow:
-        0 0 42px rgba(24, 215, 242, 0.42),
-        0 0 92px rgba(24, 215, 242, 0.18),
-        inset 0 0 32px rgba(24, 215, 242, 0.2);
+        0 0 68px rgba(24, 215, 242, 0.72),
+        0 0 142px rgba(24, 215, 242, 0.34),
+        inset 0 0 54px rgba(24, 215, 242, 0.34);
     }
-    .orbit.one { width: 52%; aspect-ratio: 1.76; --rot: 16deg; border-color: rgba(24, 215, 242, 0.82); }
-    .orbit.two { width: 78%; aspect-ratio: 1.62; --rot: -18deg; border-color: rgba(59, 130, 246, 0.66); }
-    .orbit.three { width: 94%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.5); }
+    .orbit.one { width: 52%; aspect-ratio: 1.76; --rot: 16deg; border-color: rgba(24, 215, 242, 0.94); }
+    .orbit.two { width: 78%; aspect-ratio: 1.62; --rot: -18deg; border-color: rgba(59, 130, 246, 0.82); }
+    .orbit.three { width: 94%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.68); }
     .atom-links {
       position: absolute;
       inset: 0;
@@ -603,22 +603,22 @@
     .atom-link {
       fill: none;
       stroke: var(--link-color);
-      stroke-width: 1.42;
+      stroke-width: 2.15;
       stroke-linecap: round;
       stroke-linejoin: round;
       opacity: 0.96;
-      filter: drop-shadow(0 0 1.8px var(--link-color)) drop-shadow(0 0 6px var(--link-color));
+      filter: drop-shadow(0 0 2.4px var(--link-color)) drop-shadow(0 0 9px var(--link-color));
       animation: atom-curve-pulse 4s ease-in-out infinite;
     }
     .atom-link.inner {
-      stroke-width: 1.18;
-      opacity: 0.9;
+      stroke-width: 1.72;
+      opacity: 0.82;
     }
     .atom-node {
       fill: color-mix(in srgb, var(--link-color) 78%, white 22%);
       stroke: rgba(255, 255, 255, 0.72);
-      stroke-width: 0.24;
-      filter: drop-shadow(0 0 2px var(--link-color)) drop-shadow(0 0 7px var(--link-color));
+      stroke-width: 0.34;
+      filter: drop-shadow(0 0 3px var(--link-color)) drop-shadow(0 0 12px var(--link-color));
       animation: atom-node-pulse 3.2s ease-in-out infinite;
     }
     .atom-map:has(.module-card:hover) .atom-link,
@@ -638,16 +638,16 @@
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-link[data-module-code="MODULE_12_AI_ASSISTANT"],
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-node[data-module-code="MODULE_12_AI_ASSISTANT"] {
       opacity: 1;
-      stroke-width: 1.95;
-      filter: drop-shadow(0 0 2.4px var(--link-color)) drop-shadow(0 0 8px var(--link-color));
+      stroke-width: 2.75;
+      filter: drop-shadow(0 0 3.4px var(--link-color)) drop-shadow(0 0 14px var(--link-color));
     }
     @keyframes atom-curve-pulse {
       0%, 100% { opacity: 0.64; }
       50% { opacity: 1; }
     }
     @keyframes atom-node-pulse {
-      0%, 100% { r: 1.15; opacity: 0.78; }
-      50% { r: 1.55; opacity: 1; }
+      0%, 100% { r: 1.28; opacity: 0.86; }
+      50% { r: 1.82; opacity: 1; }
     }
     .nucleus {
       position: absolute;
