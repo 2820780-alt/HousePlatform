@@ -973,32 +973,26 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
         1: {
             "node": (50, 26),
             "inner_path": "M 50 26 C 49 22, 49 18, 50 14",
-            "outer_path": "M 50 26 C 52 22, 52 18, 50 14",
         },
         2: {
-            "node": (69, 31),
-            "inner_path": "M 69 31 C 72 27, 76 25, 80 25",
-            "outer_path": "M 69 31 C 74 32, 77 30, 80 25",
+            "node": (70, 31),
+            "inner_path": "M 70 31 C 73 28, 77 27, 80 25",
         },
         5: {
-            "node": (69, 69),
-            "inner_path": "M 69 69 C 72 73, 76 75, 80 75",
-            "outer_path": "M 69 69 C 74 68, 77 70, 80 75",
+            "node": (70, 69),
+            "inner_path": "M 70 69 C 73 72, 77 73, 80 75",
         },
         8: {
-            "node": (31, 69),
-            "inner_path": "M 31 69 C 28 73, 24 75, 20 75",
-            "outer_path": "M 31 69 C 26 68, 23 70, 20 75",
+            "node": (30, 69),
+            "inner_path": "M 30 69 C 27 72, 23 73, 20 75",
         },
         11: {
-            "node": (31, 31),
-            "inner_path": "M 31 31 C 28 27, 24 25, 20 25",
-            "outer_path": "M 31 31 C 26 32, 23 30, 20 25",
+            "node": (30, 31),
+            "inner_path": "M 30 31 C 27 28, 23 27, 20 25",
         },
         12: {
             "node": (50, 74),
             "inner_path": "M 50 74 C 49 78, 49 82, 50 86",
-            "outer_path": "M 50 74 C 52 78, 52 82, 50 86",
         },
     }
     for card in cards:
@@ -1019,7 +1013,6 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
             {
                 "node": (50, 50),
                 "inner_path": "M 50 50 C 50 50, 50 50, 50 50",
-                "outer_path": "M 50 50 C 50 50, 50 50, 50 50",
             },
         )
     return cards

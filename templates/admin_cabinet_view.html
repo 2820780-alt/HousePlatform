@@ -657,9 +657,9 @@
       transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
       pointer-events: none;
       box-shadow:
-        0 0 68px rgba(24, 215, 242, 0.72),
-        0 0 142px rgba(24, 215, 242, 0.34),
-        inset 0 0 54px rgba(24, 215, 242, 0.34);
+        0 0 14px rgba(24, 215, 242, 0.76),
+        0 0 28px rgba(24, 215, 242, 0.32),
+        inset 0 0 14px rgba(24, 215, 242, 0.28);
     }
     .orbit.one { width: 52%; aspect-ratio: 1.76; --rot: 16deg; border-color: rgba(24, 215, 242, 0.94); }
     .orbit.two { width: 78%; aspect-ratio: 1.62; --rot: -18deg; border-color: rgba(59, 130, 246, 0.82); }
@@ -676,22 +676,23 @@
     .atom-link {
       fill: none;
       stroke: var(--link-color);
-      stroke-width: 2.15;
+      stroke-width: 3.5px;
       stroke-linecap: round;
       stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
       opacity: 0.96;
-      filter: drop-shadow(0 0 2.4px var(--link-color)) drop-shadow(0 0 9px var(--link-color));
+      filter: drop-shadow(0 0 0.8px rgba(255, 255, 255, 0.28)) drop-shadow(0 0 2.4px var(--link-color));
       animation: atom-curve-pulse 4s ease-in-out infinite;
     }
     .atom-link.inner {
-      stroke-width: 1.72;
-      opacity: 0.82;
+      stroke-width: 3.5px;
+      opacity: 0.94;
     }
     .atom-node {
       fill: color-mix(in srgb, var(--link-color) 78%, white 22%);
       stroke: rgba(255, 255, 255, 0.72);
       stroke-width: 0.34;
-      filter: drop-shadow(0 0 3px var(--link-color)) drop-shadow(0 0 12px var(--link-color));
+      filter: drop-shadow(0 0 1.8px var(--link-color)) drop-shadow(0 0 5px var(--link-color));
       animation: atom-node-pulse 3.2s ease-in-out infinite;
     }
     .atom-connection.atom-hidden,
@@ -715,8 +716,8 @@
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-link[data-module-code="MODULE_12_AI_ASSISTANT"],
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-node[data-module-code="MODULE_12_AI_ASSISTANT"] {
       opacity: 1;
-      stroke-width: 2.75;
-      filter: drop-shadow(0 0 3.4px var(--link-color)) drop-shadow(0 0 14px var(--link-color));
+      stroke-width: 4px;
+      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.32)) drop-shadow(0 0 3px var(--link-color));
     }
     @keyframes atom-curve-pulse {
       0%, 100% { opacity: 0.64; }
@@ -1372,7 +1373,6 @@
             {% for card in all_atom_cards %}
             <g class="atom-connection {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-module-code="{{ card.module_code }}" style="--link-color: {{ card.accent }}">
               <path class="atom-link inner" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.inner_path }}"></path>
-              <path class="atom-link outer" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.outer_path }}"></path>
               <circle class="atom-node" data-module-code="{{ card.module_code }}" cx="{{ card.atom_link.node[0] }}" cy="{{ card.atom_link.node[1] }}" r="1.25"></circle>
             </g>
             {% endfor %}
