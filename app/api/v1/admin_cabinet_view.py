@@ -10,7 +10,15 @@ from app.api.deps import DBSession
 from app.models.catalog_product import CatalogProduct
 from app.models.dashboard_profile import DashboardProfile
 from app.models.dashboard_widget import DashboardWidget
-from app.models.enums import CatalogProductStatus, MatchCandidateStatus, MaterialStatus, RegionStatus, SourceStatus, TaskStatus
+from app.models.enums import (
+    CatalogProductStatus,
+    DocumentStatus,
+    MatchCandidateStatus,
+    MaterialStatus,
+    RegionStatus,
+    SourceStatus,
+    TaskStatus,
+)
 from app.models.favorite_module import FavoriteModule
 from app.models.material import Material
 from app.models.material_category import MaterialCategory
@@ -196,10 +204,24 @@ async def _load_module_passports(db: DBSession) -> list[dict]:
 
 async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     material_total = await _count_model(db, Material)
+    document_total = await _count_model(db, MaterialDocument)
     pending_candidates = await _count_pending_candidates(db)
     active_tasks = await _count_active_tasks(db)
     active_sources = await _count_where(db, Source, Source.status == SourceStatus.ACTIVE)
+    error_sources = await _count_where(db, Source, Source.status == SourceStatus.ERROR)
     failed_tasks = await _count_where(db, SourceTask, SourceTask.status == TaskStatus.FAILED)
+    materials_without_category = await _count_where(db, Material, Material.category_id.is_(None))
+    materials_on_moderation = await _count_where(db, Material, Material.status == MaterialStatus.NEEDS_REVIEW)
+    materials_without_documents = await _count_materials_without_documents(db)
+    documents_without_links = await _count_where(db, MaterialDocument, MaterialDocument.material_id.is_(None))
+    documents_on_review = await _count_where(db, MaterialDocument, MaterialDocument.status == DocumentStatus.NEEDS_REVIEW)
+    expired_documents = await _count_where(db, MaterialDocument, MaterialDocument.status == DocumentStatus.EXPIRED)
+    new_documents = await _count_where(
+        db,
+        MaterialDocument,
+        MaterialDocument.created_at >= datetime.utcnow() - timedelta(days=7),
+    )
+    last_successful_task_at = await _last_successful_source_task_at(db)
     new_materials = await _count_where(
         db,
         Material,
@@ -297,6 +319,25 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "sources_overview": source_health,
         "quick_actions": _quick_actions(),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
+        "admin_widgets": _admin_widgets(
+            material_total=material_total,
+            materials_without_category=materials_without_category,
+            materials_on_moderation=materials_on_moderation,
+            materials_without_documents=materials_without_documents,
+            pending_candidates=pending_candidates,
+            active_sources=active_sources,
+            error_sources=error_sources,
+            active_tasks=active_tasks,
+            failed_tasks=failed_tasks,
+            last_successful_task_at=last_successful_task_at,
+            document_total=document_total,
+            documents_without_links=documents_without_links,
+            documents_on_review=documents_on_review,
+            expired_documents=expired_documents,
+            new_documents=new_documents,
+            price_summary=price_summary,
+            price_movers=price_movers,
+        ),
         "personalization": personalization,
         "planned_modules": get_planned_dashboard_modules(dashboard_user_context),
         "active_region": active_region,
@@ -719,10 +760,116 @@ def _quick_actions() -> list[dict]:
     return [
         {"label": "Добавить материал", "href": "/api/v1/admin/material-hub/view/materials", "icon": "+"},
         {"label": "Загрузить прайс", "href": "/api/v1/admin/material-hub/view", "icon": "⇧"},
-        {"label": "Импорт документов", "href": "/api/v1/admin/material-hub/view/documents", "icon": "↥"},
-        {"label": "Создать смету", "href": "/api/v1/admin/cabinet/view/modules/5", "icon": "≋", "mock": True},
-        {"label": "Создать тендер", "href": "/api/v1/admin/cabinet/view/modules/9", "icon": "♜", "mock": True},
-        {"label": "Анализ источников", "href": "/api/v1/admin/material-hub/view", "icon": "⌁"},
+        {"label": "Открыть модерацию", "href": "/api/v1/admin/material-hub/view/moderation", "icon": "!"},
+        {"label": "Открыть источники", "href": "/api/v1/admin/material-hub/view/sources", "icon": "⌁"},
+        {"label": "Открыть документы", "href": "/api/v1/admin/material-hub/view/documents", "icon": "□"},
+        {"label": "Создать задачу анализа", "href": "/api/v1/admin/material-hub/view", "icon": "▶"},
+        {"label": "Настроить Dashboard", "href": "#dashboard-config", "icon": "⚙"},
+    ]
+
+
+def _admin_widgets(
+    *,
+    material_total: int,
+    materials_without_category: int,
+    materials_on_moderation: int,
+    materials_without_documents: int,
+    pending_candidates: int,
+    active_sources: int,
+    error_sources: int,
+    active_tasks: int,
+    failed_tasks: int,
+    last_successful_task_at: datetime | None,
+    document_total: int,
+    documents_without_links: int,
+    documents_on_review: int,
+    expired_documents: int,
+    new_documents: int,
+    price_summary: dict,
+    price_movers: dict,
+) -> list[dict]:
+    last_success = _format_datetime_minute(last_successful_task_at) if last_successful_task_at else "нет данных"
+    growth_items = price_movers.get("growth", [])
+    drop_items = price_movers.get("drop", [])
+    return [
+        {
+            "title": "Material Hub",
+            "module_code": "MODULE_01_MATERIAL_HUB",
+            "type": "KPI",
+            "items": [
+                {"label": "Всего материалов", "value": material_total},
+                {"label": "Без категории", "value": materials_without_category, "tone": "warn" if materials_without_category else "success"},
+                {"label": "На модерации", "value": materials_on_moderation},
+                {"label": "Без документов", "value": materials_without_documents},
+                {"label": "Ошибки классификации", "value": pending_candidates},
+                {"label": "Требуют конвертации", "value": "mock", "mock": True},
+            ],
+        },
+        {
+            "title": "Источники",
+            "module_code": "MODULE_01_MATERIAL_HUB",
+            "type": "STATUS",
+            "items": [
+                {"label": "Активные источники", "value": active_sources},
+                {"label": "Источники с ошибками", "value": error_sources, "tone": "danger" if error_sources else "success"},
+                {"label": "Последние задачи анализа", "value": active_tasks},
+                {"label": "Ошибки сбора", "value": failed_tasks, "tone": "danger" if failed_tasks else "success"},
+                {"label": "Последний успешный сбор", "value": last_success},
+            ],
+        },
+        {
+            "title": "Документы",
+            "module_code": "MODULE_01_MATERIAL_HUB",
+            "type": "LIST",
+            "items": [
+                {"label": "Всего ссылок / ресурсов", "value": document_total},
+                {"label": "Без связей", "value": documents_without_links},
+                {"label": "На проверке", "value": documents_on_review},
+                {"label": "Просроченные сертификаты", "value": expired_documents},
+                {"label": "Новые найденные документы", "value": new_documents},
+            ],
+        },
+        {
+            "title": "Analytics · Price Dynamics",
+            "module_code": "MODULE_11_ANALYTICS",
+            "feature_code": "PRICE_DYNAMICS",
+            "legacy_module_code": "MODULE_14_PRICE_HISTORY",
+            "type": "CHART",
+            "items": [
+                {"label": "Изменение типового дома", "value": price_summary.get("market", "нужно больше данных")},
+                {"label": "Рост по категориям", "value": "mock", "mock": True},
+                {"label": "Топ роста", "value": growth_items[0]["name"] if growth_items else "нет данных"},
+                {"label": "Топ снижения", "value": drop_items[0]["name"] if drop_items else "нет данных"},
+                {"label": "Аномалии цен", "value": "mock", "mock": True},
+                {"label": "Устаревшие цены", "value": "mock", "mock": True},
+            ],
+        },
+        {
+            "title": "Пользователи и роли",
+            "module_code": "MODULE_03_USERS_ROLES",
+            "type": "STATUS",
+            "mock": True,
+            "items": [
+                {"label": "Пользователей всего", "value": "mock", "mock": True},
+                {"label": "Активных", "value": "mock", "mock": True},
+                {"label": "Ожидают приглашения", "value": "mock", "mock": True},
+                {"label": "Изменения прав", "value": "mock", "mock": True},
+                {"label": "Последние входы", "value": "mock", "mock": True},
+            ],
+        },
+        {
+            "title": "Аудит",
+            "module_code": "MODULE_13_AUDIT",
+            "type": "ALERTS",
+            "mock": True,
+            "items": [
+                {"label": "Последние действия", "value": "mock", "mock": True},
+                {"label": "Критические изменения", "value": "mock", "mock": True},
+                {"label": "Ошибки", "value": failed_tasks},
+                {"label": "Импорт / экспорт", "value": "mock", "mock": True},
+                {"label": "Изменение прав", "value": "mock", "mock": True},
+            ],
+        },
     ]
 
 
@@ -1079,6 +1226,27 @@ async def _count_active_tasks(db: DBSession) -> int:
         SourceTask,
         SourceTask.status.in_([TaskStatus.PENDING, TaskStatus.RUNNING]),
     )
+
+
+async def _count_materials_without_documents(db: DBSession) -> int:
+    result = await db.execute(
+        select(func.count(Material.id))
+        .outerjoin(MaterialDocument, MaterialDocument.material_id == Material.id)
+        .where(MaterialDocument.id.is_(None))
+    )
+    return result.scalar() or 0
+
+
+async def _last_successful_source_task_at(db: DBSession) -> datetime | None:
+    result = await db.execute(
+        select(func.max(SourceTask.finished_at))
+        .where(SourceTask.status == TaskStatus.COMPLETED)
+    )
+    return result.scalar_one_or_none()
+
+
+def _format_datetime_minute(value: datetime) -> str:
+    return value.strftime("%Y-%m-%d %H:%M")
 
 
 async def _load_price_dynamics_summary(db: DBSession) -> dict:

@@ -1146,6 +1146,54 @@
       gap: 12px;
       margin-top: 14px;
     }
+    .admin-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .admin-widget-card {
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 12px;
+      padding: 13px;
+      background:
+        radial-gradient(circle at 90% 10%, rgba(24, 215, 242, 0.08), transparent 36%),
+        rgba(6, 13, 31, 0.58);
+    }
+    .admin-widget-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .admin-widget-head h2 { margin: 0; font-size: 15px; }
+    .admin-widget-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: flex-end;
+    }
+    .admin-widget-list {
+      display: grid;
+      gap: 7px;
+    }
+    .admin-widget-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .admin-widget-row strong {
+      color: var(--text);
+      font-size: 13px;
+      text-align: right;
+    }
+    .admin-widget-row.warn strong { color: var(--amber); }
+    .admin-widget-row.danger strong { color: var(--red); }
+    .admin-widget-row.success strong { color: var(--green); }
     .event-list,
     .source-list,
     .quick-grid { display: grid; gap: 8px; }
@@ -1212,6 +1260,7 @@
       .kpi-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
       .dashboard-grid { grid-template-columns: 1fr; }
       .analytics-column { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .admin-widget-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 1100px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -1260,7 +1309,7 @@
       .module-card::before,
       .module-card::after { display: none; }
       .module-card:hover { transform: translateY(-2px); }
-      .analytics-column, .bottom-grid { grid-template-columns: 1fr; }
+      .analytics-column, .admin-widget-grid, .bottom-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 720px) {
       .content { padding: 12px; }
@@ -1618,6 +1667,31 @@
           </section>
         </aside>
       </div>
+
+      <section class="admin-widget-grid" aria-label="Административные виджеты">
+        {% for widget in admin_widgets %}
+        <article class="admin-widget-card" data-widget-source-module="{{ widget.module_code }}" data-widget-type="{{ widget.type }}">
+          <div class="admin-widget-head">
+            <h2>{{ widget.title }}</h2>
+            <div class="admin-widget-meta">
+              <span class="metric-chip">{{ widget.type }}</span>
+              <span class="metric-chip">{{ widget.module_code }}</span>
+              {% if widget.feature_code %}<span class="metric-chip">{{ widget.feature_code }}</span>{% endif %}
+              {% if widget.legacy_module_code %}<span class="metric-chip">legacy: {{ widget.legacy_module_code }}</span>{% endif %}
+              {% if widget.mock %}<span class="metric-chip alert">mock</span>{% endif %}
+            </div>
+          </div>
+          <div class="admin-widget-list">
+            {% for item in widget["items"] %}
+            <div class="admin-widget-row {{ item.tone|default('') }}">
+              <span>{{ item.label }}{% if item.mock %} <small class="mock-note">mock</small>{% endif %}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+        {% endfor %}
+      </section>
 
       <section class="bottom-grid" aria-label="Информационные блоки">
         <article class="panel">
