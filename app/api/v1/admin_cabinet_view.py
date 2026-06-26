@@ -694,6 +694,19 @@ def _passport(
     implemented = bool(href)
     module_code = module_codes.get(number, f"MODULE_{number:02d}")
     kpis = dashboard_metrics[:2]
+    atom_status = _mock_atom_status(number, implemented, events)
+    visual_state_labels = {
+        "normal": "Штатно",
+        "active": "Работает",
+        "planned": "Планируется",
+        "draft": "Черновик",
+        "disabled": "Отключен",
+        "error": "Ошибка",
+        "attention": "Требует внимания",
+        "archived": "Архив",
+        "merged": "Объединен",
+        "deprecated": "Устаревает",
+    }
     return {
         "number": number,
         "module_code": module_code,
@@ -703,8 +716,9 @@ def _passport(
         "display_name": display_names.get(number, name),
         "dashboard_description": dashboard_descriptions.get(number, subtitle),
         "dashboard_icon": dashboard_icons.get(number, "◌"),
-        "visual_state": "Работает" if implemented else "Планируется",
-        "atom_status": "active" if implemented else "planned",
+        "visual_state": visual_state_labels.get(atom_status, "Штатно"),
+        "atom_status": atom_status,
+        "state_tone": _atom_state_tone(atom_status),
         "is_visible": True,
         "is_favorite": number in {1, 2, 3, 5, 8, 9, 11, 12},
         "kpi1": f"{kpis[0]['label']}: {kpis[0]['value']}" if len(kpis) > 0 else None,
@@ -731,6 +745,30 @@ def _passport(
         "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
     }
+
+
+def _mock_atom_status(number: int, implemented: bool, events: list[dict]) -> str:
+    if number == 14:
+        return "merged"
+    if any(event.get("kind") == "error" for event in events):
+        return "error"
+    if any(event.get("kind") in {"warning", "active"} for event in events):
+        return "attention"
+    if not implemented:
+        return "planned"
+    return "active"
+
+
+def _atom_state_tone(status: str) -> str:
+    if status == "error":
+        return "danger"
+    if status == "attention":
+        return "warn"
+    if status in {"planned", "draft", "merged", "deprecated"}:
+        return "muted"
+    if status in {"disabled", "archived"}:
+        return "disabled"
+    return "success"
 
 
 def _module_events(number: int, metrics: list[dict]) -> list[dict]:

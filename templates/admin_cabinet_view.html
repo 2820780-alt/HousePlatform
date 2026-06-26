@@ -643,6 +643,32 @@
       transform: translateY(0);
     }
     .module-card.future { opacity: 0.72; }
+    .module-card[data-status="planned"],
+    .module-card[data-status="draft"] {
+      opacity: 0.78;
+      filter: saturate(0.82);
+    }
+    .module-card[data-status="disabled"],
+    .module-card[data-status="archived"] {
+      opacity: 0.48;
+      filter: grayscale(0.55);
+      pointer-events: none;
+    }
+    .module-card[data-status="merged"],
+    .module-card[data-status="deprecated"] {
+      opacity: 0.64;
+      border-style: dashed;
+    }
+    .module-card[data-status="error"] {
+      --card-accent: var(--red);
+      border-color: rgba(255, 59, 127, 0.72);
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), 0 0 34px rgba(255, 59, 127, 0.24);
+    }
+    .module-card[data-status="attention"] {
+      --card-accent: var(--amber);
+      border-color: rgba(245, 158, 11, 0.66);
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), 0 0 34px rgba(245, 158, 11, 0.2);
+    }
     .module-head {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -675,6 +701,11 @@
       color: color-mix(in srgb, var(--card-accent) 64%, white);
       font-size: 11px;
     }
+    .module-state.danger { color: var(--red); }
+    .module-state.warn { color: var(--amber); }
+    .module-state.success { color: var(--green); }
+    .module-state.muted { color: var(--muted); }
+    .module-state.disabled { color: #64748b; }
     .module-state::before {
       content: "";
       width: 6px;
@@ -684,6 +715,28 @@
       box-shadow: 0 0 10px currentColor;
     }
     .module-desc { color: var(--muted); line-height: 1.34; font-size: 13px; min-height: 38px; }
+    .module-alerts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .module-alert {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(119, 172, 255, 0.18);
+      background: rgba(6, 13, 31, 0.62);
+      color: #d8e7ff;
+      font-size: 11px;
+    }
+    .module-alert.warning { border-color: rgba(245, 158, 11, 0.48); color: #ffd28a; }
+    .module-alert.active,
+    .module-alert.info,
+    .module-alert.trend { border-color: rgba(24, 215, 242, 0.38); color: #a9f5ff; }
+    .module-alert.error { border-color: rgba(255, 59, 127, 0.52); color: #ffabc8; }
     .module-metrics {
       display: flex;
       flex-wrap: wrap;
@@ -1030,15 +1083,22 @@
           </div>
 
           {% for card in cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-status="{{ card.atom_status }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-icon">{{ card.dashboard_icon }}</div>
               <div class="module-title-group">
                 <div class="module-name">{{ card.display_name }}</div>
-                <div class="module-state">{{ card.visual_state }}</div>
+                <div class="module-state {{ card.state_tone }}">{{ card.visual_state }}</div>
               </div>
             </div>
             <div class="module-desc">{{ card.dashboard_description }}</div>
+            {% if card.events %}
+            <div class="module-alerts">
+              {% for event in card.events[:2] %}
+              <span class="module-alert {{ event.kind }}">{{ event.label }}: {{ event.value }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
             <div class="module-metrics">
               {% if card.dashboard_metrics %}
                 {% for metric in card.dashboard_metrics[:2] %}
