@@ -100,6 +100,42 @@ def _registry_item(
     )
 
 
+def _planned_registry_item(
+    module_code: str,
+    title: str,
+    *,
+    order: int,
+    short_title: str,
+    description: str,
+    expected_feature_codes: list[str],
+    planned_reason: str,
+    icon: str,
+    color: str,
+    status: str = "planned",
+    canonical_module_code: str | None = None,
+    legacy_codes: list[str] | None = None,
+) -> DashboardModuleRegistryItem:
+    return _registry_item(
+        module_code,
+        title,
+        number=None,
+        order=order,
+        route=None,
+        status=status,
+        canonical_module_code=canonical_module_code,
+        short_title=short_title,
+        description=description,
+        icon=icon,
+        color=color,
+        visible_sidebar=False,
+        visible_atom=False,
+        available_dashboard=False,
+        legacy_codes=legacy_codes,
+        expected_feature_codes=expected_feature_codes,
+        planned_reason=planned_reason,
+    )
+
+
 DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
     _registry_item(
         "MODULE_01_MATERIAL_HUB",
@@ -291,22 +327,6 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         visible_atom=False,
     ),
     _registry_item(
-        "MODULE_17_LOGISTICS_DELIVERY",
-        "Логистика и доставка",
-        number=17,
-        order=170,
-        route=None,
-        status="planned",
-        short_title="Логистика",
-        description="Будущий модуль доставки и зон обслуживания.",
-        icon="truck",
-        color="#22c55e",
-        visible_sidebar=False,
-        visible_atom=False,
-        available_dashboard=False,
-        planned_reason="Будущий модуль платформы.",
-    ),
-    _registry_item(
         "MODULE_18_QUALITY_CONTROL",
         "Контроль качества",
         number=18,
@@ -322,11 +342,131 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         available_dashboard=False,
         planned_reason="Будущий модуль платформы.",
     ),
+    _planned_registry_item(
+        "MODULE_05_ESTIMATE_ENGINE",
+        "Сметный движок",
+        order=500,
+        short_title="Сметы",
+        description="Будущий движок расчета смет, сценариев и стоимости строительства.",
+        expected_feature_codes=["ESTIMATE_ENGINE", "ESTIMATE_SCENARIOS", "ESTIMATE_EXPORT"],
+        planned_reason="Будущий модуль расчета и управления сметами.",
+        icon="calculator",
+        color="#0ea5e9",
+        legacy_codes=["MODULE_05_ESTIMATES_ENGINE"],
+    ),
+    _planned_registry_item(
+        "MODULE_07_DIGITAL_HOUSE",
+        "Образ дома",
+        order=700,
+        short_title="Дом",
+        description="Цифровой объект строительства: проект, характеристики, сметы, закупки, склад, расходы и история изменений.",
+        expected_feature_codes=[
+            "HOUSE_PROFILE",
+            "HOUSE_ESTIMATES",
+            "HOUSE_PURCHASES",
+            "HOUSE_STORAGE",
+            "HOUSE_EXPENSES",
+            "HOUSE_HISTORY",
+        ],
+        planned_reason="Будущий модуль цифрового объекта строительства.",
+        icon="home",
+        color="#60a5fa",
+        legacy_codes=["MODULE_07_DIGITAL_OBJECT_V2"],
+    ),
+    _planned_registry_item(
+        "MODULE_08_PARTNER_PORTAL",
+        "Кабинеты партнеров",
+        order=800,
+        short_title="Партнеры",
+        description="Кабинеты поставщиков, подрядчиков и участников закупок.",
+        expected_feature_codes=["PARTNER_PROFILE", "PARTNER_OFFERS", "PARTNER_DOCUMENTS"],
+        planned_reason="Будущий модуль партнерских кабинетов.",
+        icon="briefcase",
+        color="#a855f7",
+    ),
+    _planned_registry_item(
+        "MODULE_09_PROCUREMENT",
+        "Закупки и тендеры",
+        order=900,
+        short_title="Закупки",
+        description="Единый контур заявок, закупок, тендеров и выбора поставщиков.",
+        expected_feature_codes=["PROCUREMENT_REQUESTS", "TENDER_COMPARE", "SUPPLIER_SELECTION"],
+        planned_reason="Будущий объединенный модуль закупок и тендеров.",
+        icon="shopping-bag",
+        color="#ec4899",
+        legacy_codes=["MODULE_08_PROCUREMENT_V2", "MODULE_09_TENDERS_V2"],
+    ),
+    _planned_registry_item(
+        "MODULE_13_PROJECT_COLLABORATION",
+        "Комната проекта",
+        order=1300,
+        short_title="Проект",
+        description="Совместная работа участников проекта, задачи, обсуждения и файлы.",
+        expected_feature_codes=["PROJECT_ROOM", "PROJECT_TASKS", "PROJECT_MESSAGES", "PROJECT_FILES"],
+        planned_reason="Будущий модуль совместной работы по объекту.",
+        icon="messages-square",
+        color="#38bdf8",
+    ),
+    _planned_registry_item(
+        "MODULE_14_CONSTRUCTOR_LITE",
+        "Конструктор Lite",
+        order=1400,
+        short_title="Конструктор",
+        description="Легкий подбор типовых решений, состава дома и сценариев строительства.",
+        expected_feature_codes=["CONSTRUCTOR_SCENARIOS", "HOUSE_OPTIONS", "SOLUTION_COMPARE"],
+        planned_reason="Будущий модуль быстрого подбора решений.",
+        icon="blocks",
+        color="#8b5cf6",
+    ),
+    _planned_registry_item(
+        "MODULE_15_CONTRACTS",
+        "Договоры",
+        order=1500,
+        short_title="Договоры",
+        description="Договоры, приложения, этапы оплаты и история согласований.",
+        expected_feature_codes=["CONTRACT_DRAFTS", "CONTRACT_APPROVAL", "PAYMENT_STAGES"],
+        planned_reason="Будущий модуль договорного контура.",
+        icon="file-signature",
+        color="#f43f5e",
+    ),
+    _planned_registry_item(
+        "MODULE_16_LOGISTICS_DELIVERY",
+        "Логистика",
+        order=1600,
+        short_title="Логистика",
+        description="Доставка, зоны обслуживания, маршруты и статусы поставок.",
+        expected_feature_codes=["DELIVERY_ZONES", "ROUTES", "SHIPMENT_STATUS"],
+        planned_reason="Будущий модуль логистики и доставки.",
+        icon="truck",
+        color="#22c55e",
+    ),
+    _planned_registry_item(
+        "MODULE_17_FINANCE_PAYMENTS",
+        "Финансы",
+        order=1700,
+        short_title="Финансы",
+        description="Платежи, счета, взаиморасчеты и финансовая аналитика.",
+        expected_feature_codes=["PAYMENTS", "INVOICES", "BALANCE", "FINANCE_REPORTS"],
+        planned_reason="Будущий модуль финансов и платежей.",
+        icon="wallet",
+        color="#f59e0b",
+    ),
 )
 
 
 def get_dashboard_module_registry() -> list[dict[str, Any]]:
     return [item.to_dict() for item in DASHBOARD_MODULE_REGISTRY]
+
+
+def get_planned_dashboard_modules(user_profile: Any) -> list[dict[str, Any]]:
+    if not _can_see_planned_modules(_profile_dict(user_profile)):
+        return []
+    planned_modules = [
+        item
+        for item in DASHBOARD_MODULE_REGISTRY
+        if item.status in PLANNED_STATUSES and not item.isAvailableForDashboard
+    ]
+    return [item.to_dict() for item in sorted(planned_modules, key=lambda module: module.displayOrder)]
 
 
 def get_dashboard_module_registry_item(module_code: str | None) -> DashboardModuleRegistryItem | None:

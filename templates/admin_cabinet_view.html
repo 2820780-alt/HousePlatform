@@ -389,6 +389,61 @@
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 10px;
     }
+    .planned-module-catalog {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .registry-section-title {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(119, 172, 255, 0.18);
+    }
+    .registry-section-title h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+    .registry-section-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .planned-module-card {
+      min-height: 156px;
+      padding: 12px;
+      border: 1px dashed rgba(168, 85, 247, 0.4);
+      border-radius: 10px;
+      background:
+        radial-gradient(circle at 88% 10%, rgba(168, 85, 247, 0.18), transparent 34%),
+        rgba(9, 17, 42, 0.66);
+    }
+    .planned-module-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .planned-module-card p {
+      margin: 8px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.36;
+    }
+    .planned-module-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .disabled-action {
+      min-height: 30px;
+      padding: 0 10px;
+      border-color: rgba(119, 172, 255, 0.18);
+      color: #95a8c9;
+      opacity: 0.74;
+      cursor: not-allowed;
+    }
     .widget-card {
       padding: 10px;
       border: 1px solid rgba(119, 172, 255, 0.16);
@@ -1144,6 +1199,31 @@
           </article>
           {% endfor %}
         </div>
+        {% if planned_modules %}
+        <div class="registry-section-title">
+          <h3>Все модули · Будущие модули</h3>
+          <p>Информационный preview для администратора. Эти модули нельзя открыть или добавить как активные.</p>
+        </div>
+        <div class="planned-module-catalog" aria-label="Будущие модули">
+          {% for module in planned_modules %}
+          <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
+            <strong>{{ module.title }}</strong>
+            <span class="metric-chip">Планируется</span>
+            <p>{{ module.description }}</p>
+            {% if module.plannedReason %}<p>{{ module.plannedReason }}</p>{% endif %}
+            <div class="widget-meta">
+              {% for feature in module.expectedFeatureCodes[:3] %}
+              <span class="metric-chip">{{ feature }}</span>
+              {% endfor %}
+            </div>
+            <div class="planned-module-actions">
+              <span class="event-note">{{ module.shortTitle }}</span>
+              <button class="disabled-action" type="button" disabled>Недоступно</button>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
       </section>
 
       <section class="kpi-grid" aria-label="Главные показатели">

@@ -30,6 +30,7 @@ from app.services.dashboard_module_registry import (
     get_canonical_module_code,
     get_dashboard_module_registry,
     get_dashboard_module_registry_item_by_number,
+    get_planned_dashboard_modules,
     is_module_available_for_dashboard,
     resolve_module_route,
 )
@@ -231,6 +232,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "quick_actions": _quick_actions(),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "personalization": personalization,
+        "planned_modules": get_planned_dashboard_modules(dashboard_user_context),
         "active_region": active_region,
         "dashboard_user_context": dashboard_user_context,
         "currentUserProfileMock": current_user_profile_mock,

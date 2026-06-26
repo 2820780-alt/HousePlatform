@@ -1,6 +1,7 @@
 from app.services.dashboard_module_registry import (
     get_atom_map_modules,
     get_canonical_module_code,
+    get_planned_dashboard_modules,
     get_visible_dashboard_modules,
     is_module_available_for_dashboard,
     is_region_available_for_dashboard,
@@ -66,3 +67,39 @@ def test_region_availability_uses_profile_context_or_known_registry_code():
         "ROSTOV_REGION",
         {"availableRegionCodes": ["KRASNODAR_KRAI"]},
     )
+
+
+def test_planned_modules_are_preview_only_for_admin_context():
+    admin_profile = {
+        "roleCode": "SUPER_ADMIN",
+        "authMode": "mock",
+        "allowedModuleCodes": [
+            "MODULE_01_MATERIAL_HUB",
+            "MODULE_05_ESTIMATE_ENGINE",
+            "MODULE_07_DIGITAL_HOUSE",
+        ],
+        "favoriteModuleCodes": ["MODULE_07_DIGITAL_HOUSE"],
+    }
+
+    planned_codes = {item["moduleCode"] for item in get_planned_dashboard_modules(admin_profile)}
+    visible_codes = {item["moduleCode"] for item in get_visible_dashboard_modules(admin_profile)}
+    atom_codes = {item["moduleCode"] for item in get_atom_map_modules(admin_profile)}
+
+    assert "MODULE_07_DIGITAL_HOUSE" in planned_codes
+    assert "MODULE_05_ESTIMATE_ENGINE" in planned_codes
+    assert "MODULE_07_DIGITAL_HOUSE" not in visible_codes
+    assert "MODULE_07_DIGITAL_HOUSE" not in atom_codes
+    assert not is_module_available_for_dashboard("MODULE_07_DIGITAL_HOUSE")
+
+
+def test_planned_modules_are_hidden_from_regular_user_preview():
+    regular_profile = {
+        "roleCode": "VIEWER",
+        "authMode": "mock",
+        "allowedModuleCodes": ["MODULE_07_DIGITAL_HOUSE"],
+        "favoriteModuleCodes": ["MODULE_07_DIGITAL_HOUSE"],
+    }
+
+    assert get_planned_dashboard_modules(regular_profile) == []
+    assert get_visible_dashboard_modules(regular_profile) == []
+    assert get_atom_map_modules(regular_profile) == []
