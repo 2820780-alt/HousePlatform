@@ -831,6 +831,38 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
         14: ("69%", "34%", "190px", "150deg", 1, 14),
         15: ("69%", "66%", "190px", "210deg", 1, 15),
     }
+    link_map = {
+        1: {
+            "node": (50, 24),
+            "inner_path": "M 50 50 C 50 41, 50 32, 50 24",
+            "outer_path": "M 50 24 C 50 20, 50 17, 50 14",
+        },
+        2: {
+            "node": (70, 30),
+            "inner_path": "M 50 50 C 56 41, 63 34, 70 30",
+            "outer_path": "M 70 30 C 73 27, 76 26, 80 25",
+        },
+        5: {
+            "node": (70, 70),
+            "inner_path": "M 50 50 C 58 56, 64 63, 70 70",
+            "outer_path": "M 70 70 C 74 72, 77 74, 80 75",
+        },
+        8: {
+            "node": (30, 70),
+            "inner_path": "M 50 50 C 42 56, 36 63, 30 70",
+            "outer_path": "M 30 70 C 26 72, 23 74, 20 75",
+        },
+        11: {
+            "node": (30, 30),
+            "inner_path": "M 50 50 C 44 41, 37 34, 30 30",
+            "outer_path": "M 30 30 C 27 27, 24 26, 20 25",
+        },
+        12: {
+            "node": (50, 76),
+            "inner_path": "M 50 50 C 50 59, 50 68, 50 76",
+            "outer_path": "M 50 76 C 50 80, 50 83, 50 86",
+        },
+    }
     for card in cards:
         x, y, link_width, link_angle, orbit_level, position = layout.get(
             card["number"],
@@ -844,6 +876,14 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
         }
         card["orbit_level"] = orbit_level
         card["position"] = position
+        card["atom_link"] = link_map.get(
+            card["number"],
+            {
+                "node": (50, 50),
+                "inner_path": "M 50 50 C 50 50, 50 50, 50 50",
+                "outer_path": "M 50 50 C 50 50, 50 50, 50 50",
+            },
+        )
     return cards
 
 

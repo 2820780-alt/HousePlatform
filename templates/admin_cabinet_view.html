@@ -480,17 +480,7 @@
       z-index: 1;
     }
     .atom-map::after {
-      width: 18px;
-      height: 18px;
-      background: #a9f5ff;
-      box-shadow:
-        0 -270px 0 -2px rgba(24, 215, 242, 0.88),
-        255px -110px 0 -3px rgba(59, 130, 246, 0.86),
-        260px 120px 0 -3px rgba(245, 158, 11, 0.86),
-        -248px 122px 0 -3px rgba(168, 85, 247, 0.86),
-        -258px -104px 0 -3px rgba(34, 197, 94, 0.82);
-      opacity: 0.86;
-      z-index: 2;
+      display: none;
     }
     .orbit {
       position: absolute;
@@ -507,6 +497,64 @@
     .orbit.one { width: 48%; aspect-ratio: 1.7; --rot: 16deg; border-color: rgba(24, 215, 242, 0.34); }
     .orbit.two { width: 74%; aspect-ratio: 1.6; --rot: -18deg; border-color: rgba(59, 130, 246, 0.28); }
     .orbit.three { width: 92%; aspect-ratio: 1.54; --rot: 8deg; border-color: rgba(168, 85, 247, 0.2); }
+    .atom-links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      overflow: visible;
+    }
+    .atom-link {
+      fill: none;
+      stroke: var(--link-color);
+      stroke-width: 0.72;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.72;
+      filter: drop-shadow(0 0 0.6px var(--link-color)) drop-shadow(0 0 1.8px var(--link-color));
+      animation: atom-curve-pulse 4s ease-in-out infinite;
+    }
+    .atom-link.inner {
+      stroke-width: 0.52;
+      opacity: 0.62;
+    }
+    .atom-node {
+      fill: color-mix(in srgb, var(--link-color) 78%, white 22%);
+      stroke: rgba(255, 255, 255, 0.72);
+      stroke-width: 0.24;
+      filter: drop-shadow(0 0 0.9px var(--link-color)) drop-shadow(0 0 2.3px var(--link-color));
+      animation: atom-node-pulse 3.2s ease-in-out infinite;
+    }
+    .atom-map:has(.module-card:hover) .atom-link,
+    .atom-map:has(.module-card:hover) .atom-node {
+      opacity: 0.28;
+    }
+    .atom-map:has(.module-card[data-module-code="MODULE_01_MATERIAL_HUB"]:hover) .atom-link[data-module-code="MODULE_01_MATERIAL_HUB"],
+    .atom-map:has(.module-card[data-module-code="MODULE_01_MATERIAL_HUB"]:hover) .atom-node[data-module-code="MODULE_01_MATERIAL_HUB"],
+    .atom-map:has(.module-card[data-module-code="MODULE_02_KNOWLEDGE_BASE"]:hover) .atom-link[data-module-code="MODULE_02_KNOWLEDGE_BASE"],
+    .atom-map:has(.module-card[data-module-code="MODULE_02_KNOWLEDGE_BASE"]:hover) .atom-node[data-module-code="MODULE_02_KNOWLEDGE_BASE"],
+    .atom-map:has(.module-card[data-module-code="MODULE_05_ESTIMATES"]:hover) .atom-link[data-module-code="MODULE_05_ESTIMATES"],
+    .atom-map:has(.module-card[data-module-code="MODULE_05_ESTIMATES"]:hover) .atom-node[data-module-code="MODULE_05_ESTIMATES"],
+    .atom-map:has(.module-card[data-module-code="MODULE_08_PROCUREMENT"]:hover) .atom-link[data-module-code="MODULE_08_PROCUREMENT"],
+    .atom-map:has(.module-card[data-module-code="MODULE_08_PROCUREMENT"]:hover) .atom-node[data-module-code="MODULE_08_PROCUREMENT"],
+    .atom-map:has(.module-card[data-module-code="MODULE_11_ANALYTICS"]:hover) .atom-link[data-module-code="MODULE_11_ANALYTICS"],
+    .atom-map:has(.module-card[data-module-code="MODULE_11_ANALYTICS"]:hover) .atom-node[data-module-code="MODULE_11_ANALYTICS"],
+    .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-link[data-module-code="MODULE_12_AI_ASSISTANT"],
+    .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-node[data-module-code="MODULE_12_AI_ASSISTANT"] {
+      opacity: 1;
+      stroke-width: 0.95;
+      filter: drop-shadow(0 0 1px var(--link-color)) drop-shadow(0 0 3.2px var(--link-color));
+    }
+    @keyframes atom-curve-pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.92; }
+    }
+    @keyframes atom-node-pulse {
+      0%, 100% { r: 1.15; opacity: 0.78; }
+      50% { r: 1.55; opacity: 1; }
+    }
     .nucleus {
       position: absolute;
       left: 50%;
@@ -518,15 +566,16 @@
       place-items: center;
       text-align: center;
       border-radius: 50%;
-      border: 1px solid rgba(24, 215, 242, 0.78);
+      border: 2px solid rgba(24, 215, 242, 0.92);
       background:
         radial-gradient(circle at 50% 34%, rgba(169, 245, 255, 0.42), transparent 23%),
         radial-gradient(circle at 50% 50%, rgba(24, 215, 242, 0.24), transparent 58%),
         linear-gradient(145deg, rgba(8, 25, 57, 0.98), rgba(5, 9, 23, 0.98));
       box-shadow:
-        0 0 0 14px rgba(24, 215, 242, 0.06),
-        0 0 0 42px rgba(24, 215, 242, 0.03),
-        0 0 128px rgba(24, 215, 242, 0.5),
+        0 0 0 10px rgba(24, 215, 242, 0.1),
+        0 0 0 22px rgba(24, 215, 242, 0.055),
+        0 0 0 48px rgba(24, 215, 242, 0.025),
+        0 0 148px rgba(24, 215, 242, 0.58),
         inset 0 0 46px rgba(24, 215, 242, 0.14);
       z-index: 3;
     }
@@ -535,14 +584,14 @@
       content: "";
       position: absolute;
       inset: 18px;
-      border: 1px solid rgba(24, 215, 242, 0.42);
+      border: 2px solid rgba(24, 215, 242, 0.62);
       border-radius: 50%;
       transform: rotate(28deg) scaleX(1.34);
       pointer-events: none;
     }
     .nucleus::after {
       transform: rotate(-28deg) scaleX(1.34);
-      border-color: rgba(168, 85, 247, 0.28);
+      border-color: rgba(168, 85, 247, 0.42);
     }
     .nucleus > div { position: relative; z-index: 1; }
     .nucleus h1 {
@@ -575,6 +624,7 @@
     }
     .module-card::before {
       content: "";
+      display: none;
       position: absolute;
       left: 50%;
       top: 50%;
@@ -915,6 +965,7 @@
       .atom-map::after,
       .nucleus::before,
       .nucleus::after { display: none; }
+      .atom-links { display: none; }
       .orbit { display: none; }
       .nucleus,
       .module-card {
@@ -1075,6 +1126,15 @@
           <div class="orbit one"></div>
           <div class="orbit two"></div>
           <div class="orbit three"></div>
+          <svg class="atom-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            {% for card in cards %}
+            <g style="--link-color: {{ card.accent }}">
+              <path class="atom-link inner" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.inner_path }}"></path>
+              <path class="atom-link outer" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.outer_path }}"></path>
+              <circle class="atom-node" data-module-code="{{ card.module_code }}" cx="{{ card.atom_link.node[0] }}" cy="{{ card.atom_link.node[1] }}" r="1.25"></circle>
+            </g>
+            {% endfor %}
+          </svg>
           <div class="nucleus">
             <div>
               <h1>АТОМ</h1>
