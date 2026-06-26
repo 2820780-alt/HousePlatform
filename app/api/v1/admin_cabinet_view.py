@@ -35,6 +35,11 @@ from app.services.dashboard_module_registry import (
     resolve_module_route,
 )
 from app.services.dashboard_widget_config import dashboard_widget_config_from_model
+from app.services.dashboard_widget_registry import (
+    get_available_dashboard_widgets,
+    get_dashboard_widget_registry,
+    get_planned_dashboard_widgets,
+)
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -49,6 +54,9 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     satellite_cards = _select_atom_map_cards(cards, dashboard_context["dashboard_user_context"])
     all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])
     selected_atom_module_codes = [card["module_code"] for card in satellite_cards]
+    widget_registry = get_dashboard_widget_registry()
+    available_widgets = get_available_dashboard_widgets(dashboard_context["dashboard_user_context"])
+    planned_widgets = get_planned_dashboard_widgets(dashboard_context["dashboard_user_context"])
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
@@ -63,6 +71,9 @@ async def admin_cabinet_view(request: Request, db: DBSession):
             ),
             "center_card": center_card,
             "module_registry": get_dashboard_module_registry(),
+            "widget_registry": widget_registry,
+            "available_widgets": available_widgets,
+            "planned_widgets": planned_widgets,
             **dashboard_context,
         },
     )

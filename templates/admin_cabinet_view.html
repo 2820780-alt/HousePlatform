@@ -535,7 +535,17 @@
       opacity: 0.56;
       filter: grayscale(0.45);
     }
+    .widget-card.planned {
+      opacity: 0.72;
+      border-style: dashed;
+    }
     .widget-card strong { display: block; margin-bottom: 5px; }
+    .widget-card .disabled-action {
+      min-height: 30px;
+      margin-top: 10px;
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
     .widget-control-row {
       display: flex;
       align-items: center;
@@ -1364,25 +1374,26 @@
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
         <div class="widget-catalog">
-          {% for widget in personalization.widgets %}
+          {% for widget in available_widgets %}
           <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
             <div class="widget-meta">
               <span class="metric-chip">Тип: {{ widget.type }}</span>
-              <span class="metric-chip">Размер: {{ widget.size }}</span>
+              <span class="metric-chip">Размер: {{ widget.defaultSize }}</span>
               {% if widget.sourceModuleCode %}<span class="metric-chip">{{ widget.sourceModuleCode }}</span>{% endif %}
               {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
+              {% if widget.status == "mock_only" %}<span class="metric-chip alert">mock</span>{% endif %}
             </div>
             <div class="widget-control-row">
               <label class="toggle-label">
-                <input type="checkbox" data-widget-toggle {% if widget.enabled %}checked{% endif %}>
+                <input type="checkbox" data-widget-toggle {% if widget.isEnabledByDefault %}checked{% endif %}>
                 <span>Включен</span>
               </label>
               <select aria-label="Данные виджета">
-                <option {% if widget.dataSource == "summary" %}selected{% endif %}>Сводка</option>
-                <option {% if widget.dataSource == "period" %}selected{% endif %}>Текущий период</option>
-                <option {% if widget.dataSource == "issues" %}selected{% endif %}>Проблемные данные</option>
+                <option>Сводка</option>
+                <option>Текущий период</option>
+                <option>Проблемные данные</option>
               </select>
             </div>
           </article>
@@ -1396,6 +1407,26 @@
           </article>
           {% endfor %}
         </div>
+        {% if planned_widgets %}
+        <div class="registry-section-title">
+          <h3>Будущие виджеты</h3>
+          <p>Planned-виджеты видны администратору как карта будущих возможностей, но недоступны для рабочего Dashboard.</p>
+        </div>
+        <div class="widget-catalog">
+          {% for widget in planned_widgets %}
+          <article class="widget-card planned" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
+            <strong>{{ widget.title }}</strong>
+            <span class="event-note">{{ widget.description }}</span>
+            <div class="widget-meta">
+              <span class="metric-chip">{{ widget.status }}</span>
+              <span class="metric-chip">{{ widget.sourceModuleCode }}</span>
+              {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
+            </div>
+            <button class="ghost-button disabled-action" type="button" disabled>Недоступно</button>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
         <div class="registry-section-title">
           <h3>Все модули · Атомная карта</h3>
           <p>Можно менять состав текущей атомной карты в mock-режиме. Лимит: {{ all_modules_panel.limit }} модулей.</p>

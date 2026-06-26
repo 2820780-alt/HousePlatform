@@ -8,6 +8,7 @@ from app.services.dashboard_module_registry import (
     normalize_dashboard_layout,
 )
 from app.services.dashboard_widget_config import widget_config_from_dict
+from app.services.dashboard_widget_registry import get_dashboard_widget_registry
 
 
 ADMIN_ROLE_CODES = {"ADMIN", "SUPER_ADMIN", "DEV_ADMIN"}
@@ -67,6 +68,12 @@ class DashboardUserContextAdapter:
             widget_config_from_dict(widget, position=index + 1).widgetCode
             for index, widget in enumerate(personalization["widgets"])
         ]
+        allowed_widget_codes.extend(
+            widget["widgetCode"]
+            for widget in get_dashboard_widget_registry()
+            if widget["isEnabledByDefault"]
+        )
+        allowed_widget_codes = sorted(set(allowed_widget_codes))
         active_region_code = active_region.get("code")
 
         dashboard_layout = normalize_dashboard_layout({
