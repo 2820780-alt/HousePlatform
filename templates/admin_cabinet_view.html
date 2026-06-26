@@ -730,6 +730,9 @@
       width: 100%;
       min-width: 0;
     }
+    .dashboard-grid.no-right-rail {
+      grid-template-columns: minmax(0, 1fr);
+    }
     .atom-map {
       position: relative;
       min-height: 820px;
@@ -1159,7 +1162,8 @@
       font-size: 10.5px;
     }
     .metric-chip.alert { border-color: rgba(245, 158, 11, 0.5); color: #ffd28a; }
-    .analytics-column { display: grid; gap: 12px; }
+    .analytics-column,
+    .right-rail { display: grid; gap: 12px; }
     .panel {
       border-radius: 12px;
       padding: 14px;
@@ -1222,13 +1226,44 @@
       gap: 12px;
       margin-top: 14px;
     }
-    .admin-widget-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+    .bottom-widget-zone {
       margin-top: 14px;
     }
+    .section-heading-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .section-heading-row h2 {
+      margin: 0 0 4px;
+      font-size: 17px;
+    }
+    .section-heading-row p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .ghost-button {
+      min-height: 34px;
+      padding: 0 11px;
+      border: 1px solid rgba(119, 172, 255, 0.24);
+      border-radius: 8px;
+      background: rgba(7, 14, 35, 0.58);
+      color: #d8e7ff;
+      cursor: pointer;
+    }
+    .bottom-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 12px;
+    }
     .admin-widget-card {
+      grid-column: span var(--widget-span, 4);
+      min-height: 120px;
+      max-height: 320px;
+      overflow: hidden;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 12px;
       padding: 13px;
@@ -1270,6 +1305,10 @@
     .admin-widget-row.warn strong { color: var(--amber); }
     .admin-widget-row.danger strong { color: var(--red); }
     .admin-widget-row.success strong { color: var(--green); }
+    .admin-widget-row.attention strong { color: var(--amber); }
+    .admin-widget-row.error strong { color: var(--red); }
+    .admin-widget-row.ok strong { color: var(--green); }
+    .admin-widget-row.info strong { color: var(--cyan); }
     .event-list,
     .source-list,
     .quick-grid { display: grid; gap: 8px; }
@@ -1336,7 +1375,6 @@
       .kpi-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
       .dashboard-grid { grid-template-columns: 1fr; }
       .analytics-column { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .admin-widget-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 1100px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -1386,7 +1424,9 @@
       .module-card::before,
       .module-card::after { display: none; }
       .module-card:hover { transform: translateY(-2px); }
-      .analytics-column, .admin-widget-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .analytics-column, .bottom-widget-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .admin-widget-card { grid-column: 1 / -1; }
+      .section-heading-row { align-items: start; flex-direction: column; }
     }
     @media (max-width: 720px) {
       .content { padding: 12px; }
@@ -1717,7 +1757,7 @@
         {% endfor %}
       </section>
 
-      <div class="dashboard-grid">
+      <div class="dashboard-grid {% if not right_rail.isEnabled %}no-right-rail{% endif %}" data-right-rail-enabled="{{ 'true' if right_rail.isEnabled else 'false' }}">
         <section class="atom-map" aria-label="Атомная карта модулей">
           <div class="orbit one"></div>
           <div class="orbit two"></div>
@@ -1763,10 +1803,11 @@
           {% endfor %}
         </section>
 
-        <aside class="analytics-column">
+        {% if right_rail.isEnabled %}
+        <aside class="analytics-column right-rail" data-zone-code="{{ right_rail.zoneCode }}" aria-label="{{ right_rail.title }}">
           <section class="panel">
             <h2>Изменение стоимости строительства</h2>
-            <div class="panel-sub">Расчетный виджет для типового дома. Фактический расчет подключится после смет и групп строительства.</div>
+            <div class="panel-sub">MODULE_11_ANALYTICS · PRICE_DYNAMICS · mock payload</div>
             <div class="analysis-filters">
               <select><option>Дом 120 м2</option><option>Текущий проект</option></select>
               <select><option>Коробка</option><option>Фундамент</option><option>Кровля</option><option>Инженерия</option></select>
@@ -1811,38 +1852,61 @@
             </div>
           </section>
         </aside>
+        {% endif %}
       </div>
 
-      <section class="admin-widget-grid" aria-label="Административные виджеты">
-        {% for widget in admin_widgets %}
+      <section class="bottom-widget-zone" data-zone-code="{{ bottom_widget_grid.zoneCode }}" aria-label="{{ bottom_widget_grid.title }}">
+        <div class="section-heading-row">
+          <div>
+            <h2>{{ bottom_widget_grid.title }}</h2>
+            <p>Основная настраиваемая зона компактных widget payload. Dashboard только отображает данные модулей.</p>
+          </div>
+          {% if bottom_widget_grid.hiddenCount %}
+          <button class="ghost-button" type="button">Все виджеты · +{{ bottom_widget_grid.hiddenCount }}</button>
+          {% endif %}
+        </div>
+        <div class="bottom-widget-grid">
+        {% for widget in bottom_widget_grid.widgets %}
         <article
           class="admin-widget-card"
-          data-widget-source-module="{{ widget.module_code }}"
-          data-widget-type="{{ widget.type }}"
+          data-widget-code="{{ widget.widgetCode }}"
+          data-widget-source-module="{{ widget.sourceModuleCode }}"
+          data-widget-feature-code="{{ widget.featureCode or '' }}"
+          data-widget-zone-code="{{ widget.zoneCode }}"
+          data-widget-size="{{ widget.size }}"
           data-widget-payload-code="{{ widget.payload.widgetCode }}"
           data-widget-payload-source="{{ widget.payload.sourceModuleCode }}"
           data-widget-payload-status="{{ widget.payload.status }}"
+          style="--widget-span: {{ widget.gridSpan }}"
         >
           <div class="admin-widget-head">
-            <h2>{{ widget.title }}</h2>
+            <h2>{{ widget.payload.title }}</h2>
             <div class="admin-widget-meta">
-              <span class="metric-chip">{{ widget.type }}</span>
-              <span class="metric-chip">{{ widget.module_code }}</span>
-              {% if widget.feature_code %}<span class="metric-chip">{{ widget.feature_code }}</span>{% endif %}
-              {% if widget.legacy_module_code %}<span class="metric-chip">legacy: {{ widget.legacy_module_code }}</span>{% endif %}
-              {% if widget.mock %}<span class="metric-chip alert">mock</span>{% endif %}
+              <span class="metric-chip">{{ widget.size|upper }}</span>
+              <span class="metric-chip">{{ widget.payload.sourceModuleCode }}</span>
+              {% if widget.payload.featureCode %}<span class="metric-chip">{{ widget.payload.featureCode }}</span>{% endif %}
+              {% if widget.payload.subtitle %}<span class="metric-chip alert">{{ widget.payload.subtitle }}</span>{% endif %}
             </div>
           </div>
           <div class="admin-widget-list">
-            {% for item in widget["items"] %}
-            <div class="admin-widget-row {{ item.tone|default('') }}">
-              <span>{{ item.label }}{% if item.mock %} <small class="mock-note">mock</small>{% endif %}</span>
+            {% if widget.payload.primaryValue %}
+            <div class="admin-widget-row {{ widget.payload.status }}">
+              <span>{{ widget.payload.primaryLabel or "Значение" }}</span>
+              <strong>{{ widget.payload.primaryValue }}</strong>
+            </div>
+            {% endif %}
+            {% for item in widget.payload["items"][:5] %}
+            <div class="admin-widget-row {{ item.status|default('') }}">
+              <span>{{ item.label }}</span>
               <strong>{{ item.value }}</strong>
             </div>
+            {% else %}
+            <div class="widget-empty-state">Нет данных для отображения.</div>
             {% endfor %}
           </div>
         </article>
         {% endfor %}
+        </div>
       </section>
 
       <section class="bottom-grid" aria-label="Информационные блоки">

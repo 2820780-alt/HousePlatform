@@ -90,6 +90,16 @@ class DashboardUserContextAdapter:
                 "maxVisibleModules": 6,
                 "favoriteModulesOnly": True,
             },
+            "zones": {
+                "RIGHT_RAIL": {
+                    "isEnabled": True,
+                    "maxVisibleWidgets": 3,
+                },
+                "BOTTOM_WIDGET_GRID": {
+                    "isEnabled": True,
+                    "maxVisibleWidgets": 8,
+                },
+            },
             "widgets": [
                 _widget_layout(widget, position=index + 1)
                 for index, widget in enumerate(personalization["widgets"])

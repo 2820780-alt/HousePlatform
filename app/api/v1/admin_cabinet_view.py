@@ -44,8 +44,13 @@ from app.services.dashboard_module_registry import (
     resolve_module_route,
 )
 from app.services.dashboard_quick_actions import get_quick_actions_for_dashboard
-from app.services.dashboard_widget_config import dashboard_widget_config_from_model
-from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget
+from app.services.dashboard_widget_config import (
+    BOTTOM_WIDGET_GRID,
+    RIGHT_RAIL,
+    SIZE_GRID_SPANS,
+    dashboard_widget_config_from_model,
+)
+from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget, build_atom_widget_payload
 from app.services.dashboard_widget_registry import (
     get_available_dashboard_widgets,
     get_dashboard_widget_registry,
@@ -268,6 +273,34 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     )
     for widget in admin_widgets:
         widget["payload"] = atom_widget_payload_from_admin_widget(widget)
+    analytics = {
+        "construction_cost": f"{construction_cost:,.0f} ₽".replace(",", " "),
+        "construction_delta_rub": "+187 432 ₽",
+        "construction_delta_percent": "+12,4%",
+        "is_mock": True,
+        "chart": [12, 18, 25, 22, 29, 34, 31, 38, 45, 42, 51, 58],
+        "category_index": [
+            {"label": "Стены", "value": "+16,2%", "color": "#2563eb"},
+            {"label": "Кровля", "value": "+12,4%", "color": "#f59e0b"},
+            {"label": "Фундамент", "value": "+9,8%", "color": "#8b5cf6"},
+            {"label": "Отделка", "value": "+8,7%", "color": "#22c55e"},
+            {"label": "Инженерия", "value": "+6,3%", "color": "#06b6d4"},
+        ],
+        "price_growth": price_movers["growth"],
+        "price_drop": price_movers["drop"],
+    }
+    right_rail_widgets = _analytics_right_rail_widgets(analytics)
+    right_rail = {
+        "zoneCode": RIGHT_RAIL,
+        "title": "Правая аналитическая колонка",
+        "isEnabled": _is_right_rail_enabled(current_user_profile_mock, current_cabinet_context_mock),
+        "widgets": right_rail_widgets[:3],
+    }
+    bottom_widget_grid = _build_bottom_widget_grid(
+        admin_widgets=admin_widgets,
+        right_rail_widgets=right_rail_widgets,
+        include_right_rail_widgets=not right_rail["isEnabled"],
+    )
 
     return {
         "periods": ["Неделя", "Месяц", "Квартал", "Год"],
@@ -326,22 +359,9 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
                 "spark": [0, 1, 1, 2, 1, 3, 2, 2, 4, 3, 2, active_tasks],
             },
         ],
-        "analytics": {
-            "construction_cost": f"{construction_cost:,.0f} ₽".replace(",", " "),
-            "construction_delta_rub": "+187 432 ₽",
-            "construction_delta_percent": "+12,4%",
-            "is_mock": True,
-            "chart": [12, 18, 25, 22, 29, 34, 31, 38, 45, 42, 51, 58],
-            "category_index": [
-                {"label": "Стены", "value": "+16,2%", "color": "#2563eb"},
-                {"label": "Кровля", "value": "+12,4%", "color": "#f59e0b"},
-                {"label": "Фундамент", "value": "+9,8%", "color": "#8b5cf6"},
-                {"label": "Отделка", "value": "+8,7%", "color": "#22c55e"},
-                {"label": "Инженерия", "value": "+6,3%", "color": "#06b6d4"},
-            ],
-            "price_growth": price_movers["growth"],
-            "price_drop": price_movers["drop"],
-        },
+        "analytics": analytics,
+        "right_rail": right_rail,
+        "bottom_widget_grid": bottom_widget_grid,
         "sources_overview": source_health,
         "quick_actions": get_quick_actions_for_dashboard(dashboard_user_context, current_cabinet_context_mock),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
@@ -870,6 +890,117 @@ def _admin_widgets(
             ],
         },
     ]
+
+
+def _analytics_right_rail_widgets(analytics: dict) -> list[dict]:
+    construction_payload = build_atom_widget_payload(
+        widget_code="MODULE_11_ANALYTICS.PRICE_DYNAMICS.construction-cost",
+        source_module_code="MODULE_11_ANALYTICS",
+        feature_code="PRICE_DYNAMICS",
+        title="Изменение стоимости строительства",
+        subtitle="Analytics mock adapter",
+        status="info",
+        primary_value=analytics["construction_delta_rub"],
+        primary_label="изменение",
+        secondary_value=analytics["construction_delta_percent"],
+        secondary_label="за период",
+        trend={"direction": "up", "value": analytics["construction_delta_percent"], "label": "за период"},
+        mini_chart={"type": "bar", "points": analytics["chart"]},
+        cta={
+            "label": "Открыть аналитику",
+            "route": "/modules/analytics?section=price-dynamics",
+            "actionCode": "VIEW",
+        },
+    ).to_dict()
+    category_payload = build_atom_widget_payload(
+        widget_code="MODULE_11_ANALYTICS.PRICE_DYNAMICS.category-index",
+        source_module_code="MODULE_11_ANALYTICS",
+        feature_code="PRICE_DYNAMICS",
+        title="Индекс стоимости по категориям",
+        subtitle="Analytics mock adapter",
+        status="info",
+        items=[
+            {"label": row["label"], "value": row["value"], "status": "info"}
+            for row in analytics["category_index"]
+        ],
+    ).to_dict()
+    movers_payload = build_atom_widget_payload(
+        widget_code="MODULE_11_ANALYTICS.PRICE_DYNAMICS.price-movers",
+        source_module_code="MODULE_11_ANALYTICS",
+        feature_code="PRICE_DYNAMICS",
+        title="Материалы с изменением цены",
+        subtitle="Analytics mock adapter",
+        status="attention",
+        items=[
+            {"label": item["name"], "value": item["label"], "status": "attention"}
+            for item in analytics["price_growth"][:3]
+        ] + [
+            {"label": item["name"], "value": item["label"], "status": "ok"}
+            for item in analytics["price_drop"][:2]
+        ],
+    ).to_dict()
+    return [
+        _widget_zone_item(construction_payload, size="large", zone_code=RIGHT_RAIL, order=1),
+        _widget_zone_item(category_payload, size="medium", zone_code=RIGHT_RAIL, order=2),
+        _widget_zone_item(movers_payload, size="medium", zone_code=RIGHT_RAIL, order=3),
+    ]
+
+
+def _build_bottom_widget_grid(
+    *,
+    admin_widgets: list[dict],
+    right_rail_widgets: list[dict],
+    include_right_rail_widgets: bool,
+) -> dict:
+    admin_zone_items = [
+        _widget_zone_item(widget["payload"], size=_bottom_widget_size(index), zone_code=BOTTOM_WIDGET_GRID, order=index + 1)
+        for index, widget in enumerate(admin_widgets)
+    ]
+    widgets = admin_zone_items
+    if include_right_rail_widgets:
+        widgets = right_rail_widgets + widgets
+    visible_widgets = widgets[:8]
+    return {
+        "zoneCode": BOTTOM_WIDGET_GRID,
+        "title": "Нижние виджеты",
+        "widgets": visible_widgets,
+        "hiddenCount": max(0, len(widgets) - len(visible_widgets)),
+        "maxVisibleWidgets": 8,
+    }
+
+
+def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int) -> dict:
+    normalized_size = size if size in SIZE_GRID_SPANS else "medium"
+    return {
+        "widgetCode": payload["widgetCode"],
+        "sourceModuleCode": payload["sourceModuleCode"],
+        "featureCode": payload.get("featureCode"),
+        "zoneCode": zone_code,
+        "size": normalized_size,
+        "gridSpan": SIZE_GRID_SPANS[normalized_size],
+        "order": order,
+        "isVisible": True,
+        "payload": payload,
+    }
+
+
+def _bottom_widget_size(index: int) -> str:
+    if index < 4:
+        return "small"
+    if index < 6:
+        return "medium"
+    return "large"
+
+
+def _is_right_rail_enabled(user_layout: dict, cabinet_context: dict) -> bool:
+    zones = (user_layout.get("userDashboardLayout") or user_layout.get("dashboardLayout") or {}).get("zones") or {}
+    user_zone = zones.get(RIGHT_RAIL)
+    if isinstance(user_zone, dict) and "isEnabled" in user_zone:
+        return bool(user_zone["isEnabled"])
+    preset_zones = (cabinet_context.get("cabinetDashboardPreset") or {}).get("widgetZones") or {}
+    if "rightRailEnabled" in preset_zones:
+        return bool(preset_zones["rightRailEnabled"])
+    return preset_zones.get("analytics") == RIGHT_RAIL
 
 
 def _system_events(pending_candidates: int, failed_tasks: int, active_tasks: int, new_materials: int) -> list[dict]:

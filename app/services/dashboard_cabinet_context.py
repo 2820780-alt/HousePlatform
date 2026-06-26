@@ -77,9 +77,15 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
             "showProjectSelector": False,
         },
         widgetZones={
-            "atomMap": "main",
-            "analytics": "right",
-            "adminWidgets": "below",
+            "atomMap": "ATOM_MAP",
+            "analytics": "RIGHT_RAIL",
+            "adminWidgets": "BOTTOM_WIDGET_GRID",
+            "rightRailEnabled": True,
+            "bottomWidgetGrid": {
+                "zoneCode": "BOTTOM_WIDGET_GRID",
+                "title": "Нижние виджеты",
+                "maxVisibleWidgets": 8,
+            },
         },
         quickActionCodes=[
             "MATERIAL_CREATE",
