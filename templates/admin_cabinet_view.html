@@ -320,78 +320,6 @@
       background: var(--amber);
       box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
     }
-    .personalization-strip {
-      display: grid;
-      grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1fr) minmax(260px, 1.4fr);
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .context-card {
-      min-height: 84px;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background:
-        radial-gradient(circle at 92% 12%, rgba(24, 215, 242, 0.13), transparent 38%),
-        linear-gradient(145deg, rgba(12, 22, 52, 0.78), rgba(7, 14, 35, 0.68));
-      box-shadow: var(--shadow);
-    }
-    .context-card h2 {
-      margin: 0 0 8px;
-      font-size: 14px;
-    }
-    .context-row {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 8px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 6px;
-    }
-    .context-row strong { color: var(--text); }
-    .context-selects {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .context-selects select {
-      min-height: 34px;
-      padding: 0 8px;
-      font-size: 12px;
-    }
-    .favorite-modules {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-    .favorite-module {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 34px;
-      padding: 6px 9px;
-      border: 1px solid rgba(24, 215, 242, 0.24);
-      border-radius: 999px;
-      background: rgba(24, 215, 242, 0.08);
-      color: #dff8ff;
-      font-size: 12px;
-      transition: transform 0.14s ease, border-color 0.14s ease;
-    }
-    .favorite-module:hover {
-      transform: translateY(-1px);
-      border-color: var(--line-strong);
-    }
-    .fav-number {
-      display: grid;
-      place-items: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(24, 215, 242, 0.14);
-      color: var(--cyan);
-      font-weight: 800;
-    }
     .dashboard-config {
       display: none;
       margin-bottom: 14px;
@@ -1397,7 +1325,6 @@
       .topbar { grid-template-columns: auto 1fr; }
       .top-chip, .command-chip, .profile-pill, .region-badge { display: none; }
       .top-chip:first-of-type { display: inline-flex; }
-      .personalization-strip { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .atom-map {
         min-height: 0;
@@ -1434,7 +1361,6 @@
       .global-search { display: none; }
       .kpi-grid, .quick-grid { grid-template-columns: 1fr; }
       .analysis-filters { grid-template-columns: 1fr; }
-      .context-selects { grid-template-columns: 1fr; }
     }
   </style>
   {% include "_atom_ui_standards.html" %}
@@ -1485,7 +1411,6 @@
           <strong>{{ active_region.name }}</strong>
         </div>
         <div class="top-chip" title="Текущий блок Dashboard">
-          <span>Блок:</span>
           <strong>{{ currentCabinetContextMock.currentBlock }}</strong>
         </div>
         {% if currentCabinetContextMock.activeObjectLabel %}
@@ -1499,46 +1424,6 @@
         <button class="settings-button" type="button" title="Настроить дашборд" onclick="toggleDashboardEditMode()">Настроить дашборд</button>
         <div class="profile-pill"><span class="avatar">A</span><span>{{ currentUserProfileMock.display_name }}</span></div>
       </header>
-
-      <section class="personalization-strip" aria-label="Персональный контекст">
-        <article class="context-card">
-          <h2>Рабочий контекст</h2>
-          <div class="context-selects">
-            <select aria-label="Рабочее пространство">
-              {% for workspace in personalization.workspaces %}
-              <option {% if workspace == personalization.active_workspace %}selected{% endif %}>{{ workspace }}</option>
-              {% endfor %}
-            </select>
-            <select aria-label="Роль">
-              {% for role in personalization.role_options %}
-              <option {% if role == personalization.role %}selected{% endif %}>{{ role }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="context-row"><span>Профиль:</span><strong>{{ personalization.active_profile }}</strong></div>
-          <div class="context-row"><span>Регион:</span><strong>{{ currentUserProfileMock.activeRegionName }}</strong></div>
-          <div class="context-row"><span>Mock-доступ:</span><strong>{{ currentUserProfileMock.allowedModules|length }} модулей</strong></div>
-        </article>
-
-        <article class="context-card">
-          <h2>Избранные модули</h2>
-          <div class="favorite-modules">
-            {% for module in personalization.favorite_modules %}
-            <a class="favorite-module" href="{{ module.href }}">
-              <span class="fav-number">{{ module.number }}</span>
-              <span>{{ module.display_name }}</span>
-            </a>
-            {% endfor %}
-          </div>
-        </article>
-
-        <article class="context-card">
-          <h2>Подготовка к персонализации</h2>
-          <div class="context-row"><span>Виджеты:</span><strong>{{ currentUserProfileMock.allowedWidgets|length }} доступно</strong></div>
-          <div class="context-row"><span>RBAC:</span><strong>структура ролей готовится</strong></div>
-          <div class="context-row"><span>Состояние:</span><strong>дефолтный профиль до подключения пользователя</strong></div>
-        </article>
-      </section>
 
       <section id="dashboard-config" class="dashboard-config" aria-label="Настройка дашборда">
         <div class="dashboard-config-head">
