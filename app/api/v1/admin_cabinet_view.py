@@ -105,6 +105,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
     source_health = await _load_source_health(db)
     personalization = await _load_personalization_context(db, cards)
     active_region = await _load_active_region_context(db)
+    current_user_profile_mock = _build_current_user_profile_mock(personalization, active_region, cards)
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -188,12 +189,8 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "personalization": personalization,
         "active_region": active_region,
-        "current_user_profile": {
-            "display_name": "Администратор",
-            "role": personalization["role"],
-            "active_region_code": active_region["code"],
-            "is_mock": True,
-        },
+        "currentUserProfileMock": current_user_profile_mock,
+        "current_user_profile": current_user_profile_mock,
     }
 
 
@@ -228,6 +225,54 @@ async def _load_active_region_context(db: DBSession) -> dict:
         "is_pilot": bool(region.is_pilot_region),
         "source": "PlatformRegionRegistry",
         "is_configured": True,
+    }
+
+
+def _build_current_user_profile_mock(personalization: dict, active_region: dict, cards: list[dict]) -> dict:
+    active_module_codes = [
+        card["module_code"]
+        for card in cards
+        if card.get("implemented") and card.get("atom_status") not in {"disabled", "archived"}
+    ]
+    favorite_module_codes = [
+        module["module_code"]
+        for module in personalization["favorite_modules"]
+        if module.get("module_code")
+    ]
+    if not favorite_module_codes:
+        favorite_module_codes = ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
+    allowed_widgets = [
+        f"{widget['type']}:{widget['title']}"
+        for widget in personalization["widgets"]
+    ]
+    return {
+        "display_name": "Администратор",
+        "role": "ADMIN",
+        "roleLabel": personalization["role"],
+        "workspace": personalization["active_workspace"],
+        "allowedModules": active_module_codes,
+        "allowedWidgets": allowed_widgets,
+        "favoriteModules": favorite_module_codes[:8],
+        "dashboardLayout": {
+            "version": "mock-v1",
+            "atomMap": {
+                "maxVisibleModules": 6,
+                "favoriteModulesOnly": True,
+            },
+            "widgets": [
+                {
+                    "type": widget["type"],
+                    "title": widget["title"],
+                    "size": widget["size"],
+                    "moduleNumberLegacy": widget["module_number"],
+                }
+                for widget in personalization["widgets"]
+            ],
+        },
+        "activeRegionCode": active_region["code"],
+        "activeRegionName": active_region["name"],
+        "availableRegionCodes": [active_region["code"]] if active_region["code"] else [],
+        "is_mock": True,
     }
 
 

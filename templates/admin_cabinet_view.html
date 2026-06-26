@@ -1042,7 +1042,7 @@
         </div>
         <button class="icon-button" title="Уведомления">◔</button>
         <button class="settings-button" type="button" title="Настроить дашборд" onclick="document.getElementById('dashboard-config').classList.toggle('open')">Настроить дашборд</button>
-        <div class="profile-pill"><span class="avatar">A</span><span>{{ current_user_profile.display_name }}</span></div>
+        <div class="profile-pill"><span class="avatar">A</span><span>{{ currentUserProfileMock.display_name }}</span></div>
       </header>
 
       <section class="personalization-strip" aria-label="Персональный контекст">
@@ -1061,7 +1061,8 @@
             </select>
           </div>
           <div class="context-row"><span>Профиль:</span><strong>{{ personalization.active_profile }}</strong></div>
-          <div class="context-row"><span>Регион:</span><strong>{{ active_region.name }}</strong></div>
+          <div class="context-row"><span>Регион:</span><strong>{{ currentUserProfileMock.activeRegionName }}</strong></div>
+          <div class="context-row"><span>Mock-доступ:</span><strong>{{ currentUserProfileMock.allowedModules|length }} модулей</strong></div>
         </article>
 
         <article class="context-card">
@@ -1078,7 +1079,7 @@
 
         <article class="context-card">
           <h2>Подготовка к персонализации</h2>
-          <div class="context-row"><span>Виджеты:</span><strong>{{ personalization.widgets|length }} доступно</strong></div>
+          <div class="context-row"><span>Виджеты:</span><strong>{{ currentUserProfileMock.allowedWidgets|length }} доступно</strong></div>
           <div class="context-row"><span>RBAC:</span><strong>структура ролей готовится</strong></div>
           <div class="context-row"><span>Состояние:</span><strong>дефолтный профиль до подключения пользователя</strong></div>
         </article>
