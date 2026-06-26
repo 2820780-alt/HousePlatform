@@ -725,9 +725,9 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
         10: ("9%", "50%", "330px", "0deg"),
         11: ("14%", "27%", "300px", "30deg"),
         12: ("30%", "13%", "250px", "58deg"),
-        13: ("38%", "30%", "135px", "32deg"),
-        14: ("62%", "30%", "135px", "148deg"),
-        15: ("62%", "70%", "135px", "212deg"),
+        13: ("31%", "34%", "190px", "30deg"),
+        14: ("69%", "34%", "190px", "150deg"),
+        15: ("69%", "66%", "190px", "210deg"),
     }
     for card in cards:
         x, y, link_width, link_angle = layout.get(card["number"], ("50%", "50%", "180px", "0deg"))
