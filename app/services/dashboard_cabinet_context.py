@@ -84,10 +84,12 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
         quickActionCodes=[
             "MATERIAL_CREATE",
             "SUPPLIER_PRICE_UPLOAD",
-            "MATERIAL_MODERATION_OPEN",
-            "SOURCE_LIST_OPEN",
-            "DOCUMENT_LIST_OPEN",
             "SOURCE_TASK_CREATE",
+            "MATERIAL_MODERATION_OPEN",
+            "SOURCE_ERRORS_OPEN",
+            "SOURCE_CREATE",
+            "MATERIAL_CREATE",
+            "DOCUMENT_LIST_OPEN",
             "DASHBOARD_CONFIGURE",
         ],
     )

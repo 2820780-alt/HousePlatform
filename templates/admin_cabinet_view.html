@@ -1883,10 +1883,18 @@
           <h2>Быстрые действия</h2>
           <div class="quick-grid">
             {% for action in quick_actions %}
-            <a class="quick-action" href="{{ action.href }}">
+            <a class="quick-action" href="{{ action.href }}" data-action-code="{{ action.actionCode }}" data-module-code="{{ action.moduleCode }}">
               <span class="quick-icon">{{ action.icon }}</span>
-              <span>{{ action.label }}{% if action.mock %}<br><small class="mock-note">скоро</small>{% endif %}</span>
+              <span>
+                {{ action.label }}
+                <br><small class="mock-note">{{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}{% if action.mock %} · mock{% endif %}</small>
+              </span>
             </a>
+            {% else %}
+            <div class="event-row info">
+              <span class="event-dot">i</span>
+              <span><span class="event-title">Нет доступных действий</span><span class="event-note">Module 3 или кабинетный preset не разрешили быстрые действия.</span></span>
+            </div>
             {% endfor %}
           </div>
         </article>

@@ -44,6 +44,7 @@ from app.services.dashboard_module_registry import (
     is_module_available_for_dashboard,
     resolve_module_route,
 )
+from app.services.dashboard_quick_actions import get_quick_actions_for_dashboard
 from app.services.dashboard_widget_config import dashboard_widget_config_from_model
 from app.services.dashboard_widget_registry import (
     get_available_dashboard_widgets,
@@ -321,7 +322,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
             "price_drop": price_movers["drop"],
         },
         "sources_overview": source_health,
-        "quick_actions": _quick_actions(dashboard_user_context, current_cabinet_context_mock),
+        "quick_actions": get_quick_actions_for_dashboard(dashboard_user_context, current_cabinet_context_mock),
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "admin_widgets": _admin_widgets(
             material_total=material_total,
@@ -760,24 +761,6 @@ def _side_nav() -> list[dict]:
         {"label": "Настройки", "href": "/api/v1/admin/cabinet/view/modules/16", "icon": "⚙"},
         {"label": "Пользователи", "href": "/api/v1/admin/cabinet/view/modules/3", "icon": "☻"},
         {"label": "Журнал событий", "href": "/api/v1/admin/cabinet/view/modules/13", "icon": "◷"},
-    ]
-
-
-def _quick_actions(user_context, cabinet_context: dict) -> list[dict]:
-    preset_action_codes = set((cabinet_context.get("cabinetDashboardPreset") or {}).get("quickActionCodes") or [])
-    actions = [
-        {"action_code": "MATERIAL_CREATE", "label": "Добавить материал", "href": "/api/v1/admin/material-hub/view/materials", "icon": "+"},
-        {"action_code": "SUPPLIER_PRICE_UPLOAD", "label": "Загрузить прайс", "href": "/api/v1/admin/material-hub/view", "icon": "⇧"},
-        {"action_code": "MATERIAL_MODERATION_OPEN", "label": "Открыть модерацию", "href": "/api/v1/admin/material-hub/view/moderation", "icon": "!"},
-        {"action_code": "SOURCE_LIST_OPEN", "label": "Открыть источники", "href": "/api/v1/admin/material-hub/view/sources", "icon": "⌁"},
-        {"action_code": "DOCUMENT_LIST_OPEN", "label": "Открыть документы", "href": "/api/v1/admin/material-hub/view/documents", "icon": "□"},
-        {"action_code": "SOURCE_TASK_CREATE", "label": "Создать задачу анализа", "href": "/api/v1/admin/material-hub/view", "icon": "▶"},
-        {"action_code": "DASHBOARD_CONFIGURE", "label": "Настроить Dashboard", "href": "#dashboard-config", "icon": "⚙"},
-    ]
-    return [
-        action
-        for action in actions
-        if action["action_code"] in preset_action_codes and can_use_action(user_context, action["action_code"])
     ]
 
 
