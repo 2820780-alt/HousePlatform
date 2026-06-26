@@ -672,10 +672,10 @@
       width: 620px;
       height: 620px;
       background:
-        radial-gradient(circle, rgba(24, 215, 242, 0.22), transparent 54%),
-        conic-gradient(from 42deg, transparent 0 10%, rgba(24, 215, 242, 0.38) 11% 13%, transparent 14% 34%, rgba(168, 85, 247, 0.24) 35% 37%, transparent 38% 61%, rgba(59, 130, 246, 0.26) 62% 64%, transparent 65% 100%);
-      filter: blur(1px);
-      opacity: 0.9;
+        radial-gradient(circle, rgba(24, 215, 242, 0.18), transparent 50%),
+        conic-gradient(from 42deg, transparent 0 10%, rgba(24, 215, 242, 0.22) 11% 12%, transparent 13% 34%, rgba(168, 85, 247, 0.16) 35% 36%, transparent 37% 61%, rgba(59, 130, 246, 0.18) 62% 63%, transparent 64% 100%);
+      filter: blur(0.6px);
+      opacity: 0.78;
       z-index: 1;
     }
     .atom-map::after {
@@ -709,10 +709,13 @@
     }
     .svg-orbit {
       fill: none;
-      stroke-width: 4px;
+      stroke-width: 2.8px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
-      opacity: 0.92;
-      filter: drop-shadow(0 0 1px currentColor) drop-shadow(0 0 3px currentColor);
+      opacity: 0.96;
+      filter: drop-shadow(0 0 0.65px currentColor) drop-shadow(0 0 2.2px currentColor);
+      shape-rendering: geometricPrecision;
     }
     .svg-orbit.one {
       color: rgba(24, 215, 242, 0.95);
@@ -727,26 +730,37 @@
       stroke: rgba(168, 85, 247, 0.62);
       opacity: 0.72;
     }
+    .svg-orbit.four {
+      color: rgba(24, 215, 242, 0.76);
+      stroke: rgba(24, 215, 242, 0.76);
+      opacity: 0.82;
+    }
+    .svg-orbit.five {
+      color: rgba(59, 130, 246, 0.62);
+      stroke: rgba(59, 130, 246, 0.62);
+      opacity: 0.7;
+    }
     .atom-link {
       fill: none;
       stroke: var(--link-color);
-      stroke-width: 3.5px;
+      stroke-width: 2.8px;
       stroke-linecap: round;
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
       opacity: 0.96;
-      filter: drop-shadow(0 0 0.8px rgba(255, 255, 255, 0.28)) drop-shadow(0 0 2.4px var(--link-color));
+      filter: drop-shadow(0 0 0.55px rgba(255, 255, 255, 0.32)) drop-shadow(0 0 1.8px var(--link-color));
       animation: atom-curve-pulse 4s ease-in-out infinite;
+      shape-rendering: geometricPrecision;
     }
     .atom-link.inner {
-      stroke-width: 3.5px;
+      stroke-width: 2.8px;
       opacity: 0.94;
     }
     .atom-node {
       fill: color-mix(in srgb, var(--link-color) 78%, white 22%);
       stroke: rgba(255, 255, 255, 0.72);
       stroke-width: 0.34;
-      filter: drop-shadow(0 0 1.8px var(--link-color)) drop-shadow(0 0 5px var(--link-color));
+      filter: drop-shadow(0 0 1.2px var(--link-color)) drop-shadow(0 0 3.4px var(--link-color));
       animation: atom-node-pulse 3.2s ease-in-out infinite;
     }
     .atom-connection.atom-hidden,
@@ -763,6 +777,10 @@
     .atom-map:has(.module-card[data-module-code="MODULE_02_KNOWLEDGE_BASE"]:hover) .atom-node[data-module-code="MODULE_02_KNOWLEDGE_BASE"],
     .atom-map:has(.module-card[data-module-code="MODULE_05_ESTIMATES"]:hover) .atom-link[data-module-code="MODULE_05_ESTIMATES"],
     .atom-map:has(.module-card[data-module-code="MODULE_05_ESTIMATES"]:hover) .atom-node[data-module-code="MODULE_05_ESTIMATES"],
+    .atom-map:has(.module-card[data-module-code="MODULE_04_WORKS_COSTS"]:hover) .atom-link[data-module-code="MODULE_04_WORKS_COSTS"],
+    .atom-map:has(.module-card[data-module-code="MODULE_04_WORKS_COSTS"]:hover) .atom-node[data-module-code="MODULE_04_WORKS_COSTS"],
+    .atom-map:has(.module-card[data-module-code="MODULE_09_TENDERS"]:hover) .atom-link[data-module-code="MODULE_09_TENDERS"],
+    .atom-map:has(.module-card[data-module-code="MODULE_09_TENDERS"]:hover) .atom-node[data-module-code="MODULE_09_TENDERS"],
     .atom-map:has(.module-card[data-module-code="MODULE_08_PROCUREMENT"]:hover) .atom-link[data-module-code="MODULE_08_PROCUREMENT"],
     .atom-map:has(.module-card[data-module-code="MODULE_08_PROCUREMENT"]:hover) .atom-node[data-module-code="MODULE_08_PROCUREMENT"],
     .atom-map:has(.module-card[data-module-code="MODULE_11_ANALYTICS"]:hover) .atom-link[data-module-code="MODULE_11_ANALYTICS"],
@@ -770,16 +788,16 @@
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-link[data-module-code="MODULE_12_AI_ASSISTANT"],
     .atom-map:has(.module-card[data-module-code="MODULE_12_AI_ASSISTANT"]:hover) .atom-node[data-module-code="MODULE_12_AI_ASSISTANT"] {
       opacity: 1;
-      stroke-width: 4px;
-      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.32)) drop-shadow(0 0 3px var(--link-color));
+      stroke-width: 3.2px;
+      filter: drop-shadow(0 0 0.7px rgba(255, 255, 255, 0.36)) drop-shadow(0 0 2.8px var(--link-color));
     }
     @keyframes atom-curve-pulse {
       0%, 100% { opacity: 0.64; }
       50% { opacity: 1; }
     }
     @keyframes atom-node-pulse {
-      0%, 100% { r: 1.28; opacity: 0.86; }
-      50% { r: 1.82; opacity: 1; }
+      0%, 100% { r: 1.55; opacity: 0.9; }
+      50% { r: 1.95; opacity: 1; }
     }
     .nucleus {
       position: absolute;
@@ -833,11 +851,17 @@
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 292px;
-      min-height: 168px;
+      box-sizing: border-box;
+      width: 238px;
+      height: 138px;
+      min-height: 0;
       transform: translate(-50%, -50%);
-      padding: 16px;
-      border-radius: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      padding: 12px;
+      border-radius: 12px;
       border-width: 1px;
       border-color: color-mix(in srgb, var(--card-accent) 42%, transparent);
       background:
@@ -949,33 +973,41 @@
       display: grid;
       grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 8px;
+      margin-bottom: 0;
+      min-width: 0;
     }
     .module-icon {
       display: grid;
       place-items: center;
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
       background:
         radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--card-accent) 38%, transparent), transparent 65%),
         color-mix(in srgb, var(--card-accent) 18%, #071024);
       color: color-mix(in srgb, var(--card-accent) 75%, white);
       border: 1px solid color-mix(in srgb, var(--card-accent) 56%, transparent);
-      font-size: 24px;
+      font-size: 19px;
       font-weight: 800;
-      box-shadow: 0 0 22px color-mix(in srgb, var(--card-accent) 22%, transparent);
+      box-shadow: 0 0 16px color-mix(in srgb, var(--card-accent) 22%, transparent);
     }
     .module-title-group { min-width: 0; }
-    .module-name { font-weight: 800; line-height: 1.15; font-size: 18px; }
+    .module-name {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.12;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .module-state {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      margin-top: 5px;
+      margin-top: 3px;
       color: color-mix(in srgb, var(--card-accent) 64%, white);
-      font-size: 11px;
+      font-size: 10px;
     }
     .module-state.danger { color: var(--red); }
     .module-state.warn { color: var(--amber); }
@@ -990,23 +1022,34 @@
       background: currentColor;
       box-shadow: 0 0 10px currentColor;
     }
-    .module-desc { color: var(--muted); line-height: 1.34; font-size: 13px; min-height: 38px; }
+    .module-desc {
+      display: -webkit-box;
+      min-height: 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.28;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
     .module-alerts {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
+      gap: 4px;
+      max-height: 20px;
+      overflow: hidden;
+      margin-top: 0;
     }
     .module-alert {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 3px 7px;
+      gap: 4px;
+      padding: 2px 6px;
       border-radius: 999px;
       border: 1px solid rgba(119, 172, 255, 0.18);
       background: rgba(6, 13, 31, 0.62);
       color: #d8e7ff;
-      font-size: 11px;
+      font-size: 10px;
     }
     .module-alert.warning { border-color: rgba(245, 158, 11, 0.48); color: #ffd28a; }
     .module-alert.active,
@@ -1016,16 +1059,18 @@
     .module-metrics {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 12px;
+      gap: 4px;
+      max-height: 22px;
+      overflow: hidden;
+      margin-top: auto;
     }
     .metric-chip {
-      padding: 3px 7px;
+      padding: 2px 6px;
       border-radius: 999px;
       border: 1px solid rgba(119, 172, 255, 0.18);
       background: rgba(6, 13, 31, 0.62);
       color: #d8e7ff;
-      font-size: 12px;
+      font-size: 10.5px;
     }
     .metric-chip.alert { border-color: rgba(245, 158, 11, 0.5); color: #ffd28a; }
     .analytics-column { display: grid; gap: 12px; }
@@ -1201,7 +1246,7 @@
         transform: none;
       }
       .nucleus { width: 100%; height: auto; min-height: 132px; border-radius: 12px; grid-column: 1 / -1; }
-      .module-card { width: 100%; min-height: 124px; border-radius: 12px; }
+      .module-card { width: 100%; height: auto; min-height: 124px; border-radius: 12px; }
       .module-card::before,
       .module-card::after { display: none; }
       .module-card:hover { transform: translateY(-2px); }
@@ -1435,13 +1480,15 @@
           <div class="orbit two"></div>
           <div class="orbit three"></div>
           <svg class="atom-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path class="svg-orbit one" d="M 50 26 C 62 33, 70 41, 75 50 C 70 59, 62 67, 50 74 C 38 67, 30 59, 25 50 C 30 41, 38 33, 50 26"></path>
-            <path class="svg-orbit two" d="M 25 31.7 C 39 17, 61 17, 75 31.7 C 89 45, 89 55, 75 68.3 C 61 83, 39 83, 25 68.3 C 11 55, 11 45, 25 31.7"></path>
-            <path class="svg-orbit three" d="M 17 50 C 17 33, 83 33, 83 50 C 83 67, 17 67, 17 50"></path>
+            <ellipse class="svg-orbit five" cx="50" cy="50" rx="38" ry="18"></ellipse>
+            <ellipse class="svg-orbit one" cx="50" cy="50" rx="34" ry="15" transform="rotate(0 50 50)"></ellipse>
+            <ellipse class="svg-orbit two" cx="50" cy="50" rx="37" ry="13" transform="rotate(22 50 50)"></ellipse>
+            <ellipse class="svg-orbit three" cx="50" cy="50" rx="37" ry="13" transform="rotate(-22 50 50)"></ellipse>
+            <ellipse class="svg-orbit four" cx="50" cy="50" rx="25" ry="9" transform="rotate(90 50 50)"></ellipse>
             {% for card in all_atom_cards %}
             <g class="atom-connection {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-module-code="{{ card.module_code }}" style="--link-color: {{ card.accent }}">
               <path class="atom-link inner" data-module-code="{{ card.module_code }}" d="{{ card.atom_link.inner_path }}"></path>
-              <circle class="atom-node" data-module-code="{{ card.module_code }}" cx="{{ card.atom_link.node[0] }}" cy="{{ card.atom_link.node[1] }}" r="1.25"></circle>
+              <circle class="atom-node" data-module-code="{{ card.module_code }}" cx="{{ card.atom_link.node[0] }}" cy="{{ card.atom_link.node[1] }}" r="1.55"></circle>
             </g>
             {% endfor %}
           </svg>
@@ -1592,6 +1639,70 @@
 
     (() => {
       const manager = document.querySelector("[data-module-manager]");
+      const atomPriority = [
+        "MODULE_12_AI_ASSISTANT",
+        "MODULE_01_MATERIAL_HUB",
+        "MODULE_02_KNOWLEDGE_BASE",
+        "MODULE_05_ESTIMATES",
+        "MODULE_04_WORKS_COSTS",
+        "MODULE_09_TENDERS",
+        "MODULE_08_PROCUREMENT",
+        "MODULE_11_ANALYTICS",
+      ];
+      const layoutPresets = {
+        1: [
+          { card: [50, 17], node: [50, 35] },
+        ],
+        2: [
+          { card: [25, 47], node: [16, 50] },
+          { card: [75, 47], node: [84, 50] },
+        ],
+        3: [
+          { card: [50, 17], node: [50, 35] },
+          { card: [24, 72], node: [30, 65] },
+          { card: [76, 72], node: [70, 65] },
+        ],
+        4: [
+          { card: [24, 24], node: [31, 36] },
+          { card: [76, 24], node: [69, 36] },
+          { card: [76, 74], node: [69, 64] },
+          { card: [24, 74], node: [31, 64] },
+        ],
+        5: [
+          { card: [50, 17], node: [50, 35] },
+          { card: [80, 46], node: [84, 50] },
+          { card: [72, 76], node: [67, 66] },
+          { card: [28, 76], node: [33, 66] },
+          { card: [20, 46], node: [16, 50] },
+        ],
+        6: [
+          { card: [24, 20], node: [31, 36] },
+          { card: [76, 20], node: [69, 36] },
+          { card: [80, 50], node: [84, 50] },
+          { card: [76, 76], node: [69, 64] },
+          { card: [24, 76], node: [31, 64] },
+          { card: [20, 50], node: [16, 50] },
+        ],
+        7: [
+          { card: [23, 18], node: [31, 36] },
+          { card: [50, 16], node: [50, 35] },
+          { card: [77, 18], node: [69, 36] },
+          { card: [80, 50], node: [84, 50] },
+          { card: [72, 78], node: [67, 66] },
+          { card: [28, 78], node: [33, 66] },
+          { card: [20, 50], node: [16, 50] },
+        ],
+        8: [
+          { card: [22, 18], node: [31, 36] },
+          { card: [50, 16], node: [50, 35] },
+          { card: [78, 18], node: [69, 36] },
+          { card: [80, 48], node: [84, 50] },
+          { card: [78, 76], node: [69, 64] },
+          { card: [50, 80], node: [50, 65] },
+          { card: [22, 76], node: [31, 64] },
+          { card: [20, 48], node: [16, 50] },
+        ],
+      };
       document.querySelectorAll("[data-widget-toggle]").forEach((toggle) => {
         const widgetCard = toggle.closest(".widget-card");
         if (!widgetCard) return;
@@ -1601,7 +1712,7 @@
         });
       });
       if (!manager) return;
-      const limit = Number(manager.dataset.limit || 6);
+      const limit = Number(manager.dataset.limit || 8);
       const countNode = document.querySelector("[data-atom-selected-count]");
       const messageNode = document.querySelector("[data-module-manager-message]");
 
@@ -1609,6 +1720,33 @@
       const getCard = (moduleCode) => document.querySelector(`[data-atom-module-card][data-module-code="${moduleCode}"]`);
       const getConnection = (moduleCode) => document.querySelector(`.atom-connection[data-module-code="${moduleCode}"]`);
       const getRow = (moduleCode) => document.querySelector(`[data-module-row="${moduleCode}"]`);
+      const getPriority = (card) => {
+        const index = atomPriority.indexOf(card.dataset.canonicalModuleCode || card.dataset.moduleCode);
+        return index === -1 ? 100 + Number(card.dataset.position || 0) : index;
+      };
+      const getOrderedVisibleCards = () => getVisibleCards().sort((first, second) => getPriority(first) - getPriority(second));
+
+      function syncAtomLayout() {
+        const cards = getOrderedVisibleCards().slice(0, 8);
+        const preset = layoutPresets[cards.length] || layoutPresets[8];
+        cards.forEach((card, index) => {
+          const slot = preset[index];
+          if (!slot) return;
+          const [cardX, cardY] = slot.card;
+          const [nodeX, nodeY] = slot.node;
+          card.style.setProperty("--x", `${cardX}%`);
+          card.style.setProperty("--y", `${cardY}%`);
+          const connection = getConnection(card.dataset.moduleCode);
+          if (!connection) return;
+          const link = connection.querySelector(".atom-link");
+          const node = connection.querySelector(".atom-node");
+          if (link) link.setAttribute("d", `M ${nodeX} ${nodeY} L ${cardX} ${cardY}`);
+          if (node) {
+            node.setAttribute("cx", String(nodeX));
+            node.setAttribute("cy", String(nodeY));
+          }
+        });
+      }
 
       function setMessage(text) {
         if (!messageNode) return;
@@ -1639,6 +1777,7 @@
           if (addButton) addButton.disabled = isSelected || selectedCount >= limit;
           if (removeButton) removeButton.disabled = !isSelected;
         });
+        syncAtomLayout();
       }
 
       manager.addEventListener("click", (event) => {

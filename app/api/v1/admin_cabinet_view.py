@@ -69,12 +69,14 @@ async def admin_cabinet_view(request: Request, db: DBSession):
 
 def _select_atom_map_cards(cards: list[dict], user_context) -> list[dict]:
     priority_module_codes = [
+        "MODULE_12_AI_ASSISTANT",
         "MODULE_01_MATERIAL_HUB",
         "MODULE_02_KNOWLEDGE_BASE",
         "MODULE_05_ESTIMATES",
+        "MODULE_04_WORKS_COSTS",
+        "MODULE_09_TENDERS",
         "MODULE_08_PROCUREMENT",
         "MODULE_11_ANALYTICS",
-        "MODULE_12_AI_ASSISTANT",
     ]
     cards_by_code = {
         card["canonical_module_code"]: card
@@ -89,7 +91,7 @@ def _select_atom_map_cards(cards: list[dict], user_context) -> list[dict]:
             for card in sorted(cards, key=lambda item: item.get("display_order", item["number"]))
             if card["canonical_module_code"] not in selected_codes and _can_show_atom_card(card, user_context)
         )
-    return selected[:6]
+    return selected[:8]
 
 
 def _can_show_atom_card(card: dict, user_context) -> bool:
@@ -141,7 +143,7 @@ def _build_all_modules_panel(
         if module["status"] in {"merged", "archived", "deprecated", "disabled"}
     ]
     return {
-        "limit": 6,
+        "limit": 8,
         "selected_count": len(selected_module_codes),
         "active_modules": active_modules,
         "planned_modules": planned_modules,
@@ -956,75 +958,75 @@ def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
         1: ("50%", "14%", "250px", "90deg", 1, 1),
         2: ("80%", "25%", "318px", "140deg", 2, 2),
         3: ("83%", "50%", "326px", "180deg", 2, 3),
-        4: ("91%", "50%", "330px", "180deg", 3, 4),
-        5: ("80%", "75%", "318px", "220deg", 2, 3),
+        4: ("80%", "75%", "330px", "220deg", 3, 4),
+        5: ("86%", "48%", "326px", "180deg", 2, 3),
         6: ("70%", "88%", "250px", "238deg", 3, 6),
         7: ("50%", "92%", "280px", "270deg", 3, 7),
         8: ("20%", "75%", "318px", "320deg", 2, 4),
-        9: ("17%", "50%", "326px", "0deg", 2, 6),
+        9: ("50%", "88%", "326px", "270deg", 2, 6),
         10: ("9%", "50%", "330px", "0deg", 3, 10),
-        11: ("20%", "25%", "318px", "40deg", 2, 5),
-        12: ("50%", "86%", "250px", "270deg", 1, 6),
+        11: ("18%", "48%", "318px", "0deg", 2, 5),
+        12: ("20%", "20%", "250px", "40deg", 1, 6),
         13: ("31%", "34%", "190px", "30deg", 1, 13),
         14: ("69%", "34%", "190px", "150deg", 1, 14),
         15: ("69%", "66%", "190px", "210deg", 1, 15),
     }
     link_map = {
         1: {
-            "node": (50, 26),
-            "inner_path": "M 50 26 L 50 14",
+            "node": (50, 27),
+            "inner_path": "M 50 27 L 50 14",
         },
         2: {
-            "node": (75, 31.7),
-            "inner_path": "M 75 31.7 L 80 25",
+            "node": (69, 31),
+            "inner_path": "M 69 31 L 80 25",
         },
         3: {
-            "node": (75, 50),
-            "inner_path": "M 75 50 L 83 50",
+            "node": (86, 50),
+            "inner_path": "M 86 50 L 83 50",
         },
         4: {
-            "node": (75, 50),
-            "inner_path": "M 75 50 L 91 50",
+            "node": (69, 69),
+            "inner_path": "M 69 69 L 80 75",
         },
         5: {
-            "node": (75, 68.3),
-            "inner_path": "M 75 68.3 L 80 75",
+            "node": (86, 50),
+            "inner_path": "M 86 50 L 86 48",
         },
         6: {
-            "node": (58, 73),
-            "inner_path": "M 58 73 L 70 88",
+            "node": (60, 73),
+            "inner_path": "M 60 73 L 70 88",
         },
         7: {
-            "node": (50, 80),
-            "inner_path": "M 50 80 L 50 92",
+            "node": (50, 73),
+            "inner_path": "M 50 73 L 50 92",
         },
         8: {
-            "node": (25, 68.3),
-            "inner_path": "M 25 68.3 L 20 75",
+            "node": (31, 69),
+            "inner_path": "M 31 69 L 20 75",
         },
         9: {
-            "node": (25, 50),
-            "inner_path": "M 25 50 L 17 50",
+            "node": (50, 73),
+            "inner_path": "M 50 73 L 50 88",
         },
         10: {
-            "node": (25, 50),
-            "inner_path": "M 25 50 L 9 50",
+            "node": (14, 50),
+            "inner_path": "M 14 50 L 9 50",
         },
         11: {
-            "node": (25, 31.7),
-            "inner_path": "M 25 31.7 L 20 25",
+            "node": (14, 50),
+            "inner_path": "M 14 50 L 18 48",
         },
         12: {
-            "node": (50, 74),
-            "inner_path": "M 50 74 L 50 86",
+            "node": (31, 31),
+            "inner_path": "M 31 31 L 20 20",
         },
         13: {
-            "node": (35, 34),
-            "inner_path": "M 35 34 L 31 34",
+            "node": (32, 36),
+            "inner_path": "M 32 36 L 31 34",
         },
         15: {
-            "node": (65, 66),
-            "inner_path": "M 65 66 L 69 66",
+            "node": (68, 64),
+            "inner_path": "M 68 64 L 69 66",
         },
     }
     for card in cards:
