@@ -557,17 +557,19 @@
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 205px;
-      min-height: 112px;
+      width: 246px;
+      min-height: 148px;
       transform: translate(-50%, -50%);
-      padding: 12px;
-      border-radius: 11px;
+      padding: 14px;
+      border-radius: 13px;
+      border-width: 1px;
       border-color: color-mix(in srgb, var(--card-accent) 42%, transparent);
       background:
-        radial-gradient(circle at 82% 16%, color-mix(in srgb, var(--card-accent) 28%, transparent), transparent 36%),
-        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 11%, rgba(13, 22, 52, 0.92)), rgba(7, 14, 35, 0.92));
+        radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--card-accent) 34%, transparent), transparent 34%),
+        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 14%, rgba(13, 22, 52, 0.95)), rgba(7, 14, 35, 0.94));
       transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
       z-index: 4;
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
     .module-card::before {
       content: "";
@@ -583,35 +585,57 @@
       opacity: 0.72;
     }
     .module-card:hover {
-      transform: translate(-50%, -50%) scale(1.035);
+      transform: translate(-50%, -50%) scale(1.045);
       border-color: color-mix(in srgb, var(--card-accent) 74%, white 8%);
-      box-shadow: 0 22px 74px rgba(0, 0, 0, 0.46);
+      box-shadow: 0 26px 88px rgba(0, 0, 0, 0.5), 0 0 34px color-mix(in srgb, var(--card-accent) 24%, transparent);
     }
     .module-card.future { opacity: 0.72; }
     .module-head {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 9px;
-      margin-bottom: 9px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .module-number {
+    .module-icon {
       display: grid;
       place-items: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: color-mix(in srgb, var(--card-accent) 20%, #071024);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--card-accent) 38%, transparent), transparent 65%),
+        color-mix(in srgb, var(--card-accent) 18%, #071024);
       color: color-mix(in srgb, var(--card-accent) 75%, white);
       border: 1px solid color-mix(in srgb, var(--card-accent) 56%, transparent);
+      font-size: 21px;
       font-weight: 800;
+      box-shadow: 0 0 22px color-mix(in srgb, var(--card-accent) 22%, transparent);
     }
-    .module-name { font-weight: 800; line-height: 1.15; }
-    .module-desc { color: var(--muted); line-height: 1.28; font-size: 12px; min-height: 31px; }
+    .module-title-group { min-width: 0; }
+    .module-name { font-weight: 800; line-height: 1.15; font-size: 16px; }
+    .module-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      color: color-mix(in srgb, var(--card-accent) 64%, white);
+      font-size: 11px;
+    }
+    .module-state::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .module-desc { color: var(--muted); line-height: 1.32; font-size: 12px; min-height: 32px; }
     .module-metrics {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 9px;
+      margin-top: 12px;
     }
     .metric-chip {
       padding: 3px 7px;
@@ -954,8 +978,11 @@
           {% for card in cards %}
           <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-number="{{ card.number }}" href="{{ card.href if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
-              <div class="module-number">{{ card.number }}</div>
-              <div class="module-name">{{ card.display_name }}</div>
+              <div class="module-icon">{{ card.dashboard_icon }}</div>
+              <div class="module-title-group">
+                <div class="module-name">{{ card.display_name }}</div>
+                <div class="module-state">{{ card.visual_state }}</div>
+              </div>
             </div>
             <div class="module-desc">{{ card.dashboard_description }}</div>
             <div class="module-metrics">

@@ -31,7 +31,7 @@ templates = Jinja2Templates(directory="templates")
 async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
-    satellite_cards = [card for card in cards if card["number"] != 16]
+    satellite_cards = _select_atom_map_cards(cards)
     dashboard_context = await _load_dashboard_context(db, cards)
     return templates.TemplateResponse(
         request,
@@ -42,6 +42,20 @@ async def admin_cabinet_view(request: Request, db: DBSession):
             **dashboard_context,
         },
     )
+
+
+def _select_atom_map_cards(cards: list[dict]) -> list[dict]:
+    priority_numbers = [1, 2, 3, 5, 8, 9, 11, 12]
+    cards_by_number = {card["number"]: card for card in cards if card["number"] != 16}
+    selected = [cards_by_number[number] for number in priority_numbers if number in cards_by_number]
+    if len(selected) < 8:
+        selected_numbers = {card["number"] for card in selected}
+        selected.extend(
+            card
+            for card in cards
+            if card["number"] not in selected_numbers and card["number"] != 16
+        )
+    return selected[:8]
 
 
 @router.get("/modules/{module_number}", response_class=HTMLResponse)
@@ -639,14 +653,35 @@ def _passport(
         15: "Этапы и части строительства",
         16: "Административный контур",
     }
+    dashboard_icons = {
+        1: "▦",
+        2: "◇",
+        3: "☻",
+        4: "⚒",
+        5: "≋",
+        6: "✓",
+        7: "▣",
+        8: "♢",
+        9: "♜",
+        10: "▤",
+        11: "▥",
+        12: "✦",
+        13: "◷",
+        14: "⌁",
+        15: "◎",
+        16: "⚙",
+    }
     dashboard_metrics = metrics or []
     events = _module_events(number, dashboard_metrics)
+    implemented = bool(href)
     return {
         "number": number,
         "title": f"Модуль {number} · {name}",
         "module_name": name,
         "display_name": display_names.get(number, name),
         "dashboard_description": dashboard_descriptions.get(number, subtitle),
+        "dashboard_icon": dashboard_icons.get(number, "◌"),
+        "visual_state": "Работает" if implemented else "Планируется",
         "subtitle": subtitle,
         "description": description,
         "status": status,
@@ -663,7 +698,7 @@ def _passport(
         ],
         "dashboard_metrics": dashboard_metrics[:4],
         "events": events,
-        "implemented": bool(href),
+        "implemented": implemented,
         "href": href or f"/api/v1/admin/cabinet/view/modules/{number}",
         "passport_href": f"/api/v1/admin/cabinet/view/modules/{number}",
     }
@@ -713,18 +748,18 @@ def _module_events(number: int, metrics: list[dict]) -> list[dict]:
 
 def _apply_orbit_layout(cards: list[dict]) -> list[dict]:
     layout = {
-        1: ("50%", "9%", "265px", "90deg"),
-        2: ("70%", "13%", "250px", "122deg"),
-        3: ("86%", "27%", "300px", "150deg"),
+        1: ("50%", "15%", "250px", "90deg"),
+        2: ("76%", "21%", "285px", "132deg"),
+        3: ("82%", "48%", "315px", "180deg"),
         4: ("91%", "50%", "330px", "180deg"),
-        5: ("86%", "73%", "300px", "210deg"),
+        5: ("76%", "79%", "285px", "228deg"),
         6: ("70%", "88%", "250px", "238deg"),
         7: ("50%", "92%", "280px", "270deg"),
-        8: ("30%", "88%", "250px", "302deg"),
-        9: ("14%", "73%", "300px", "330deg"),
+        8: ("24%", "79%", "285px", "312deg"),
+        9: ("18%", "48%", "315px", "0deg"),
         10: ("9%", "50%", "330px", "0deg"),
-        11: ("14%", "27%", "300px", "30deg"),
-        12: ("30%", "13%", "250px", "58deg"),
+        11: ("24%", "21%", "285px", "48deg"),
+        12: ("50%", "85%", "250px", "270deg"),
         13: ("31%", "34%", "190px", "30deg"),
         14: ("69%", "34%", "190px", "150deg"),
         15: ("69%", "66%", "190px", "210deg"),
