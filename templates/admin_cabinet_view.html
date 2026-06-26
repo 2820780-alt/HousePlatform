@@ -559,6 +559,52 @@
       padding: 0 8px;
       font-size: 12px;
     }
+    .widget-control-row button {
+      min-height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+    .widget-settings {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(119, 172, 255, 0.14);
+    }
+    .widget-card[data-settings-open="true"] .widget-settings {
+      display: grid;
+    }
+    .widget-setting {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .widget-setting select,
+    .widget-setting input {
+      width: 100%;
+      min-height: 30px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+    .widget-fields {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .widget-empty-state {
+      grid-column: 1 / -1;
+      padding: 8px;
+      border: 1px dashed rgba(119, 172, 255, 0.2);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
     .toggle-label {
       display: inline-flex;
       align-items: center;
@@ -1424,14 +1470,16 @@
         </div>
         <div class="widget-catalog">
           {% for widget in available_widgets %}
-          <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
+          <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}" data-widget-status="{{ widget.status }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
             <div class="widget-meta">
               <span class="metric-chip">Тип: {{ widget.type }}</span>
               <span class="metric-chip">Размер: {{ widget.defaultSize }}</span>
+              <span class="metric-chip">Статус: {{ widget.status }}</span>
               {% if widget.sourceModuleCode %}<span class="metric-chip">{{ widget.sourceModuleCode }}</span>{% endif %}
               {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
+              {% if widget.legacyModuleCode %}<span class="metric-chip">legacy: {{ widget.legacyModuleCode }}</span>{% endif %}
               {% if widget.status == "mock_only" %}<span class="metric-chip alert">mock</span>{% endif %}
             </div>
             <div class="widget-control-row">
@@ -1444,6 +1492,71 @@
                 <option>Текущий период</option>
                 <option>Проблемные данные</option>
               </select>
+              <button class="ghost-button" type="button" data-widget-settings-toggle>Настроить</button>
+            </div>
+            <div class="widget-settings" data-widget-settings>
+              <label class="widget-setting">
+                <span>Период</span>
+                <select data-widget-setting="period">
+                  <option>Неделя</option>
+                  <option selected>Месяц</option>
+                  <option>Квартал</option>
+                  <option>Год</option>
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Объект / проект</span>
+                <select data-widget-setting="project">
+                  {% for project in project_options %}
+                  <option>{{ project }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Категория</span>
+                <select data-widget-setting="category">
+                  <option>Все категории</option>
+                  <option>Фундамент</option>
+                  <option>Стены</option>
+                  <option>Кровля</option>
+                  <option>Инженерия</option>
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Регион</span>
+                <select data-widget-setting="region">
+                  <option>{{ active_region.name }}</option>
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Источник</span>
+                <select data-widget-setting="source">
+                  <option>Все источники</option>
+                  {% for source in sources_overview %}
+                  <option>{{ source.name }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Тип графика</span>
+                <select data-widget-setting="chartType">
+                  <option>Линия</option>
+                  <option>Столбцы</option>
+                  <option>Кольцо</option>
+                  <option>Без графика</option>
+                </select>
+              </label>
+              <label class="widget-setting">
+                <span>Лимит строк</span>
+                <input data-widget-setting="rowLimit" type="number" min="3" max="50" value="10">
+              </label>
+              <div class="widget-fields">
+                <label><input type="checkbox" data-widget-field="value" checked> Значение</label>
+                <label><input type="checkbox" data-widget-field="delta" checked> Динамика</label>
+                <label><input type="checkbox" data-widget-field="status" checked> Статус</label>
+                <label><input type="checkbox" data-widget-field="source"> Источник</label>
+              </div>
+              <div class="widget-empty-state">Настройки работают в mock/local state. После Module 03 они будут сохраняться в UserDashboardLayout.</div>
             </div>
           </article>
           {% else %}
@@ -1470,6 +1583,7 @@
               <span class="metric-chip">{{ widget.status }}</span>
               <span class="metric-chip">{{ widget.sourceModuleCode }}</span>
               {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
+              {% if widget.legacyModuleCode %}<span class="metric-chip">legacy: {{ widget.legacyModuleCode }}</span>{% endif %}
             </div>
             <button class="ghost-button disabled-action" type="button" disabled>Недоступно</button>
           </article>
@@ -1820,10 +1934,47 @@
       document.querySelectorAll("[data-widget-toggle]").forEach((toggle) => {
         const widgetCard = toggle.closest(".widget-card");
         if (!widgetCard) return;
-        widgetCard.dataset.widgetEnabled = String(toggle.checked);
+        const blockedStatuses = ["planned", "disabled", "archived", "merged", "requires_module", "requires_permission"];
+        const status = widgetCard.dataset.widgetStatus || "";
+        const canEnable = !blockedStatuses.includes(status) && Boolean(widgetCard.dataset.sourceModuleCode);
+        if (!canEnable) {
+          toggle.checked = false;
+          toggle.disabled = true;
+        }
+        widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
         toggle.addEventListener("change", () => {
-          widgetCard.dataset.widgetEnabled = String(toggle.checked);
+          widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
         });
+      });
+      document.querySelectorAll("[data-widget-settings-toggle]").forEach((button) => {
+        const widgetCard = button.closest(".widget-card");
+        if (!widgetCard) return;
+        button.addEventListener("click", () => {
+          const isOpen = widgetCard.dataset.settingsOpen === "true";
+          widgetCard.dataset.settingsOpen = String(!isOpen);
+          button.textContent = isOpen ? "Настроить" : "Свернуть";
+        });
+      });
+      document.querySelectorAll("[data-widget-settings]").forEach((settingsPanel) => {
+        const widgetCard = settingsPanel.closest(".widget-card");
+        if (!widgetCard) return;
+        const syncLocalSettings = () => {
+          const settings = {};
+          settingsPanel.querySelectorAll("[data-widget-setting]").forEach((control) => {
+            settings[control.dataset.widgetSetting] = control.value;
+          });
+          settings.fields = Array.from(settingsPanel.querySelectorAll("[data-widget-field]:checked"))
+            .map((control) => control.dataset.widgetField);
+          widgetCard.dataset.widgetPayload = JSON.stringify({
+            widgetCode: widgetCard.dataset.widgetKey,
+            sourceModuleCode: widgetCard.dataset.sourceModuleCode,
+            type: widgetCard.dataset.widgetType,
+            settings,
+          });
+        };
+        settingsPanel.addEventListener("change", syncLocalSettings);
+        settingsPanel.addEventListener("input", syncLocalSettings);
+        syncLocalSettings();
       });
       if (!manager) return;
       const limit = Number(manager.dataset.limit || 8);
