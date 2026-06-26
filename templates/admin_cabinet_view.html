@@ -568,6 +568,7 @@
       transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
       z-index: 4;
       box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      isolation: isolate;
     }
     .module-card::before {
       content: "";
@@ -575,17 +576,62 @@
       left: 50%;
       top: 50%;
       width: var(--link-width, 160px);
-      height: 1px;
-      background: linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 62%, transparent), transparent);
+      height: 2px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 0 50%, color-mix(in srgb, var(--card-accent) 92%, white 8%), transparent 10px),
+        linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 76%, transparent), color-mix(in srgb, var(--card-accent) 20%, transparent) 56%, transparent);
       transform: rotate(var(--link-angle, 0deg));
       transform-origin: left center;
       z-index: -1;
-      opacity: 0.72;
+      opacity: 0.66;
+      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 55%, transparent));
+      animation: atom-link-pulse 3.8s ease-in-out infinite;
+    }
+    .module-card::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 12px;
+      padding: 8px 10px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
+      border-radius: 9px;
+      background: rgba(5, 9, 23, 0.88);
+      color: #e8f7ff;
+      font-size: 11px;
+      line-height: 1.25;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34), 0 0 18px color-mix(in srgb, var(--card-accent) 14%, transparent);
+      z-index: 2;
+    }
+    @keyframes atom-link-pulse {
+      0%, 100% {
+        opacity: 0.46;
+        filter: drop-shadow(0 0 5px color-mix(in srgb, var(--card-accent) 42%, transparent));
+      }
+      50% {
+        opacity: 0.9;
+        filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 68%, transparent));
+      }
     }
     .module-card:hover {
       transform: translate(-50%, -50%) scale(1.045);
       border-color: color-mix(in srgb, var(--card-accent) 74%, white 8%);
       box-shadow: 0 26px 88px rgba(0, 0, 0, 0.5), 0 0 34px color-mix(in srgb, var(--card-accent) 24%, transparent);
+    }
+    .module-card:hover::before {
+      height: 3px;
+      opacity: 1;
+      animation-duration: 1.4s;
+      filter: drop-shadow(0 0 18px color-mix(in srgb, var(--card-accent) 86%, transparent));
+    }
+    .module-card:hover::after {
+      opacity: 1;
+      transform: translateY(0);
     }
     .module-card.future { opacity: 0.72; }
     .module-head {
@@ -817,7 +863,8 @@
       }
       .nucleus { width: 100%; height: auto; min-height: 132px; border-radius: 12px; grid-column: 1 / -1; }
       .module-card { width: 100%; min-height: 124px; border-radius: 12px; }
-      .module-card::before { display: none; }
+      .module-card::before,
+      .module-card::after { display: none; }
       .module-card:hover { transform: translateY(-2px); }
       .analytics-column, .bottom-grid { grid-template-columns: 1fr; }
     }
@@ -974,7 +1021,7 @@
           </div>
 
           {% for card in cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          <a class="module-card {% if not card.implemented %}future{% endif %}" data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
             <div class="module-head">
               <div class="module-icon">{{ card.dashboard_icon }}</div>
               <div class="module-title-group">
