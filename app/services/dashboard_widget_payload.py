@@ -5,6 +5,11 @@ from datetime import datetime
 from typing import Any
 
 from app.services.dashboard_module_registry import get_canonical_module_code
+from app.services.dashboard_system_contexts import (
+    DASHBOARD_ADMIN_CONTEXT,
+    DASHBOARD_ADMIN_SOURCE_MODULE,
+    LEGACY_ADMIN_CABINET_MODULE,
+)
 
 
 PAYLOAD_STATUSES = {"ok", "info", "attention", "error", "disabled"}
@@ -83,6 +88,7 @@ class AtomWidgetPayload:
     status: str
     updatedAt: str
     featureCode: str | None = None
+    contextCode: str | None = None
     subtitle: str | None = None
     severity: str | None = None
     primaryValue: str | int | float | None = None
@@ -108,6 +114,7 @@ def build_atom_widget_payload(
     status: str = "info",
     updated_at: str | datetime | None = None,
     feature_code: str | None = None,
+    context_code: str | None = None,
     subtitle: str | None = None,
     severity: str | None = None,
     primary_value: str | int | float | None = None,
@@ -122,10 +129,16 @@ def build_atom_widget_payload(
     cta: dict[str, Any] | None = None,
 ) -> AtomWidgetPayload:
     canonical_code = get_canonical_module_code(source_module_code) or source_module_code
+    normalized_context_code = context_code or (
+        DASHBOARD_ADMIN_CONTEXT
+        if source_module_code in {DASHBOARD_ADMIN_SOURCE_MODULE, LEGACY_ADMIN_CABINET_MODULE}
+        else None
+    )
     return AtomWidgetPayload(
         widgetCode=widget_code,
         sourceModuleCode=canonical_code,
         featureCode=feature_code,
+        contextCode=normalized_context_code,
         title=title,
         subtitle=subtitle,
         status=_normalize_status(status),
@@ -145,6 +158,10 @@ def build_atom_widget_payload(
 
 
 def atom_widget_payload_from_admin_widget(widget: dict[str, Any], *, updated_at: str | datetime | None = None) -> dict[str, Any]:
+    source_module_code = widget.get("module_code", DASHBOARD_ADMIN_SOURCE_MODULE)
+    context_code = widget.get("context_code") or widget.get("contextCode")
+    if not context_code and source_module_code in {DASHBOARD_ADMIN_SOURCE_MODULE, LEGACY_ADMIN_CABINET_MODULE}:
+        context_code = DASHBOARD_ADMIN_CONTEXT
     items = [
         {
             "label": item.get("label", ""),
@@ -163,8 +180,9 @@ def atom_widget_payload_from_admin_widget(widget: dict[str, Any], *, updated_at:
     ]
     return build_atom_widget_payload(
         widget_code=_widget_code_from_admin_widget(widget),
-        source_module_code=widget.get("module_code", "MODULE_16_ADMIN_CABINET"),
+        source_module_code=source_module_code,
         feature_code=widget.get("feature_code"),
+        context_code=context_code,
         title=widget.get("title", "Виджет"),
         subtitle=widget.get("type"),
         status=_payload_status_from_widget(widget),
@@ -261,7 +279,8 @@ def _format_updated_at(value: str | datetime | None) -> str:
 
 
 def _widget_code_from_admin_widget(widget: dict[str, Any]) -> str:
-    source = get_canonical_module_code(widget.get("module_code")) or widget.get("module_code", "MODULE_16_ADMIN_CABINET")
+    source_code = widget.get("module_code", DASHBOARD_ADMIN_SOURCE_MODULE)
+    source = get_canonical_module_code(source_code) or source_code
     feature = widget.get("feature_code") or widget.get("type", "STATUS")
     slug = "".join(char.lower() if char.isalnum() else "-" for char in widget.get("title", "widget")).strip("-")
     while "--" in slug:

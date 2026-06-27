@@ -19,6 +19,8 @@ def test_cabinet_context_mock_exposes_dashboard_preset_and_actions():
     assert context.cabinetDashboardPreset["topbar"]["showGlobalPeriod"] is False
     assert context.cabinetDashboardPreset["atomCardActions"]["maxActionsPerCard"] == 3
     assert "MODULE_01_MATERIAL_HUB" in context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"]
+    assert "MODULE_03_USERS_ROLES" in context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"]
+    assert "DASHBOARD_ADMIN_CONTEXT" in context.cabinetDashboardPreset["atomCardActions"]["contextActionCodes"]
     assert "DASHBOARD_CONFIGURE" in context.allowedActionCodes
 
 

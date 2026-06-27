@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
+
 ROLE_LABELS = {
     "ADMIN": "Администратор",
     "SUPER_ADMIN": "Супер администратор",
@@ -120,7 +122,12 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
                     "SUPPLIER_PRICE_UPLOAD",
                     "MATERIAL_MODERATION_OPEN",
                 ],
-                "MODULE_16_ADMIN_CABINET": [
+                DASHBOARD_ADMIN_SOURCE_MODULE: [
+                    "DASHBOARD_CONFIGURE",
+                ],
+            },
+            "contextActionCodes": {
+                DASHBOARD_ADMIN_CONTEXT: [
                     "DASHBOARD_CONFIGURE",
                 ],
             },

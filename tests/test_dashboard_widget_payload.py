@@ -71,3 +71,18 @@ def test_atom_widget_payload_from_admin_widget_maps_dashboard_widget_to_standard
     assert payload["items"][1]["status"] == "error"
     assert [item["severity"] for item in payload["attentionItems"]] == ["error", "attention"]
     assert payload["updatedAt"] == "2026-06-26 15:00"
+
+
+def test_admin_context_payload_uses_module_03_source_without_module_16_conflict():
+    payload = atom_widget_payload_from_admin_widget(
+        {
+            "title": "Уведомления",
+            "type": "ALERTS",
+            "items": [{"label": "Ошибок нет", "value": 0, "tone": "success"}],
+        },
+        updated_at="2026-06-27 10:00",
+    )
+
+    assert payload["widgetCode"].startswith("MODULE_03_USERS_ROLES.ALERTS.")
+    assert payload["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+    assert payload["contextCode"] == "DASHBOARD_ADMIN_CONTEXT"

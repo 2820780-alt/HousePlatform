@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from app.services.dashboard_auth_adapters import can_use_action
+from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
 
 ATOM_CARD_QUICK_ACTION_LIMIT = 3
 
@@ -16,6 +17,7 @@ class DashboardQuickAction:
     icon: str
     moduleCode: str
     featureCode: str | None = None
+    contextCode: str | None = None
     cabinetTypes: tuple[str, ...] = ("ADMIN",)
     requiresConfirmation: bool = False
     mock: bool = False
@@ -94,8 +96,9 @@ QUICK_ACTION_REGISTRY: tuple[DashboardQuickAction, ...] = (
         label="Настроить Dashboard",
         href="#dashboard-config",
         icon="⚙",
-        moduleCode="MODULE_16_ADMIN_CABINET",
+        moduleCode=DASHBOARD_ADMIN_SOURCE_MODULE,
         featureCode="DASHBOARD_PERSONALIZE",
+        contextCode=DASHBOARD_ADMIN_CONTEXT,
         cabinetTypes=("ADMIN", "CUSTOMER", "SUPPLIER", "ESTIMATOR"),
     ),
 )
@@ -106,7 +109,7 @@ DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {
         "SUPPLIER_PRICE_UPLOAD",
         "MATERIAL_MODERATION_OPEN",
     ),
-    "MODULE_16_ADMIN_CABINET": (
+    DASHBOARD_ADMIN_SOURCE_MODULE: (
         "DASHBOARD_CONFIGURE",
     ),
 }

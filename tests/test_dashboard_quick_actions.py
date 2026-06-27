@@ -16,6 +16,9 @@ def test_quick_actions_are_filtered_by_permissions_and_cabinet_preset():
     action_codes = {action["actionCode"] for action in get_quick_actions_for_dashboard(user_context, cabinet_context)}
 
     assert action_codes == {"SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"}
+    dashboard_action = next(action for action in get_quick_actions_for_dashboard(user_context, cabinet_context) if action["actionCode"] == "DASHBOARD_CONFIGURE")
+    assert dashboard_action["moduleCode"] == "MODULE_03_USERS_ROLES"
+    assert dashboard_action["contextCode"] == "DASHBOARD_ADMIN_CONTEXT"
 
 
 def test_admin_quick_actions_have_module_and_feature_codes():

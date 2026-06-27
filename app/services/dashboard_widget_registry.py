@@ -9,6 +9,7 @@ from app.services.dashboard_module_registry import (
     get_dashboard_module_registry_item,
     resolve_module_route,
 )
+from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
 from app.services.dashboard_widget_config import WIDGET_SIZES, WIDGET_TYPES
 
 
@@ -35,6 +36,7 @@ class DashboardWidgetRegistryItem:
     description: str | None = None
     canonicalModuleCode: str | None = None
     featureCode: str | None = None
+    contextCode: str | None = None
     legacyModuleCode: str | None = None
     requiredModuleCode: str | None = None
     requiredPermissions: list[str] = field(default_factory=list)
@@ -61,6 +63,7 @@ def _widget_item(
     default_size: str = "medium",
     description: str | None = None,
     feature_code: str | None = None,
+    context_code: str | None = None,
     required_module_code: str | None = None,
     required_permissions: list[str] | None = None,
     allowed_sizes: list[str] | None = None,
@@ -85,6 +88,7 @@ def _widget_item(
         sourceModuleCode=canonical_code,
         canonicalModuleCode=canonical_code,
         featureCode=feature_code,
+        contextCode=context_code,
         legacyModuleCode=legacy_code,
         requiredModuleCode=required_module_code or canonical_code,
         requiredPermissions=required_permissions or [],
@@ -153,7 +157,8 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
         title="Уведомления",
         description="Ошибки, предупреждения и события платформы.",
         widget_type="ALERTS",
-        source_module_code="MODULE_16_ADMIN_CABINET",
+        source_module_code=DASHBOARD_ADMIN_SOURCE_MODULE,
+        context_code=DASHBOARD_ADMIN_CONTEXT,
         component_key="SystemAlertsWidget",
         status="mock_only",
         default_size="medium",
@@ -164,7 +169,8 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
         title="Действия карточек АТОМа",
         description="Legacy-запись: быстрые действия теперь выбираются на карточках модулей.",
         widget_type="ACTIONS",
-        source_module_code="MODULE_16_ADMIN_CABINET",
+        source_module_code=DASHBOARD_ADMIN_SOURCE_MODULE,
+        context_code=DASHBOARD_ADMIN_CONTEXT,
         component_key="AtomCardActionsConfig",
         status="disabled",
         default_size="medium",
@@ -174,7 +180,8 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
         title="Атомная карта",
         description="Избранные модули вокруг центра управления.",
         widget_type="ATOM_MAP",
-        source_module_code="MODULE_16_ADMIN_CABINET",
+        source_module_code=DASHBOARD_ADMIN_SOURCE_MODULE,
+        context_code=DASHBOARD_ADMIN_CONTEXT,
         component_key="AtomMapWidget",
         status="available",
         default_size="large",
@@ -350,7 +357,10 @@ def get_dashboard_widget_registry_item(widget_code: str) -> DashboardWidgetRegis
 
 def get_available_dashboard_widgets(user_profile: Any) -> list[dict[str, Any]]:
     data = _profile_dict(user_profile)
-    allowed_modules = set(data.get("allowedModuleCodes") or [])
+    allowed_modules = {
+        get_canonical_module_code(code) or code
+        for code in data.get("allowedModuleCodes") or []
+    }
     allowed_widgets = set(data.get("allowedWidgetCodes") or [])
     return [
         item.to_dict()

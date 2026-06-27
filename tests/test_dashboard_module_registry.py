@@ -1,6 +1,7 @@
 from app.services.dashboard_module_registry import (
     get_atom_map_modules,
     get_canonical_module_code,
+    get_dashboard_module_registry_item,
     get_planned_dashboard_modules,
     get_visible_dashboard_modules,
     is_module_available_for_dashboard,
@@ -14,6 +15,18 @@ def test_price_history_legacy_module_resolves_to_analytics_feature():
     assert get_canonical_module_code("MODULE_14_PRICE_HISTORY") == "MODULE_11_ANALYTICS"
     assert resolve_module_route("MODULE_14_PRICE_HISTORY") == "/modules/analytics?section=price-dynamics"
     assert is_module_available_for_dashboard("MODULE_14_PRICE_HISTORY") is False
+
+
+def test_legacy_admin_cabinet_is_deprecated_context_alias_not_active_module_16():
+    legacy_admin = get_dashboard_module_registry_item("MODULE_16_ADMIN_CABINET")
+    logistics = get_dashboard_module_registry_item("MODULE_16_LOGISTICS_DELIVERY")
+
+    assert legacy_admin is not None
+    assert legacy_admin.status == "deprecated"
+    assert get_canonical_module_code("MODULE_16_ADMIN_CABINET") == "MODULE_03_USERS_ROLES"
+    assert is_module_available_for_dashboard("MODULE_16_ADMIN_CABINET") is False
+    assert logistics is not None
+    assert logistics.status == "planned"
 
 
 def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy():

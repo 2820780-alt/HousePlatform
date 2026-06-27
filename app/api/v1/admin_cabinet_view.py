@@ -50,6 +50,7 @@ from app.services.dashboard_quick_actions import (
     get_atom_card_quick_action_options,
     get_quick_actions_for_dashboard,
 )
+from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
 from app.services.dashboard_widget_config import (
     BOTTOM_WIDGET_GRID,
     RIGHT_RAIL,
@@ -1183,7 +1184,7 @@ def _build_top_widget_grid(top_kpis: list[dict], user_context) -> dict:
         _widget_zone_item(
             build_atom_widget_payload(
                 widget_code=f"{kpi.get('sourceModuleCode', 'DASHBOARD')}.KPI.{_slugify(kpi['label'])}",
-                source_module_code=kpi.get("sourceModuleCode", "MODULE_16_ADMIN_CABINET"),
+                source_module_code=kpi.get("sourceModuleCode", DASHBOARD_ADMIN_SOURCE_MODULE),
                 feature_code=kpi.get("featureCode"),
                 title=kpi["label"],
                 subtitle="KPI",
@@ -1461,11 +1462,12 @@ def _passport(
     dashboard_metrics = metrics or []
     events = _module_events(number, dashboard_metrics)
     registry_status = registry_item.status if registry_item else "active"
-    implemented = bool(href) and registry_status not in {"planned", "draft", "disabled", "archived", "merged"}
+    implemented = bool(href) and registry_status not in {"planned", "draft", "disabled", "archived", "merged", "deprecated"}
     module_code = registry_item.moduleCode if registry_item else f"MODULE_{number:02d}"
     canonical_module_code = get_canonical_module_code(module_code) or module_code
+    context_code = DASHBOARD_ADMIN_CONTEXT if number == 16 else None
     kpis = dashboard_metrics[:2]
-    atom_status = "merged" if registry_status == "merged" else _mock_atom_status(number, implemented, events)
+    atom_status = registry_status if registry_status in {"merged", "deprecated"} else _mock_atom_status(number, implemented, events)
     atom_indicators = _module_indicators(number, dashboard_metrics, events, atom_status, status)
     resolved_route = resolve_module_route(module_code)
     is_available_for_dashboard = is_module_available_for_dashboard(module_code)
@@ -1486,6 +1488,7 @@ def _passport(
         "registry_id": registry_item.id if registry_item else None,
         "module_code": module_code,
         "canonical_module_code": canonical_module_code,
+        "context_code": context_code,
         "feature_codes": registry_item.featureCodes if registry_item else [],
         "expected_feature_codes": registry_item.expectedFeatureCodes if registry_item else [],
         "legacy_codes": registry_item.legacyCodes if registry_item else [],
@@ -1499,7 +1502,7 @@ def _passport(
         "is_visible_in_sidebar": registry_item.isVisibleInSidebar if registry_item else True,
         "is_visible_on_atom_map": registry_item.isVisibleOnAtomMap if registry_item else True,
         "is_available_for_dashboard": is_available_for_dashboard,
-        "title": f"Модуль {number} · {name}",
+        "title": f"Dashboard · {name}" if context_code else f"Модуль {number} · {name}",
         "module_name": name,
         "display_name": display_names.get(number, name),
         "dashboard_description": dashboard_descriptions.get(number, subtitle),

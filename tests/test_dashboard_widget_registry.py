@@ -12,7 +12,7 @@ def test_widget_registry_exposes_available_widgets_for_allowed_modules():
         "allowedModuleCodes": [
             "MODULE_01_MATERIAL_HUB",
             "MODULE_11_ANALYTICS",
-            "MODULE_16_ADMIN_CABINET",
+            "MODULE_03_USERS_ROLES",
         ],
         "allowedWidgetCodes": ["materials-kpi", "price-dynamics", "atom-map"],
     }
@@ -24,6 +24,28 @@ def test_widget_registry_exposes_available_widgets_for_allowed_modules():
     assert "atom-map" in widget_codes
     assert "quick-actions" not in widget_codes
     assert "digital-house-status" not in widget_codes
+
+
+def test_dashboard_admin_context_widgets_use_module_03_source():
+    widget = get_dashboard_widget_registry_item("atom-map")
+
+    assert widget is not None
+    assert widget.sourceModuleCode == "MODULE_03_USERS_ROLES"
+    assert widget.canonicalModuleCode == "MODULE_03_USERS_ROLES"
+    assert widget.contextCode == "DASHBOARD_ADMIN_CONTEXT"
+
+
+def test_legacy_admin_cabinet_allowed_module_is_canonicalized_for_widgets():
+    profile = {
+        "roleCode": "ADMIN",
+        "authMode": "mock",
+        "allowedModuleCodes": ["MODULE_16_ADMIN_CABINET"],
+        "allowedWidgetCodes": ["atom-map"],
+    }
+
+    widget_codes = {widget["widgetCode"] for widget in get_available_dashboard_widgets(profile)}
+
+    assert "atom-map" in widget_codes
 
 
 def test_planned_widgets_are_preview_only_for_admin():

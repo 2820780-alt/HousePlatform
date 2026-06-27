@@ -4,6 +4,8 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_SOURCE_MODULE
+
 
 MERGED_STATUS = "merged"
 ACTIVE_STATUS = "active"
@@ -320,11 +322,16 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         number=16,
         order=160,
         route="/api/v1/admin/cabinet/view",
-        short_title="Кабинет",
-        description="Административный контур и центр управления АТОМ.",
+        status="deprecated",
+        canonical_module_code=DASHBOARD_ADMIN_SOURCE_MODULE,
+        short_title="Legacy admin",
+        description="Deprecated/internal alias: административный экран является системным Dashboard context, не бизнес-модулем.",
         icon="settings",
         color="#18d7f2",
+        visible_sidebar=False,
         visible_atom=False,
+        available_dashboard=False,
+        redirect_route="/api/v1/admin/cabinet/view",
     ),
     _registry_item(
         "MODULE_18_QUALITY_CONTROL",

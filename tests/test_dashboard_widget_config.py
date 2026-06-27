@@ -119,3 +119,19 @@ def test_widget_config_supports_atom_card_action_zone_for_future_layout():
 
     assert config["zoneCode"] == ATOM_CARD_ACTIONS
     assert config["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
+
+
+def test_legacy_admin_cabinet_widget_config_uses_dashboard_context():
+    config = widget_config_from_dict(
+        {
+            "widgetCode": "atom-map",
+            "title": "Атомная карта",
+            "type": "ATOM_MAP",
+            "sourceModuleCode": "MODULE_16_ADMIN_CABINET",
+        }
+    ).to_dict()
+
+    assert config["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+    assert config["canonicalModuleCode"] == "MODULE_03_USERS_ROLES"
+    assert config["legacyModuleCode"] == "MODULE_16_ADMIN_CABINET"
+    assert config["contextCode"] == "DASHBOARD_ADMIN_CONTEXT"

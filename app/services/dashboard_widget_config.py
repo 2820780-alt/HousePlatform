@@ -7,6 +7,11 @@ from app.services.dashboard_module_registry import (
     get_canonical_module_code,
     get_dashboard_module_registry_item_by_number,
 )
+from app.services.dashboard_system_contexts import (
+    DASHBOARD_ADMIN_CONTEXT,
+    DASHBOARD_ADMIN_SOURCE_MODULE,
+    LEGACY_ADMIN_CABINET_MODULE,
+)
 
 
 WIDGET_TYPES = {
@@ -55,6 +60,7 @@ class DashboardWidgetConfig:
     description: str | None = None
     canonicalModuleCode: str | None = None
     featureCode: str | None = None
+    contextCode: str | None = None
     legacyModuleCode: str | None = None
     period: str | None = None
     dataSource: str | None = None
@@ -66,7 +72,7 @@ class DashboardWidgetConfig:
 
 def dashboard_widget_config_from_model(widget: Any, position: int = 100) -> DashboardWidgetConfig:
     registry_item = get_dashboard_module_registry_item_by_number(getattr(widget, "module_number", None))
-    module_code = registry_item.moduleCode if registry_item else "MODULE_16_ADMIN_CABINET"
+    module_code = registry_item.moduleCode if registry_item else DASHBOARD_ADMIN_SOURCE_MODULE
     feature_code = registry_item.featureCodes[0] if registry_item and registry_item.featureCodes else None
     config_schema = getattr(widget, "config_schema", None) or {}
     return build_dashboard_widget_config(
@@ -75,6 +81,7 @@ def dashboard_widget_config_from_model(widget: Any, position: int = 100) -> Dash
         description=getattr(widget, "description", None) or "",
         widget_type=getattr(widget, "widget_type", "STATUS"),
         source_module_code=module_code,
+        context_code=DASHBOARD_ADMIN_CONTEXT if not registry_item else None,
         feature_code=config_schema.get("featureCode") or feature_code,
         enabled=getattr(widget, "status", "ACTIVE") == "ACTIVE",
         size=getattr(widget, "default_size", "M"),
@@ -93,6 +100,7 @@ def build_dashboard_widget_config(
     description: str | None = None,
     widget_type: str,
     source_module_code: str | None,
+    context_code: str | None = None,
     feature_code: str | None = None,
     enabled: bool = True,
     size: str = "medium",
@@ -103,9 +111,14 @@ def build_dashboard_widget_config(
     settings: dict[str, Any] | None = None,
 ) -> DashboardWidgetConfig:
     normalized_type = _normalize_widget_type(widget_type)
-    source_code = source_module_code or "MODULE_16_ADMIN_CABINET"
+    source_code = source_module_code or DASHBOARD_ADMIN_SOURCE_MODULE
     canonical_code = get_canonical_module_code(source_code) or source_code
     legacy_module_code = source_code if source_code != canonical_code else None
+    normalized_context_code = context_code or (
+        DASHBOARD_ADMIN_CONTEXT
+        if source_code in {DASHBOARD_ADMIN_SOURCE_MODULE, LEGACY_ADMIN_CABINET_MODULE}
+        else None
+    )
     normalized_size = _normalize_size(size)
     stable_widget_code = widget_code or _make_widget_code(canonical_code, normalized_type, title)
     return DashboardWidgetConfig(
@@ -116,6 +129,7 @@ def build_dashboard_widget_config(
         sourceModuleCode=canonical_code,
         canonicalModuleCode=canonical_code,
         featureCode=feature_code,
+        contextCode=normalized_context_code,
         legacyModuleCode=legacy_module_code,
         enabled=enabled,
         size=normalized_size,
@@ -141,6 +155,7 @@ def widget_config_from_dict(widget: dict[str, Any], position: int = 100) -> Dash
         description=widget.get("description", ""),
         widget_type=widget.get("type", "STATUS"),
         source_module_code=source_code,
+        context_code=widget.get("contextCode") or widget.get("context_code"),
         feature_code=widget.get("featureCode"),
         enabled=widget.get("enabled", True),
         size=widget.get("size", "medium"),
