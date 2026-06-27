@@ -5,13 +5,13 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_SOURCE_MODULE
+from app.services.platform_region_registry import is_known_platform_region_code
 
 
 MERGED_STATUS = "merged"
 ACTIVE_STATUS = "active"
 PLANNED_STATUSES = {"planned", "draft"}
 HIDDEN_ACTIVE_STATUSES = {"disabled", "deprecated", "archived", "merged"}
-KNOWN_REGION_CODES = {"KRASNODAR_KRAI"}
 
 
 @dataclass(frozen=True)
@@ -633,7 +633,7 @@ def is_region_available_for_dashboard(active_region_code: str | None, user_profi
     available = data.get("availableRegionCodes") or []
     if available:
         return active_region_code in available
-    return active_region_code in KNOWN_REGION_CODES
+    return is_known_platform_region_code(active_region_code)
 
 
 def _normalize_widget_layout(widget: Any) -> Any:
