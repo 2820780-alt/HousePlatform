@@ -22,6 +22,12 @@ ROLE_LABELS = {
     "CUSTOMER": "Заказчик",
     "ESTIMATOR": "Сметчик",
 }
+PREVIEW_ROLE_OPTIONS = [
+    {"roleCode": "ANALYST", "label": ROLE_LABELS["ANALYST"]},
+    {"roleCode": "SUPPLIER", "label": ROLE_LABELS["SUPPLIER"]},
+    {"roleCode": "CUSTOMER", "label": ROLE_LABELS["CUSTOMER"]},
+    {"roleCode": "ESTIMATOR", "label": ROLE_LABELS["ESTIMATOR"]},
+]
 PREVIEW_ROLE_PROFILES = {
     "ANALYST": {
         "workspaceType": "ANALYTICS",
@@ -97,6 +103,8 @@ class DashboardUserContext:
         data["allowedWidgets"] = self.allowedWidgetCodes
         data["allowedActions"] = self.allowedActionCodes
         data["favoriteModules"] = self.favoriteModuleCodes
+        data["canPreviewDashboardRoles"] = self.roleCode in ADMIN_ROLE_CODES
+        data["previewRoleOptions"] = PREVIEW_ROLE_OPTIONS
         data["cabinetDashboardPreset"] = self.cabinetDashboardPreset
         data["userDashboardLayout"] = self.userDashboardLayout
         data["is_mock"] = self.authMode == "mock"
@@ -247,6 +255,11 @@ class DashboardPermissionAdapter:
         data = _context_dict(context)
         return action_code in data.get("allowedActionCodes", [])
 
+    @staticmethod
+    def can_preview_dashboard_roles(context: DashboardUserContext | dict[str, Any]) -> bool:
+        data = _context_dict(context)
+        return data.get("roleCode") in ADMIN_ROLE_CODES
+
 
 class DashboardRegionContextAdapter:
     @staticmethod
@@ -303,6 +316,10 @@ def can_edit_dashboard_layout(context: DashboardUserContext | dict[str, Any]) ->
 
 def can_use_action(context: DashboardUserContext | dict[str, Any], action_code: str) -> bool:
     return DashboardPermissionAdapter.can_use_action(context, action_code)
+
+
+def can_preview_dashboard_roles(context: DashboardUserContext | dict[str, Any]) -> bool:
+    return DashboardPermissionAdapter.can_preview_dashboard_roles(context)
 
 
 def can_change_region(context: DashboardUserContext | dict[str, Any]) -> bool:

@@ -433,6 +433,46 @@
     .module-manager-card[data-selected="true"] {
       border-color: rgba(34, 197, 94, 0.42);
     }
+    .module-card-action-settings {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(119, 172, 255, 0.14);
+    }
+    .module-card-action-settings h4 {
+      margin: 0;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .module-card-action-settings p {
+      min-height: 0;
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .module-card-action-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .module-card-action-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 28px;
+      padding: 0 8px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(6, 13, 31, 0.48);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .module-card-action-option input {
+      width: 13px;
+      height: 13px;
+    }
     .registry-section-title {
       margin-top: 14px;
       padding-top: 12px;
@@ -892,6 +932,16 @@
       box-shadow: 0 18px 58px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
       isolation: isolate;
     }
+    .module-card-open-link {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border-radius: inherit;
+    }
+    .module-card > *:not(.module-card-open-link) {
+      position: relative;
+      z-index: 2;
+    }
     .module-card::before {
       content: "";
       display: none;
@@ -1048,6 +1098,43 @@
       margin-top: auto;
       overflow: hidden;
     }
+    .module-card-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      margin: 0 auto;
+    }
+    .module-card-actions.empty {
+      visibility: hidden;
+    }
+    .module-card-action {
+      position: relative;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: 27px;
+      height: 27px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
+      border-radius: 8px;
+      background: rgba(6, 13, 31, 0.78);
+      color: color-mix(in srgb, var(--card-accent) 76%, white);
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 0 13px color-mix(in srgb, var(--card-accent) 18%, transparent);
+      transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+    }
+    .module-card-action:hover,
+    .module-card-action:focus-visible {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--card-accent) 72%, white 8%);
+      background: color-mix(in srgb, var(--card-accent) 14%, rgba(6, 13, 31, 0.86));
+      outline: none;
+    }
+    .module-card-action.atom-action-hidden {
+      display: none;
+    }
     .module-indicator {
       display: inline-flex;
       align-items: center;
@@ -1154,7 +1241,7 @@
     .mover .down { color: var(--green); }
     .bottom-grid {
       display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr 1fr;
+      grid-template-columns: 1.2fr 1fr 1fr;
       gap: 12px;
       margin-top: 14px;
     }
@@ -1409,13 +1496,16 @@
           </select>
           {% else %}
           <strong>{{ currentCabinetContextMock.activeWorkspaceTitle or currentCabinetContextMock.activeCabinetTitle }} /</strong>
+          {% if currentUserProfileMock.canPreviewDashboardRoles %}
           <select data-dashboard-preview-role onchange="setDashboardPreviewRole(this.value)" aria-label="Предпросмотр роли">
             <option value="" {% if not currentUserProfileMock.previewRoleCode %}selected{% endif %}>{{ currentUserProfileMock.roleLabel }}</option>
-            <option value="ANALYST" {% if currentUserProfileMock.previewRoleCode == "ANALYST" %}selected{% endif %}>Аналитик</option>
-            <option value="SUPPLIER" {% if currentUserProfileMock.previewRoleCode == "SUPPLIER" %}selected{% endif %}>Поставщик</option>
-            <option value="CUSTOMER" {% if currentUserProfileMock.previewRoleCode == "CUSTOMER" %}selected{% endif %}>Заказчик</option>
-            <option value="ESTIMATOR" {% if currentUserProfileMock.previewRoleCode == "ESTIMATOR" %}selected{% endif %}>Сметчик</option>
+            {% for role_option in currentUserProfileMock.previewRoleOptions %}
+            <option value="{{ role_option.roleCode }}" {% if currentUserProfileMock.previewRoleCode == role_option.roleCode %}selected{% endif %}>{{ role_option.label }}</option>
+            {% endfor %}
           </select>
+          {% else %}
+          <strong>{{ currentCabinetContextMock.activeRoleLabel or currentUserProfileMock.roleLabel }}</strong>
+          {% endif %}
           {% endif %}
           {% if currentUserProfileMock.previewRoleCode %}<span class="mock-tag">preview</span>{% endif %}
         </div>
@@ -1589,6 +1679,26 @@
                 <a href="{{ module.route }}">Открыть</a>
                 <a href="{{ module.passport_href }}">Настроить</a>
               </div>
+              <div class="module-card-action-settings" data-module-action-settings="{{ module.module_code }}">
+                <h4>Действия на карточке</h4>
+                <p>Можно выбрать до {{ atom_card_action_limit }} действий. Проверка доступа идет через actionCode.</p>
+                <div class="module-card-action-list">
+                  {% for action in module.atom_quick_action_options %}
+                  <label class="module-card-action-option" title="{{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}">
+                    <input
+                      type="checkbox"
+                      data-atom-action-toggle
+                      data-module-code="{{ module.module_code }}"
+                      data-action-code="{{ action.actionCode }}"
+                      {% if action.isSelected %}checked{% endif %}
+                    >
+                    <span>{{ action.icon }} {{ action.label }}</span>
+                  </label>
+                  {% else %}
+                  <span class="event-note">Для этого модуля нет доступных быстрых действий.</span>
+                  {% endfor %}
+                </div>
+              </div>
             </article>
             {% endfor %}
           </div>
@@ -1691,13 +1801,29 @@
           </div>
 
           {% for card in all_atom_cards %}
-          <a class="module-card {% if not card.implemented %}future{% endif %} {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-atom-module-card data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-status="{{ card.atom_status }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" href="{{ card.route if card.implemented else card.passport_href }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+          <article class="module-card {% if not card.implemented %}future{% endif %} {% if card.module_code not in selected_atom_module_codes %}atom-hidden{% endif %}" data-atom-module-card data-module-code="{{ card.module_code }}" data-canonical-module-code="{{ card.canonical_module_code }}" data-orbit-level="{{ card.orbit_level }}" data-position="{{ card.position }}" data-status="{{ card.atom_status }}" data-tooltip="{{ card.dashboard_description }} · {{ card.visual_state }}" style="--card-accent: {{ card.accent }}; --x: {{ card.orbit.x }}; --y: {{ card.orbit.y }}; --link-width: {{ card.orbit.link_width }}; --link-angle: {{ card.orbit.link_angle }}">
+            <a class="module-card-open-link" href="{{ card.route if card.implemented else card.passport_href }}" aria-label="Открыть {{ card.display_name }}"></a>
             <div class="module-head">
               <div class="module-icon">{{ card.dashboard_icon }}</div>
               <div class="module-title-group">
                 <div class="module-name">{{ card.display_name }}</div>
                 <div class="module-state {{ card.state_tone }}">{{ card.visual_state }}</div>
               </div>
+            </div>
+            <div class="module-card-actions {% if not card.atom_quick_action_options %}empty{% endif %}" aria-label="Быстрые действия модуля {{ card.display_name }}">
+              {% for action in card.atom_quick_action_options %}
+              <a
+                class="module-card-action {% if not action.isSelected %}atom-action-hidden{% endif %}"
+                href="{{ action.href }}"
+                title="{{ action.label }} · {{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}"
+                aria-label="{{ action.label }}"
+                data-atom-card-action
+                data-module-code="{{ card.module_code }}"
+                data-action-code="{{ action.actionCode }}"
+                data-feature-code="{{ action.featureCode or '' }}"
+                {% if action.requiresConfirmation %}data-confirm="true"{% endif %}
+              >{{ action.icon }}</a>
+              {% endfor %}
             </div>
             <div class="module-indicators" aria-label="Индикаторы модуля {{ card.display_name }}">
               {% for indicator in card.atom_indicators %}
@@ -1707,7 +1833,7 @@
               </span>
               {% endfor %}
             </div>
-          </a>
+          </article>
           {% endfor %}
         </section>
 
@@ -1849,26 +1975,6 @@
             <span><span class="event-title">Кандидаты базы знаний</span><span class="event-note">данные готовятся в Модуле 1, полноценная база знаний будет отдельным модулем</span></span>
           </div>
         </article>
-
-        <article class="panel">
-          <h2>Быстрые действия</h2>
-          <div class="quick-grid">
-            {% for action in quick_actions %}
-            <a class="quick-action" href="{{ action.href }}" data-action-code="{{ action.actionCode }}" data-module-code="{{ action.moduleCode }}">
-              <span class="quick-icon">{{ action.icon }}</span>
-              <span>
-                {{ action.label }}
-                <br><small class="mock-note">{{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}{% if action.mock %} · mock{% endif %}</small>
-              </span>
-            </a>
-            {% else %}
-            <div class="event-row info">
-              <span class="event-dot">i</span>
-              <span><span class="event-title">Нет доступных действий</span><span class="event-note">Module 3 или кабинетный preset не разрешили быстрые действия.</span></span>
-            </div>
-            {% endfor %}
-          </div>
-        </article>
       </section>
     </main>
   </div>
@@ -2006,8 +2112,10 @@
       });
       if (!manager) return;
       const limit = Number(manager.dataset.limit || 8);
+      const atomCardActionLimit = Number("{{ atom_card_action_limit }}") || 3;
       const countNode = document.querySelector("[data-atom-selected-count]");
       const messageNode = document.querySelector("[data-module-manager-message]");
+      const actionToggles = Array.from(document.querySelectorAll("[data-atom-action-toggle]"));
 
       const getVisibleCards = () => Array.from(document.querySelectorAll("[data-atom-module-card]:not(.atom-hidden)"));
       const getCard = (moduleCode) => document.querySelector(`[data-atom-module-card][data-module-code="${moduleCode}"]`);
@@ -2045,6 +2153,44 @@
         if (!messageNode) return;
         messageNode.textContent = text || "";
       }
+
+      function getActionToggles(moduleCode) {
+        return actionToggles.filter((toggle) => toggle.dataset.moduleCode === moduleCode);
+      }
+
+      function syncAtomCardActions(moduleCode) {
+        const toggles = getActionToggles(moduleCode);
+        const selectedCodes = new Set(toggles.filter((toggle) => toggle.checked).map((toggle) => toggle.dataset.actionCode));
+        document.querySelectorAll(`[data-atom-card-action][data-module-code="${moduleCode}"]`).forEach((link) => {
+          link.classList.toggle("atom-action-hidden", !selectedCodes.has(link.dataset.actionCode));
+        });
+        toggles.forEach((toggle) => {
+          toggle.disabled = !toggle.checked && selectedCodes.size >= atomCardActionLimit;
+        });
+      }
+
+      actionToggles.forEach((toggle) => {
+        toggle.addEventListener("change", () => {
+          const moduleCode = toggle.dataset.moduleCode;
+          const selected = getActionToggles(moduleCode).filter((item) => item.checked);
+          if (selected.length > atomCardActionLimit) {
+            toggle.checked = false;
+            setMessage(`На карточке можно показать не больше ${atomCardActionLimit} действий`);
+          } else {
+            setMessage("");
+          }
+          syncAtomCardActions(moduleCode);
+        });
+        syncAtomCardActions(toggle.dataset.moduleCode);
+      });
+
+      document.querySelectorAll("[data-atom-card-action][data-confirm='true']").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          if (!window.confirm("Выполнить действие?")) {
+            event.preventDefault();
+          }
+        });
+      });
 
       function setModuleVisible(moduleCode, isVisible) {
         const card = getCard(moduleCode);

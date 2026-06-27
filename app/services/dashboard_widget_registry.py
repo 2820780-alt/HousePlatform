@@ -161,12 +161,12 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
     ),
     _widget_item(
         widget_code="quick-actions",
-        title="Быстрые действия",
-        description="Основные действия администратора.",
+        title="Действия карточек АТОМа",
+        description="Legacy-запись: быстрые действия теперь выбираются на карточках модулей.",
         widget_type="ACTIONS",
         source_module_code="MODULE_16_ADMIN_CABINET",
-        component_key="QuickActionsWidget",
-        status="mock_only",
+        component_key="AtomCardActionsConfig",
+        status="disabled",
         default_size="medium",
     ),
     _widget_item(

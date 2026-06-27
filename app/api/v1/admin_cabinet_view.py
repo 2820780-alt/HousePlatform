@@ -44,7 +44,11 @@ from app.services.dashboard_module_registry import (
     is_module_available_for_dashboard,
     resolve_module_route,
 )
-from app.services.dashboard_quick_actions import get_quick_actions_for_dashboard
+from app.services.dashboard_quick_actions import (
+    ATOM_CARD_QUICK_ACTION_LIMIT,
+    get_atom_card_quick_action_options,
+    get_quick_actions_for_dashboard,
+)
 from app.services.dashboard_widget_config import (
     BOTTOM_WIDGET_GRID,
     RIGHT_RAIL,
@@ -168,6 +172,7 @@ def _build_all_modules_panel(
             "route": card["route"],
             "passport_href": card["passport_href"],
             "accent": card["accent"],
+            "atom_quick_action_options": card.get("atom_quick_action_options", []),
         }
         for card in atom_cards
     ]
@@ -255,6 +260,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     cabinet_context = get_current_cabinet_context(dashboard_user_context)
     current_user_profile_mock = dashboard_user_context.to_template_dict()
     current_cabinet_context_mock = cabinet_context.to_dict()
+    _attach_atom_card_quick_actions(cards, dashboard_user_context, current_cabinet_context_mock)
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -334,6 +340,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
         "bottom_widget_grid": bottom_widget_grid,
         "sources_overview": source_health,
         "quick_actions": get_quick_actions_for_dashboard(dashboard_user_context, current_cabinet_context_mock),
+        "atom_card_action_limit": ATOM_CARD_QUICK_ACTION_LIMIT,
         "system_events": _system_events(pending_candidates, failed_tasks, active_tasks, new_materials),
         "admin_widgets": admin_widgets,
         "personalization": personalization,
@@ -346,6 +353,26 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
         "currentUserProfileMock": current_user_profile_mock,
         "current_user_profile": current_user_profile_mock,
     }
+
+
+def _attach_atom_card_quick_actions(cards: list[dict], user_context, cabinet_context: dict) -> None:
+    module_action_settings = (
+        (cabinet_context.get("cabinetDashboardPreset") or {})
+        .get("atomCardActions", {})
+        .get("moduleActionCodes", {})
+    )
+    for card in cards:
+        module_code = card.get("canonical_module_code") or card.get("module_code")
+        selected_codes = module_action_settings.get(module_code)
+        options = get_atom_card_quick_action_options(
+            user_context,
+            cabinet_context,
+            module_code,
+            selected_action_codes=selected_codes,
+        )
+        card["atom_quick_action_options"] = options
+        card["atom_quick_actions"] = [action for action in options if action["isSelected"]][:ATOM_CARD_QUICK_ACTION_LIMIT]
+        card["atom_quick_action_limit"] = ATOM_CARD_QUICK_ACTION_LIMIT
 
 
 async def _load_active_region_context(db: DBSession) -> dict:

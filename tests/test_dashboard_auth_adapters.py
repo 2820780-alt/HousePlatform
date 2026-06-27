@@ -3,6 +3,7 @@ from app.services.dashboard_auth_adapters import (
     can_access_widget,
     can_change_region,
     can_edit_dashboard_layout,
+    can_preview_dashboard_roles,
     can_use_action,
     can_see_planned_modules,
     can_use_feature,
@@ -76,7 +77,10 @@ def test_dashboard_permission_helpers_work_over_mock_context():
     assert not can_use_action(context, "UNKNOWN_ACTION")
     assert can_edit_dashboard_layout(context)
     assert can_see_planned_modules(context)
+    assert context.to_template_dict()["canPreviewDashboardRoles"] is True
     assert not can_change_region(context)
+    assert can_preview_dashboard_roles({"roleCode": "SUPER_ADMIN"})
+    assert not can_preview_dashboard_roles({"roleCode": "SUPPLIER"})
 
 
 def test_preview_role_changes_effective_access_without_changing_real_role():
@@ -110,3 +114,4 @@ def test_preview_role_changes_effective_access_without_changing_real_role():
     assert "MODULE_11_ANALYTICS" not in context.allowedModuleCodes
     assert can_use_action(context, "SUPPLIER_PRICE_UPLOAD")
     assert not can_see_planned_modules(context)
+    assert context.to_template_dict()["canPreviewDashboardRoles"] is True

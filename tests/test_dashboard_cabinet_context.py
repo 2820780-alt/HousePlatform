@@ -17,6 +17,8 @@ def test_cabinet_context_mock_exposes_dashboard_preset_and_actions():
     assert context.currentBlock == "Главная"
     assert context.cabinetDashboardPreset["presetCode"] == "ADMIN_CABINET_DEFAULT"
     assert context.cabinetDashboardPreset["topbar"]["showGlobalPeriod"] is False
+    assert context.cabinetDashboardPreset["atomCardActions"]["maxActionsPerCard"] == 3
+    assert "MODULE_01_MATERIAL_HUB" in context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"]
     assert "DASHBOARD_CONFIGURE" in context.allowedActionCodes
 
 

@@ -1,5 +1,6 @@
 from app.services.dashboard_module_registry import normalize_dashboard_layout
 from app.services.dashboard_widget_config import (
+    ATOM_CARD_ACTIONS,
     BOTTOM_WIDGET_GRID,
     RIGHT_RAIL,
     SIZE_GRID_SPANS,
@@ -103,3 +104,18 @@ def test_widget_config_supports_bottom_grid_and_right_rail_zones():
     ).to_dict()
 
     assert top_config["zoneCode"] == TOP_WIDGET_GRID
+
+
+def test_widget_config_supports_atom_card_action_zone_for_future_layout():
+    config = widget_config_from_dict(
+        {
+            "widgetCode": "material-card-actions",
+            "title": "Действия карточки",
+            "type": "ACTIONS",
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+            "zone": "atom_card",
+        }
+    ).to_dict()
+
+    assert config["zoneCode"] == ATOM_CARD_ACTIONS
+    assert config["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"

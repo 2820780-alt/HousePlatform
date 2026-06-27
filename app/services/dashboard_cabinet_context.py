@@ -20,6 +20,7 @@ class CabinetDashboardPreset:
     title: str
     topbar: dict[str, Any] = field(default_factory=dict)
     widgetZones: dict[str, Any] = field(default_factory=dict)
+    atomCardActions: dict[str, Any] = field(default_factory=dict)
     quickActionCodes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -108,6 +109,20 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
                 "zoneCode": "BOTTOM_WIDGET_GRID",
                 "title": "Нижние виджеты",
                 "maxVisibleWidgets": 6,
+            },
+        },
+        atomCardActions={
+            "placement": "ATOM_CARD",
+            "maxActionsPerCard": 3,
+            "moduleActionCodes": {
+                "MODULE_01_MATERIAL_HUB": [
+                    "MATERIAL_CREATE",
+                    "SUPPLIER_PRICE_UPLOAD",
+                    "MATERIAL_MODERATION_OPEN",
+                ],
+                "MODULE_16_ADMIN_CABINET": [
+                    "DASHBOARD_CONFIGURE",
+                ],
             },
         },
         quickActionCodes=[

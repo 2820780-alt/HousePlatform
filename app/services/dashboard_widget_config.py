@@ -23,7 +23,8 @@ WIDGET_TYPES = {
 BOTTOM_WIDGET_GRID = "BOTTOM_WIDGET_GRID"
 TOP_WIDGET_GRID = "TOP_WIDGET_GRID"
 RIGHT_RAIL = "RIGHT_RAIL"
-WIDGET_ZONES = {TOP_WIDGET_GRID, BOTTOM_WIDGET_GRID, RIGHT_RAIL, "ATOM_MAP"}
+ATOM_CARD_ACTIONS = "ATOM_CARD_ACTIONS"
+WIDGET_ZONES = {TOP_WIDGET_GRID, BOTTOM_WIDGET_GRID, RIGHT_RAIL, ATOM_CARD_ACTIONS, "ATOM_MAP"}
 WIDGET_SIZES = {"small", "medium", "large", "wide"}
 
 LEGACY_SIZE_MAP = {
@@ -173,6 +174,8 @@ def _normalize_zone(zone_code: str | None) -> str:
         "BOTTOM": BOTTOM_WIDGET_GRID,
         "RIGHT": RIGHT_RAIL,
         "RIGHT_COLUMN": RIGHT_RAIL,
+        "ATOM_CARD": ATOM_CARD_ACTIONS,
+        "ATOM_ACTIONS": ATOM_CARD_ACTIONS,
     }
     normalized = legacy_map.get(normalized, normalized)
     return normalized if normalized in WIDGET_ZONES else BOTTOM_WIDGET_GRID

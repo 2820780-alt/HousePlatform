@@ -22,6 +22,7 @@ def test_widget_registry_exposes_available_widgets_for_allowed_modules():
     assert "materials-kpi" in widget_codes
     assert "price-dynamics" in widget_codes
     assert "atom-map" in widget_codes
+    assert "quick-actions" not in widget_codes
     assert "digital-house-status" not in widget_codes
 
 
