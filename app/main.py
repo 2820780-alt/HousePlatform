@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.api.v1 import api_router
 from app.config import settings
@@ -28,6 +29,21 @@ async def health_check():
         "version": "Master_Prompt_v1.1",
         "environment": settings.APP_ENV,
     }
+
+
+@app.get("/modules/price-history", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_price_history_route():
+    return RedirectResponse(url="/api/v1/admin/price-dynamics/view", status_code=307)
+
+
+@app.get("/modules/analytics", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_analytics_route(section: str | None = None):
+    target = (
+        "/api/v1/admin/price-dynamics/view"
+        if section == "price-dynamics"
+        else "/api/v1/admin/cabinet/view/modules/11"
+    )
+    return RedirectResponse(url=target, status_code=307)
 
 
 app.include_router(api_router, prefix="/api/v1")
