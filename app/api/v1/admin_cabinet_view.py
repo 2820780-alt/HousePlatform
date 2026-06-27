@@ -172,7 +172,11 @@ def _build_all_modules_panel(
             "route": card["route"],
             "passport_href": card["passport_href"],
             "accent": card["accent"],
+            "dashboard_icon": card["dashboard_icon"],
+            "visual_state": card["visual_state"],
+            "state_tone": card["state_tone"],
             "atom_quick_action_options": card.get("atom_quick_action_options", []),
+            "atom_quick_actions": card.get("atom_quick_actions", []),
         }
         for card in atom_cards
     ]

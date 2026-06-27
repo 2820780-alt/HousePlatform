@@ -112,6 +112,10 @@
       border-bottom: 1px solid var(--line);
       margin-bottom: 12px;
     }
+    .sidebar-brand:hover .atom-logo,
+    .sidebar-brand:focus-visible .atom-logo {
+      box-shadow: 0 0 34px rgba(24, 215, 242, 0.42);
+    }
     .atom-logo {
       position: relative;
       display: grid;
@@ -198,7 +202,7 @@
       top: 0;
       z-index: 10;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 12px;
       align-items: center;
       min-height: 66px;
@@ -209,8 +213,8 @@
       backdrop-filter: blur(18px);
     }
     .topbar-spacer {
-      flex: 1 1 220px;
-      min-width: 24px;
+      flex: 1 1 auto;
+      min-width: 12px;
     }
     .icon-button {
       width: 40px;
@@ -251,6 +255,7 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
+      min-width: 0;
       min-height: 40px;
       padding: 0 11px;
       border: 1px solid var(--line);
@@ -260,6 +265,15 @@
       white-space: nowrap;
     }
     .top-chip strong { color: var(--text); }
+    .cabinet-chip {
+      flex: 0 1 540px;
+      overflow: hidden;
+    }
+    .cabinet-chip > strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .top-chip select {
       min-height: 32px;
       min-width: 132px;
@@ -294,6 +308,7 @@
       display: flex;
       align-items: center;
       gap: 9px;
+      flex: 0 0 auto;
       min-height: 40px;
       padding: 7px 10px;
       border: 1px solid var(--line);
@@ -392,44 +407,71 @@
     }
     .module-manager-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 10px;
     }
     .module-manager-card {
+      --card-accent: var(--module-accent, var(--cyan));
+      position: relative;
+      min-height: 136px;
       padding: 12px;
-      border: 1px solid rgba(119, 172, 255, 0.18);
-      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
+      border-radius: 12px;
       background:
-        radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--module-accent, var(--cyan)) 18%, transparent), transparent 38%),
-        rgba(6, 13, 31, 0.56);
+        radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--card-accent) 28%, transparent), transparent 36%),
+        linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 12%, rgba(13, 22, 52, 0.92)), rgba(7, 14, 35, 0.88));
+      overflow: hidden;
     }
-    .module-manager-card strong {
-      display: block;
-      margin-bottom: 5px;
+    .module-manager-preview {
+      min-height: 96px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: 7px;
+      padding: 6px 38px;
     }
-    .module-manager-card p {
-      min-height: 34px;
-      margin: 6px 0 10px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
+    .module-manager-preview .module-icon {
+      width: 34px;
+      height: 34px;
+      font-size: 17px;
     }
-    .module-manager-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .module-manager-title {
+      color: var(--text);
+      font-weight: 800;
+      line-height: 1.12;
     }
-    .module-manager-actions button,
-    .module-manager-actions a {
+    .module-manager-state {
       display: inline-flex;
       align-items: center;
-      min-height: 30px;
-      padding: 0 9px;
-      border: 1px solid rgba(24, 215, 242, 0.24);
+      gap: 5px;
+      color: color-mix(in srgb, var(--card-accent) 64%, white);
+      font-size: 11px;
+    }
+    .module-manager-state::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .module-manager-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: grid;
+      gap: 6px;
+    }
+    .module-manager-actions button {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 42%, transparent);
       border-radius: 8px;
       background: rgba(24, 215, 242, 0.08);
       color: var(--text);
-      font-size: 12px;
+      font-size: 17px;
       font-weight: 700;
     }
     .module-manager-actions button:disabled {
@@ -438,46 +480,6 @@
     }
     .module-manager-card[data-selected="true"] {
       border-color: rgba(34, 197, 94, 0.42);
-    }
-    .module-card-action-settings {
-      display: grid;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(119, 172, 255, 0.14);
-    }
-    .module-card-action-settings h4 {
-      margin: 0;
-      color: var(--text);
-      font-size: 12px;
-    }
-    .module-card-action-settings p {
-      min-height: 0;
-      margin: 0;
-      color: var(--muted);
-      font-size: 11px;
-    }
-    .module-card-action-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .module-card-action-option {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      min-height: 28px;
-      padding: 0 8px;
-      border: 1px solid rgba(119, 172, 255, 0.16);
-      border-radius: 8px;
-      background: rgba(6, 13, 31, 0.48);
-      color: var(--muted);
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .module-card-action-option input {
-      width: 13px;
-      height: 13px;
     }
     .registry-section-title {
       margin-top: 14px;
@@ -946,8 +948,10 @@
       transform: translate(-50%, -50%);
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      overflow: visible;
       padding: 12px;
       border-radius: 12px;
       border-width: 1px;
@@ -996,7 +1000,8 @@
       position: absolute;
       left: 16px;
       right: 16px;
-      bottom: 12px;
+      top: calc(50% + 31px);
+      bottom: auto;
       padding: 8px 10px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
       border-radius: 9px;
@@ -1009,7 +1014,7 @@
       pointer-events: none;
       transition: opacity 0.16s ease, transform 0.16s ease;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34), 0 0 18px color-mix(in srgb, var(--card-accent) 14%, transparent);
-      z-index: 2;
+      z-index: 8;
     }
     @keyframes atom-link-pulse {
       0%, 100% {
@@ -1027,6 +1032,7 @@
       transform: translate(-50%, -50%) scale(1.045);
       border-color: color-mix(in srgb, var(--card-accent) 74%, white 8%);
       box-shadow: 0 26px 88px rgba(0, 0, 0, 0.5), 0 0 34px color-mix(in srgb, var(--card-accent) 24%, transparent);
+      z-index: 8;
     }
     .module-card:hover::before {
       height: 8px;
@@ -1039,6 +1045,9 @@
     .module-card:hover::after {
       opacity: 1;
       transform: translateY(0);
+    }
+    .module-card:hover .module-card-actions {
+      transform: translateY(-5px);
     }
     .module-card.future { opacity: 0.72; }
     .module-card[data-status="planned"],
@@ -1069,11 +1078,14 @@
     }
     .module-head {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 1fr;
+      justify-items: center;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
       margin-bottom: 0;
       min-width: 0;
+      width: 100%;
+      text-align: center;
     }
     .module-icon {
       display: grid;
@@ -1090,7 +1102,7 @@
       font-weight: 800;
       box-shadow: 0 0 16px color-mix(in srgb, var(--card-accent) 22%, transparent);
     }
-    .module-title-group { min-width: 0; }
+    .module-title-group { min-width: 0; width: 100%; }
     .module-name {
       overflow: hidden;
       font-size: 15px;
@@ -1102,6 +1114,7 @@
     .module-state {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
       margin-top: 3px;
       color: color-mix(in srgb, var(--card-accent) 64%, white);
@@ -1132,7 +1145,8 @@
       align-items: center;
       gap: 6px;
       min-height: 26px;
-      margin: auto auto;
+      margin: 0 auto 2px;
+      transition: transform 0.14s ease;
     }
     .module-card-actions.empty {
       visibility: hidden;
@@ -1152,6 +1166,33 @@
       font-weight: 900;
       box-shadow: 0 0 13px color-mix(in srgb, var(--card-accent) 18%, transparent);
       transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+    }
+    .module-card-action::after {
+      content: attr(data-action-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 7px);
+      z-index: 30;
+      min-width: max-content;
+      max-width: 220px;
+      padding: 7px 9px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 46%, transparent);
+      border-radius: 8px;
+      background: rgba(5, 9, 23, 0.94);
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.25;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34), 0 0 16px color-mix(in srgb, var(--card-accent) 18%, transparent);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 4px);
+      transition: opacity 0.14s ease, transform 0.14s ease;
+      white-space: normal;
+    }
+    .module-card-action:hover::after,
+    .module-card-action:focus-visible::after {
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
     .module-card-action:hover,
     .module-card-action:focus-visible {
@@ -1308,12 +1349,13 @@
     }
     .admin-widget-card {
       grid-column: span var(--widget-span, 4);
-      min-height: 120px;
-      max-height: 320px;
+      min-height: 112px;
+      height: 112px;
+      max-height: 112px;
       overflow: hidden;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 12px;
-      padding: 13px;
+      padding: 12px;
       background:
         radial-gradient(circle at 90% 10%, rgba(24, 215, 242, 0.08), transparent 36%),
         rgba(6, 13, 31, 0.58);
@@ -1323,7 +1365,7 @@
       align-items: start;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .admin-widget-head h2 { margin: 0; font-size: 15px; }
     .admin-widget-meta {
@@ -1334,7 +1376,9 @@
     }
     .admin-widget-list {
       display: grid;
-      gap: 7px;
+      gap: 5px;
+      max-height: 66px;
+      overflow: hidden;
     }
     .admin-widget-row {
       display: grid;
@@ -1342,11 +1386,11 @@
       gap: 8px;
       align-items: center;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
     }
     .admin-widget-row strong {
       color: var(--text);
-      font-size: 13px;
+      font-size: 12px;
       text-align: right;
     }
     .admin-widget-row.warn strong { color: var(--amber); }
@@ -1422,6 +1466,13 @@
       .top-widget-card { grid-column: span 4; }
       .dashboard-grid { grid-template-columns: 1fr; }
       .analytics-column { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .profile-pill .profile-name { display: none; }
+      .profile-pill {
+        width: 40px;
+        padding: 7px;
+        justify-content: center;
+      }
+      .cabinet-chip { flex-basis: 480px; }
     }
     @media (max-width: 1100px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -1441,9 +1492,10 @@
       body.nav-collapsed .nav-label,
       body.nav-collapsed .sidebar-brand span,
       body.nav-collapsed .sidebar-footer { display: initial; }
-      .topbar { align-items: start; }
-      .top-chip, .profile-pill, .region-badge { display: none; }
+      .topbar { align-items: center; }
+      .top-chip, .region-badge { display: none; }
       .top-chip:first-of-type { display: inline-flex; }
+      .profile-pill { display: flex; }
       .top-widget-card { grid-column: span 6; }
       .atom-map {
         min-height: 0;
@@ -1488,13 +1540,13 @@
 <body data-atom-page data-rbac-ready>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Навигация">
-      <div class="sidebar-brand">
+      <a class="sidebar-brand" href="/api/v1/admin/cabinet/view" title="Перейти на главный Dashboard АТОМ">
         <div class="atom-logo">A</div>
         <span>
           <strong>АТОМ</strong>
           <small>строительная платформа</small>
         </span>
-      </div>
+      </a>
       <nav class="nav-list">
         {% for item in side_nav %}
         <a class="nav-item {% if item.active %}active{% endif %}" href="{{ item.href }}" data-tooltip="{{ item.label }}" aria-label="{{ item.label }}">
@@ -1514,7 +1566,7 @@
     <main class="content">
       <header class="topbar">
         <button class="icon-button" type="button" onclick="document.body.classList.toggle('nav-collapsed')" title="Свернуть меню">☰</button>
-        <div class="top-chip" title="Контекст задается Module 8 / Cabinet Context">
+        <div class="top-chip cabinet-chip" title="Контекст задается Module 8 / Cabinet Context">
           <span>Кабинет:</span>
           {% if currentCabinetContextMock.availableCabinets|length > 1 %}
           <select aria-label="Активный кабинет">
@@ -1553,7 +1605,7 @@
         <div class="topbar-spacer" aria-hidden="true"></div>
         <button class="icon-button" type="button" title="Уведомления" aria-label="Уведомления">🔔</button>
         <button class="settings-button" type="button" title="Настроить дашборд" aria-label="Настроить дашборд" onclick="toggleDashboardEditMode()">⚙</button>
-        <div class="profile-pill"><span class="avatar">A</span><span>{{ currentUserProfileMock.display_name }}</span></div>
+        <div class="profile-pill" title="Профиль: {{ currentUserProfileMock.display_name }}"><span class="avatar">A</span><span class="profile-name">{{ currentUserProfileMock.display_name }}</span></div>
       </header>
 
       <section id="dashboard-config" class="dashboard-config" aria-label="Настройка дашборда">
@@ -1577,71 +1629,7 @@
                 <input type="checkbox" data-widget-toggle {% if widget.isEnabledByDefault %}checked{% endif %}>
                 <span>Включен</span>
               </label>
-              <button class="ghost-button" type="button" data-widget-settings-toggle>Настроить</button>
-            </div>
-            <div class="widget-settings" data-widget-settings>
-              <label class="widget-setting">
-                <span>Период</span>
-                <select data-widget-setting="period">
-                  <option>Неделя</option>
-                  <option selected>Месяц</option>
-                  <option>Квартал</option>
-                  <option>Год</option>
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Объект / проект</span>
-                <select data-widget-setting="project">
-                  {% for project in project_options %}
-                  <option>{{ project }}</option>
-                  {% endfor %}
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Категория</span>
-                <select data-widget-setting="category">
-                  <option>Все категории</option>
-                  <option>Фундамент</option>
-                  <option>Стены</option>
-                  <option>Кровля</option>
-                  <option>Инженерия</option>
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Регион</span>
-                <select data-widget-setting="region">
-                  <option>{{ active_region.name }}</option>
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Источник</span>
-                <select data-widget-setting="source">
-                  <option>Все источники</option>
-                  {% for source in sources_overview %}
-                  <option>{{ source.name }}</option>
-                  {% endfor %}
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Тип графика</span>
-                <select data-widget-setting="chartType">
-                  <option>Линия</option>
-                  <option>Столбцы</option>
-                  <option>Кольцо</option>
-                  <option>Без графика</option>
-                </select>
-              </label>
-              <label class="widget-setting">
-                <span>Лимит строк</span>
-                <input data-widget-setting="rowLimit" type="number" min="3" max="50" value="10">
-              </label>
-              <div class="widget-fields">
-                <label><input type="checkbox" data-widget-field="value" checked> Значение</label>
-                <label><input type="checkbox" data-widget-field="delta" checked> Динамика</label>
-                <label><input type="checkbox" data-widget-field="status" checked> Статус</label>
-                <label><input type="checkbox" data-widget-field="source"> Источник</label>
-              </div>
-              <div class="widget-empty-state">Настройки работают в mock/local state. После Module 03 они будут сохраняться в UserDashboardLayout.</div>
+              <span class="event-note">Варианты данных задает модуль-источник</span>
             </div>
           </article>
           {% else %}
@@ -1682,34 +1670,19 @@
           <div class="module-manager-grid">
             {% for module in all_modules_panel.active_modules %}
             <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="{{ 'true' if module.is_selected else 'false' }}" style="--module-accent: {{ module.accent }}">
-              <strong>{{ module.title }}</strong>
-              <span class="metric-chip">{{ 'Избранное' if module.is_selected else 'Скрыто' }}</span>
-              <p>{{ module.description }}</p>
-              <div class="module-manager-actions">
-                <button type="button" data-module-action="add" data-module-code="{{ module.module_code }}">+ Добавить на атом</button>
-                <button type="button" data-module-action="remove" data-module-code="{{ module.module_code }}">− Убрать с атома</button>
-                <a href="{{ module.route }}">Открыть</a>
-                <a href="{{ module.passport_href }}">Настроить</a>
-              </div>
-              <div class="module-card-action-settings" data-module-action-settings="{{ module.module_code }}">
-                <h4>Действия на карточке</h4>
-                <p>Можно выбрать до {{ atom_card_action_limit }} действий. Проверка доступа идет через actionCode.</p>
-                <div class="module-card-action-list">
-                  {% for action in module.atom_quick_action_options %}
-                  <label class="module-card-action-option" title="{{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}">
-                    <input
-                      type="checkbox"
-                      data-atom-action-toggle
-                      data-module-code="{{ module.module_code }}"
-                      data-action-code="{{ action.actionCode }}"
-                      {% if action.isSelected %}checked{% endif %}
-                    >
-                    <span>{{ action.icon }} {{ action.label }}</span>
-                  </label>
-                  {% else %}
-                  <span class="event-note">Для этого модуля нет доступных быстрых действий.</span>
+              <div class="module-manager-preview">
+                <span class="module-icon">{{ module.dashboard_icon }}</span>
+                <span class="module-manager-title">{{ module.title }}</span>
+                <span class="module-manager-state {{ module.state_tone }}">{{ module.visual_state }}</span>
+                <span class="module-card-actions {% if not module.atom_quick_actions %}empty{% endif %}" aria-label="Быстрые действия {{ module.title }}">
+                  {% for action in module.atom_quick_actions[:atom_card_action_limit] %}
+                  <span class="module-card-action" title="{{ action.label }}">{{ action.icon }}</span>
                   {% endfor %}
-                </div>
+                </span>
+              </div>
+              <div class="module-manager-actions">
+                <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}">+</button>
+                <button type="button" title="Убрать с атома" aria-label="Убрать {{ module.title }} с атома" data-module-action="remove" data-module-code="{{ module.module_code }}">−</button>
               </div>
             </article>
             {% endfor %}
@@ -1829,6 +1802,7 @@
                 href="{{ action.href }}"
                 title="{{ action.label }} · {{ action.actionCode }}{% if action.featureCode %} · {{ action.featureCode }}{% endif %}"
                 aria-label="{{ action.label }}"
+                data-action-tooltip="{{ action.label }}"
                 data-atom-card-action
                 data-module-code="{{ card.module_code }}"
                 data-action-code="{{ action.actionCode }}"
@@ -1940,40 +1914,6 @@
         {% endfor %}
         </div>
       </section>
-
-      <section class="bottom-grid" aria-label="Информационные блоки">
-        <article class="panel">
-          <h2>События и уведомления</h2>
-          <div class="event-list">
-            {% for event in system_events %}
-            <div class="event-row {{ event.tone }}">
-              <span class="event-dot">{% if event.tone == "danger" %}!{% elif event.tone == "warn" %}!{% elif event.tone == "success" %}✓{% else %}i{% endif %}</span>
-              <span><span class="event-title">{{ event.title }}</span><span class="event-note">{{ event.note }}</span></span>
-            </div>
-            {% endfor %}
-          </div>
-        </article>
-
-        <article class="panel">
-          <h2>Источники данных</h2>
-          <div class="source-list">
-            {% for source in sources_overview %}
-            <div class="source-row">
-              <span><strong>{{ source.name }}</strong><br><small>{{ source.type }}</small></span>
-              <span class="status-pill {{ source.status }}">{{ source.status }}</span>
-            </div>
-            {% endfor %}
-          </div>
-        </article>
-
-        <article class="panel">
-          <h2>Новые технологии</h2>
-          <div class="event-row info">
-            <span class="event-dot">i</span>
-            <span><span class="event-title">Кандидаты базы знаний</span><span class="event-note">данные готовятся в Модуле 1, полноценная база знаний будет отдельным модулем</span></span>
-          </div>
-        </article>
-      </section>
     </main>
   </div>
   <script>
@@ -2078,42 +2018,10 @@
           widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
         });
       });
-      document.querySelectorAll("[data-widget-settings-toggle]").forEach((button) => {
-        const widgetCard = button.closest(".widget-card");
-        if (!widgetCard) return;
-        button.addEventListener("click", () => {
-          const isOpen = widgetCard.dataset.settingsOpen === "true";
-          widgetCard.dataset.settingsOpen = String(!isOpen);
-          button.textContent = isOpen ? "Настроить" : "Свернуть";
-        });
-      });
-      document.querySelectorAll("[data-widget-settings]").forEach((settingsPanel) => {
-        const widgetCard = settingsPanel.closest(".widget-card");
-        if (!widgetCard) return;
-        const syncLocalSettings = () => {
-          const settings = {};
-          settingsPanel.querySelectorAll("[data-widget-setting]").forEach((control) => {
-            settings[control.dataset.widgetSetting] = control.value;
-          });
-          settings.fields = Array.from(settingsPanel.querySelectorAll("[data-widget-field]:checked"))
-            .map((control) => control.dataset.widgetField);
-          widgetCard.dataset.widgetPayload = JSON.stringify({
-            widgetCode: widgetCard.dataset.widgetKey,
-            sourceModuleCode: widgetCard.dataset.sourceModuleCode,
-            type: widgetCard.dataset.widgetType,
-            settings,
-          });
-        };
-        settingsPanel.addEventListener("change", syncLocalSettings);
-        settingsPanel.addEventListener("input", syncLocalSettings);
-        syncLocalSettings();
-      });
       if (!manager) return;
       const limit = Number(manager.dataset.limit || 8);
-      const atomCardActionLimit = Number("{{ atom_card_action_limit }}") || 3;
       const countNode = document.querySelector("[data-atom-selected-count]");
       const messageNode = document.querySelector("[data-module-manager-message]");
-      const actionToggles = Array.from(document.querySelectorAll("[data-atom-action-toggle]"));
 
       const getVisibleCards = () => Array.from(document.querySelectorAll("[data-atom-module-card]:not(.atom-hidden)"));
       const getCard = (moduleCode) => document.querySelector(`[data-atom-module-card][data-module-code="${moduleCode}"]`);
@@ -2151,36 +2059,6 @@
         if (!messageNode) return;
         messageNode.textContent = text || "";
       }
-
-      function getActionToggles(moduleCode) {
-        return actionToggles.filter((toggle) => toggle.dataset.moduleCode === moduleCode);
-      }
-
-      function syncAtomCardActions(moduleCode) {
-        const toggles = getActionToggles(moduleCode);
-        const selectedCodes = new Set(toggles.filter((toggle) => toggle.checked).map((toggle) => toggle.dataset.actionCode));
-        document.querySelectorAll(`[data-atom-card-action][data-module-code="${moduleCode}"]`).forEach((link) => {
-          link.classList.toggle("atom-action-hidden", !selectedCodes.has(link.dataset.actionCode));
-        });
-        toggles.forEach((toggle) => {
-          toggle.disabled = !toggle.checked && selectedCodes.size >= atomCardActionLimit;
-        });
-      }
-
-      actionToggles.forEach((toggle) => {
-        toggle.addEventListener("change", () => {
-          const moduleCode = toggle.dataset.moduleCode;
-          const selected = getActionToggles(moduleCode).filter((item) => item.checked);
-          if (selected.length > atomCardActionLimit) {
-            toggle.checked = false;
-            setMessage(`На карточке можно показать не больше ${atomCardActionLimit} действий`);
-          } else {
-            setMessage("");
-          }
-          syncAtomCardActions(moduleCode);
-        });
-        syncAtomCardActions(toggle.dataset.moduleCode);
-      });
 
       document.querySelectorAll("[data-atom-card-action][data-confirm='true']").forEach((link) => {
         link.addEventListener("click", (event) => {
