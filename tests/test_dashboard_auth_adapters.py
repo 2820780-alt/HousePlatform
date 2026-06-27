@@ -77,3 +77,36 @@ def test_dashboard_permission_helpers_work_over_mock_context():
     assert can_edit_dashboard_layout(context)
     assert can_see_planned_modules(context)
     assert not can_change_region(context)
+
+
+def test_preview_role_changes_effective_access_without_changing_real_role():
+    context = get_dashboard_user_context(
+        personalization={
+            "active_workspace": "Администрирование",
+            "favorite_modules": [{"module_code": "MODULE_01_MATERIAL_HUB"}],
+            "widgets": [],
+        },
+        active_region={"code": "KRASNODAR_KRAI", "name": "Краснодарский край"},
+        cards=[
+            {
+                "module_code": "MODULE_01_MATERIAL_HUB",
+                "canonical_module_code": "MODULE_01_MATERIAL_HUB",
+                "atom_status": "active",
+            },
+            {
+                "module_code": "MODULE_11_ANALYTICS",
+                "canonical_module_code": "MODULE_11_ANALYTICS",
+                "atom_status": "active",
+            },
+        ],
+        preview_role_code="SUPPLIER",
+    )
+
+    assert context.roleCode == "ADMIN"
+    assert context.previewRoleCode == "SUPPLIER"
+    assert context.effectiveRoleCode == "SUPPLIER"
+    assert context.activeCabinetType == "SUPPLIER"
+    assert "MODULE_09_TENDERS" in context.allowedModuleCodes
+    assert "MODULE_11_ANALYTICS" not in context.allowedModuleCodes
+    assert can_use_action(context, "SUPPLIER_PRICE_UPLOAD")
+    assert not can_see_planned_modules(context)

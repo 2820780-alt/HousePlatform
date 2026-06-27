@@ -3,6 +3,16 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+ROLE_LABELS = {
+    "ADMIN": "Администратор",
+    "SUPER_ADMIN": "Супер администратор",
+    "DEV_ADMIN": "Разработчик",
+    "ANALYST": "Аналитик",
+    "SUPPLIER": "Поставщик",
+    "CUSTOMER": "Заказчик",
+    "ESTIMATOR": "Сметчик",
+}
+
 
 @dataclass
 class CabinetDashboardPreset:
@@ -38,13 +48,15 @@ class DashboardCabinetContextAdapter:
         data = _context_dict(user_context)
         cabinet_type = data.get("activeCabinetType") or "ADMIN"
         cabinet_id = data.get("activeCabinetId") or "cabinet-admin-mock"
-        role_code = data.get("roleCode") or "ADMIN"
+        role_code = data.get("effectiveRoleCode") or data.get("roleCode") or "ADMIN"
+        role_label = data.get("effectiveRoleLabel") or ROLE_LABELS.get(role_code, role_code)
+        workspace_title = data.get("workspaceTitle") or data.get("workspace") or "Административное пространство"
         allowed_actions = data.get("allowedActionCodes") or []
         preset = _admin_cabinet_preset()
         return CurrentCabinetContext(
             activeCabinetId=cabinet_id,
             activeCabinetType=cabinet_type,
-            activeCabinetTitle="Кабинет: Администратор",
+            activeCabinetTitle=f"{workspace_title} / {role_label}",
             currentBlock="Главная",
             businessRole=role_code,
             activeObjectLabel=None,
@@ -52,7 +64,7 @@ class DashboardCabinetContextAdapter:
                 {
                     "id": cabinet_id,
                     "type": cabinet_type,
-                    "title": "Администратор",
+                    "title": f"{workspace_title} / {role_label}",
                 }
             ],
             cabinetDashboardPreset=preset.to_dict(),

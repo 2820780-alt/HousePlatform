@@ -1410,6 +1410,7 @@
           {% else %}
           <strong>{{ currentCabinetContextMock.activeCabinetTitle }}</strong>
           {% endif %}
+          {% if currentUserProfileMock.previewRoleCode %}<span class="mock-tag">preview</span>{% endif %}
         </div>
         <div class="region-badge {% if not active_region.is_configured %}missing{% endif %}" title="Источник: {{ active_region.source }}">
           Регион:
@@ -1438,13 +1439,13 @@
           </div>
           <label class="widget-setting" title="Preview-режим будет подключен к Module 03 / RBAC">
             <span>Предпросмотр роли</span>
-            <select data-dashboard-preview-role>
-              <option value="">Текущая роль</option>
-              <option value="ADMIN">Администратор</option>
-              <option value="ANALYST">Аналитик</option>
-              <option value="SUPPLIER">Поставщик</option>
-              <option value="CUSTOMER">Заказчик</option>
-              <option value="ESTIMATOR">Сметчик</option>
+            <select data-dashboard-preview-role onchange="setDashboardPreviewRole(this.value)">
+              <option value="" {% if not currentUserProfileMock.previewRoleCode %}selected{% endif %}>Текущая роль</option>
+              <option value="ADMIN" disabled>Администратор</option>
+              <option value="ANALYST" {% if currentUserProfileMock.previewRoleCode == "ANALYST" %}selected{% endif %}>Аналитик</option>
+              <option value="SUPPLIER" {% if currentUserProfileMock.previewRoleCode == "SUPPLIER" %}selected{% endif %}>Поставщик</option>
+              <option value="CUSTOMER" {% if currentUserProfileMock.previewRoleCode == "CUSTOMER" %}selected{% endif %}>Заказчик</option>
+              <option value="ESTIMATOR" {% if currentUserProfileMock.previewRoleCode == "ESTIMATOR" %}selected{% endif %}>Сметчик</option>
             </select>
           </label>
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
@@ -1884,6 +1885,16 @@
 
     function toggleDashboardEditMode() {
       setDashboardEditMode(!document.body.classList.contains("dashboard-editing"));
+    }
+
+    function setDashboardPreviewRole(roleCode) {
+      const url = new URL(window.location.href);
+      if (roleCode) {
+        url.searchParams.set("preview_role", roleCode);
+      } else {
+        url.searchParams.delete("preview_role");
+      }
+      window.location.href = url.toString();
     }
 
     (() => {

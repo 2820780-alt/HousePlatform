@@ -32,6 +32,7 @@ from app.models.workspace import Workspace
 from app.services.dashboard_auth_adapters import (
     can_access_module,
     can_see_planned_modules,
+    can_use_feature,
     get_dashboard_user_context,
 )
 from app.services.dashboard_cabinet_context import get_current_cabinet_context
@@ -67,7 +68,11 @@ templates = Jinja2Templates(directory="templates")
 async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
-    dashboard_context = await _load_dashboard_context(db, cards)
+    dashboard_context = await _load_dashboard_context(
+        db,
+        cards,
+        preview_role_code=request.query_params.get("preview_role"),
+    )
     satellite_cards = _select_atom_map_cards(cards, dashboard_context["dashboard_user_context"])
     all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])
     selected_atom_module_codes = [card["module_code"] for card in satellite_cards]
@@ -211,7 +216,7 @@ async def _load_module_passports(db: DBSession) -> list[dict]:
     return _apply_orbit_layout(cards)
 
 
-async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
+async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role_code: str | None = None) -> dict:
     material_total = await _count_model(db, Material)
     document_total = await _count_model(db, MaterialDocument)
     pending_candidates = await _count_pending_candidates(db)
@@ -245,6 +250,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         personalization=personalization,
         active_region=active_region,
         cards=cards,
+        preview_role_code=preview_role_code,
     )
     cabinet_context = get_current_cabinet_context(dashboard_user_context)
     current_user_profile_mock = dashboard_user_context.to_template_dict()
@@ -301,6 +307,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         admin_widgets=admin_widgets,
         right_rail_widgets=right_rail_widgets,
         include_right_rail_widgets=not right_rail["isEnabled"],
+        user_context=dashboard_user_context,
     )
     top_kpis = _top_kpis(
         construction_cost=construction_cost,
@@ -314,7 +321,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         failed_tasks=failed_tasks,
         active_tasks=active_tasks,
     )
-    top_widget_grid = _build_top_widget_grid(top_kpis)
+    top_widget_grid = _build_top_widget_grid(top_kpis, dashboard_user_context)
 
     return {
         "periods": ["Неделя", "Месяц", "Квартал", "Год"],
@@ -932,8 +939,12 @@ def _top_kpis(
     ]
 
 
-def _build_top_widget_grid(top_kpis: list[dict]) -> dict:
-    visible_kpis = top_kpis[:6]
+def _build_top_widget_grid(top_kpis: list[dict], user_context) -> dict:
+    visible_kpis = [
+        kpi
+        for kpi in top_kpis
+        if _can_show_widget_source(kpi.get("sourceModuleCode"), kpi.get("featureCode"), user_context)
+    ][:6]
     widgets = [
         _widget_zone_item(
             build_atom_widget_payload(
@@ -1024,6 +1035,7 @@ def _build_bottom_widget_grid(
     admin_widgets: list[dict],
     right_rail_widgets: list[dict],
     include_right_rail_widgets: bool,
+    user_context,
 ) -> dict:
     admin_zone_items = [
         _widget_zone_item(widget["payload"], size=_bottom_widget_size(index), zone_code=BOTTOM_WIDGET_GRID, order=index + 1)
@@ -1032,6 +1044,11 @@ def _build_bottom_widget_grid(
     widgets = admin_zone_items
     if include_right_rail_widgets:
         widgets = right_rail_widgets + widgets
+    widgets = [
+        widget
+        for widget in widgets
+        if _can_show_widget_source(widget["sourceModuleCode"], widget.get("featureCode"), user_context)
+    ]
     visible_widgets = widgets[:6]
     equal_span = _equal_grid_span(len(visible_widgets))
     visible_widgets = [dict(widget, gridSpan=equal_span) for widget in visible_widgets]
@@ -1042,6 +1059,14 @@ def _build_bottom_widget_grid(
         "hiddenCount": max(0, len(widgets) - len(visible_widgets)),
         "maxVisibleWidgets": 6,
     }
+
+
+def _can_show_widget_source(source_module_code: str | None, feature_code: str | None, user_context) -> bool:
+    if source_module_code and not can_access_module(user_context, source_module_code):
+        return False
+    if feature_code and not can_use_feature(user_context, feature_code):
+        return False
+    return True
 
 
 def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int, grid_span: int | None = None) -> dict:

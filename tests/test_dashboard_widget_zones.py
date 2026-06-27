@@ -19,6 +19,7 @@ def test_bottom_widget_grid_limits_widgets_and_uses_zone_code():
         admin_widgets=admin_widgets,
         right_rail_widgets=[],
         include_right_rail_widgets=False,
+        user_context={"allowedModuleCodes": ["MODULE_01_MATERIAL_HUB"], "allowedFeatureCodes": []},
     )
 
     assert grid["zoneCode"] == "BOTTOM_WIDGET_GRID"
@@ -29,7 +30,8 @@ def test_bottom_widget_grid_limits_widgets_and_uses_zone_code():
 
 
 def test_top_widget_grid_supports_zero_to_six_widgets():
-    empty_grid = _build_top_widget_grid([])
+    user_context = {"allowedModuleCodes": ["MODULE_01_MATERIAL_HUB"], "allowedFeatureCodes": []}
+    empty_grid = _build_top_widget_grid([], user_context)
     seven_item_grid = _build_top_widget_grid([
         {
             "label": f"KPI {index}",
@@ -40,13 +42,26 @@ def test_top_widget_grid_supports_zero_to_six_widgets():
             "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
         }
         for index in range(7)
-    ])
+    ], user_context)
 
     assert empty_grid["zoneCode"] == "TOP_WIDGET_GRID"
     assert empty_grid["widgets"] == []
     assert len(seven_item_grid["widgets"]) == 6
     assert seven_item_grid["hiddenCount"] == 1
     assert {widget["gridSpan"] for widget in seven_item_grid["widgets"]} == {2}
+
+
+def test_widget_grids_filter_by_preview_role_access():
+    user_context = {"allowedModuleCodes": ["MODULE_01_MATERIAL_HUB"], "allowedFeatureCodes": []}
+    top_grid = _build_top_widget_grid(
+        [
+            {"label": "Материалы", "value": 1, "delta": "ok", "tone": "info", "sourceModuleCode": "MODULE_01_MATERIAL_HUB"},
+            {"label": "Аналитика", "value": 2, "delta": "ok", "tone": "info", "sourceModuleCode": "MODULE_11_ANALYTICS"},
+        ],
+        user_context,
+    )
+
+    assert [widget["payload"]["title"] for widget in top_grid["widgets"]] == ["Материалы"]
 
 
 def test_right_rail_can_be_enabled_by_layout_or_preset():
