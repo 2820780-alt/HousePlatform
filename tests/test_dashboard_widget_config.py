@@ -150,3 +150,18 @@ def test_legacy_digital_object_widget_config_uses_digital_house_canonical_code()
     assert config["sourceModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
     assert config["canonicalModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
     assert config["legacyModuleCode"] == "MODULE_07_DIGITAL_OBJECT"
+
+
+def test_legacy_constructor_lite_widget_config_uses_module_19_canonical_code():
+    config = widget_config_from_dict(
+        {
+            "widgetCode": "constructor-changes",
+            "title": "Конструктор",
+            "type": "LIST",
+            "sourceModuleCode": "MODULE_14_CONSTRUCTOR_LITE",
+        }
+    ).to_dict()
+
+    assert config["sourceModuleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
+    assert config["canonicalModuleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
+    assert config["legacyModuleCode"] == "MODULE_14_CONSTRUCTOR_LITE"

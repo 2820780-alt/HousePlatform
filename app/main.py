@@ -56,4 +56,9 @@ async def digital_house_placeholder_route():
     return RedirectResponse(url="/api/v1/admin/cabinet/view/modules/7", status_code=307)
 
 
+@app.get("/modules/constructor-lite", tags=["module-compatibility"], include_in_schema=False)
+async def constructor_lite_placeholder_route():
+    return RedirectResponse(url="/api/v1/admin/cabinet/view", status_code=307)
+
+
 app.include_router(api_router, prefix="/api/v1")

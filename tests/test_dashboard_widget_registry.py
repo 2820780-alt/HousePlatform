@@ -77,3 +77,12 @@ def test_legacy_widget_source_module_is_canonicalized():
     assert widget.canonicalModuleCode == "MODULE_11_ANALYTICS"
     assert widget.legacyModuleCode is None
     assert widget.featureCode == "PRICE_DYNAMICS"
+
+
+def test_constructor_lite_widget_uses_module_19_canonical_source():
+    widget = get_dashboard_widget_registry_item("constructor-changes")
+
+    assert widget is not None
+    assert widget.sourceModuleCode == "MODULE_19_CONSTRUCTOR_LITE"
+    assert widget.canonicalModuleCode == "MODULE_19_CONSTRUCTOR_LITE"
+    assert widget.legacyModuleCode is None

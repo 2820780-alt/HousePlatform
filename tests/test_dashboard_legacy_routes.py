@@ -46,3 +46,12 @@ def test_canonical_digital_house_route_uses_safe_placeholder_until_module_is_act
 
     assert response.status_code == 307
     assert response.headers["location"] == "/api/v1/admin/cabinet/view/modules/7"
+
+
+def test_constructor_lite_route_uses_safe_placeholder_until_module_is_active():
+    client = TestClient(app)
+
+    response = client.get("/modules/constructor-lite", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/api/v1/admin/cabinet/view"

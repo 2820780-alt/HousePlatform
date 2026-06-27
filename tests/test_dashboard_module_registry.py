@@ -17,6 +17,25 @@ def test_price_history_legacy_module_resolves_to_analytics_feature():
     assert is_module_available_for_dashboard("MODULE_14_PRICE_HISTORY") is False
 
 
+def test_constructor_lite_legacy_module_14_resolves_to_module_19():
+    legacy_constructor = get_dashboard_module_registry_item("MODULE_14_CONSTRUCTOR_LITE")
+    canonical_constructor = get_dashboard_module_registry_item("MODULE_19_CONSTRUCTOR_LITE")
+    price_history = get_dashboard_module_registry_item("MODULE_14_PRICE_HISTORY")
+
+    assert legacy_constructor is not None
+    assert legacy_constructor.status == "deprecated"
+    assert legacy_constructor.canonicalModuleCode == "MODULE_19_CONSTRUCTOR_LITE"
+    assert legacy_constructor.redirectRoute == "/modules/constructor-lite"
+    assert get_canonical_module_code("MODULE_14_CONSTRUCTOR_LITE") == "MODULE_19_CONSTRUCTOR_LITE"
+    assert resolve_module_route("MODULE_14_CONSTRUCTOR_LITE") == "/modules/constructor-lite"
+    assert is_module_available_for_dashboard("MODULE_14_CONSTRUCTOR_LITE") is False
+    assert canonical_constructor is not None
+    assert canonical_constructor.status == "planned"
+    assert price_history is not None
+    assert price_history.status == "merged"
+    assert price_history.canonicalModuleCode == "MODULE_11_ANALYTICS"
+
+
 def test_legacy_admin_cabinet_is_deprecated_context_alias_not_active_module_16():
     legacy_admin = get_dashboard_module_registry_item("MODULE_16_ADMIN_CABINET")
     logistics = get_dashboard_module_registry_item("MODULE_16_LOGISTICS_DELIVERY")
@@ -47,7 +66,12 @@ def test_legacy_digital_object_is_merged_alias_for_digital_house():
 
 def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy():
     layout = {
-        "favoriteModules": ["MODULE_01_MATERIAL_HUB", "MODULE_14_PRICE_HISTORY", "MODULE_07_DIGITAL_OBJECT"],
+        "favoriteModules": [
+            "MODULE_01_MATERIAL_HUB",
+            "MODULE_14_PRICE_HISTORY",
+            "MODULE_07_DIGITAL_OBJECT",
+            "MODULE_14_CONSTRUCTOR_LITE",
+        ],
         "widgets": [
             {
                 "title": "Динамика цен",
@@ -62,18 +86,29 @@ def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy()
                 "title": "Образ объекта",
                 "moduleCode": "MODULE_07_DIGITAL_OBJECT",
             },
+            {
+                "title": "Конструктор",
+                "moduleCode": "MODULE_14_CONSTRUCTOR_LITE",
+            },
         ],
     }
 
     normalized = normalize_dashboard_layout(layout)
 
-    assert normalized["favoriteModules"] == ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS", "MODULE_07_DIGITAL_HOUSE"]
+    assert normalized["favoriteModules"] == [
+        "MODULE_01_MATERIAL_HUB",
+        "MODULE_11_ANALYTICS",
+        "MODULE_07_DIGITAL_HOUSE",
+        "MODULE_19_CONSTRUCTOR_LITE",
+    ]
     assert normalized["widgets"][0]["moduleCode"] == "MODULE_11_ANALYTICS"
     assert normalized["widgets"][0]["canonicalModuleCode"] == "MODULE_11_ANALYTICS"
     assert normalized["widgets"][0]["legacyModuleCode"] == "MODULE_14_PRICE_HISTORY"
     assert normalized["widgets"][1]["moduleCode"] == "MODULE_01_MATERIAL_HUB"
     assert normalized["widgets"][2]["moduleCode"] == "MODULE_07_DIGITAL_HOUSE"
     assert normalized["widgets"][2]["legacyModuleCode"] == "MODULE_07_DIGITAL_OBJECT"
+    assert normalized["widgets"][3]["moduleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
+    assert normalized["widgets"][3]["legacyModuleCode"] == "MODULE_14_CONSTRUCTOR_LITE"
 
 
 def test_visible_dashboard_modules_hide_merged_and_use_canonical_access():
