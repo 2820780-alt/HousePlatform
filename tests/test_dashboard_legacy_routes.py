@@ -55,3 +55,12 @@ def test_constructor_lite_route_uses_safe_placeholder_until_module_is_active():
 
     assert response.status_code == 307
     assert response.headers["location"] == "/api/v1/admin/cabinet/view"
+
+
+def test_legacy_construction_groups_route_redirects_to_material_hub_feature():
+    client = TestClient(app)
+
+    response = client.get("/modules/construction-groups", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/api/v1/admin/material-hub/view?feature=construction-applicability"

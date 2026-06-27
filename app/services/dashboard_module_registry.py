@@ -149,6 +149,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         description="Сбор, нормализация и хранение данных о материалах.",
         icon="database",
         color="#18d7f2",
+        feature_codes=["CONSTRUCTION_APPLICABILITY"],
         widget_codes=["materials-kpi", "classification-queue"],
     ),
     _registry_item(
@@ -161,6 +162,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         description="Технологии, нормы, документы и правила применения.",
         icon="file-text",
         color="#22c55e",
+        feature_codes=["TECHNOLOGY_CONSTRUCTION_GROUPS"],
     ),
     _registry_item(
         "MODULE_03_USERS_ROLES",
@@ -317,11 +319,18 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         "Группы строительства",
         number=15,
         order=150,
-        route="/api/v1/admin/cabinet/view/modules/15",
+        route="/modules/construction-groups",
+        status="deprecated",
+        canonical_module_code="MODULE_01_MATERIAL_HUB",
         short_title="Группы",
-        description="Классификация материалов по частям и этапам дома.",
+        description="Deprecated feature alias: construction groups are handled by Material Hub / CONSTRUCTION_APPLICABILITY, with related technology rules in Knowledge Base.",
         icon="network",
         color="#f43f5e",
+        visible_sidebar=False,
+        visible_atom=False,
+        available_dashboard=False,
+        feature_codes=["CONSTRUCTION_APPLICABILITY"],
+        redirect_route="/api/v1/admin/material-hub/view?feature=construction-applicability",
     ),
     _registry_item(
         "MODULE_16_ADMIN_CABINET",
@@ -533,7 +542,7 @@ def resolve_module_route(module_code: str | None) -> str | None:
     item = get_dashboard_module_registry_item(module_code)
     if not item:
         return None
-    if item.status == MERGED_STATUS and item.redirectRoute:
+    if item.status in {MERGED_STATUS, "deprecated"} and item.redirectRoute:
         return item.redirectRoute
     return item.route or item.redirectRoute
 

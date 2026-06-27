@@ -36,6 +36,30 @@ def test_constructor_lite_legacy_module_14_resolves_to_module_19():
     assert price_history.canonicalModuleCode == "MODULE_11_ANALYTICS"
 
 
+def test_construction_groups_are_deprecated_material_hub_feature_alias():
+    construction_groups = get_dashboard_module_registry_item("MODULE_15_CONSTRUCTION_GROUPS")
+    material_hub = get_dashboard_module_registry_item("MODULE_01_MATERIAL_HUB")
+    knowledge_base = get_dashboard_module_registry_item("MODULE_02_KNOWLEDGE_BASE")
+
+    assert construction_groups is not None
+    assert construction_groups.status == "deprecated"
+    assert construction_groups.canonicalModuleCode == "MODULE_01_MATERIAL_HUB"
+    assert construction_groups.featureCodes == ["CONSTRUCTION_APPLICABILITY"]
+    assert construction_groups.isVisibleInSidebar is False
+    assert construction_groups.isVisibleOnAtomMap is False
+    assert construction_groups.isAvailableForDashboard is False
+    assert get_canonical_module_code("MODULE_15_CONSTRUCTION_GROUPS") == "MODULE_01_MATERIAL_HUB"
+    assert (
+        resolve_module_route("MODULE_15_CONSTRUCTION_GROUPS")
+        == "/api/v1/admin/material-hub/view?feature=construction-applicability"
+    )
+    assert is_module_available_for_dashboard("MODULE_15_CONSTRUCTION_GROUPS") is False
+    assert material_hub is not None
+    assert "CONSTRUCTION_APPLICABILITY" in material_hub.featureCodes
+    assert knowledge_base is not None
+    assert "TECHNOLOGY_CONSTRUCTION_GROUPS" in knowledge_base.featureCodes
+
+
 def test_legacy_admin_cabinet_is_deprecated_context_alias_not_active_module_16():
     legacy_admin = get_dashboard_module_registry_item("MODULE_16_ADMIN_CABINET")
     logistics = get_dashboard_module_registry_item("MODULE_16_LOGISTICS_DELIVERY")
@@ -109,6 +133,34 @@ def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy()
     assert normalized["widgets"][2]["legacyModuleCode"] == "MODULE_07_DIGITAL_OBJECT"
     assert normalized["widgets"][3]["moduleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
     assert normalized["widgets"][3]["legacyModuleCode"] == "MODULE_14_CONSTRUCTOR_LITE"
+
+
+def test_dashboard_layout_normalizes_construction_groups_without_losing_legacy():
+    normalized = normalize_dashboard_layout(
+        {
+            "favoriteModules": ["MODULE_15_CONSTRUCTION_GROUPS", "MODULE_01_MATERIAL_HUB"],
+            "widgets": [
+                {
+                    "widgetCode": "construction-applicability",
+                    "sourceModuleCode": "MODULE_15_CONSTRUCTION_GROUPS",
+                    "featureCode": "CONSTRUCTION_APPLICABILITY",
+                },
+                {
+                    "widgetCode": "construction-groups-by-number",
+                    "moduleNumberLegacy": 15,
+                },
+            ],
+        }
+    )
+
+    assert normalized["favoriteModules"] == ["MODULE_01_MATERIAL_HUB"]
+    assert normalized["widgets"][0]["moduleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert normalized["widgets"][0]["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert normalized["widgets"][0]["canonicalModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert normalized["widgets"][0]["legacyModuleCode"] == "MODULE_15_CONSTRUCTION_GROUPS"
+    assert normalized["widgets"][0]["featureCode"] == "CONSTRUCTION_APPLICABILITY"
+    assert normalized["widgets"][1]["moduleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert normalized["widgets"][1]["legacyModuleCode"] == "MODULE_15_CONSTRUCTION_GROUPS"
 
 
 def test_visible_dashboard_modules_hide_merged_and_use_canonical_access():

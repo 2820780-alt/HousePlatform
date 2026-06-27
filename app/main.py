@@ -61,4 +61,12 @@ async def constructor_lite_placeholder_route():
     return RedirectResponse(url="/api/v1/admin/cabinet/view", status_code=307)
 
 
+@app.get("/modules/construction-groups", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_construction_groups_route():
+    return RedirectResponse(
+        url="/api/v1/admin/material-hub/view?feature=construction-applicability",
+        status_code=307,
+    )
+
+
 app.include_router(api_router, prefix="/api/v1")

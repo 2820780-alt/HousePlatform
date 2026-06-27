@@ -165,3 +165,20 @@ def test_legacy_constructor_lite_widget_config_uses_module_19_canonical_code():
     assert config["sourceModuleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
     assert config["canonicalModuleCode"] == "MODULE_19_CONSTRUCTOR_LITE"
     assert config["legacyModuleCode"] == "MODULE_14_CONSTRUCTOR_LITE"
+
+
+def test_legacy_construction_groups_widget_config_uses_material_hub_feature():
+    config = widget_config_from_dict(
+        {
+            "widgetCode": "construction-applicability",
+            "title": "Construction applicability",
+            "type": "STATUS",
+            "sourceModuleCode": "MODULE_15_CONSTRUCTION_GROUPS",
+            "featureCode": "CONSTRUCTION_APPLICABILITY",
+        }
+    ).to_dict()
+
+    assert config["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert config["canonicalModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert config["legacyModuleCode"] == "MODULE_15_CONSTRUCTION_GROUPS"
+    assert config["featureCode"] == "CONSTRUCTION_APPLICABILITY"
