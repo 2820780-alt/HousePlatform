@@ -2,6 +2,8 @@
 <html>
   <head><meta charset="utf-8"><title>Admin Dashboard</title></head>
   <body>
+    {% set atom_topbar_current_block = "Загрузка прайсов" %}
+    {% include "_atom_platform_topbar.html" %}
     <h1>Admin — Загрузка прайсов</h1>
     <form action="/admin/upload" enctype="multipart/form-data" method="post">
       <label>Поставщик:

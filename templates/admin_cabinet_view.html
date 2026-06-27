@@ -399,9 +399,32 @@
     .dashboard-config p { margin: 0; color: var(--muted); }
     .widget-catalog {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 10px;
     }
+    .widget-module-groups {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .widget-module-group {
+      --module-accent: var(--cyan);
+      padding: 12px;
+      border: 1px solid color-mix(in srgb, var(--module-accent) 28%, transparent);
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 96% 8%, color-mix(in srgb, var(--module-accent) 14%, transparent), transparent 32%),
+        rgba(6, 13, 31, 0.36);
+    }
+    .widget-group-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .widget-group-head strong { color: var(--text); }
+    .widget-group-head span { color: var(--muted); font-size: 12px; }
     .planned-module-catalog {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -508,6 +531,18 @@
     .module-manager-card[data-selected="true"] {
       border-color: rgba(34, 197, 94, 0.42);
     }
+    .module-manager-card[data-module-unavailable="true"] {
+      opacity: 0.7;
+      border-style: dashed;
+      filter: grayscale(0.2);
+    }
+    .module-manager-empty {
+      padding: 12px;
+      border: 1px dashed rgba(119, 172, 255, 0.2);
+      border-radius: 10px;
+      color: var(--muted);
+      background: rgba(6, 13, 31, 0.36);
+    }
     .registry-section-title {
       margin-top: 14px;
       padding-top: 12px;
@@ -564,6 +599,9 @@
       background: rgba(6, 13, 31, 0.54);
       min-width: 0;
     }
+    .widget-card.locked {
+      opacity: 0.76;
+    }
     .widget-card[data-widget-enabled="false"] {
       opacity: 0.56;
       filter: grayscale(0.45);
@@ -605,6 +643,17 @@
       max-width: 160px;
       padding: 0 8px;
       font-size: 12px;
+    }
+    .widget-zone-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .widget-zone-select select {
+      width: auto;
+      min-width: 116px;
     }
     .widget-control-row button {
       min-height: 30px;
@@ -651,6 +700,15 @@
       border-radius: 8px;
       color: var(--muted);
       font-size: 12px;
+    }
+    .settings-widget-preview {
+      grid-column: 1 / -1;
+      width: 100%;
+      margin-bottom: 10px;
+      box-shadow: none;
+    }
+    .settings-widget-preview .admin-widget-list {
+      max-height: 62px;
     }
     .toggle-label {
       display: inline-flex;
@@ -1001,6 +1059,9 @@
       position: relative;
       z-index: 2;
     }
+    .module-card > *:not(.module-card-open-link):not(.module-card-actions) {
+      pointer-events: none;
+    }
     .module-card::before {
       content: "";
       display: none;
@@ -1176,6 +1237,7 @@
       margin: 0 auto 2px;
       position: relative;
       z-index: 9;
+      pointer-events: auto;
       transition: transform 0.14s ease;
     }
     .module-card-actions.empty {
@@ -1676,60 +1738,92 @@
           </div>
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
-        <details class="settings-details">
+        <details class="settings-details" open>
           <summary>Виджеты</summary>
-          <p class="event-note">Выберите виджеты верхней и нижней зон. Их данные приходят из модулей и проходят проверки прав.</p>
-        <div class="widget-catalog">
-          {% for widget in available_widgets %}
-          <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}" data-widget-status="{{ widget.status }}">
-            <strong>{{ widget.title }}</strong>
-            <span class="event-note">{{ widget.description }}</span>
-            <div class="widget-control-row">
-              <label class="toggle-label">
-                <input type="checkbox" data-widget-toggle {% if widget.isEnabledByDefault %}checked{% endif %}>
-                <span>Включен</span>
-              </label>
-              <span class="event-note">Варианты данных задает модуль-источник</span>
+          <p class="event-note">Виджеты сгруппированы по модулю-источнику. Данные, фильтры и варианты отображения отдает модуль, Dashboard только выбирает зону и показывает payload.</p>
+          <div class="widget-module-groups">
+          {% for group in widget_settings_groups %}
+          <section class="widget-module-group" style="--module-accent: {{ group.color }}" data-widget-module-group="{{ group.moduleCode }}">
+            <div class="widget-group-head">
+              <strong>{{ group.title }}</strong>
+              <span>{{ group.widgets|length }} видж.</span>
             </div>
-          </article>
+            <div class="widget-catalog">
+              {% for widget in group.widgets %}
+              <article
+                class="widget-card {{ widget.status }} {% if not widget.isAllowed %}locked{% endif %}"
+                data-widget-key="{{ widget.widgetCode }}"
+                data-widget-type="{{ widget.type }}"
+                data-source-module-code="{{ widget.sourceModuleCode }}"
+                data-widget-status="{{ widget.status }}"
+                data-widget-can-enable="{{ 'true' if widget.isAllowed else 'false' }}"
+                data-widget-zone="{{ widget.zoneCode }}"
+              >
+                <div class="admin-widget-card settings-widget-preview" data-widget-size="{{ widget.defaultSize }}" data-widget-payload-status="{{ widget.previewPayload.status }}">
+                  <div class="admin-widget-head">
+                    <h2>{{ widget.previewPayload.title }}</h2>
+                  </div>
+                  <div class="admin-widget-list">
+                    {% if widget.previewPayload.primaryValue %}
+                    <div class="admin-widget-row {{ widget.previewPayload.status }}">
+                      <span>{{ widget.previewPayload.primaryLabel or "Значение" }}</span>
+                      <strong>{{ widget.previewPayload.primaryValue }}</strong>
+                    </div>
+                    {% endif %}
+                    {% for item in widget.previewPayload["items"][:3] %}
+                    <div class="admin-widget-row {{ item.status|default('') }}">
+                      <span>{{ item.label }}</span>
+                      <strong>{{ item.value }}</strong>
+                    </div>
+                    {% else %}
+                    {% if not widget.previewPayload.primaryValue %}
+                    <div class="widget-empty-state">Здесь появится module-owned payload.</div>
+                    {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="widget-control-row">
+                  <label class="toggle-label">
+                    <input type="checkbox" data-widget-toggle {% if widget.isEnabled %}checked{% endif %} {% if not widget.isAllowed %}disabled{% endif %}>
+                    <span>Показать</span>
+                  </label>
+                  <label class="widget-zone-select">
+                    <span>Зона</span>
+                    <select data-widget-zone-select {% if not widget.canChooseZone %}disabled{% endif %}>
+                      <option value="TOP_WIDGET_GRID" {% if widget.zoneCode == "TOP_WIDGET_GRID" %}selected{% endif %}>Верхние</option>
+                      <option value="BOTTOM_WIDGET_GRID" {% if widget.zoneCode == "BOTTOM_WIDGET_GRID" %}selected{% endif %}>Нижние</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="widget-empty-state">{{ widget.policyNote }}</div>
+              </article>
+              {% endfor %}
+            </div>
+          </section>
           {% else %}
           <article class="widget-card" data-widget-enabled="false">
             <strong>Виджеты не настроены</strong>
             <span class="event-note">После подключения registry здесь появятся доступные KPI, списки, очереди задач и графики.</span>
-            <div class="widget-meta">
-              <span class="metric-chip">Empty state</span>
-            </div>
           </article>
           {% endfor %}
-        </div>
+          </div>
         </details>
-        {% if planned_widgets %}
-        <details class="settings-details">
-          <summary>Будущие виджеты</summary>
-          <p class="event-note">Planned-виджеты видны администратору как карта будущих возможностей, но недоступны для рабочего Dashboard.</p>
-        <div class="widget-catalog">
-          {% for widget in planned_widgets %}
-          <article class="widget-card planned" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
-            <strong>{{ widget.title }}</strong>
-            <span class="event-note">{{ widget.description }}</span>
-            <button class="ghost-button disabled-action" type="button" disabled>Недоступно</button>
-          </article>
-          {% endfor %}
-        </div>
-        </details>
-        {% endif %}
         <div class="registry-section-title">
           <h3>Все модули · Атомная карта</h3>
-          <p>Можно менять состав текущей атомной карты в mock-режиме. Лимит: {{ all_modules_panel.limit }} модулей.</p>
+          <p>Сверху показаны модули на атоме, ниже — остальные доступные, planned и служебные записи. Недоступные карточки остаются read-only.</p>
         </div>
         <div class="module-manager" data-module-manager data-limit="{{ all_modules_panel.limit }}">
           <div class="module-manager-status">
             <span>На атоме: <strong data-atom-selected-count>{{ all_modules_panel.selected_count }}</strong> / {{ all_modules_panel.limit }}</span>
             <span class="module-manager-message" data-module-manager-message></span>
           </div>
+          <div class="registry-section-title">
+            <h3>На атоме</h3>
+            <p>Карточки, которые сейчас отображаются вокруг ядра АТОМ.</p>
+          </div>
           <div class="module-manager-grid">
-            {% for module in all_modules_panel.active_modules %}
-            <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="{{ 'true' if module.is_selected else 'false' }}" style="--module-accent: {{ module.accent }}">
+            {% for module in all_modules_panel.on_atom_modules %}
+            <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="true" data-module-unavailable="{{ 'true' if module.is_locked else 'false' }}" style="--module-accent: {{ module.accent }}">
               <div class="module-manager-preview">
                 <span class="module-icon">{{ module.dashboard_icon }}</span>
                 <span class="module-manager-title">{{ module.title }}</span>
@@ -1741,58 +1835,44 @@
                 </span>
               </div>
               <div class="module-manager-actions">
-                <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}">+</button>
-                <button type="button" title="Убрать с атома" aria-label="Убрать {{ module.title }} с атома" data-module-action="remove" data-module-code="{{ module.module_code }}">−</button>
+                <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}" disabled>+</button>
+                <button type="button" title="Убрать с атома" aria-label="Убрать {{ module.title }} с атома" data-module-action="remove" data-module-code="{{ module.module_code }}" {% if module.is_locked %}disabled{% endif %}>−</button>
               </div>
             </article>
+            {% else %}
+            <div class="module-manager-empty">На атоме пока нет выбранных модулей.</div>
+            {% endfor %}
+          </div>
+          <div class="registry-section-title">
+            <h3>Остальные модули</h3>
+            <p>Доступные можно добавить на атом. Planned, archived, merged и disabled остаются информационными.</p>
+          </div>
+          <div class="module-manager-grid">
+            {% for module in all_modules_panel.other_modules %}
+            <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="false" data-module-unavailable="{{ 'true' if module.is_locked else 'false' }}" style="--module-accent: {{ module.accent }}">
+              <div class="module-manager-preview">
+                <span class="module-icon">{{ module.dashboard_icon }}</span>
+                <span class="module-manager-title">{{ module.title }}</span>
+                <span class="module-manager-state {{ module.state_tone }}">{{ module.visual_state }}</span>
+                <span class="module-card-actions {% if not module.atom_quick_actions %}empty{% endif %}" aria-label="Быстрые действия {{ module.title }}">
+                  {% for action in module.atom_quick_actions[:atom_card_action_limit] %}
+                  <span class="module-card-action" title="{{ action.label }}" data-action-tooltip="{{ action.label }}">{{ action.icon }}</span>
+                  {% endfor %}
+                </span>
+                {% if module.lock_reason %}
+                <span class="event-note">{{ module.lock_reason }}</span>
+                {% endif %}
+              </div>
+              <div class="module-manager-actions">
+                <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}" {% if module.is_locked %}disabled{% endif %}>+</button>
+                <button type="button" title="Убрать с атома" aria-label="Убрать {{ module.title }} с атома" data-module-action="remove" data-module-code="{{ module.module_code }}" disabled>−</button>
+              </div>
+            </article>
+            {% else %}
+            <div class="module-manager-empty">Все доступные модули уже добавлены на атом.</div>
             {% endfor %}
           </div>
         </div>
-        {% if planned_modules %}
-        <details class="settings-details">
-          <summary>Будущие модули</summary>
-          <p class="event-note">Информационный preview для администратора. Эти модули нельзя открыть или добавить как активные.</p>
-        <div class="planned-module-catalog" aria-label="Будущие модули">
-          {% for module in planned_modules %}
-          <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
-            <strong>{{ module.title }}</strong>
-            <span class="metric-chip">Планируется</span>
-            <p>{{ module.description }}</p>
-            {% if module.plannedReason %}<p>{{ module.plannedReason }}</p>{% endif %}
-            <div class="widget-meta">
-              {% for feature in module.expectedFeatureCodes[:3] %}
-              <span class="metric-chip">{{ feature }}</span>
-              {% endfor %}
-            </div>
-            <div class="planned-module-actions">
-              <span class="event-note">{{ module.shortTitle }}</span>
-              <button class="disabled-action" type="button" disabled>Недоступно</button>
-            </div>
-          </article>
-          {% endfor %}
-        </div>
-        </details>
-        {% endif %}
-        {% if all_modules_panel.system_modules %}
-        <details class="settings-details">
-          <summary>Системные записи модулей</summary>
-          <p class="event-note">Merged, archived, deprecated и disabled записи видны только как служебная информация.</p>
-        <div class="planned-module-catalog" aria-label="Системные записи модулей">
-          {% for module in all_modules_panel.system_modules %}
-          <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
-            <strong>{{ module.title }}</strong>
-            <span class="metric-chip">{{ module.status }}</span>
-            <p>{{ module.description }}</p>
-            {% if module.redirectRoute %}<p>Redirect: {{ module.redirectRoute }}</p>{% endif %}
-            <div class="planned-module-actions">
-              <span class="event-note">{{ module.shortTitle }}</span>
-              <button class="disabled-action" type="button" disabled>Системная запись</button>
-            </div>
-          </article>
-          {% endfor %}
-        </div>
-        </details>
-        {% endif %}
       </section>
 
       {% if top_widget_grid.widgets %}
@@ -2057,9 +2137,7 @@
       document.querySelectorAll("[data-widget-toggle]").forEach((toggle) => {
         const widgetCard = toggle.closest(".widget-card");
         if (!widgetCard) return;
-        const blockedStatuses = ["planned", "disabled", "archived", "merged", "requires_module", "requires_permission"];
-        const status = widgetCard.dataset.widgetStatus || "";
-        const canEnable = !blockedStatuses.includes(status) && Boolean(widgetCard.dataset.sourceModuleCode);
+        const canEnable = widgetCard.dataset.widgetCanEnable === "true";
         if (!canEnable) {
           toggle.checked = false;
           toggle.disabled = true;
@@ -2067,6 +2145,14 @@
         widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
         toggle.addEventListener("change", () => {
           widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
+        });
+      });
+      document.querySelectorAll("[data-widget-zone-select]").forEach((select) => {
+        const widgetCard = select.closest(".widget-card");
+        if (!widgetCard) return;
+        widgetCard.dataset.widgetZone = select.value;
+        select.addEventListener("change", () => {
+          widgetCard.dataset.widgetZone = select.value;
         });
       });
       if (!manager) return;
@@ -2138,10 +2224,11 @@
         document.querySelectorAll("[data-module-row]").forEach((row) => {
           const moduleCode = row.dataset.moduleRow;
           const isSelected = row.dataset.selected === "true";
+          const isUnavailable = row.dataset.moduleUnavailable === "true";
           const addButton = row.querySelector('[data-module-action="add"]');
           const removeButton = row.querySelector('[data-module-action="remove"]');
-          if (addButton) addButton.disabled = isSelected || selectedCount >= limit;
-          if (removeButton) removeButton.disabled = !isSelected;
+          if (addButton) addButton.disabled = isUnavailable || isSelected || selectedCount >= limit;
+          if (removeButton) removeButton.disabled = isUnavailable || !isSelected;
         });
         syncAtomLayout();
       }
@@ -2152,6 +2239,11 @@
         const moduleCode = button.dataset.moduleCode;
         const action = button.dataset.moduleAction;
         if (!moduleCode) return;
+        if (button.closest("[data-module-unavailable='true']")) {
+          setMessage("Этот модуль пока нельзя добавить на атом.");
+          updateControls();
+          return;
+        }
         setMessage("");
 
         if (action === "add") {

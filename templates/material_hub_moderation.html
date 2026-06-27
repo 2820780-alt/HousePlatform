@@ -40,6 +40,8 @@
   {% include "_atom_ui_standards.html" %}
 </head>
 <body data-atom-page data-rbac-ready>
+  {% set atom_topbar_current_block = "Модерация материалов" %}
+  {% include "_atom_platform_topbar.html" %}
   <header>
     <h1>Модерация совпадений</h1>
     <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · показываем одну спорную пару за раз. Осталось на проверке: {{ pending_candidates_total }}.</div>

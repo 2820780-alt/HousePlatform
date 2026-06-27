@@ -31,6 +31,7 @@ from app.models.source_task import SourceTask
 from app.models.workspace import Workspace
 from app.services.dashboard_auth_adapters import (
     can_access_module,
+    can_access_widget,
     can_see_planned_modules,
     can_use_feature,
     get_dashboard_user_context,
@@ -58,9 +59,7 @@ from app.services.dashboard_widget_config import (
 )
 from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget, build_atom_widget_payload
 from app.services.dashboard_widget_registry import (
-    get_available_dashboard_widgets,
     get_dashboard_widget_registry,
-    get_planned_dashboard_widgets,
 )
 
 
@@ -81,8 +80,6 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])
     selected_atom_module_codes = [card["module_code"] for card in satellite_cards]
     widget_registry = get_dashboard_widget_registry()
-    available_widgets = get_available_dashboard_widgets(dashboard_context["dashboard_user_context"])
-    planned_widgets = get_planned_dashboard_widgets(dashboard_context["dashboard_user_context"])
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
@@ -98,8 +95,10 @@ async def admin_cabinet_view(request: Request, db: DBSession):
             "center_card": center_card,
             "module_registry": get_dashboard_module_registry(),
             "widget_registry": widget_registry,
-            "available_widgets": available_widgets,
-            "planned_widgets": planned_widgets,
+            "widget_settings_groups": _build_widget_settings_groups(
+                widget_registry,
+                dashboard_context["dashboard_user_context"],
+            ),
             **dashboard_context,
         },
     )
@@ -177,21 +176,225 @@ def _build_all_modules_panel(
             "state_tone": card["state_tone"],
             "atom_quick_action_options": card.get("atom_quick_action_options", []),
             "atom_quick_actions": card.get("atom_quick_actions", []),
+            "display_order": card.get("display_order", card["number"]),
+            "is_locked": False,
+            "lock_reason": "",
         }
         for card in atom_cards
     ]
-    system_modules = [
-        module
+    planned_rows = [_module_manager_row_from_registry(module, state="planned") for module in planned_modules]
+    system_rows = [
+        _module_manager_row_from_registry(module, state="system")
         for module in get_dashboard_module_registry()
         if module["status"] in {"merged", "archived", "deprecated", "disabled"}
     ]
+    on_atom_modules = [module for module in active_modules if module["is_selected"]]
+    other_modules = [module for module in active_modules if not module["is_selected"]]
+    other_modules.extend(planned_rows)
+    other_modules.extend(system_rows)
     return {
         "limit": 8,
         "selected_count": len(selected_module_codes),
         "active_modules": active_modules,
-        "planned_modules": planned_modules,
-        "system_modules": system_modules,
+        "on_atom_modules": on_atom_modules,
+        "other_modules": sorted(other_modules, key=lambda module: (module["display_order"], module["title"])),
     }
+
+
+def _module_manager_row_from_registry(module: dict, *, state: str) -> dict:
+    status = module.get("status", "planned")
+    visual_state = {
+        "planned": "Планируется",
+        "draft": "Проектируется",
+        "merged": "Объединен",
+        "archived": "Архив",
+        "deprecated": "Устаревает",
+        "disabled": "Выключен",
+    }.get(status, status)
+    return {
+        "module_code": module["moduleCode"],
+        "canonical_module_code": module.get("canonicalModuleCode") or module["moduleCode"],
+        "title": module.get("title") or module["moduleCode"],
+        "description": module.get("description") or module.get("plannedReason") or "",
+        "status": status,
+        "state": state,
+        "is_selected": False,
+        "route": module.get("route"),
+        "passport_href": module.get("redirectRoute") or module.get("route") or "#",
+        "accent": module.get("color") or "#64748b",
+        "dashboard_icon": _module_registry_icon(module.get("icon")),
+        "visual_state": visual_state,
+        "state_tone": "muted" if status in {"planned", "draft"} else "disabled",
+        "atom_quick_action_options": [],
+        "atom_quick_actions": [],
+        "display_order": module.get("displayOrder", 1000),
+        "is_locked": True,
+        "lock_reason": (
+            "Будущий модуль пока нельзя добавить на атом"
+            if status in {"planned", "draft"}
+            else "Системная запись не добавляется как активная карточка"
+        ),
+    }
+
+
+def _module_registry_icon(icon: str | None) -> str:
+    return {
+        "database": "▦",
+        "file-text": "◇",
+        "users": "☻",
+        "hammer": "☑",
+        "calculator": "≋",
+        "check-square": "✓",
+        "home": "⌂",
+        "package": "⬡",
+        "trophy": "♜",
+        "store": "▤",
+        "chart-no-axes-combined": "▥",
+        "sparkles": "✦",
+        "clock": "◷",
+        "network": "◎",
+        "settings": "⚙",
+        "shield-check": "◇",
+    }.get(icon or "", "◌")
+
+
+def _build_widget_settings_groups(widget_registry: list[dict], user_context) -> list[dict]:
+    module_items = get_dashboard_module_registry()
+    modules_by_code = {
+        module["moduleCode"]: module
+        for module in module_items
+    }
+    modules_by_code.update({
+        get_canonical_module_code(module["moduleCode"]): module
+        for module in module_items
+    })
+    can_preview_future = can_see_planned_modules(user_context)
+    groups: dict[str, dict] = {}
+    for widget in widget_registry:
+        source_code = widget.get("canonicalModuleCode") or widget.get("sourceModuleCode")
+        module = modules_by_code.get(source_code) or {}
+        status = widget.get("status", "disabled")
+        is_future = status in {"planned", "requires_module"}
+        is_disabled = status in {"disabled", "requires_permission"}
+        if (is_future or is_disabled) and not can_preview_future:
+            continue
+
+        feature_code = widget.get("featureCode")
+        module_allowed = can_access_module(user_context, source_code)
+        feature_allowed = not feature_code or can_use_feature(user_context, feature_code)
+        widget_allowed = can_access_widget(user_context, widget["widgetCode"])
+        is_working_status = status in {"available", "mock_only"}
+        is_allowed = is_working_status and module_allowed and feature_allowed and widget_allowed
+        group = groups.setdefault(
+            source_code,
+            {
+                "moduleCode": source_code,
+                "title": module.get("title") or source_code,
+                "shortTitle": module.get("shortTitle") or module.get("title") or source_code,
+                "status": module.get("status", "unknown"),
+                "color": module.get("color") or "#18d7f2",
+                "displayOrder": module.get("displayOrder", 1000),
+                "widgets": [],
+            },
+        )
+        group["widgets"].append({
+            **widget,
+            "zoneCode": _default_widget_settings_zone(widget),
+            "isAllowed": is_allowed,
+            "isEnabled": is_allowed and widget.get("isEnabledByDefault", False),
+            "canChooseZone": is_allowed and widget.get("type") != "ATOM_MAP",
+            "policyNote": _widget_policy_note(
+                widget,
+                module_allowed=module_allowed,
+                feature_allowed=feature_allowed,
+                widget_allowed=widget_allowed,
+            ),
+            "previewPayload": _widget_settings_preview_payload(widget, is_allowed),
+        })
+    return sorted(
+        groups.values(),
+        key=lambda group: (group["displayOrder"], group["title"]),
+    )
+
+
+def _default_widget_settings_zone(widget: dict) -> str:
+    if widget.get("type") == "KPI":
+        return TOP_WIDGET_GRID
+    return BOTTOM_WIDGET_GRID
+
+
+def _widget_policy_note(
+    widget: dict,
+    *,
+    module_allowed: bool,
+    feature_allowed: bool,
+    widget_allowed: bool,
+) -> str:
+    status = widget.get("status")
+    if status == "planned":
+        return "Будущий виджет. Видим администратору как preview, но не включаем в рабочий Dashboard."
+    if status == "requires_module":
+        return "Включится после активации модуля-источника."
+    if status == "disabled":
+        return "Системно отключен или заменен другой настройкой."
+    if status == "requires_permission" or not widget_allowed:
+        return "Недоступен по текущим widgetCode / permissions Module 03."
+    if not module_allowed:
+        return "Недоступен по moduleCode текущего пользователя."
+    if not feature_allowed:
+        return "Недоступен по featureCode текущего пользователя."
+    if status == "mock_only":
+        return "Работает на mock payload до подключения module-owned данных."
+    return "Данные и варианты отображения задает модуль-источник."
+
+
+def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
+    widget_type = widget.get("type", "STATUS")
+    status = "disabled" if not is_allowed else ("attention" if widget.get("status") == "mock_only" else "info")
+    payload_kwargs = {
+        "widget_code": widget["widgetCode"],
+        "source_module_code": widget["sourceModuleCode"],
+        "feature_code": widget.get("featureCode"),
+        "title": widget["title"],
+        "subtitle": widget.get("description") or widget_type,
+        "status": status,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    if widget_type == "KPI":
+        payload_kwargs.update({
+            "primary_value": "—" if not is_allowed else "mock",
+            "primary_label": "значение",
+            "secondary_value": "module payload",
+            "secondary_label": "источник",
+            "mini_chart": {"type": "sparkline", "points": [6, 9, 7, 11, 10, 14, 13, 16]},
+        })
+    elif widget_type == "CHART":
+        payload_kwargs.update({
+            "primary_value": "preview",
+            "primary_label": "график",
+            "mini_chart": {"type": "bar", "points": [8, 12, 9, 15, 13, 18, 17, 21]},
+        })
+    elif widget_type in {"LIST", "TASK_QUEUE", "ALERTS"}:
+        payload_kwargs.update({
+            "items": [
+                {"label": "Module-owned payload", "value": widget.get("sourceModuleCode"), "status": status},
+                {"label": "Настройки отдаст модуль", "value": widget.get("featureCode") or "summary", "status": "info"},
+            ],
+        })
+    elif widget_type == "ACTIONS":
+        payload_kwargs.update({
+            "items": [
+                {"label": "Действия задает модуль", "value": "0-3", "status": "info"},
+            ],
+        })
+    else:
+        payload_kwargs.update({
+            "primary_value": widget_type,
+            "primary_label": "тип",
+            "secondary_value": widget.get("status"),
+            "secondary_label": "статус",
+        })
+    return build_atom_widget_payload(**payload_kwargs).to_dict()
 
 
 @router.get("/modules/{module_number}", response_class=HTMLResponse)
