@@ -212,6 +212,7 @@
       background: rgba(5, 9, 23, 0.72);
       backdrop-filter: blur(18px);
     }
+    .topbar > * { min-width: 0; }
     .topbar-spacer {
       flex: 1 1 auto;
       min-width: 12px;
@@ -277,9 +278,11 @@
     .top-chip select {
       min-height: 32px;
       min-width: 132px;
+      max-width: 190px;
       padding: 0 8px;
       border-color: rgba(119, 172, 255, 0.16);
       background: rgba(6, 13, 31, 0.7);
+      text-overflow: ellipsis;
     }
     .command-chip {
       display: none;
@@ -305,6 +308,7 @@
       padding: 0 10px;
     }
     .profile-pill {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 9px;
@@ -315,6 +319,29 @@
       border-radius: 999px;
       background: rgba(7, 14, 35, 0.72);
       white-space: nowrap;
+    }
+    .profile-pill::after {
+      content: attr(data-profile-tooltip);
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 1000;
+      min-width: max-content;
+      padding: 7px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.34);
+      border-radius: 8px;
+      background: rgba(5, 10, 26, 0.94);
+      color: var(--text);
+      font-size: 12px;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34), 0 0 16px rgba(24, 215, 242, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease;
+    }
+    .profile-pill:hover::after,
+    .profile-pill:focus-within::after {
+      opacity: 0;
     }
     .region-badge {
       display: inline-flex;
@@ -1002,6 +1029,7 @@
       right: 16px;
       top: calc(50% + 31px);
       bottom: auto;
+      z-index: 7;
       padding: 8px 10px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
       border-radius: 9px;
@@ -1032,7 +1060,7 @@
       transform: translate(-50%, -50%) scale(1.045);
       border-color: color-mix(in srgb, var(--card-accent) 74%, white 8%);
       box-shadow: 0 26px 88px rgba(0, 0, 0, 0.5), 0 0 34px color-mix(in srgb, var(--card-accent) 24%, transparent);
-      z-index: 8;
+      z-index: 20;
     }
     .module-card:hover::before {
       height: 8px;
@@ -1146,6 +1174,8 @@
       gap: 6px;
       min-height: 26px;
       margin: 0 auto 2px;
+      position: relative;
+      z-index: 9;
       transition: transform 0.14s ease;
     }
     .module-card-actions.empty {
@@ -1472,6 +1502,11 @@
         padding: 7px;
         justify-content: center;
       }
+      .profile-pill:hover::after,
+      .profile-pill:focus-within::after {
+        opacity: 1;
+        transform: translateY(0);
+      }
       .cabinet-chip { flex-basis: 480px; }
     }
     @media (max-width: 1100px) {
@@ -1493,8 +1528,17 @@
       body.nav-collapsed .sidebar-brand span,
       body.nav-collapsed .sidebar-footer { display: initial; }
       .topbar { align-items: center; }
-      .top-chip, .region-badge { display: none; }
-      .top-chip:first-of-type { display: inline-flex; }
+      .top-chip:not(.cabinet-chip) { display: none; }
+      .region-badge {
+        display: inline-flex;
+        max-width: 210px;
+        overflow: hidden;
+      }
+      .region-badge strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .profile-pill { display: flex; }
       .top-widget-card { grid-column: span 6; }
       .atom-map {
@@ -1528,11 +1572,27 @@
     }
     @media (max-width: 720px) {
       .content { padding: 12px; }
-      .topbar { margin: -12px -12px 12px; padding: 10px 12px; }
+      .topbar { gap: 8px; margin: -12px -12px 12px; padding: 10px 12px; }
       .global-search { display: none; }
+      .icon-button, .settings-button { width: 36px; height: 36px; }
+      .cabinet-chip {
+        flex: 1 1 auto;
+        padding: 0 8px;
+      }
+      .cabinet-chip > span:not(.mock-tag) { display: none; }
+      .cabinet-chip > strong { max-width: 132px; }
+      .top-chip select {
+        min-width: 98px;
+        max-width: 126px;
+      }
+      .profile-pill { width: 36px; min-height: 36px; }
+      .profile-pill::after { right: -4px; }
       .top-widget-grid, .quick-grid { grid-template-columns: 1fr; }
       .top-widget-card { grid-column: 1 / -1; }
       .analysis-filters { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .region-badge { display: none; }
     }
   </style>
   {% include "_atom_ui_standards.html" %}
@@ -1605,7 +1665,7 @@
         <div class="topbar-spacer" aria-hidden="true"></div>
         <button class="icon-button" type="button" title="Уведомления" aria-label="Уведомления">🔔</button>
         <button class="settings-button" type="button" title="Настроить дашборд" aria-label="Настроить дашборд" onclick="toggleDashboardEditMode()">⚙</button>
-        <div class="profile-pill" title="Профиль: {{ currentUserProfileMock.display_name }}"><span class="avatar">A</span><span class="profile-name">{{ currentUserProfileMock.display_name }}</span></div>
+        <div class="profile-pill" title="Профиль: {{ currentUserProfileMock.display_name }}" data-profile-tooltip="Профиль: {{ currentUserProfileMock.display_name }}"><span class="avatar">A</span><span class="profile-name">{{ currentUserProfileMock.display_name }}</span></div>
       </header>
 
       <section id="dashboard-config" class="dashboard-config" aria-label="Настройка дашборда">
@@ -1676,7 +1736,7 @@
                 <span class="module-manager-state {{ module.state_tone }}">{{ module.visual_state }}</span>
                 <span class="module-card-actions {% if not module.atom_quick_actions %}empty{% endif %}" aria-label="Быстрые действия {{ module.title }}">
                   {% for action in module.atom_quick_actions[:atom_card_action_limit] %}
-                  <span class="module-card-action" title="{{ action.label }}">{{ action.icon }}</span>
+                  <span class="module-card-action" title="{{ action.label }}" data-action-tooltip="{{ action.label }}">{{ action.icon }}</span>
                   {% endfor %}
                 </span>
               </div>
@@ -1868,15 +1928,6 @@
       </div>
 
       <section class="bottom-widget-zone" data-zone-code="{{ bottom_widget_grid.zoneCode }}" aria-label="{{ bottom_widget_grid.title }}">
-        <div class="section-heading-row">
-          <div>
-            <h2>{{ bottom_widget_grid.title }}</h2>
-            <p>Выбранные пользователем виджеты. Dashboard только отображает данные соответствующих модулей.</p>
-          </div>
-          {% if bottom_widget_grid.hiddenCount %}
-          <button class="ghost-button" type="button">Все виджеты · +{{ bottom_widget_grid.hiddenCount }}</button>
-          {% endif %}
-        </div>
         <div class="bottom-widget-grid">
         {% for widget in bottom_widget_grid.widgets %}
         <article
