@@ -1,6 +1,6 @@
 from app.core.access_levels import AccessLevel
 from app.core.access_scopes import AccessScope
-from app.models import Permission, WorkspaceRole
+from app.models import FavoriteModule, FunctionAccess, ModuleAccess, Permission, WorkspaceRole
 
 
 def test_permission_uses_module_code_action_code_level_and_scope():
@@ -21,6 +21,35 @@ def test_permission_uses_module_code_action_code_level_and_scope():
     assert permission.access_scope == "GLOBAL"
     assert permission.conditions == {"region_id": "KRASNODAR_KRAI"}
     assert permission.module_number is None
+
+
+def test_legacy_module_number_can_coexist_with_code_first_access_models():
+    module_access = ModuleAccess(
+        module_number=15,
+        module_code="MODULE_15_CONSTRUCTION_GROUPS",
+        canonical_module_code="MODULE_01_MATERIAL_HUB",
+        access_level=AccessLevel.VIEW,
+    )
+    function_access = FunctionAccess(
+        module_number=15,
+        module_code="MODULE_15_CONSTRUCTION_GROUPS",
+        canonical_module_code="MODULE_01_MATERIAL_HUB",
+        feature_code="CONSTRUCTION_APPLICABILITY",
+        function_key="CONSTRUCTION_APPLICABILITY_VIEW",
+        access_level=AccessLevel.VIEW,
+    )
+    favorite_module = FavoriteModule(
+        module_number=15,
+        module_code="MODULE_15_CONSTRUCTION_GROUPS",
+        canonical_module_code="MODULE_01_MATERIAL_HUB",
+    )
+
+    assert module_access.module_number == 15
+    assert module_access.module_code == "MODULE_15_CONSTRUCTION_GROUPS"
+    assert module_access.canonical_module_code == "MODULE_01_MATERIAL_HUB"
+    assert function_access.feature_code == "CONSTRUCTION_APPLICABILITY"
+    assert favorite_module.module_number == 15
+    assert favorite_module.canonical_module_code == "MODULE_01_MATERIAL_HUB"
 
 
 def test_workspace_role_links_workspace_and_role_without_user_assignment_duplication():

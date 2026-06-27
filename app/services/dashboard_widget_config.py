@@ -71,8 +71,16 @@ class DashboardWidgetConfig:
 
 
 def dashboard_widget_config_from_model(widget: Any, position: int = 100) -> DashboardWidgetConfig:
-    registry_item = get_dashboard_module_registry_item_by_number(getattr(widget, "module_number", None))
-    module_code = registry_item.moduleCode if registry_item else DASHBOARD_ADMIN_SOURCE_MODULE
+    source_code = (
+        getattr(widget, "source_module_code", None)
+        or getattr(widget, "module_code", None)
+        or getattr(widget, "canonical_module_code", None)
+    )
+    registry_item = None
+    if not source_code:
+        registry_item = get_dashboard_module_registry_item_by_number(getattr(widget, "module_number", None))
+        source_code = registry_item.moduleCode if registry_item else None
+    module_code = source_code or DASHBOARD_ADMIN_SOURCE_MODULE
     feature_code = registry_item.featureCodes[0] if registry_item and registry_item.featureCodes else None
     config_schema = getattr(widget, "config_schema", None) or {}
     return build_dashboard_widget_config(
@@ -81,8 +89,8 @@ def dashboard_widget_config_from_model(widget: Any, position: int = 100) -> Dash
         description=getattr(widget, "description", None) or "",
         widget_type=getattr(widget, "widget_type", "STATUS"),
         source_module_code=module_code,
-        context_code=DASHBOARD_ADMIN_CONTEXT if not registry_item else None,
-        feature_code=config_schema.get("featureCode") or feature_code,
+        context_code=None,
+        feature_code=getattr(widget, "feature_code", None) or config_schema.get("featureCode") or feature_code,
         enabled=getattr(widget, "status", "ACTIVE") == "ACTIVE",
         size=getattr(widget, "default_size", "M"),
         position=position,
@@ -142,7 +150,14 @@ def build_dashboard_widget_config(
 
 
 def widget_config_from_dict(widget: dict[str, Any], position: int = 100) -> DashboardWidgetConfig:
-    source_code = widget.get("sourceModuleCode") or widget.get("moduleCode")
+    source_code = (
+        widget.get("sourceModuleCode")
+        or widget.get("source_module_code")
+        or widget.get("moduleCode")
+        or widget.get("module_code")
+        or widget.get("canonicalModuleCode")
+        or widget.get("canonical_module_code")
+    )
     if not source_code and widget.get("module_number") is not None:
         registry_item = get_dashboard_module_registry_item_by_number(widget.get("module_number"))
         source_code = registry_item.moduleCode if registry_item else None

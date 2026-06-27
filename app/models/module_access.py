@@ -15,6 +15,8 @@ class ModuleAccess(Base):
     user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), index=True)
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"), index=True)
     module_number: Mapped[int] = mapped_column(nullable=False, index=True)
+    module_code: Mapped[str | None] = mapped_column(String(120), index=True)
+    canonical_module_code: Mapped[str | None] = mapped_column(String(120), index=True)
     access_level: Mapped[str] = mapped_column(String(30), default="NO_ACCESS", nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(30), default="ACTIVE", nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())

@@ -40,6 +40,7 @@ from app.services.dashboard_cabinet_context import get_current_cabinet_context
 from app.services.dashboard_module_registry import (
     get_canonical_module_code,
     get_dashboard_module_registry,
+    get_dashboard_module_registry_item,
     get_dashboard_module_registry_item_by_number,
     get_planned_dashboard_modules,
     is_module_available_for_dashboard,
@@ -634,21 +635,21 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
     )
     profile = profile_result.scalar_one_or_none()
 
-    favorite_numbers: list[int] = []
+    favorite_modules: list[str | int] = []
     if profile and profile.workspace_id:
         favorite_result = await db.execute(
-            select(FavoriteModule.module_number)
+            select(FavoriteModule.module_code, FavoriteModule.module_number)
             .where(
                 FavoriteModule.workspace_id == profile.workspace_id,
                 FavoriteModule.status == "ACTIVE",
             )
             .order_by(FavoriteModule.sort_order.asc())
         )
-        favorite_numbers = [int(number) for number in favorite_result.scalars().all()]
-    if not favorite_numbers and profile and profile.favorite_modules:
-        favorite_numbers = [int(number) for number in profile.favorite_modules]
-    if not favorite_numbers:
-        favorite_numbers = [1, 14, 16]
+        favorite_modules = [module_code or int(module_number) for module_code, module_number in favorite_result.all()]
+    if not favorite_modules and profile and profile.favorite_modules:
+        favorite_modules = [int(number) for number in profile.favorite_modules]
+    if not favorite_modules:
+        favorite_modules = [1, 14, 16]
 
     widget_result = await db.execute(
         select(DashboardWidget)
@@ -675,7 +676,7 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
         "favorite_modules": [
             card
             for card in _resolve_favorite_module_cards(
-                favorite_numbers,
+                favorite_modules,
                 module_by_number,
                 module_by_code,
                 module_by_canonical_code,
@@ -690,21 +691,27 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
 
 
 def _resolve_favorite_module_cards(
-    favorite_numbers: list[int],
+    favorite_modules: list[str | int],
     module_by_number: dict[int, dict],
     module_by_code: dict[str, dict],
     module_by_canonical_code: dict[str, dict],
 ) -> list[dict]:
     favorite_cards: list[dict] = []
     seen_codes: set[str] = set()
-    for number in favorite_numbers:
-        registry_item = get_dashboard_module_registry_item_by_number(number)
-        canonical_code = get_canonical_module_code(registry_item.moduleCode if registry_item else None)
+    for favorite in favorite_modules:
+        registry_item = (
+            get_dashboard_module_registry_item(favorite)
+            if isinstance(favorite, str)
+            else get_dashboard_module_registry_item_by_number(favorite)
+        )
+        canonical_code = get_canonical_module_code(
+            registry_item.moduleCode if registry_item else favorite if isinstance(favorite, str) else None
+        )
         card = None
         if canonical_code:
             card = module_by_canonical_code.get(canonical_code) or module_by_code.get(canonical_code)
-        if card is None:
-            card = module_by_number.get(number)
+        if card is None and isinstance(favorite, int):
+            card = module_by_number.get(favorite)
         if card is None:
             continue
         card_code = card["canonical_module_code"]

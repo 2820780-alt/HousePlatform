@@ -15,6 +15,9 @@ class DashboardWidget(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     module_number: Mapped[int | None] = mapped_column(Integer, index=True)
+    source_module_code: Mapped[str | None] = mapped_column(String(120), index=True)
+    canonical_module_code: Mapped[str | None] = mapped_column(String(120), index=True)
+    feature_code: Mapped[str | None] = mapped_column(String(120), index=True)
     widget_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     default_size: Mapped[str] = mapped_column(String(30), default="M", nullable=False)
     config_schema: Mapped[dict | None] = mapped_column(JSON)
@@ -27,4 +30,3 @@ class DashboardWidget(Base):
     )
 
     placements = relationship("DashboardWidgetPlacement", back_populates="widget")
-

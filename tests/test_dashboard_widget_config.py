@@ -1,4 +1,5 @@
 from app.services.dashboard_module_registry import normalize_dashboard_layout
+from app.models import DashboardWidget
 from app.services.dashboard_widget_config import (
     ATOM_CARD_ACTIONS,
     BOTTOM_WIDGET_GRID,
@@ -6,6 +7,7 @@ from app.services.dashboard_widget_config import (
     SIZE_GRID_SPANS,
     TOP_WIDGET_GRID,
     build_dashboard_widget_config,
+    dashboard_widget_config_from_model,
     widget_config_from_dict,
 )
 
@@ -46,6 +48,27 @@ def test_widget_config_from_legacy_dict_does_not_use_source_module_number():
     assert config["size"] == "small"
     assert config["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
     assert "sourceModuleNumber" not in config
+
+
+def test_widget_model_prefers_source_module_code_over_legacy_module_number():
+    widget = DashboardWidget(
+        widget_key="materials-code-first",
+        title="Materials",
+        module_number=14,
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        canonical_module_code="MODULE_01_MATERIAL_HUB",
+        feature_code="CONSTRUCTION_APPLICABILITY",
+        widget_type="STATUS",
+        default_size="S",
+        status="ACTIVE",
+    )
+
+    config = dashboard_widget_config_from_model(widget).to_dict()
+
+    assert config["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert config["canonicalModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert config["featureCode"] == "CONSTRUCTION_APPLICABILITY"
+    assert config["legacyModuleCode"] is None
 
 
 def test_layout_normalization_removes_source_module_number():
