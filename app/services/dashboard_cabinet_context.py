@@ -33,6 +33,8 @@ class CurrentCabinetContext:
     activeCabinetTitle: str
     currentBlock: str
     businessRole: str | None = None
+    activeWorkspaceTitle: str | None = None
+    activeRoleLabel: str | None = None
     activeObjectLabel: str | None = None
     availableCabinets: list[dict[str, str]] = field(default_factory=list)
     cabinetDashboardPreset: dict[str, Any] = field(default_factory=dict)
@@ -59,6 +61,8 @@ class DashboardCabinetContextAdapter:
             activeCabinetTitle=f"{workspace_title} / {role_label}",
             currentBlock="Главная",
             businessRole=role_code,
+            activeWorkspaceTitle=workspace_title,
+            activeRoleLabel=role_label,
             activeObjectLabel=None,
             availableCabinets=[
                 {

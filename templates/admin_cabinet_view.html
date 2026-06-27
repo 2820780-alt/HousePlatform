@@ -1408,7 +1408,14 @@
             {% endfor %}
           </select>
           {% else %}
-          <strong>{{ currentCabinetContextMock.activeCabinetTitle }}</strong>
+          <strong>{{ currentCabinetContextMock.activeWorkspaceTitle or currentCabinetContextMock.activeCabinetTitle }} /</strong>
+          <select data-dashboard-preview-role onchange="setDashboardPreviewRole(this.value)" aria-label="Предпросмотр роли">
+            <option value="" {% if not currentUserProfileMock.previewRoleCode %}selected{% endif %}>{{ currentUserProfileMock.roleLabel }}</option>
+            <option value="ANALYST" {% if currentUserProfileMock.previewRoleCode == "ANALYST" %}selected{% endif %}>Аналитик</option>
+            <option value="SUPPLIER" {% if currentUserProfileMock.previewRoleCode == "SUPPLIER" %}selected{% endif %}>Поставщик</option>
+            <option value="CUSTOMER" {% if currentUserProfileMock.previewRoleCode == "CUSTOMER" %}selected{% endif %}>Заказчик</option>
+            <option value="ESTIMATOR" {% if currentUserProfileMock.previewRoleCode == "ESTIMATOR" %}selected{% endif %}>Сметчик</option>
+          </select>
           {% endif %}
           {% if currentUserProfileMock.previewRoleCode %}<span class="mock-tag">preview</span>{% endif %}
         </div>
@@ -1437,17 +1444,6 @@
             <h2>Настройка дашборда</h2>
             <p>Каталог виджетов и избранных модулей уже подготовлен. Сохранение персональных настроек включим после подключения реального пользователя и ролей.</p>
           </div>
-          <label class="widget-setting" title="Preview-режим будет подключен к Module 03 / RBAC">
-            <span>Предпросмотр роли</span>
-            <select data-dashboard-preview-role onchange="setDashboardPreviewRole(this.value)">
-              <option value="" {% if not currentUserProfileMock.previewRoleCode %}selected{% endif %}>Текущая роль</option>
-              <option value="ADMIN" disabled>Администратор</option>
-              <option value="ANALYST" {% if currentUserProfileMock.previewRoleCode == "ANALYST" %}selected{% endif %}>Аналитик</option>
-              <option value="SUPPLIER" {% if currentUserProfileMock.previewRoleCode == "SUPPLIER" %}selected{% endif %}>Поставщик</option>
-              <option value="CUSTOMER" {% if currentUserProfileMock.previewRoleCode == "CUSTOMER" %}selected{% endif %}>Заказчик</option>
-              <option value="ESTIMATOR" {% if currentUserProfileMock.previewRoleCode == "ESTIMATOR" %}selected{% endif %}>Сметчик</option>
-            </select>
-          </label>
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
         <div class="widget-catalog">
