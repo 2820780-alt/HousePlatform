@@ -37,3 +37,14 @@ def test_right_rail_can_be_enabled_by_layout_or_preset():
         {"userDashboardLayout": {"zones": {}}},
         {"cabinetDashboardPreset": {"widgetZones": {"rightRailEnabled": True}}},
     ) is True
+
+
+def test_right_rail_defaults_off_but_can_use_preview_role():
+    assert _is_right_rail_enabled(
+        {"userDashboardLayout": {"zones": {}}, "roleCode": "ADMIN"},
+        {"cabinetDashboardPreset": {"widgetZones": {"rightRailEnabled": False, "rightRailRoleCodes": ["ANALYST"]}}},
+    ) is False
+    assert _is_right_rail_enabled(
+        {"userDashboardLayout": {"previewRoleCode": "ANALYST", "zones": {}}, "roleCode": "ADMIN"},
+        {"cabinetDashboardPreset": {"widgetZones": {"rightRailEnabled": False, "rightRailRoleCodes": ["ANALYST"]}}},
+    ) is True

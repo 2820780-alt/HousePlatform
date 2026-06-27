@@ -1431,6 +1431,17 @@
             <h2>Настройка дашборда</h2>
             <p>Каталог виджетов и избранных модулей уже подготовлен. Сохранение персональных настроек включим после подключения реального пользователя и ролей.</p>
           </div>
+          <label class="widget-setting" title="Preview-режим будет подключен к Module 03 / RBAC">
+            <span>Предпросмотр роли</span>
+            <select data-dashboard-preview-role>
+              <option value="">Текущая роль</option>
+              <option value="ADMIN">Администратор</option>
+              <option value="ANALYST">Аналитик</option>
+              <option value="SUPPLIER">Поставщик</option>
+              <option value="CUSTOMER">Заказчик</option>
+              <option value="ESTIMATOR">Сметчик</option>
+            </select>
+          </label>
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
         <div class="widget-catalog">

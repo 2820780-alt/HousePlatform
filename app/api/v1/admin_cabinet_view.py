@@ -998,9 +998,22 @@ def _is_right_rail_enabled(user_layout: dict, cabinet_context: dict) -> bool:
     if isinstance(user_zone, dict) and "isEnabled" in user_zone:
         return bool(user_zone["isEnabled"])
     preset_zones = (cabinet_context.get("cabinetDashboardPreset") or {}).get("widgetZones") or {}
+    role_code = _dashboard_effective_role_code(user_layout)
+    allowed_role_codes = set(preset_zones.get("rightRailRoleCodes") or [])
+    if role_code in allowed_role_codes:
+        return True
     if "rightRailEnabled" in preset_zones:
         return bool(preset_zones["rightRailEnabled"])
     return preset_zones.get("analytics") == RIGHT_RAIL
+
+
+def _dashboard_effective_role_code(user_layout: dict) -> str | None:
+    layout = user_layout.get("userDashboardLayout") or user_layout.get("dashboardLayout") or {}
+    zones = layout.get("zones") or {}
+    right_rail_zone = zones.get(RIGHT_RAIL) if isinstance(zones, dict) else {}
+    if isinstance(right_rail_zone, dict) and right_rail_zone.get("previewRoleCode"):
+        return right_rail_zone["previewRoleCode"]
+    return layout.get("previewRoleCode") or user_layout.get("previewRoleCode") or user_layout.get("roleCode")
 
 
 def _system_events(pending_candidates: int, failed_tasks: int, active_tasks: int, new_materials: int) -> list[dict]:

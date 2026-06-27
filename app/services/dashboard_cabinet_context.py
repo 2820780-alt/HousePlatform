@@ -80,7 +80,8 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
             "atomMap": "ATOM_MAP",
             "analytics": "RIGHT_RAIL",
             "adminWidgets": "BOTTOM_WIDGET_GRID",
-            "rightRailEnabled": True,
+            "rightRailEnabled": False,
+            "rightRailRoleCodes": ["ANALYST"],
             "bottomWidgetGrid": {
                 "zoneCode": "BOTTOM_WIDGET_GRID",
                 "title": "Нижние виджеты",

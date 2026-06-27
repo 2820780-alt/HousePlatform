@@ -92,7 +92,7 @@ class DashboardUserContextAdapter:
             },
             "zones": {
                 "RIGHT_RAIL": {
-                    "isEnabled": True,
+                    "isEnabled": False,
                     "maxVisibleWidgets": 3,
                 },
                 "BOTTOM_WIDGET_GRID": {
