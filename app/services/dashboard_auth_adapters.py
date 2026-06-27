@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.core.system_roles import LEGACY_ADMIN_ROLE_CODES
 from app.services.dashboard_module_registry import (
     get_canonical_module_code,
     normalize_dashboard_layout,
@@ -11,7 +12,7 @@ from app.services.dashboard_widget_config import widget_config_from_dict
 from app.services.dashboard_widget_registry import get_dashboard_widget_registry
 
 
-ADMIN_ROLE_CODES = {"ADMIN", "SUPER_ADMIN", "DEV_ADMIN"}
+ADMIN_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN", *LEGACY_ADMIN_ROLE_CODES}
 DEV_AUTH_MODES = {"mock", "dev"}
 ROLE_LABELS = {
     "ADMIN": "Администратор",
