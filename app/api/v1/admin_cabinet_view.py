@@ -312,7 +312,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     bottom_widget_grid = _build_bottom_widget_grid(
         admin_widgets=admin_widgets,
         right_rail_widgets=right_rail_widgets,
-        include_right_rail_widgets=not right_rail["isEnabled"],
+        include_right_rail_widgets=False,
         user_context=dashboard_user_context,
     )
     top_kpis = _top_kpis(

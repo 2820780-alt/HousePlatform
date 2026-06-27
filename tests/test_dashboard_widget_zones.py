@@ -29,6 +29,38 @@ def test_bottom_widget_grid_limits_widgets_and_uses_zone_code():
     assert grid["widgets"][0]["gridSpan"] == 2
 
 
+def test_bottom_widget_grid_does_not_auto_include_right_rail_widgets():
+    admin_widgets = [{"payload": _payload("admin-widget")}]
+    right_rail_widgets = [
+        {
+            "widgetCode": "price-dynamics",
+            "sourceModuleCode": "MODULE_11_ANALYTICS",
+            "featureCode": "PRICE_DYNAMICS",
+            "payload": {
+                **_payload("price-dynamics"),
+                "sourceModuleCode": "MODULE_11_ANALYTICS",
+                "featureCode": "PRICE_DYNAMICS",
+                "title": "Аналитика",
+            },
+            "size": "medium",
+            "zoneCode": "RIGHT_RAIL",
+            "order": 1,
+        }
+    ]
+
+    grid = _build_bottom_widget_grid(
+        admin_widgets=admin_widgets,
+        right_rail_widgets=right_rail_widgets,
+        include_right_rail_widgets=False,
+        user_context={
+            "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"],
+            "allowedFeatureCodes": ["PRICE_DYNAMICS"],
+        },
+    )
+
+    assert [widget["widgetCode"] for widget in grid["widgets"]] == ["admin-widget"]
+
+
 def test_top_widget_grid_supports_zero_to_six_widgets():
     user_context = {"allowedModuleCodes": ["MODULE_01_MATERIAL_HUB"], "allowedFeatureCodes": []}
     empty_grid = _build_top_widget_grid([], user_context)

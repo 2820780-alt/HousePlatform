@@ -197,8 +197,8 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      display: grid;
-      grid-template-columns: auto minmax(180px, 1fr) auto auto auto auto auto;
+      display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       align-items: center;
       min-height: 66px;
@@ -207,6 +207,10 @@
       border-bottom: 1px solid var(--line);
       background: rgba(5, 9, 23, 0.72);
       backdrop-filter: blur(18px);
+    }
+    .topbar-spacer {
+      flex: 1 1 220px;
+      min-width: 24px;
     }
     .icon-button {
       width: 40px;
@@ -217,12 +221,13 @@
       background: rgba(24, 215, 242, 0.08);
     }
     .settings-button {
-      min-height: 40px;
-      padding: 0 12px;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
       border-radius: 9px;
       background: rgba(24, 215, 242, 0.08);
-      font-weight: 700;
-      white-space: nowrap;
+      font-size: 18px;
     }
     .global-search {
       display: grid;
@@ -263,6 +268,7 @@
       background: rgba(6, 13, 31, 0.7);
     }
     .command-chip {
+      display: none;
       min-height: 40px;
       padding: 0 11px;
       border-radius: 10px;
@@ -527,6 +533,7 @@
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 10px;
       background: rgba(6, 13, 31, 0.54);
+      min-width: 0;
     }
     .widget-card[data-widget-enabled="false"] {
       opacity: 0.56;
@@ -537,6 +544,19 @@
       border-style: dashed;
     }
     .widget-card strong { display: block; margin-bottom: 5px; }
+    .settings-details {
+      margin-top: 12px;
+      border-top: 1px solid rgba(119, 172, 255, 0.16);
+      padding-top: 10px;
+    }
+    .settings-details summary {
+      cursor: pointer;
+      color: #d8e7ff;
+      font-weight: 800;
+    }
+    .settings-details[open] summary {
+      margin-bottom: 10px;
+    }
     .widget-card .disabled-action {
       min-height: 30px;
       margin-top: 10px;
@@ -545,6 +565,7 @@
     }
     .widget-control-row {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
@@ -644,7 +665,7 @@
       grid-column: span var(--widget-span, 2);
       min-height: 112px;
       height: 112px;
-      padding: 12px;
+      padding: 12px 12px 38px;
       border-radius: 10px;
       overflow: hidden;
       position: relative;
@@ -662,9 +683,15 @@
     .top-widget-card.error { border-color: rgba(255, 59, 127, 0.38); }
     .top-widget-card.info { border-color: rgba(24, 215, 242, 0.32); }
     .top-widget-card.disabled { border-color: rgba(148, 163, 184, 0.24); }
-    .kpi-title { color: var(--muted); font-size: 12px; margin-bottom: 7px; }
-    .kpi-value { font-size: 25px; font-weight: 800; letter-spacing: 0; margin-bottom: 5px; }
-    .kpi-delta { color: var(--green); font-size: 12px; }
+    .kpi-title,
+    .kpi-value,
+    .kpi-delta {
+      position: relative;
+      z-index: 2;
+    }
+    .kpi-title { color: #9dc2ff; font-size: 12px; margin-bottom: 7px; line-height: 1.22; }
+    .kpi-value { font-size: 24px; font-weight: 800; letter-spacing: 0; margin-bottom: 5px; }
+    .kpi-delta { color: var(--green); font-size: 12px; line-height: 1.2; }
     .top-widget-card.attention .kpi-delta { color: var(--amber); }
     .top-widget-card.error .kpi-delta { color: var(--red); }
     .top-widget-card.disabled .kpi-delta { color: var(--muted); }
@@ -681,13 +708,14 @@
       position: absolute;
       left: 10px;
       right: 10px;
-      bottom: 8px;
+      bottom: 7px;
       height: 30px;
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       align-items: end;
       gap: 3px;
       z-index: 1;
+      opacity: 0.62;
     }
     .spark span {
       min-height: 3px;
@@ -1104,7 +1132,7 @@
       align-items: center;
       gap: 6px;
       min-height: 26px;
-      margin: 0 auto;
+      margin: auto auto;
     }
     .module-card-actions.empty {
       visibility: hidden;
@@ -1413,8 +1441,8 @@
       body.nav-collapsed .nav-label,
       body.nav-collapsed .sidebar-brand span,
       body.nav-collapsed .sidebar-footer { display: initial; }
-      .topbar { grid-template-columns: auto 1fr; }
-      .top-chip, .command-chip, .profile-pill, .region-badge { display: none; }
+      .topbar { align-items: start; }
+      .top-chip, .profile-pill, .region-badge { display: none; }
       .top-chip:first-of-type { display: inline-flex; }
       .top-widget-card { grid-column: span 6; }
       .atom-map {
@@ -1522,9 +1550,9 @@
           <strong>{{ currentCabinetContextMock.activeObjectLabel }}</strong>
         </div>
         {% endif %}
-        <button class="command-chip" type="button" title="Командная строка будет подключена отдельно">⌕ Ctrl+K</button>
-        <button class="icon-button" title="Уведомления">◔</button>
-        <button class="settings-button" type="button" title="Настроить дашборд" onclick="toggleDashboardEditMode()">Настроить дашборд</button>
+        <div class="topbar-spacer" aria-hidden="true"></div>
+        <button class="icon-button" type="button" title="Уведомления" aria-label="Уведомления">🔔</button>
+        <button class="settings-button" type="button" title="Настроить дашборд" aria-label="Настроить дашборд" onclick="toggleDashboardEditMode()">⚙</button>
         <div class="profile-pill"><span class="avatar">A</span><span>{{ currentUserProfileMock.display_name }}</span></div>
       </header>
 
@@ -1532,34 +1560,23 @@
         <div class="dashboard-config-head">
           <div>
             <h2>Настройка дашборда</h2>
-            <p>Каталог виджетов и избранных модулей уже подготовлен. Сохранение персональных настроек включим после подключения реального пользователя и ролей.</p>
+            <p>Настройте модули на АТОМ-карте, действия на карточках и виджеты рабочих зон.</p>
           </div>
           <button class="icon-button" type="button" onclick="setDashboardEditMode(false)" title="Закрыть">×</button>
         </div>
+        <details class="settings-details">
+          <summary>Виджеты</summary>
+          <p class="event-note">Выберите виджеты верхней и нижней зон. Их данные приходят из модулей и проходят проверки прав.</p>
         <div class="widget-catalog">
           {% for widget in available_widgets %}
           <article class="widget-card" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}" data-widget-status="{{ widget.status }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
-            <div class="widget-meta">
-              <span class="metric-chip">Тип: {{ widget.type }}</span>
-              <span class="metric-chip">Размер: {{ widget.defaultSize }}</span>
-              <span class="metric-chip">Статус: {{ widget.status }}</span>
-              {% if widget.sourceModuleCode %}<span class="metric-chip">{{ widget.sourceModuleCode }}</span>{% endif %}
-              {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
-              {% if widget.legacyModuleCode %}<span class="metric-chip">legacy: {{ widget.legacyModuleCode }}</span>{% endif %}
-              {% if widget.status == "mock_only" %}<span class="metric-chip alert">mock</span>{% endif %}
-            </div>
             <div class="widget-control-row">
               <label class="toggle-label">
                 <input type="checkbox" data-widget-toggle {% if widget.isEnabledByDefault %}checked{% endif %}>
                 <span>Включен</span>
               </label>
-              <select aria-label="Данные виджета">
-                <option>Сводка</option>
-                <option>Текущий период</option>
-                <option>Проблемные данные</option>
-              </select>
               <button class="ghost-button" type="button" data-widget-settings-toggle>Настроить</button>
             </div>
             <div class="widget-settings" data-widget-settings>
@@ -1637,26 +1654,21 @@
           </article>
           {% endfor %}
         </div>
+        </details>
         {% if planned_widgets %}
-        <div class="registry-section-title">
-          <h3>Будущие виджеты</h3>
-          <p>Planned-виджеты видны администратору как карта будущих возможностей, но недоступны для рабочего Dashboard.</p>
-        </div>
+        <details class="settings-details">
+          <summary>Будущие виджеты</summary>
+          <p class="event-note">Planned-виджеты видны администратору как карта будущих возможностей, но недоступны для рабочего Dashboard.</p>
         <div class="widget-catalog">
           {% for widget in planned_widgets %}
           <article class="widget-card planned" data-widget-key="{{ widget.widgetCode }}" data-widget-type="{{ widget.type }}" data-source-module-code="{{ widget.sourceModuleCode }}">
             <strong>{{ widget.title }}</strong>
             <span class="event-note">{{ widget.description }}</span>
-            <div class="widget-meta">
-              <span class="metric-chip">{{ widget.status }}</span>
-              <span class="metric-chip">{{ widget.sourceModuleCode }}</span>
-              {% if widget.featureCode %}<span class="metric-chip">{{ widget.featureCode }}</span>{% endif %}
-              {% if widget.legacyModuleCode %}<span class="metric-chip">legacy: {{ widget.legacyModuleCode }}</span>{% endif %}
-            </div>
             <button class="ghost-button disabled-action" type="button" disabled>Недоступно</button>
           </article>
           {% endfor %}
         </div>
+        </details>
         {% endif %}
         <div class="registry-section-title">
           <h3>Все модули · Атомная карта</h3>
@@ -1704,10 +1716,9 @@
           </div>
         </div>
         {% if planned_modules %}
-        <div class="registry-section-title">
-          <h3>Все модули · Будущие модули</h3>
-          <p>Информационный preview для администратора. Эти модули нельзя открыть или добавить как активные.</p>
-        </div>
+        <details class="settings-details">
+          <summary>Будущие модули</summary>
+          <p class="event-note">Информационный preview для администратора. Эти модули нельзя открыть или добавить как активные.</p>
         <div class="planned-module-catalog" aria-label="Будущие модули">
           {% for module in planned_modules %}
           <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
@@ -1727,12 +1738,12 @@
           </article>
           {% endfor %}
         </div>
+        </details>
         {% endif %}
         {% if all_modules_panel.system_modules %}
-        <div class="registry-section-title">
-          <h3>Все модули · Системные записи</h3>
-          <p>Merged, archived, deprecated и disabled записи видны только как служебная информация.</p>
-        </div>
+        <details class="settings-details">
+          <summary>Системные записи модулей</summary>
+          <p class="event-note">Merged, archived, deprecated и disabled записи видны только как служебная информация.</p>
         <div class="planned-module-catalog" aria-label="Системные записи модулей">
           {% for module in all_modules_panel.system_modules %}
           <article class="planned-module-card" data-module-code="{{ module.moduleCode }}" data-status="{{ module.status }}">
@@ -1747,6 +1758,7 @@
           </article>
           {% endfor %}
         </div>
+        </details>
         {% endif %}
       </section>
 
@@ -1762,7 +1774,7 @@
           data-widget-size="{{ widget.size }}"
           style="--widget-span: {{ widget.gridSpan }}"
         >
-          <div class="kpi-title">{{ widget.payload.title }}{% if widget.payload.subtitle == "KPI" %}<span class="mock-tag">payload</span>{% endif %}</div>
+          <div class="kpi-title">{{ widget.payload.title }}</div>
           <div class="kpi-value">{{ widget.payload.primaryValue }}</div>
           <div class="kpi-delta">{{ widget.payload.secondaryValue }}</div>
           <div class="spark">
@@ -1825,14 +1837,6 @@
               >{{ action.icon }}</a>
               {% endfor %}
             </div>
-            <div class="module-indicators" aria-label="Индикаторы модуля {{ card.display_name }}">
-              {% for indicator in card.atom_indicators %}
-              <span class="module-indicator {{ indicator.tone }}">
-                <span class="module-indicator-icon" aria-hidden="true">{{ indicator.icon }}</span>
-                <span class="module-indicator-text">{{ indicator.text }}</span>
-              </span>
-              {% endfor %}
-            </div>
           </article>
           {% endfor %}
         </section>
@@ -1841,7 +1845,7 @@
         <aside class="analytics-column right-rail" data-zone-code="{{ right_rail.zoneCode }}" aria-label="{{ right_rail.title }}">
           <section class="panel">
             <h2>Изменение стоимости строительства</h2>
-            <div class="panel-sub">MODULE_11_ANALYTICS · PRICE_DYNAMICS · mock payload</div>
+            <div class="panel-sub">Краткая аналитика стоимости</div>
             <div class="analysis-filters">
               <select><option>Дом 120 м2</option><option>Текущий проект</option></select>
               <select><option>Коробка</option><option>Фундамент</option><option>Кровля</option><option>Инженерия</option></select>
@@ -1893,7 +1897,7 @@
         <div class="section-heading-row">
           <div>
             <h2>{{ bottom_widget_grid.title }}</h2>
-            <p>Основная настраиваемая зона компактных widget payload. Dashboard только отображает данные модулей.</p>
+            <p>Выбранные пользователем виджеты. Dashboard только отображает данные соответствующих модулей.</p>
           </div>
           {% if bottom_widget_grid.hiddenCount %}
           <button class="ghost-button" type="button">Все виджеты · +{{ bottom_widget_grid.hiddenCount }}</button>
@@ -1915,12 +1919,6 @@
         >
           <div class="admin-widget-head">
             <h2>{{ widget.payload.title }}</h2>
-            <div class="admin-widget-meta">
-              <span class="metric-chip">{{ widget.size|upper }}</span>
-              <span class="metric-chip">{{ widget.payload.sourceModuleCode }}</span>
-              {% if widget.payload.featureCode %}<span class="metric-chip">{{ widget.payload.featureCode }}</span>{% endif %}
-              {% if widget.payload.subtitle %}<span class="metric-chip alert">{{ widget.payload.subtitle }}</span>{% endif %}
-            </div>
           </div>
           <div class="admin-widget-list">
             {% if widget.payload.primaryValue %}
