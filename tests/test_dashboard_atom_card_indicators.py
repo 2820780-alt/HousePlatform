@@ -18,9 +18,9 @@ def test_module_indicators_keep_atom_card_compact():
     )
 
     assert len(indicators) == 3
-    assert indicators[0] == {"tone": "warn", "icon": "!", "text": "на проверке: 7"}
-    assert indicators[1] == {"tone": "danger", "icon": "x", "text": "ошибки: 2"}
-    assert indicators[2] == {"tone": "info", "icon": "+", "text": "Всего: 394"}
+    assert indicators[0] == {"tone": "info", "icon": "•", "text": "394 материалов"}
+    assert indicators[1] == {"tone": "warn", "icon": "⚠", "text": "7 на проверке"}
+    assert indicators[2] == {"tone": "danger", "icon": "✖", "text": "2 ошибки"}
 
 
 def test_module_indicators_mark_future_and_empty_states():
@@ -32,5 +32,24 @@ def test_module_indicators_mark_future_and_empty_states():
         fallback_status="Планируется",
     )
 
-    assert indicators[0] == {"tone": "future", "icon": "◇", "text": "планируется"}
-    assert len(indicators) == 2
+    assert indicators[0] == {"tone": "future", "icon": "◇", "text": "образ объекта планируется"}
+    assert len(indicators) == 3
+
+
+def test_module_indicators_use_mock_summary_for_analytics():
+    indicators = _module_indicators(
+        number=11,
+        metrics=[
+            {"label": "Динамика рынка", "value": "+3,8%"},
+            {"label": "Категорий с динамикой", "value": 4},
+        ],
+        events=[],
+        atom_status="active",
+        fallback_status="Работает",
+    )
+
+    assert indicators == [
+        {"tone": "info", "icon": "↗", "text": "стоимость +3,8%"},
+        {"tone": "info", "icon": "•", "text": "4 категорий"},
+        {"tone": "warn", "icon": "⚠", "text": "mock-аналитика"},
+    ]

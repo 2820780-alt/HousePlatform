@@ -1333,6 +1333,10 @@ def _module_indicators(
     atom_status: str,
     fallback_status: str,
 ) -> list[dict]:
+    adapted = _atom_card_summary_indicators(number, metrics, events)
+    if adapted:
+        return adapted[:3]
+
     tone_by_event = {
         "error": "danger",
         "warning": "warn",
@@ -1341,9 +1345,9 @@ def _module_indicators(
         "trend": "info",
     }
     icon_by_tone = {
-        "danger": "x",
-        "warn": "!",
-        "info": "+",
+        "danger": "✖",
+        "warn": "⚠",
+        "info": "•",
         "success": "✓",
         "future": "◇",
         "muted": "·",
@@ -1387,6 +1391,99 @@ def _module_indicators(
         indicators = [{"tone": "muted", "icon": "·", "text": atom_status}] + indicators
 
     return indicators[:3]
+
+
+def _atom_card_summary_indicators(number: int, metrics: list[dict], events: list[dict]) -> list[dict]:
+    metric_map = {str(metric.get("label", "")).lower(): metric.get("value") for metric in metrics}
+
+    def metric(label_part: str, default=None):
+        for label, value in metric_map.items():
+            if label_part.lower() in label:
+                return value
+        return default
+
+    def has_event(kind: str) -> bool:
+        return any(event.get("kind") == kind for event in events)
+
+    if number == 1:
+        total = metric("всего материалов", metric("всего", 0))
+        pending = metric("спорные", metric("без категории", 0))
+        active = metric("активные", 0)
+        error_event = next((event for event in events if event.get("kind") == "error"), None)
+        return _compact_indicators([
+            {"tone": "info", "icon": "•", "text": f"{total} материалов"},
+            {"tone": "warn", "icon": "⚠", "text": f"{pending} на проверке"} if pending else None,
+            {"tone": "danger", "icon": "✖", "text": f"{error_event.get('value')} ошибки"} if error_event else None,
+            {"tone": "info", "icon": "•", "text": f"{active} задач сбора"} if active else None,
+        ])
+
+    if number == 5:
+        return [
+            {"tone": "future", "icon": "◇", "text": "сметы планируются"},
+            {"tone": "info", "icon": "₽", "text": "расчет после Module 5"},
+            {"tone": "muted", "icon": "·", "text": "данные не подключены"},
+        ]
+
+    if number == 7:
+        return [
+            {"tone": "future", "icon": "◇", "text": "образ объекта планируется"},
+            {"tone": "success", "icon": "✓", "text": "структура готовится"},
+            {"tone": "warn", "icon": "⚠", "text": "объемы не подключены"},
+        ]
+
+    if number == 8:
+        return [
+            {"tone": "future", "icon": "◇", "text": "закупки планируются"},
+            {"tone": "info", "icon": "•", "text": "КП после Module 8"},
+            {"tone": "muted", "icon": "·", "text": "заявок нет"},
+        ]
+
+    if number == 9:
+        return [
+            {"tone": "future", "icon": "◇", "text": "тендеры планируются"},
+            {"tone": "info", "icon": "•", "text": "предложения позже"},
+            {"tone": "muted", "icon": "·", "text": "нет активных торгов"},
+        ]
+
+    if number == 11:
+        market = metric("динамика рынка", None)
+        categories = metric("категорий", None)
+        return _compact_indicators([
+            {"tone": "info", "icon": "↗", "text": f"стоимость {market}"} if market else {"tone": "muted", "icon": "·", "text": "нет динамики"},
+            {"tone": "info", "icon": "•", "text": f"{categories} категорий"} if categories else None,
+            {"tone": "warn", "icon": "⚠", "text": "mock-аналитика"},
+        ])
+
+    if number == 12:
+        return [
+            {"tone": "future", "icon": "◇", "text": "AI планируется"},
+            {"tone": "info", "icon": "•", "text": "рекомендации позже"},
+            {"tone": "muted", "icon": "·", "text": "нет активных подсказок"},
+        ]
+
+    if number == 13:
+        return [
+            {"tone": "future", "icon": "◇", "text": "аудит планируется"},
+            {"tone": "success", "icon": "✓", "text": "журнал готовится"},
+            {"tone": "muted", "icon": "·", "text": "событий нет"},
+        ]
+
+    if number == 16:
+        pending = metric("спорные", 0)
+        tasks = metric("задачи", 0)
+        return _compact_indicators([
+            {"tone": "success", "icon": "✓", "text": "кабинет активен"},
+            {"tone": "warn", "icon": "⚠", "text": f"{pending} на проверке"} if pending else None,
+            {"tone": "info", "icon": "•", "text": f"{tasks} задач"} if tasks else None,
+        ])
+
+    if has_event("error"):
+        return [{"tone": "danger", "icon": "✖", "text": "есть ошибки"}]
+    return []
+
+
+def _compact_indicators(items: list[dict | None]) -> list[dict]:
+    return [item for item in items if item][:3]
 
 
 def _module_events(number: int, metrics: list[dict]) -> list[dict]:
