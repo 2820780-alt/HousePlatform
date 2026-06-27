@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.database import get_db
 from app.core.security import decode_token
 from app.core.exceptions import UnauthorizedError, ForbiddenError
+from app.core.permission_guard import require_permission as guard_require_permission
 from app.models.user import User
 from app.models.enums import UserRole, UserStatus
 
@@ -61,3 +62,14 @@ def require_admin():
 
 def require_supplier():
     return require_role(UserRole.SUPPLIER)
+
+
+def require_permission(module_code: str, action_code: str, scope: str = "GLOBAL"):
+    def checker(user: CurrentUser) -> User:
+        guard_require_permission(user, module_code, action_code, scope)
+        return user
+    return Depends(checker)
+
+
+def requirePermission(moduleCode: str, actionCode: str, scope: str = "GLOBAL"):
+    return require_permission(moduleCode, actionCode, scope)
