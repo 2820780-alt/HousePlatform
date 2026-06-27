@@ -22,6 +22,12 @@ WIDGET_STATUSES = {
     "mock_only",
 }
 
+DASHBOARD_WIDGET_REGISTRY_LAYER = "dashboard_aggregator_mock_layer"
+PAYLOAD_SOURCE_MODULE_OWNED = "module_owned"
+PAYLOAD_SOURCE_MODULE_OWNED_MOCK = "module_owned_mock_adapter"
+PAYLOAD_SOURCE_SYSTEM_CONTEXT = "system_context_adapter"
+PAYLOAD_SOURCE_PLANNED_MODULE = "planned_module_owned"
+
 
 @dataclass(frozen=True)
 class DashboardWidgetRegistryItem:
@@ -47,6 +53,14 @@ class DashboardWidgetRegistryItem:
     routeToSourceModule: str | None = None
     requiredModuleStatus: str | None = None
     plannedReason: str | None = None
+    registryLayer: str = DASHBOARD_WIDGET_REGISTRY_LAYER
+    payloadSource: str = PAYLOAD_SOURCE_MODULE_OWNED
+    payloadOwnerModuleCode: str | None = None
+    isBusinessLogicOwner: bool = False
+    compatibilityNote: str = (
+        "DashboardWidgetRegistry is a temporary aggregator/mock compatibility layer. "
+        "Business widget payload must be produced by the source module."
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -80,6 +94,11 @@ def _widget_item(
     canonical_code = get_canonical_module_code(source_module_code) or source_module_code
     legacy_code = source_module_code if source_module_code != canonical_code else None
     route = route_to_source_module or resolve_module_route(source_module_code)
+    payload_source = _payload_source_for_widget(
+        status=normalized_status,
+        context_code=context_code,
+        mock_data_provider=mock_data_provider,
+    )
     return DashboardWidgetRegistryItem(
         widgetCode=widget_code,
         title=title,
@@ -103,7 +122,24 @@ def _widget_item(
         status=normalized_status,
         requiredModuleStatus=required_module_status,
         plannedReason=planned_reason,
+        payloadSource=payload_source,
+        payloadOwnerModuleCode=context_code or canonical_code,
     )
+
+
+def _payload_source_for_widget(
+    *,
+    status: str,
+    context_code: str | None,
+    mock_data_provider: str | None,
+) -> str:
+    if context_code == DASHBOARD_ADMIN_CONTEXT:
+        return PAYLOAD_SOURCE_SYSTEM_CONTEXT
+    if status == "planned":
+        return PAYLOAD_SOURCE_PLANNED_MODULE
+    if status == "mock_only" or mock_data_provider:
+        return PAYLOAD_SOURCE_MODULE_OWNED_MOCK
+    return PAYLOAD_SOURCE_MODULE_OWNED
 
 
 DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
