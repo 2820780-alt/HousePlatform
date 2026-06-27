@@ -29,6 +29,7 @@ def test_legacy_module_number_can_coexist_with_code_first_access_models():
         module_code="MODULE_15_CONSTRUCTION_GROUPS",
         canonical_module_code="MODULE_01_MATERIAL_HUB",
         access_level=AccessLevel.VIEW,
+        access_scope=AccessScope.LIMITED,
     )
     function_access = FunctionAccess(
         module_number=15,
@@ -37,6 +38,7 @@ def test_legacy_module_number_can_coexist_with_code_first_access_models():
         feature_code="CONSTRUCTION_APPLICABILITY",
         function_key="CONSTRUCTION_APPLICABILITY_VIEW",
         access_level=AccessLevel.VIEW,
+        access_scope=AccessScope.LIMITED,
     )
     favorite_module = FavoriteModule(
         module_number=15,
@@ -47,7 +49,9 @@ def test_legacy_module_number_can_coexist_with_code_first_access_models():
     assert module_access.module_number == 15
     assert module_access.module_code == "MODULE_15_CONSTRUCTION_GROUPS"
     assert module_access.canonical_module_code == "MODULE_01_MATERIAL_HUB"
+    assert module_access.access_scope == "LIMITED"
     assert function_access.feature_code == "CONSTRUCTION_APPLICABILITY"
+    assert function_access.access_scope == "LIMITED"
     assert favorite_module.module_number == 15
     assert favorite_module.canonical_module_code == "MODULE_01_MATERIAL_HUB"
 

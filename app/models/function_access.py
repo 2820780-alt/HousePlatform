@@ -20,6 +20,7 @@ class FunctionAccess(Base):
     feature_code: Mapped[str | None] = mapped_column(String(120), index=True)
     function_key: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     access_level: Mapped[str] = mapped_column(String(30), default="NO_ACCESS", nullable=False, index=True)
+    access_scope: Mapped[str] = mapped_column(String(30), default="GLOBAL", nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(30), default="ACTIVE", nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
