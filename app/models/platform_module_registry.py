@@ -39,6 +39,10 @@ class PlatformModuleRegistry(Base):
     merged_into_module_code: Mapped[str | None] = mapped_column(String(120), index=True)
     legacy_codes: Mapped[list[str] | None] = mapped_column(JSONB)
     feature_codes: Mapped[list[str] | None] = mapped_column(JSONB)
+    default_permissions: Mapped[list[dict[str, str]] | None] = mapped_column(JSONB)
+    available_actions: Mapped[list[str] | None] = mapped_column(JSONB)
+    dashboard_widgets: Mapped[list[str] | None] = mapped_column(JSONB)
+    owner_scope_rules: Mapped[dict[str, object] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
