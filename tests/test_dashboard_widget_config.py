@@ -135,3 +135,18 @@ def test_legacy_admin_cabinet_widget_config_uses_dashboard_context():
     assert config["canonicalModuleCode"] == "MODULE_03_USERS_ROLES"
     assert config["legacyModuleCode"] == "MODULE_16_ADMIN_CABINET"
     assert config["contextCode"] == "DASHBOARD_ADMIN_CONTEXT"
+
+
+def test_legacy_digital_object_widget_config_uses_digital_house_canonical_code():
+    config = widget_config_from_dict(
+        {
+            "widgetCode": "digital-house-status",
+            "title": "Образ объекта",
+            "type": "STATUS",
+            "sourceModuleCode": "MODULE_07_DIGITAL_OBJECT",
+        }
+    ).to_dict()
+
+    assert config["sourceModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
+    assert config["canonicalModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
+    assert config["legacyModuleCode"] == "MODULE_07_DIGITAL_OBJECT"

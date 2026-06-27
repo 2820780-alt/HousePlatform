@@ -48,8 +48,8 @@ PREVIEW_ROLE_PROFILES = {
     "CUSTOMER": {
         "workspaceType": "CUSTOMER",
         "activeCabinetType": "CUSTOMER",
-        "allowedModuleCodes": ["MODULE_05_ESTIMATES", "MODULE_07_DIGITAL_OBJECT", "MODULE_08_PROCUREMENT", "MODULE_10_MARKETPLACE"],
-        "favoriteModuleCodes": ["MODULE_07_DIGITAL_OBJECT", "MODULE_05_ESTIMATES", "MODULE_08_PROCUREMENT"],
+        "allowedModuleCodes": ["MODULE_05_ESTIMATES", "MODULE_07_DIGITAL_HOUSE", "MODULE_08_PROCUREMENT", "MODULE_10_MARKETPLACE"],
+        "favoriteModuleCodes": ["MODULE_07_DIGITAL_HOUSE", "MODULE_05_ESTIMATES", "MODULE_08_PROCUREMENT"],
         "allowedActionCodes": ["DASHBOARD_CONFIGURE"],
         "allowedFeatureCodes": ["DASHBOARD_VIEW", "DASHBOARD_PERSONALIZE", "ATOM_MAP_VIEW"],
     },
@@ -220,7 +220,11 @@ class DashboardPermissionAdapter:
     def can_access_module(context: DashboardUserContext | dict[str, Any], module_code: str) -> bool:
         data = _context_dict(context)
         canonical_module_code = get_canonical_module_code(module_code)
-        return canonical_module_code in data.get("allowedModuleCodes", [])
+        allowed_module_codes = {
+            get_canonical_module_code(code) or code
+            for code in data.get("allowedModuleCodes", [])
+        }
+        return canonical_module_code in allowed_module_codes
 
     @staticmethod
     def can_access_widget(context: DashboardUserContext | dict[str, Any], widget_code: str) -> bool:

@@ -46,4 +46,14 @@ async def legacy_analytics_route(section: str | None = None):
     return RedirectResponse(url=target, status_code=307)
 
 
+@app.get("/modules/digital-object", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_digital_object_route():
+    return RedirectResponse(url="/modules/digital-house", status_code=307)
+
+
+@app.get("/modules/digital-house", tags=["module-compatibility"], include_in_schema=False)
+async def digital_house_placeholder_route():
+    return RedirectResponse(url="/api/v1/admin/cabinet/view/modules/7", status_code=307)
+
+
 app.include_router(api_router, prefix="/api/v1")

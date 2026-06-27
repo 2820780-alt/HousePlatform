@@ -83,6 +83,15 @@ def test_dashboard_permission_helpers_work_over_mock_context():
     assert not can_preview_dashboard_roles({"roleCode": "SUPPLIER"})
 
 
+def test_dashboard_permission_helpers_normalize_legacy_digital_object_access():
+    context = {
+        "allowedModuleCodes": ["MODULE_07_DIGITAL_OBJECT"],
+    }
+
+    assert can_access_module(context, "MODULE_07_DIGITAL_HOUSE")
+    assert can_access_module(context, "MODULE_07_DIGITAL_OBJECT")
+
+
 def test_preview_role_changes_effective_access_without_changing_real_role():
     context = get_dashboard_user_context(
         personalization={

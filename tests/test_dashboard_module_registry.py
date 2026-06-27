@@ -29,9 +29,25 @@ def test_legacy_admin_cabinet_is_deprecated_context_alias_not_active_module_16()
     assert logistics.status == "planned"
 
 
+def test_legacy_digital_object_is_merged_alias_for_digital_house():
+    legacy_object = get_dashboard_module_registry_item("MODULE_07_DIGITAL_OBJECT")
+    digital_house = get_dashboard_module_registry_item("MODULE_07_DIGITAL_HOUSE")
+
+    assert legacy_object is not None
+    assert legacy_object.status == "merged"
+    assert legacy_object.canonicalModuleCode == "MODULE_07_DIGITAL_HOUSE"
+    assert legacy_object.mergedIntoModuleCode == "MODULE_07_DIGITAL_HOUSE"
+    assert legacy_object.redirectRoute == "/modules/digital-house"
+    assert get_canonical_module_code("MODULE_07_DIGITAL_OBJECT") == "MODULE_07_DIGITAL_HOUSE"
+    assert resolve_module_route("MODULE_07_DIGITAL_OBJECT") == "/modules/digital-house"
+    assert is_module_available_for_dashboard("MODULE_07_DIGITAL_OBJECT") is False
+    assert digital_house is not None
+    assert digital_house.status == "planned"
+
+
 def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy():
     layout = {
-        "favoriteModules": ["MODULE_01_MATERIAL_HUB", "MODULE_14_PRICE_HISTORY"],
+        "favoriteModules": ["MODULE_01_MATERIAL_HUB", "MODULE_14_PRICE_HISTORY", "MODULE_07_DIGITAL_OBJECT"],
         "widgets": [
             {
                 "title": "Динамика цен",
@@ -42,16 +58,22 @@ def test_dashboard_layout_normalizes_legacy_module_codes_without_losing_legacy()
                 "title": "Материалы",
                 "moduleNumberLegacy": 1,
             },
+            {
+                "title": "Образ объекта",
+                "moduleCode": "MODULE_07_DIGITAL_OBJECT",
+            },
         ],
     }
 
     normalized = normalize_dashboard_layout(layout)
 
-    assert normalized["favoriteModules"] == ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
+    assert normalized["favoriteModules"] == ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS", "MODULE_07_DIGITAL_HOUSE"]
     assert normalized["widgets"][0]["moduleCode"] == "MODULE_11_ANALYTICS"
     assert normalized["widgets"][0]["canonicalModuleCode"] == "MODULE_11_ANALYTICS"
     assert normalized["widgets"][0]["legacyModuleCode"] == "MODULE_14_PRICE_HISTORY"
     assert normalized["widgets"][1]["moduleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert normalized["widgets"][2]["moduleCode"] == "MODULE_07_DIGITAL_HOUSE"
+    assert normalized["widgets"][2]["legacyModuleCode"] == "MODULE_07_DIGITAL_OBJECT"
 
 
 def test_visible_dashboard_modules_hide_merged_and_use_canonical_access():
