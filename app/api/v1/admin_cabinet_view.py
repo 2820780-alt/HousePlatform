@@ -48,6 +48,7 @@ from app.services.dashboard_widget_config import (
     BOTTOM_WIDGET_GRID,
     RIGHT_RAIL,
     SIZE_GRID_SPANS,
+    TOP_WIDGET_GRID,
     dashboard_widget_config_from_model,
 )
 from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget, build_atom_widget_payload
@@ -301,64 +302,26 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict]) -> dict:
         right_rail_widgets=right_rail_widgets,
         include_right_rail_widgets=not right_rail["isEnabled"],
     )
+    top_kpis = _top_kpis(
+        construction_cost=construction_cost,
+        market_label=market_label,
+        market_is_real=market_is_real,
+        price_summary=price_summary,
+        new_materials=new_materials,
+        material_total=material_total,
+        pending_candidates=pending_candidates,
+        active_sources=active_sources,
+        failed_tasks=failed_tasks,
+        active_tasks=active_tasks,
+    )
+    top_widget_grid = _build_top_widget_grid(top_kpis)
 
     return {
         "periods": ["Неделя", "Месяц", "Квартал", "Год"],
         "project_options": ["Дом 120 м2", "Дом 160 м2", "Текущий проект"],
         "side_nav": _side_nav(),
-        "top_kpis": [
-            {
-                "label": "Стоимость строительства дома",
-                "value": f"{construction_cost:,.0f} ₽".replace(",", " "),
-                "delta": "+12,4% за месяц",
-                "tone": "success",
-                "spark": [18, 20, 19, 23, 22, 27, 25, 31, 29, 36, 33, 41],
-                "is_mock": True,
-            },
-            {
-                "label": "Изменение стоимости",
-                "value": market_label if market_is_real else "нужно больше данных",
-                "delta": "по PriceHistory" if market_is_real else "ожидаем историю",
-                "tone": "success" if market_is_real and not str(market_label).startswith("-") else "muted",
-                "spark": price_summary["spark"],
-                "is_mock": not market_is_real,
-            },
-            {
-                "label": "Новые материалы",
-                "value": new_materials,
-                "delta": f"всего: {material_total}",
-                "tone": "info",
-                "spark": [5, 8, 7, 11, 10, 14, 13, 16, 14, 18, 20, 22],
-            },
-            {
-                "label": "Материалы на модерации",
-                "value": pending_candidates,
-                "delta": "требуют решения",
-                "tone": "warn" if pending_candidates else "success",
-                "spark": [2, 4, 3, 5, 7, 6, 8, 7, 9, 8, 10, 11],
-            },
-            {
-                "label": "Активные источники",
-                "value": active_sources,
-                "delta": "готовы к сбору",
-                "tone": "success",
-                "spark": [7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 12, active_sources],
-            },
-            {
-                "label": "Ошибки сбора",
-                "value": failed_tasks,
-                "delta": "по задачам анализа",
-                "tone": "danger" if failed_tasks else "success",
-                "spark": [0, 1, 0, 2, 1, 0, 1, 2, 1, 1, 0, failed_tasks],
-            },
-            {
-                "label": "Активные задачи",
-                "value": active_tasks,
-                "delta": "в очереди и работе",
-                "tone": "info" if active_tasks else "success",
-                "spark": [0, 1, 1, 2, 1, 3, 2, 2, 4, 3, 2, active_tasks],
-            },
-        ],
+        "top_kpis": top_kpis,
+        "top_widget_grid": top_widget_grid,
         "analytics": analytics,
         "right_rail": right_rail,
         "bottom_widget_grid": bottom_widget_grid,
@@ -892,6 +855,116 @@ def _admin_widgets(
     ]
 
 
+def _top_kpis(
+    *,
+    construction_cost: Decimal,
+    market_label: str,
+    market_is_real: bool,
+    price_summary: dict,
+    new_materials: int,
+    material_total: int,
+    pending_candidates: int,
+    active_sources: int,
+    failed_tasks: int,
+    active_tasks: int,
+) -> list[dict]:
+    return [
+        {
+            "label": "Стоимость строительства дома",
+            "value": f"{construction_cost:,.0f} ₽".replace(",", " "),
+            "delta": "+12,4% за месяц",
+            "tone": "success",
+            "spark": [18, 20, 19, 23, 22, 27, 25, 31, 29, 36, 33, 41],
+            "is_mock": True,
+            "sourceModuleCode": "MODULE_11_ANALYTICS",
+            "featureCode": "PRICE_DYNAMICS",
+        },
+        {
+            "label": "Изменение стоимости",
+            "value": market_label if market_is_real else "нужно больше данных",
+            "delta": "по PriceHistory" if market_is_real else "ожидаем историю",
+            "tone": "success" if market_is_real and not str(market_label).startswith("-") else "muted",
+            "spark": price_summary["spark"],
+            "is_mock": not market_is_real,
+            "sourceModuleCode": "MODULE_11_ANALYTICS",
+            "featureCode": "PRICE_DYNAMICS",
+        },
+        {
+            "label": "Новые материалы",
+            "value": new_materials,
+            "delta": f"всего: {material_total}",
+            "tone": "info",
+            "spark": [5, 8, 7, 11, 10, 14, 13, 16, 14, 18, 20, 22],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        },
+        {
+            "label": "Материалы на модерации",
+            "value": pending_candidates,
+            "delta": "требуют решения",
+            "tone": "warn" if pending_candidates else "success",
+            "spark": [2, 4, 3, 5, 7, 6, 8, 7, 9, 8, 10, 11],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        },
+        {
+            "label": "Активные источники",
+            "value": active_sources,
+            "delta": "готовы к сбору",
+            "tone": "success",
+            "spark": [7, 8, 9, 9, 10, 10, 11, 11, 12, 12, 12, active_sources],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        },
+        {
+            "label": "Ошибки сбора",
+            "value": failed_tasks,
+            "delta": "по задачам анализа",
+            "tone": "danger" if failed_tasks else "success",
+            "spark": [0, 1, 0, 2, 1, 0, 1, 2, 1, 1, 0, failed_tasks],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        },
+        {
+            "label": "Активные задачи",
+            "value": active_tasks,
+            "delta": "в очереди и работе",
+            "tone": "info" if active_tasks else "success",
+            "spark": [0, 1, 1, 2, 1, 3, 2, 2, 4, 3, 2, active_tasks],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        },
+    ]
+
+
+def _build_top_widget_grid(top_kpis: list[dict]) -> dict:
+    visible_kpis = top_kpis[:6]
+    widgets = [
+        _widget_zone_item(
+            build_atom_widget_payload(
+                widget_code=f"{kpi.get('sourceModuleCode', 'DASHBOARD')}.KPI.{_slugify(kpi['label'])}",
+                source_module_code=kpi.get("sourceModuleCode", "MODULE_16_ADMIN_CABINET"),
+                feature_code=kpi.get("featureCode"),
+                title=kpi["label"],
+                subtitle="KPI",
+                status=_payload_status_from_tone(kpi.get("tone")),
+                primary_value=kpi["value"],
+                primary_label=kpi["label"],
+                secondary_value=kpi.get("delta"),
+                secondary_label="динамика",
+                mini_chart={"type": "sparkline", "points": kpi.get("spark") or []},
+            ).to_dict(),
+            size="medium",
+            zone_code=TOP_WIDGET_GRID,
+            order=index + 1,
+            grid_span=_equal_grid_span(len(visible_kpis)),
+        )
+        for index, kpi in enumerate(visible_kpis)
+    ]
+    return {
+        "zoneCode": TOP_WIDGET_GRID,
+        "title": "Верхние виджеты",
+        "widgets": widgets,
+        "hiddenCount": max(0, len(top_kpis) - len(widgets)),
+        "maxVisibleWidgets": 6,
+    }
+
+
 def _analytics_right_rail_widgets(analytics: dict) -> list[dict]:
     construction_payload = build_atom_widget_payload(
         widget_code="MODULE_11_ANALYTICS.PRICE_DYNAMICS.construction-cost",
@@ -959,17 +1032,19 @@ def _build_bottom_widget_grid(
     widgets = admin_zone_items
     if include_right_rail_widgets:
         widgets = right_rail_widgets + widgets
-    visible_widgets = widgets[:8]
+    visible_widgets = widgets[:6]
+    equal_span = _equal_grid_span(len(visible_widgets))
+    visible_widgets = [dict(widget, gridSpan=equal_span) for widget in visible_widgets]
     return {
         "zoneCode": BOTTOM_WIDGET_GRID,
         "title": "Нижние виджеты",
         "widgets": visible_widgets,
         "hiddenCount": max(0, len(widgets) - len(visible_widgets)),
-        "maxVisibleWidgets": 8,
+        "maxVisibleWidgets": 6,
     }
 
 
-def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int) -> dict:
+def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int, grid_span: int | None = None) -> dict:
     normalized_size = size if size in SIZE_GRID_SPANS else "medium"
     return {
         "widgetCode": payload["widgetCode"],
@@ -977,7 +1052,7 @@ def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int) -
         "featureCode": payload.get("featureCode"),
         "zoneCode": zone_code,
         "size": normalized_size,
-        "gridSpan": SIZE_GRID_SPANS[normalized_size],
+        "gridSpan": grid_span or SIZE_GRID_SPANS[normalized_size],
         "order": order,
         "isVisible": True,
         "payload": payload,
@@ -990,6 +1065,29 @@ def _bottom_widget_size(index: int) -> str:
     if index < 6:
         return "medium"
     return "large"
+
+
+def _equal_grid_span(widget_count: int) -> int:
+    if widget_count <= 0:
+        return 12
+    return max(2, 12 // min(widget_count, 6))
+
+
+def _payload_status_from_tone(tone: str | None) -> str:
+    return {
+        "success": "ok",
+        "info": "info",
+        "warn": "attention",
+        "danger": "error",
+        "muted": "disabled",
+    }.get(tone, "info")
+
+
+def _slugify(value: str) -> str:
+    slug = "".join(char.lower() if char.isalnum() else "-" for char in value).strip("-")
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return slug or "widget"
 
 
 def _is_right_rail_enabled(user_layout: dict, cabinet_context: dict) -> bool:

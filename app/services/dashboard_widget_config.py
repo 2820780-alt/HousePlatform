@@ -21,8 +21,9 @@ WIDGET_TYPES = {
 }
 
 BOTTOM_WIDGET_GRID = "BOTTOM_WIDGET_GRID"
+TOP_WIDGET_GRID = "TOP_WIDGET_GRID"
 RIGHT_RAIL = "RIGHT_RAIL"
-WIDGET_ZONES = {BOTTOM_WIDGET_GRID, RIGHT_RAIL, "ATOM_MAP"}
+WIDGET_ZONES = {TOP_WIDGET_GRID, BOTTOM_WIDGET_GRID, RIGHT_RAIL, "ATOM_MAP"}
 WIDGET_SIZES = {"small", "medium", "large", "wide"}
 
 LEGACY_SIZE_MAP = {
@@ -166,6 +167,8 @@ def _normalize_zone(zone_code: str | None) -> str:
     normalized = (zone_code or BOTTOM_WIDGET_GRID).upper()
     legacy_map = {
         "MAIN": BOTTOM_WIDGET_GRID,
+        "TOP": TOP_WIDGET_GRID,
+        "HEADER": TOP_WIDGET_GRID,
         "BELOW": BOTTOM_WIDGET_GRID,
         "BOTTOM": BOTTOM_WIDGET_GRID,
         "RIGHT": RIGHT_RAIL,

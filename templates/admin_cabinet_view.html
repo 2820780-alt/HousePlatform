@@ -586,13 +586,13 @@
       color: #061026;
       font-weight: 800;
     }
-    .kpi-grid {
+    .top-widget-grid {
       display: grid;
-      grid-template-columns: repeat(7, minmax(150px, 1fr));
+      grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 14px;
     }
-    .kpi-card,
+    .top-widget-card,
     .panel,
     .module-card,
     .quick-action {
@@ -600,14 +600,16 @@
       background: linear-gradient(145deg, var(--surface), rgba(7, 14, 35, 0.78));
       box-shadow: var(--shadow);
     }
-    .kpi-card {
+    .top-widget-card {
+      grid-column: span var(--widget-span, 2);
       min-height: 112px;
+      height: 112px;
       padding: 12px;
       border-radius: 10px;
       overflow: hidden;
       position: relative;
     }
-    .kpi-card::after {
+    .top-widget-card::after {
       content: "";
       position: absolute;
       inset: auto 0 0;
@@ -615,15 +617,17 @@
       opacity: 0.72;
       background: linear-gradient(180deg, transparent, rgba(24, 215, 242, 0.12));
     }
-    .kpi-card.success { border-color: rgba(34, 197, 94, 0.28); }
-    .kpi-card.warn { border-color: rgba(245, 158, 11, 0.36); }
-    .kpi-card.danger { border-color: rgba(255, 59, 127, 0.38); }
-    .kpi-card.info { border-color: rgba(24, 215, 242, 0.32); }
+    .top-widget-card.ok { border-color: rgba(34, 197, 94, 0.28); }
+    .top-widget-card.attention { border-color: rgba(245, 158, 11, 0.36); }
+    .top-widget-card.error { border-color: rgba(255, 59, 127, 0.38); }
+    .top-widget-card.info { border-color: rgba(24, 215, 242, 0.32); }
+    .top-widget-card.disabled { border-color: rgba(148, 163, 184, 0.24); }
     .kpi-title { color: var(--muted); font-size: 12px; margin-bottom: 7px; }
     .kpi-value { font-size: 25px; font-weight: 800; letter-spacing: 0; margin-bottom: 5px; }
     .kpi-delta { color: var(--green); font-size: 12px; }
-    .kpi-card.warn .kpi-delta { color: var(--amber); }
-    .kpi-card.danger .kpi-delta { color: var(--red); }
+    .top-widget-card.attention .kpi-delta { color: var(--amber); }
+    .top-widget-card.error .kpi-delta { color: var(--red); }
+    .top-widget-card.disabled .kpi-delta { color: var(--muted); }
     .mock-tag {
       display: inline-block;
       margin-left: 4px;
@@ -1300,7 +1304,7 @@
     }
     .mock-note { color: #ffd28a; font-size: 11px; }
     @media (max-width: 1500px) {
-      .kpi-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
+      .top-widget-card { grid-column: span 4; }
       .dashboard-grid { grid-template-columns: 1fr; }
       .analytics-column { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
@@ -1325,7 +1329,7 @@
       .topbar { grid-template-columns: auto 1fr; }
       .top-chip, .command-chip, .profile-pill, .region-badge { display: none; }
       .top-chip:first-of-type { display: inline-flex; }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top-widget-card { grid-column: span 6; }
       .atom-map {
         min-height: 0;
         display: grid;
@@ -1359,7 +1363,8 @@
       .content { padding: 12px; }
       .topbar { margin: -12px -12px 12px; padding: 10px 12px; }
       .global-search { display: none; }
-      .kpi-grid, .quick-grid { grid-template-columns: 1fr; }
+      .top-widget-grid, .quick-grid { grid-template-columns: 1fr; }
+      .top-widget-card { grid-column: 1 / -1; }
       .analysis-filters { grid-template-columns: 1fr; }
     }
   </style>
@@ -1638,20 +1643,30 @@
         {% endif %}
       </section>
 
-      <section class="kpi-grid" aria-label="Главные показатели">
-        {% for kpi in top_kpis %}
-        <article class="kpi-card {{ kpi.tone }}">
-          <div class="kpi-title">{{ kpi.label }}{% if kpi.is_mock %}<span class="mock-tag">mock</span>{% endif %}</div>
-          <div class="kpi-value">{{ kpi.value }}</div>
-          <div class="kpi-delta">{{ kpi.delta }}</div>
+      {% if top_widget_grid.widgets %}
+      <section class="top-widget-grid" data-zone-code="{{ top_widget_grid.zoneCode }}" aria-label="{{ top_widget_grid.title }}">
+        {% for widget in top_widget_grid.widgets %}
+        <article
+          class="top-widget-card {{ widget.payload.status }}"
+          data-widget-code="{{ widget.widgetCode }}"
+          data-widget-source-module="{{ widget.sourceModuleCode }}"
+          data-widget-feature-code="{{ widget.featureCode or '' }}"
+          data-widget-zone-code="{{ widget.zoneCode }}"
+          data-widget-size="{{ widget.size }}"
+          style="--widget-span: {{ widget.gridSpan }}"
+        >
+          <div class="kpi-title">{{ widget.payload.title }}{% if widget.payload.subtitle == "KPI" %}<span class="mock-tag">payload</span>{% endif %}</div>
+          <div class="kpi-value">{{ widget.payload.primaryValue }}</div>
+          <div class="kpi-delta">{{ widget.payload.secondaryValue }}</div>
           <div class="spark">
-            {% for point in kpi.spark %}
+            {% for point in widget.payload.miniChart.points %}
             <span style="height: {{ point }}px"></span>
             {% endfor %}
           </div>
         </article>
         {% endfor %}
       </section>
+      {% endif %}
 
       <div class="dashboard-grid {% if not right_rail.isEnabled %}no-right-rail{% endif %}" data-right-rail-enabled="{{ 'true' if right_rail.isEnabled else 'false' }}">
         <section class="atom-map" aria-label="Атомная карта модулей">

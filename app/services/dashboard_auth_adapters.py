@@ -91,13 +91,17 @@ class DashboardUserContextAdapter:
                 "favoriteModulesOnly": True,
             },
             "zones": {
+                "TOP_WIDGET_GRID": {
+                    "isEnabled": True,
+                    "maxVisibleWidgets": 6,
+                },
                 "RIGHT_RAIL": {
                     "isEnabled": False,
                     "maxVisibleWidgets": 3,
                 },
                 "BOTTOM_WIDGET_GRID": {
                     "isEnabled": True,
-                    "maxVisibleWidgets": 8,
+                    "maxVisibleWidgets": 6,
                 },
             },
             "widgets": [

@@ -3,6 +3,7 @@ from app.services.dashboard_widget_config import (
     BOTTOM_WIDGET_GRID,
     RIGHT_RAIL,
     SIZE_GRID_SPANS,
+    TOP_WIDGET_GRID,
     build_dashboard_widget_config,
     widget_config_from_dict,
 )
@@ -90,3 +91,15 @@ def test_widget_config_supports_bottom_grid_and_right_rail_zones():
     assert bottom_config["zoneCode"] == BOTTOM_WIDGET_GRID
     assert SIZE_GRID_SPANS[bottom_config["size"]] == 12
     assert right_config["zoneCode"] == RIGHT_RAIL
+
+    top_config = widget_config_from_dict(
+        {
+            "widgetCode": "top-widget",
+            "title": "Верхний KPI",
+            "type": "KPI",
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+            "zone": "top",
+        }
+    ).to_dict()
+
+    assert top_config["zoneCode"] == TOP_WIDGET_GRID

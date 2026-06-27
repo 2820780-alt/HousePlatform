@@ -1,4 +1,4 @@
-from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _is_right_rail_enabled
+from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled
 
 
 def _payload(widget_code: str) -> dict:
@@ -22,10 +22,31 @@ def test_bottom_widget_grid_limits_widgets_and_uses_zone_code():
     )
 
     assert grid["zoneCode"] == "BOTTOM_WIDGET_GRID"
-    assert len(grid["widgets"]) == 8
-    assert grid["hiddenCount"] == 2
+    assert len(grid["widgets"]) == 6
+    assert grid["hiddenCount"] == 4
     assert grid["widgets"][0]["size"] == "small"
-    assert grid["widgets"][0]["gridSpan"] == 3
+    assert grid["widgets"][0]["gridSpan"] == 2
+
+
+def test_top_widget_grid_supports_zero_to_six_widgets():
+    empty_grid = _build_top_widget_grid([])
+    seven_item_grid = _build_top_widget_grid([
+        {
+            "label": f"KPI {index}",
+            "value": index,
+            "delta": "ok",
+            "tone": "info",
+            "spark": [1, 2, 3],
+            "sourceModuleCode": "MODULE_01_MATERIAL_HUB",
+        }
+        for index in range(7)
+    ])
+
+    assert empty_grid["zoneCode"] == "TOP_WIDGET_GRID"
+    assert empty_grid["widgets"] == []
+    assert len(seven_item_grid["widgets"]) == 6
+    assert seven_item_grid["hiddenCount"] == 1
+    assert {widget["gridSpan"] for widget in seven_item_grid["widgets"]} == {2}
 
 
 def test_right_rail_can_be_enabled_by_layout_or_preset():

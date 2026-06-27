@@ -78,14 +78,20 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
         },
         widgetZones={
             "atomMap": "ATOM_MAP",
+            "topWidgets": "TOP_WIDGET_GRID",
             "analytics": "RIGHT_RAIL",
             "adminWidgets": "BOTTOM_WIDGET_GRID",
             "rightRailEnabled": False,
             "rightRailRoleCodes": ["ANALYST"],
+            "topWidgetGrid": {
+                "zoneCode": "TOP_WIDGET_GRID",
+                "title": "Верхние виджеты",
+                "maxVisibleWidgets": 6,
+            },
             "bottomWidgetGrid": {
                 "zoneCode": "BOTTOM_WIDGET_GRID",
                 "title": "Нижние виджеты",
-                "maxVisibleWidgets": 8,
+                "maxVisibleWidgets": 6,
             },
         },
         quickActionCodes=[
