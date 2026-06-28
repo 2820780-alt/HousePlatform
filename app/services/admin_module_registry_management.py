@@ -19,17 +19,21 @@ from app.models.permission import Permission
 from app.models.platform_module_registry import PlatformModuleRegistry
 from app.services.admin_user_role_management import active_role_codes_for_user
 from app.services.audit_log_service import AuditLogType, write_audit_event
-
-
-MODULE_REGISTRY_STATUSES: tuple[str, ...] = (
-    "ACTIVE",
-    "DRAFT",
-    "PLANNED",
-    "DISABLED",
-    "DEPRECATED",
-    "ARCHIVED",
-    "MERGED",
+from app.services.module_lifecycle import (
+    MODULE_LIFECYCLE_STATUSES,
+    MODULE_TERMINAL_STATUSES,
+    MODULE_USER_HIDDEN_STATUSES,
+    apply_module_lifecycle_state,
+    can_physically_delete_module,
+    can_transition_module_lifecycle,
+    get_module_lifecycle_rules,
+    module_lifecycle_summary,
+    module_lifecycle_validation_errors,
+    normalize_module_status,
 )
+
+
+MODULE_REGISTRY_STATUSES: tuple[str, ...] = MODULE_LIFECYCLE_STATUSES
 
 LEGACY_MODULE_CODES: set[str] = {
     "MODULE_07_DIGITAL_OBJECT",
@@ -39,8 +43,8 @@ LEGACY_MODULE_CODES: set[str] = {
     "MODULE_16_ADMIN_CABINET",
 }
 
-HIDDEN_MODULE_STATUSES: set[str] = {"MERGED", "ARCHIVED"}
-TERMINAL_MODULE_STATUSES: set[str] = {"DEPRECATED", "ARCHIVED", "MERGED"}
+HIDDEN_MODULE_STATUSES: set[str] = MODULE_USER_HIDDEN_STATUSES
+TERMINAL_MODULE_STATUSES: set[str] = MODULE_TERMINAL_STATUSES
 PLATFORM_ADMIN_ALLOWED_STATUSES: set[str] = {"ACTIVE", "DRAFT", "PLANNED", "DISABLED"}
 ARCHIVE_CONFIRMATION = "ARCHIVE_MODULE"
 
@@ -73,6 +77,8 @@ def can_update_module_status(actor: Any, module: PlatformModuleRegistry, target_
     normalized_status = normalize_module_status(target_status)
     if normalized_status is None:
         return False
+    if not can_transition_module_lifecycle(module, normalized_status):
+        return False
     if is_legacy_or_alias_module(module) and normalized_status == "ACTIVE":
         return False
     if is_super_admin(actor):
@@ -90,13 +96,6 @@ def can_update_module_flags(actor: Any, module: PlatformModuleRegistry) -> bool:
     return can_open_module_registry_admin(actor) and not module.is_system and not is_legacy_or_alias_module(module)
 
 
-def normalize_module_status(status: str | None) -> str | None:
-    if not status:
-        return None
-    normalized = status.upper()
-    return normalized if normalized in MODULE_REGISTRY_STATUSES else None
-
-
 async def get_module_registry_overview(db: AsyncSession, actor: Any) -> dict[str, Any]:
     require_module_registry_admin(actor)
     result = await db.execute(
@@ -110,6 +109,7 @@ async def get_module_registry_overview(db: AsyncSession, actor: Any) -> dict[str
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
         "statuses": list(MODULE_REGISTRY_STATUSES),
+        "lifecycleRules": get_module_lifecycle_rules(),
         "modules": [module_summary(item, dependency_map.get(item.module_code, {})) for item in modules],
     }
 
@@ -122,6 +122,7 @@ async def get_module_registry_detail(db: AsyncSession, module_code: str, actor: 
     return {
         "module": module_detail(module, dependencies),
         "statuses": list(MODULE_REGISTRY_STATUSES),
+        "lifecycleRules": get_module_lifecycle_rules(),
         "history": [audit_summary(item) for item in history],
         "canUpdateStatus": {
             status: can_update_module_status(actor, module, status)
@@ -148,25 +149,28 @@ async def update_module_registry_item(
     normalized_status = normalize_module_status(status)
     if not normalized_status:
         raise ValidationError("Unsupported module status.")
+    lifecycle_errors = module_lifecycle_validation_errors(module, normalized_status)
+    if lifecycle_errors:
+        raise ValidationError("; ".join(lifecycle_errors))
     if not can_update_module_status(actor, module, normalized_status):
         raise ForbiddenError("The current administrator cannot set this module status.")
 
     flags_allowed = can_update_module_flags(actor, module)
     old_state = _module_state(module)
-    module.status = normalized_status
-    module.is_active = normalized_status == "ACTIVE"
-    if flags_allowed:
-        module.is_visible_in_sidebar = bool(visible_in_sidebar)
-        module.is_visible_on_dashboard = bool(visible_on_dashboard)
-        module.is_visible_on_atom_map = bool(visible_on_atom_map)
-        module.is_available_for_widgets = bool(available_for_widgets)
-    if normalized_status in HIDDEN_MODULE_STATUSES or is_legacy_or_alias_module(module):
-        module.is_visible_in_sidebar = False
-        module.is_visible_on_dashboard = False
-        module.is_visible_on_atom_map = False
-        module.is_available_for_widgets = False
-    if normalized_status in TERMINAL_MODULE_STATUSES:
-        module.is_active = False
+    apply_module_lifecycle_state(
+        module,
+        normalized_status,
+        visible_flags={
+            "sidebar": visible_in_sidebar,
+            "dashboard": visible_on_dashboard,
+            "atomMap": visible_on_atom_map,
+            "widgets": available_for_widgets,
+        }
+        if flags_allowed
+        else None,
+    )
+    if is_legacy_or_alias_module(module):
+        apply_module_lifecycle_state(module, normalized_status)
     module.updated_at = datetime.utcnow()
     await write_audit_event(
         db,
@@ -212,12 +216,7 @@ async def archive_module_registry_item(
     if not can_update_module_status(actor, module, "ARCHIVED"):
         raise ForbiddenError("The current administrator cannot archive this module.")
     old_state = _module_state(module)
-    module.status = "ARCHIVED"
-    module.is_active = False
-    module.is_visible_in_sidebar = False
-    module.is_visible_on_dashboard = False
-    module.is_visible_on_atom_map = False
-    module.is_available_for_widgets = False
+    apply_module_lifecycle_state(module, "ARCHIVED")
     module.updated_at = datetime.utcnow()
     await write_audit_event(
         db,
@@ -259,6 +258,7 @@ def module_summary(module: PlatformModuleRegistry, dependencies: dict[str, Any] 
         "isActive": module.is_active,
         "isSystem": module.is_system,
         "isLegacyOrAlias": legacy,
+        "lifecycle": module_lifecycle_summary(module),
         "displayOrder": module.display_order,
         "route": module.route,
         "redirectRoute": module.redirect_route,
@@ -294,7 +294,8 @@ def module_detail(module: PlatformModuleRegistry, dependencies: dict[str, Any]) 
             "widgets": dependencies.get("widgets", []),
             "dashboardLayouts": dependencies.get("dashboardLayouts", []),
             "auditNotes": dependencies.get("auditNotes", []),
-            "canPhysicallyDelete": False,
+            "canPhysicallyDelete": can_physically_delete_module(module, dependencies),
+            "lifecycleValidationErrors": module_lifecycle_validation_errors(module, module.status),
         }
     )
     return data
@@ -590,6 +591,9 @@ def _module_state(module: PlatformModuleRegistry) -> dict[str, Any]:
         "status": module.status,
         "isActive": module.is_active,
         "visibleFlags": _visible_flags(module),
+        "route": module.route,
+        "redirectRoute": module.redirect_route,
+        "mergedIntoModuleCode": module.merged_into_module_code,
     }
 
 

@@ -17,12 +17,16 @@ def _module(
     module_code: str,
     *,
     canonical_module_code: str | None = None,
+    merged_into_module_code: str | None = None,
+    redirect_route: str | None = None,
     status: str = "ACTIVE",
     is_system: bool = False,
 ) -> PlatformModuleRegistry:
     return PlatformModuleRegistry(
         module_code=module_code,
         canonical_module_code=canonical_module_code or module_code,
+        merged_into_module_code=merged_into_module_code,
+        redirect_route=redirect_route,
         title=module_code,
         status=status,
         is_active=status == "ACTIVE",
@@ -44,6 +48,8 @@ def test_legacy_modules_cannot_be_made_active():
     legacy = _module(
         "MODULE_14_PRICE_HISTORY",
         canonical_module_code="MODULE_11_ANALYTICS",
+        merged_into_module_code="MODULE_11_ANALYTICS",
+        redirect_route="/modules/analytics?section=price-dynamics",
         status="MERGED",
     )
 
@@ -67,7 +73,13 @@ def test_platform_admin_can_only_manage_non_system_regular_statuses():
 
 
 def test_module_summary_exposes_canonical_flags_and_dependency_counts():
-    module = _module("MODULE_07_DIGITAL_OBJECT", canonical_module_code="MODULE_07_DIGITAL_HOUSE", status="MERGED")
+    module = _module(
+        "MODULE_07_DIGITAL_OBJECT",
+        canonical_module_code="MODULE_07_DIGITAL_HOUSE",
+        merged_into_module_code="MODULE_07_DIGITAL_HOUSE",
+        redirect_route="/modules/digital-house",
+        status="MERGED",
+    )
     summary = module_summary(
         module,
         {
@@ -83,6 +95,7 @@ def test_module_summary_exposes_canonical_flags_and_dependency_counts():
     assert summary["moduleCode"] == "MODULE_07_DIGITAL_OBJECT"
     assert summary["canonicalModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
     assert summary["isLegacyOrAlias"]
+    assert summary["lifecycle"]["rule"]["status"] == "MERGED"
     assert summary["dependencyCounts"] == {
         "permissions": 4,
         "widgets": 3,
@@ -95,6 +108,30 @@ def test_module_registry_status_normalization_is_strict():
     assert normalize_module_status("planned") == "PLANNED"
     assert normalize_module_status("ACTIVE") == "ACTIVE"
     assert normalize_module_status("DELETE") is None
+
+
+def test_lifecycle_hides_non_active_status_even_when_form_flags_are_true():
+    module = _module("MODULE_22_TEST")
+
+    from app.services.module_lifecycle import apply_module_lifecycle_state
+
+    apply_module_lifecycle_state(
+        module,
+        "DISABLED",
+        visible_flags={
+            "sidebar": True,
+            "dashboard": True,
+            "atomMap": True,
+            "widgets": True,
+        },
+    )
+
+    assert module.status == "DISABLED"
+    assert module.is_active is False
+    assert module.is_visible_in_sidebar is False
+    assert module.is_visible_on_dashboard is False
+    assert module.is_visible_on_atom_map is False
+    assert module.is_available_for_widgets is False
 
 
 def test_admin_module_registry_routes_are_registered():

@@ -20,11 +20,12 @@ from app.services.audit_log_service import (
     record_inactive_module_open_attempt,
     record_legacy_module_normalization,
 )
+from app.services.module_lifecycle import MODULE_ACTIVE_STATUSES, MODULE_USER_HIDDEN_STATUSES
 from app.services.platform_region_registry import get_default_active_region, get_platform_region_registry_item
 
 
-HIDDEN_ACTIVE_STATUSES: set[str] = {"MERGED", "ARCHIVED"}
-VISIBLE_MODULE_STATUSES: set[str] = {"ACTIVE", "DEPRECATED"}
+HIDDEN_ACTIVE_STATUSES: set[str] = MODULE_USER_HIDDEN_STATUSES
+VISIBLE_MODULE_STATUSES: set[str] = MODULE_ACTIVE_STATUSES
 ACCESS_LEVELS_DESC: tuple[str, ...] = (
     AccessLevel.ADMIN,
     AccessLevel.APPROVE,

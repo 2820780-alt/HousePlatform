@@ -135,6 +135,21 @@ def test_module_visibility_returns_empty_list_when_active_region_is_not_active()
     assert items == []
 
 
+def test_module_visibility_hides_all_non_active_lifecycle_statuses_even_if_flags_are_true():
+    modules = [
+        _module(f"MODULE_99_{status}", status=status, is_active=True)
+        for status in ("PLANNED", "DRAFT", "DISABLED", "DEPRECATED", "ARCHIVED", "MERGED")
+    ]
+
+    items = build_visible_module_items(
+        modules,
+        {"roleCode": "SUPER_ADMIN"},
+        ActiveRegionContext("KRASNODAR_KRAI", "Краснодарский край", True, "test"),
+    )
+
+    assert items == []
+
+
 def test_module_visibility_filters_actions_by_access_level():
     items = build_visible_module_items(
         [
