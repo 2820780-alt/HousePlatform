@@ -37,6 +37,7 @@ def test_widget_registry_filters_available_widgets_by_module_widget_and_feature_
     profile = {
         "roleCode": "ANALYST",
         "authMode": "mock",
+        "activeRegionCode": "KRASNODAR_KRAI",
         "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"],
         "allowedFeatureCodes": ["PRICE_DYNAMICS"],
         "allowedWidgetCodes": ["materials-kpi", "price-dynamics", "digital-house-status"],
@@ -45,6 +46,18 @@ def test_widget_registry_filters_available_widgets_by_module_widget_and_feature_
     widget_codes = {widget["widgetCode"] for widget in get_available_widget_registry_items(profile)}
 
     assert widget_codes == {"materials-kpi", "price-dynamics"}
+
+
+def test_widget_registry_requires_active_region_for_available_widgets():
+    profile = {
+        "roleCode": "ANALYST",
+        "authMode": "mock",
+        "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"],
+        "allowedFeatureCodes": ["PRICE_DYNAMICS"],
+        "allowedWidgetCodes": ["materials-kpi", "price-dynamics"],
+    }
+
+    assert get_available_widget_registry_items(profile) == []
 
 
 def test_planned_widgets_are_hidden_from_regular_available_registry():

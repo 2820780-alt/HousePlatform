@@ -76,26 +76,12 @@ def get_widget_registry_item(widget_code: str | None) -> WidgetRegistryItemDefin
 
 
 def get_available_widget_registry_items(user_profile: Any) -> list[dict[str, Any]]:
-    data = _profile_dict(user_profile)
-    allowed_modules = {
-        get_canonical_module_code(code) or code
-        for code in data.get("allowedModuleCodes") or []
-    }
-    allowed_widgets = set(data.get("allowedWidgetCodes") or [])
-    allowed_features = set(data.get("allowedFeatureCodes") or [])
-    role_code = data.get("effectiveRoleCode") or data.get("roleCode")
-    cabinet_type = data.get("activeCabinetType")
+    from app.services.widget_permission import can_view_widget
+
     return [
         item.to_dict()
         for item in _widget_registry_definitions()
-        if _is_widget_available_for_profile(
-            item,
-            allowed_module_codes=allowed_modules,
-            allowed_widget_codes=allowed_widgets,
-            allowed_feature_codes=allowed_features,
-            role_code=role_code,
-            cabinet_type=cabinet_type,
-        )
+        if can_view_widget(user_profile, item.widgetCode, user_profile)
     ]
 
 
@@ -150,31 +136,6 @@ def _widget_registry_definitions() -> tuple[WidgetRegistryItemDefinition, ...]:
         widget_registry_item_from_dashboard(item, order=index * 10)
         for index, item in enumerate(DASHBOARD_WIDGET_REGISTRY, start=1)
     )
-
-
-def _is_widget_available_for_profile(
-    item: WidgetRegistryItemDefinition,
-    *,
-    allowed_module_codes: set[str],
-    allowed_widget_codes: set[str],
-    allowed_feature_codes: set[str],
-    role_code: str | None,
-    cabinet_type: str | None,
-) -> bool:
-    if item.status not in VISIBLE_WIDGET_STATUSES:
-        return False
-    if allowed_widget_codes and item.widgetCode not in allowed_widget_codes:
-        return False
-    if item.sourceModuleCode not in allowed_module_codes:
-        return False
-    if item.featureCode and allowed_feature_codes and item.featureCode not in allowed_feature_codes:
-        return False
-    if item.allowedRoles and role_code not in item.allowedRoles:
-        return False
-    if item.allowedCabinetTypes and cabinet_type not in item.allowedCabinetTypes:
-        return False
-    module_item = get_dashboard_module_registry_item(item.sourceModuleCode)
-    return module_item is None or module_item.status == ACTIVE_STATUS
 
 
 def _dashboard_status_to_widget_status(status: str) -> str:
