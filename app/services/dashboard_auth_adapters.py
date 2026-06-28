@@ -10,6 +10,11 @@ from app.services.dashboard_module_registry import (
 )
 from app.services.dashboard_widget_config import widget_config_from_dict
 from app.services.dashboard_widget_registry import get_dashboard_widget_registry
+from app.services.role_dashboard_access_profiles import (
+    can_preview_dashboard_access_profiles,
+    get_role_dashboard_access_profile,
+    get_role_dashboard_preview_options,
+)
 
 
 ADMIN_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN", *LEGACY_ADMIN_ROLE_CODES}
@@ -23,46 +28,7 @@ ROLE_LABELS = {
     "CUSTOMER": "Заказчик",
     "ESTIMATOR": "Сметчик",
 }
-PREVIEW_ROLE_OPTIONS = [
-    {"roleCode": "ANALYST", "label": ROLE_LABELS["ANALYST"]},
-    {"roleCode": "SUPPLIER", "label": ROLE_LABELS["SUPPLIER"]},
-    {"roleCode": "CUSTOMER", "label": ROLE_LABELS["CUSTOMER"]},
-    {"roleCode": "ESTIMATOR", "label": ROLE_LABELS["ESTIMATOR"]},
-]
-PREVIEW_ROLE_PROFILES = {
-    "ANALYST": {
-        "workspaceType": "ANALYTICS",
-        "activeCabinetType": "ANALYST",
-        "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS", "MODULE_13_AUDIT"],
-        "favoriteModuleCodes": ["MODULE_11_ANALYTICS", "MODULE_01_MATERIAL_HUB", "MODULE_13_AUDIT"],
-        "allowedActionCodes": ["DASHBOARD_CONFIGURE", "SOURCE_ERRORS_OPEN", "DOCUMENT_LIST_OPEN"],
-        "allowedFeatureCodes": ["DASHBOARD_VIEW", "DASHBOARD_PERSONALIZE", "ATOM_MAP_VIEW", "PRICE_DYNAMICS"],
-    },
-    "SUPPLIER": {
-        "workspaceType": "SUPPLIER",
-        "activeCabinetType": "SUPPLIER",
-        "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_08_PROCUREMENT", "MODULE_09_TENDERS", "MODULE_10_MARKETPLACE"],
-        "favoriteModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_08_PROCUREMENT", "MODULE_09_TENDERS"],
-        "allowedActionCodes": ["SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"],
-        "allowedFeatureCodes": ["DASHBOARD_VIEW", "DASHBOARD_PERSONALIZE", "ATOM_MAP_VIEW"],
-    },
-    "CUSTOMER": {
-        "workspaceType": "CUSTOMER",
-        "activeCabinetType": "CUSTOMER",
-        "allowedModuleCodes": ["MODULE_05_ESTIMATES", "MODULE_07_DIGITAL_HOUSE", "MODULE_08_PROCUREMENT", "MODULE_10_MARKETPLACE"],
-        "favoriteModuleCodes": ["MODULE_07_DIGITAL_HOUSE", "MODULE_05_ESTIMATES", "MODULE_08_PROCUREMENT"],
-        "allowedActionCodes": ["DASHBOARD_CONFIGURE"],
-        "allowedFeatureCodes": ["DASHBOARD_VIEW", "DASHBOARD_PERSONALIZE", "ATOM_MAP_VIEW"],
-    },
-    "ESTIMATOR": {
-        "workspaceType": "ESTIMATES",
-        "activeCabinetType": "ESTIMATOR",
-        "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_05_ESTIMATES", "MODULE_06_ESTIMATE_AUDIT", "MODULE_11_ANALYTICS"],
-        "favoriteModuleCodes": ["MODULE_05_ESTIMATES", "MODULE_06_ESTIMATE_AUDIT", "MODULE_01_MATERIAL_HUB"],
-        "allowedActionCodes": ["DASHBOARD_CONFIGURE"],
-        "allowedFeatureCodes": ["DASHBOARD_VIEW", "DASHBOARD_PERSONALIZE", "ATOM_MAP_VIEW", "PRICE_DYNAMICS"],
-    },
-}
+PREVIEW_ROLE_OPTIONS = get_role_dashboard_preview_options()
 
 
 @dataclass
@@ -104,7 +70,7 @@ class DashboardUserContext:
         data["allowedWidgets"] = self.allowedWidgetCodes
         data["allowedActions"] = self.allowedActionCodes
         data["favoriteModules"] = self.favoriteModuleCodes
-        data["canPreviewDashboardRoles"] = self.roleCode in ADMIN_ROLE_CODES
+        data["canPreviewDashboardRoles"] = can_preview_dashboard_access_profiles(self.roleCode)
         data["previewRoleOptions"] = PREVIEW_ROLE_OPTIONS
         data["cabinetDashboardPreset"] = self.cabinetDashboardPreset
         data["userDashboardLayout"] = self.userDashboardLayout
@@ -145,10 +111,14 @@ class DashboardUserContextAdapter:
         )
         allowed_widget_codes = sorted(set(allowed_widget_codes))
         active_region_code = active_region.get("code")
-        profile = PREVIEW_ROLE_PROFILES.get(effective_role_code, {})
+        # The current dev user still uses legacy ADMIN. Keep its existing mock layout stable;
+        # real Module 03 roles and preview-role use RoleDashboardAccessProfile.
+        profile = get_role_dashboard_access_profile(effective_role_code) if normalized_preview_role else {}
+        profile_settings = profile.get("settings") or {}
         if profile:
             allowed_module_codes = profile["allowedModuleCodes"]
-            favorite_module_codes = profile["favoriteModuleCodes"]
+            favorite_module_codes = profile_settings.get("favoriteModuleCodes") or favorite_module_codes
+            allowed_widget_codes = sorted(set(profile.get("defaultWidgetCodes") or []))
 
         dashboard_layout = normalize_dashboard_layout({
             "version": "mock-v1",
@@ -182,11 +152,11 @@ class DashboardUserContextAdapter:
             displayName="Администратор",
             roleCode=real_role_code,
             workspaceTitle=personalization["active_workspace"],
-            workspaceType=profile.get("workspaceType", "ADMINISTRATION"),
+            workspaceType=profile_settings.get("workspaceType", "ADMINISTRATION"),
             activeRegionCode=active_region_code,
             activeRegionName=active_region.get("name"),
             activeCabinetId="cabinet-admin-mock",
-            activeCabinetType=profile.get("activeCabinetType", "ADMIN"),
+            activeCabinetType=profile_settings.get("activeCabinetType", "ADMIN"),
             availableRegionCodes=[active_region_code] if active_region_code else [],
             allowedModuleCodes=allowed_module_codes,
             allowedWidgetCodes=allowed_widget_codes,
@@ -196,7 +166,7 @@ class DashboardUserContextAdapter:
                 "ATOM_MAP_VIEW",
                 "PRICE_DYNAMICS",
             ]),
-            allowedActionCodes=profile.get("allowedActionCodes", [
+            allowedActionCodes=profile.get("defaultQuickActionCodes", [
                 "MATERIAL_CREATE",
                 "SUPPLIER_PRICE_UPLOAD",
                 "MATERIAL_MODERATION_OPEN",
@@ -263,7 +233,7 @@ class DashboardPermissionAdapter:
     @staticmethod
     def can_preview_dashboard_roles(context: DashboardUserContext | dict[str, Any]) -> bool:
         data = _context_dict(context)
-        return data.get("roleCode") in ADMIN_ROLE_CODES
+        return can_preview_dashboard_access_profiles(data.get("roleCode"))
 
 
 class DashboardRegionContextAdapter:
@@ -344,7 +314,7 @@ def _widget_layout(widget: dict[str, Any], position: int = 100) -> dict[str, Any
 
 
 def _normalize_preview_role(preview_role_code: str | None, real_role_code: str) -> str | None:
-    if real_role_code not in ADMIN_ROLE_CODES:
+    if not can_preview_dashboard_access_profiles(real_role_code):
         return None
     normalized = (preview_role_code or "").upper()
-    return normalized if normalized in PREVIEW_ROLE_PROFILES else None
+    return normalized if get_role_dashboard_access_profile(normalized) else None

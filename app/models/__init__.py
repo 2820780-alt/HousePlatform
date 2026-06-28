@@ -59,6 +59,7 @@ from app.models.platform_region import PlatformRegion
 from app.models.pilot_region import PilotRegion
 from app.models.price_history import PriceHistory
 from app.models.role import Role
+from app.models.role_dashboard_access_profile import RoleDashboardAccessProfile
 from app.models.role_permission import RolePermission
 from app.models.role_template import RoleTemplate
 from app.models.rule_memory import RuleMemory
@@ -131,6 +132,7 @@ __all__ = [
     "PriceHistory",
     "RegionStatus",
     "Role",
+    "RoleDashboardAccessProfile",
     "RolePermission",
     "RoleTemplate",
     "RuleMemory",
