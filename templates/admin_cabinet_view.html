@@ -1810,7 +1810,7 @@
         </details>
         <div class="registry-section-title">
           <h3>Все модули · Атомная карта</h3>
-          <p>Сверху показаны модули на атоме, ниже — остальные доступные, planned и служебные записи. Недоступные карточки остаются read-only.</p>
+          <p>Сверху показаны модули на атоме, ниже — остальные доступные и planned-записи. Legacy/merged-модули показываются как связь с каноническим модулем.</p>
         </div>
         <div class="module-manager" data-module-manager data-limit="{{ all_modules_panel.limit }}">
           <div class="module-manager-status">
@@ -1821,7 +1821,7 @@
             <h3>На атоме</h3>
             <p>Карточки, которые сейчас отображаются вокруг ядра АТОМ.</p>
           </div>
-          <div class="module-manager-grid">
+          <div class="module-manager-grid" data-module-section="selected">
             {% for module in all_modules_panel.on_atom_modules %}
             <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="true" data-module-unavailable="{{ 'true' if module.is_locked else 'false' }}" style="--module-accent: {{ module.accent }}">
               <div class="module-manager-preview">
@@ -1833,6 +1833,9 @@
                   <span class="module-card-action" title="{{ action.label }}" data-action-tooltip="{{ action.label }}">{{ action.icon }}</span>
                   {% endfor %}
                 </span>
+                {% for alias_note in module.merged_alias_notes %}
+                <span class="event-note">{{ alias_note }}</span>
+                {% endfor %}
               </div>
               <div class="module-manager-actions">
                 <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}" disabled>+</button>
@@ -1845,9 +1848,9 @@
           </div>
           <div class="registry-section-title">
             <h3>Остальные модули</h3>
-            <p>Доступные можно добавить на атом. Planned, archived, merged и disabled остаются информационными.</p>
+            <p>Доступные можно добавить на атом. Planned-записи остаются информационными до включения модуля.</p>
           </div>
-          <div class="module-manager-grid">
+          <div class="module-manager-grid" data-module-section="available">
             {% for module in all_modules_panel.other_modules %}
             <article class="module-manager-card" data-module-row="{{ module.module_code }}" data-selected="false" data-module-unavailable="{{ 'true' if module.is_locked else 'false' }}" style="--module-accent: {{ module.accent }}">
               <div class="module-manager-preview">
@@ -1862,6 +1865,9 @@
                 {% if module.lock_reason %}
                 <span class="event-note">{{ module.lock_reason }}</span>
                 {% endif %}
+                {% for alias_note in module.merged_alias_notes %}
+                <span class="event-note">{{ alias_note }}</span>
+                {% endfor %}
               </div>
               <div class="module-manager-actions">
                 <button type="button" title="Добавить на атом" aria-label="Добавить {{ module.title }} на атом" data-module-action="add" data-module-code="{{ module.module_code }}" {% if module.is_locked %}disabled{% endif %}>+</button>
@@ -2164,6 +2170,7 @@
       const getCard = (moduleCode) => document.querySelector(`[data-atom-module-card][data-module-code="${moduleCode}"]`);
       const getConnection = (moduleCode) => document.querySelector(`.atom-connection[data-module-code="${moduleCode}"]`);
       const getRow = (moduleCode) => document.querySelector(`[data-module-row="${moduleCode}"]`);
+      const getSection = (section) => document.querySelector(`[data-module-section="${section}"]`);
       const getPriority = (card) => {
         const index = atomPriority.indexOf(card.dataset.canonicalModuleCode || card.dataset.moduleCode);
         return index === -1 ? 100 + Number(card.dataset.position || 0) : index;
@@ -2197,6 +2204,22 @@
         messageNode.textContent = text || "";
       }
 
+      function refreshModuleSectionEmptyStates() {
+        document.querySelectorAll("[data-module-section]").forEach((section) => {
+          const hasCards = Boolean(section.querySelector("[data-module-row]"));
+          section.querySelectorAll(".module-manager-empty").forEach((empty) => {
+            empty.hidden = hasCards;
+          });
+        });
+      }
+
+      function moveModuleRow(row, isVisible) {
+        const targetSection = getSection(isVisible ? "selected" : "available");
+        if (!row || !targetSection) return;
+        targetSection.appendChild(row);
+        refreshModuleSectionEmptyStates();
+      }
+
       document.querySelectorAll("[data-atom-card-action][data-confirm='true']").forEach((link) => {
         link.addEventListener("click", (event) => {
           if (!window.confirm("Выполнить действие?")) {
@@ -2213,6 +2236,7 @@
         if (connection) connection.classList.toggle("atom-hidden", !isVisible);
         if (row) {
           row.dataset.selected = String(isVisible);
+          moveModuleRow(row, isVisible);
           const chip = row.querySelector(".metric-chip");
           if (chip) chip.textContent = isVisible ? "Избранное" : "Скрыто";
         }
@@ -2230,6 +2254,7 @@
           if (addButton) addButton.disabled = isUnavailable || isSelected || selectedCount >= limit;
           if (removeButton) removeButton.disabled = isUnavailable || !isSelected;
         });
+        refreshModuleSectionEmptyStates();
         syncAtomLayout();
       }
 
@@ -2260,6 +2285,7 @@
         updateControls();
       });
 
+      refreshModuleSectionEmptyStates();
       updateControls();
     })();
   </script>

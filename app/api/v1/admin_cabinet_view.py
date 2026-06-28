@@ -84,6 +84,7 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])
     selected_atom_module_codes = [card["module_code"] for card in satellite_cards]
     widget_registry = get_dashboard_widget_registry()
+    side_nav = _side_nav(cards, dashboard_context["dashboard_user_context"])
     return templates.TemplateResponse(
         request,
         "admin_cabinet_view.html",
@@ -97,6 +98,7 @@ async def admin_cabinet_view(request: Request, db: DBSession):
                 dashboard_context["planned_modules"],
             ),
             "center_card": center_card,
+            "side_nav": side_nav,
             "module_registry": get_dashboard_module_registry(),
             "widget_registry": widget_registry,
             "widget_settings_groups": _build_widget_settings_groups(
@@ -150,11 +152,37 @@ def _can_show_atom_card(card: dict, user_context) -> bool:
 
 
 def _select_all_atom_cards(cards: list[dict], user_context) -> list[dict]:
-    return [
+    atom_cards = [
         card
         for card in sorted(cards, key=lambda item: item.get("display_order", item["number"]))
         if _can_show_atom_card(card, user_context)
     ]
+    merged_by_target = _merged_alias_notes_by_target()
+    for card in atom_cards:
+        card["merged_alias_notes"] = merged_by_target.get(card["canonical_module_code"], [])
+    return atom_cards
+
+
+def _merged_alias_notes_by_target() -> dict[str, list[str]]:
+    notes_by_target: dict[str, list[str]] = {}
+    for module in get_dashboard_module_registry():
+        if module.get("status") not in {"merged", "deprecated"}:
+            continue
+        target = module.get("canonicalModuleCode") or module.get("mergedIntoModuleCode")
+        if not target or target == module.get("moduleCode"):
+            continue
+        relation = "объединен с" if module.get("status") == "merged" else "перенесен в"
+        target_title = _module_registry_title(target)
+        note = f"{module.get('title') or module.get('moduleCode')} {relation}: {target_title}"
+        notes_by_target.setdefault(target, []).append(note)
+    return notes_by_target
+
+
+def _module_registry_title(module_code: str) -> str:
+    item = get_dashboard_module_registry_item(module_code)
+    if item:
+        return item.title
+    return module_code
 
 
 def _build_all_modules_panel(
@@ -163,6 +191,7 @@ def _build_all_modules_panel(
     planned_modules: list[dict],
 ) -> dict:
     selected_codes = set(selected_module_codes)
+    merged_by_target = _merged_alias_notes_by_target()
     active_modules = [
         {
             "module_code": card["module_code"],
@@ -180,22 +209,21 @@ def _build_all_modules_panel(
             "state_tone": card["state_tone"],
             "atom_quick_action_options": card.get("atom_quick_action_options", []),
             "atom_quick_actions": card.get("atom_quick_actions", []),
+            "merged_alias_notes": card.get("merged_alias_notes", []),
             "display_order": card.get("display_order", card["number"]),
             "is_locked": False,
             "lock_reason": "",
         }
         for card in atom_cards
     ]
-    planned_rows = [_module_manager_row_from_registry(module, state="planned") for module in planned_modules]
-    system_rows = [
-        _module_manager_row_from_registry(module, state="system")
-        for module in get_dashboard_module_registry()
-        if module["status"] in {"merged", "archived", "deprecated", "disabled"}
-    ]
+    planned_rows = []
+    for module in planned_modules:
+        row = _module_manager_row_from_registry(module, state="planned")
+        row["merged_alias_notes"] = merged_by_target.get(row["canonical_module_code"], [])
+        planned_rows.append(row)
     on_atom_modules = [module for module in active_modules if module["is_selected"]]
     other_modules = [module for module in active_modules if not module["is_selected"]]
     other_modules.extend(planned_rows)
-    other_modules.extend(system_rows)
     return {
         "limit": 8,
         "selected_count": len(selected_module_codes),
@@ -231,6 +259,7 @@ def _module_manager_row_from_registry(module: dict, *, state: str) -> dict:
         "state_tone": "muted" if status in {"planned", "draft"} else "disabled",
         "atom_quick_action_options": [],
         "atom_quick_actions": [],
+        "merged_alias_notes": [],
         "display_order": module.get("displayOrder", 1000),
         "is_locked": True,
         "lock_reason": (
@@ -557,7 +586,6 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     return {
         "periods": ["Неделя", "Месяц", "Квартал", "Год"],
         "project_options": ["Дом 120 м2", "Дом 160 м2", "Текущий проект"],
-        "side_nav": _side_nav(),
         "top_kpis": top_kpis,
         "top_widget_grid": top_widget_grid,
         "analytics": analytics,
@@ -996,23 +1024,35 @@ def _module_passports(
     ]
 
 
-def _side_nav() -> list[dict]:
-    return [
-        {"label": "Главная", "href": "/api/v1/admin/cabinet/view", "icon": "⌂", "active": True},
-        {"label": "База материалов", "href": "/api/v1/admin/material-hub/view", "icon": "▦"},
-        {"label": "База знаний", "href": "/api/v1/admin/cabinet/view/modules/2", "icon": "◇"},
-        {"label": "История цен", "href": "/api/v1/admin/price-dynamics/view", "icon": "⌁"},
-        {"label": "Сметы", "href": "/api/v1/admin/cabinet/view/modules/5", "icon": "≋"},
-        {"label": "Работы / проекты", "href": "/api/v1/admin/cabinet/view/modules/7", "icon": "▣"},
-        {"label": "Тендеры", "href": "/api/v1/admin/cabinet/view/modules/9", "icon": "♜"},
-        {"label": "Поставщики", "href": "/api/v1/admin/cabinet/view/modules/8", "icon": "♢"},
-        {"label": "Маркетплейс", "href": "/api/v1/admin/cabinet/view/modules/10", "icon": "▤"},
-        {"label": "Аналитика", "href": "/api/v1/admin/cabinet/view/modules/11", "icon": "▥"},
-        {"label": "AI-помощник", "href": "/api/v1/admin/cabinet/view/modules/12", "icon": "✦"},
-        {"label": "Настройки", "href": "/api/v1/admin/cabinet/view/modules/16", "icon": "⚙"},
-        {"label": "Пользователи", "href": "/api/v1/admin/users-roles/view", "icon": "☻"},
-        {"label": "Журнал событий", "href": "/api/v1/admin/cabinet/view/modules/13", "icon": "◷"},
+def _side_nav(cards: list[dict], user_context) -> list[dict]:
+    nav = [{"label": "Главная", "href": "/api/v1/admin/cabinet/view", "icon": "⌂", "active": True}]
+    nav_cards = [
+        card
+        for card in sorted(cards, key=lambda item: item.get("display_order", item["number"]))
+        if _can_show_sidebar_item(card, user_context)
     ]
+    for card in nav_cards:
+        nav.append(
+            {
+                "label": card["display_name"],
+                "href": card["route"],
+                "icon": card["dashboard_icon"],
+                "active": False,
+            }
+        )
+    return nav
+
+
+def _can_show_sidebar_item(card: dict, user_context) -> bool:
+    if card.get("context_code") == DASHBOARD_ADMIN_CONTEXT:
+        return False
+    if not card.get("is_visible_in_sidebar", True):
+        return False
+    if card.get("registry_status") in {"merged", "archived", "deprecated"}:
+        return False
+    if card.get("registry_status") in {"planned", "draft"} and not can_see_planned_modules(user_context):
+        return False
+    return can_access_module(user_context, card["canonical_module_code"])
 
 
 def _admin_widgets(

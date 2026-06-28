@@ -45,6 +45,8 @@ from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
 from app.models.material_type import MaterialType
 from app.models.module_action_registry import ModuleActionRegistry
+from app.models.module_migration_warning import ModuleMigrationWarning
+from app.models.module_registry_version import ModuleRegistryVersion
 from app.models.favorite_module import FavoriteModule
 from app.models.function_access import FunctionAccess
 from app.models.knowledge_candidate import KnowledgeCandidate
@@ -127,6 +129,8 @@ __all__ = [
     "MaterialStatus",
     "ModuleAccess",
     "ModuleActionRegistry",
+    "ModuleMigrationWarning",
+    "ModuleRegistryVersion",
     "Permission",
     "PilotRegion",
     "PlatformCity",
