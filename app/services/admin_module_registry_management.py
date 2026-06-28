@@ -480,7 +480,7 @@ async def _load_audit_notes(db: AsyncSession, module: PlatformModuleRegistry, de
             ),
             or_(
                 AuditLog.entity_id == module.id,
-                AuditLog.details["moduleCode"].astext == module.module_code,
+                AuditLog.details["moduleCode"].as_string() == module.module_code,
             ),
         )
         .order_by(desc(AuditLog.created_at))
