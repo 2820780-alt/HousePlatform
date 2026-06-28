@@ -85,6 +85,7 @@ from app.models.user_session import UserSession
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 from app.models.workspace_role import WorkspaceRole
+from app.models.widget_registry_item import WidgetRegistryItem
 
 __all__ = [
     "AccessStatus",
@@ -172,4 +173,5 @@ __all__ = [
     "Workspace",
     "WorkspaceMember",
     "WorkspaceRole",
+    "WidgetRegistryItem",
 ]

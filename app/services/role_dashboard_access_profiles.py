@@ -10,7 +10,7 @@ from app.core.role_dashboard_access_profiles import (
 )
 from app.core.system_roles import LEGACY_ADMIN_ROLE_CODES
 from app.services.dashboard_module_registry import get_canonical_module_code, get_dashboard_module_registry_item
-from app.services.dashboard_widget_registry import get_dashboard_widget_registry_item
+from app.services.widget_registry import get_widget_registry_item
 
 
 ROLE_DASHBOARD_PROFILE_LAYER = "module03_role_dashboard_access_profile"
@@ -117,15 +117,15 @@ def _filter_default_widget_codes(
     for widget_code in widget_codes:
         if widget_code in hidden_widgets or widget_code in filtered:
             continue
-        widget = get_dashboard_widget_registry_item(widget_code)
+        widget = get_widget_registry_item(widget_code)
         if not widget:
             continue
-        if widget.status not in {"available", "mock_only"}:
+        if widget.status != "ACTIVE":
             continue
-        source_module_code = get_canonical_module_code(widget.requiredModuleCode or widget.sourceModuleCode)
+        source_module_code = get_canonical_module_code(widget.sourceModuleCode)
         if source_module_code not in allowed_modules:
             continue
-        if widget.featureCode and widget.featureCode not in allowed_features:
+        if widget.featureCode and allowed_features and widget.featureCode not in allowed_features:
             continue
         filtered.append(widget_code)
     return filtered
