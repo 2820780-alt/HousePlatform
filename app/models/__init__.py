@@ -79,6 +79,7 @@ from app.models.unit_alias import UnitAlias
 from app.models.unit_conversion import UnitConversion
 from app.models.unit_conversion_rule import UnitConversionRule
 from app.models.user import User
+from app.models.user_dashboard_layout import UserDashboardLayout
 from app.models.user_preference import UserPreference
 from app.models.user_role_assignment import UserRoleAssignment
 from app.models.user_session import UserSession
@@ -164,6 +165,7 @@ __all__ = [
     "UploadRowStatus",
     "UploadStatus",
     "User",
+    "UserDashboardLayout",
     "UserPreference",
     "UserRole",
     "UserRoleAssignment",
