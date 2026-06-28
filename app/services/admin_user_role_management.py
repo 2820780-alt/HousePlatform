@@ -25,7 +25,9 @@ from app.models.user import User
 from app.models.user_role_assignment import UserRoleAssignment
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
+from app.services.access_context_for_cabinet import build_access_context_for_cabinet
 from app.services.audit_log_service import AuditLogType, write_audit_event
+from app.services.module8_cabinet_admin_preview import get_module8_cabinet_admin_preview
 
 
 LEGACY_ROLE_ALIASES: dict[str, str] = {
@@ -156,12 +158,20 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
     roles = await _load_role_options(db, actor)
     workspaces = await _load_workspaces(db)
     history = await _load_user_history(db, user_id)
+    user_data = user_summary(user, include_permissions=True)
+    access_context = build_access_context_for_cabinet(user_data)
+    module8_preview = get_module8_cabinet_admin_preview(
+        user_data,
+        access_context=access_context,
+    )
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
-        "user": user_summary(user, include_permissions=True),
+        "user": user_data,
         "roles": roles,
         "workspaces": [workspace_summary(workspace) for workspace in workspaces],
         "permissions": active_permissions_for_user(user),
+        "accessContextForCabinet": access_context.to_dict(),
+        "module8CabinetPreview": module8_preview.to_dict(),
         "history": [audit_log_summary(item) for item in history],
         "canDisable": can_disable_user(actor, user),
         "disableConfirmation": DISABLE_CONFIRMATION,

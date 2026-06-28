@@ -223,6 +223,32 @@
       display: grid;
       gap: 8px;
     }
+    .bridge-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      padding: 14px;
+    }
+    .bridge-stack {
+      display: grid;
+      gap: 8px;
+    }
+    .bridge-card {
+      padding: 12px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.48);
+    }
+    .bridge-card strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+    .code-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
     .empty {
       padding: 18px;
       border: 1px dashed rgba(119, 172, 255, 0.26);
@@ -232,7 +258,7 @@
     }
     @media (max-width: 980px) {
       main { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2 { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
     }
   </style>
@@ -368,6 +394,95 @@
             </form>
           </section>
         </div>
+
+        <section class="panel" aria-labelledby="cabinet-context-title">
+          <div class="panel-head">
+            <h2 id="cabinet-context-title">Кабинеты и контекст</h2>
+            <span class="chip">MODULE_08_PARTNER_PORTAL</span>
+          </div>
+          <div class="bridge-grid">
+            <div class="bridge-stack">
+              <div class="bridge-card">
+                <h3>Preview Module №8</h3>
+                <div class="muted">{{ detail.module8CabinetPreview.warning }}</div>
+              </div>
+              {% if detail.module8CabinetPreview.cabinets %}
+                {% for cabinet in detail.module8CabinetPreview.cabinets %}
+                <div class="bridge-card">
+                  <strong>{{ cabinet.title }}</strong>
+                  <div class="muted">{{ cabinet.cabinetType }}{% if cabinet.businessRole %} · {{ cabinet.businessRole }}{% endif %}</div>
+                  <div class="toolbar" style="margin-top: 8px;">
+                    <span class="chip {% if cabinet.isActive %}ok{% else %}warn{% endif %}">{% if cabinet.isActive %}Активный{% else %}Preview{% endif %}</span>
+                    <span class="chip">{{ cabinet.status }}</span>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+              <div class="empty">{{ detail.module8CabinetPreview.emptyState }}</div>
+              {% endif %}
+              <div class="bridge-card">
+                <h3>Связанные объекты</h3>
+                {% if detail.module8CabinetPreview.linkedObjects %}
+                  {% for object in detail.module8CabinetPreview.linkedObjects %}
+                  <div class="permission-row">
+                    <div>
+                      <strong>{{ object.title }}</strong>
+                      <small>{{ object.relationType }} · {{ object.visibilityScope }}</small>
+                    </div>
+                    <span class="chip">{{ object.objectId }}</span>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                <div class="muted">Объекты и настройки видимости будут приходить из Module №8. Module №3 их не хранит.</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="bridge-stack">
+              <div class="bridge-card">
+                <h3>Access context от Module №3</h3>
+                <div class="muted">
+                  userId: {{ detail.accessContextForCabinet.userId or '—' }}<br>
+                  workspaceId: {{ detail.accessContextForCabinet.workspaceId or '—' }}<br>
+                  activeRegionCode: {{ detail.accessContextForCabinet.activeRegionCode or 'не задан' }}
+                </div>
+              </div>
+              <div class="bridge-card">
+                <h3>Доступные модули</h3>
+                <div class="code-list">
+                  {% for code in detail.accessContextForCabinet.allowedModuleCodes[:10] %}
+                  <span class="chip">{{ code }}</span>
+                  {% else %}
+                  <span class="muted">Нет доступных модулей.</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="bridge-card">
+                <h3>Виджеты и действия</h3>
+                <div class="muted">Module №3 разрешает, Module №8 позже определяет уместность для активного кабинета.</div>
+                <div class="code-list">
+                  {% for code in detail.accessContextForCabinet.allowedWidgetCodes[:6] %}
+                  <span class="chip">{{ code }}</span>
+                  {% endfor %}
+                  {% for code in detail.accessContextForCabinet.allowedQuickActionCodes[:6] %}
+                  <span class="chip ok">{{ code }}</span>
+                  {% endfor %}
+                  {% if not detail.accessContextForCabinet.allowedWidgetCodes and not detail.accessContextForCabinet.allowedQuickActionCodes %}
+                  <span class="muted">Нужен activeRegionCode и подключенные registry/permissions.</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="bridge-card">
+                <h3>Что редактируется здесь</h3>
+                <div class="code-list">
+                  {% for item in detail.module8CabinetPreview.editableInModule03 %}
+                  <span class="chip">{{ item }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section class="panel">
           <div class="panel-head">

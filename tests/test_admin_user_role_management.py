@@ -96,3 +96,11 @@ def test_admin_users_roles_view_route_is_registered():
 
     assert "/admin/users-roles/view" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
+
+
+def test_admin_users_roles_template_contains_module8_bridge_copy():
+    template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+
+    assert "Кабинеты и контекст" in template
+    assert "MODULE_08_PARTNER_PORTAL" in template
+    assert "Module №3 их не хранит" in template
