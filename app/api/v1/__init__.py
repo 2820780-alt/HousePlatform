@@ -6,6 +6,7 @@ from app.api.v1 import (
     admin_cabinet_view,
     admin_materials,
     admin_moderation,
+    admin_module_registry_view,
     admin_suppliers,
     admin_users_roles_view,
     auth,
@@ -24,6 +25,7 @@ api_router.include_router(auth.router)
 api_router.include_router(admin_cabinet_view.router)
 api_router.include_router(admin_suppliers.router)
 api_router.include_router(admin_users_roles_view.router)
+api_router.include_router(admin_module_registry_view.router)
 api_router.include_router(admin_material_hub.router)
 api_router.include_router(admin_materials.router)
 api_router.include_router(admin_moderation.router)

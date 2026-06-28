@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.v1 import api_router
 from app.config import settings
@@ -29,6 +29,62 @@ async def health_check():
         "version": "Master_Prompt_v1.1",
         "environment": settings.APP_ENV,
     }
+
+
+@app.get("/api", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/api/", include_in_schema=False, response_class=HTMLResponse)
+async def api_entrypoint():
+    return """
+    <!doctype html>
+    <html lang="ru">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>АТОМ API</title>
+        <style>
+          body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            color: #eef7ff;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #050917, #0b1434 55%, #130d29);
+          }
+          main {
+            width: min(620px, calc(100vw - 32px));
+            padding: 24px;
+            border: 1px solid rgba(119, 172, 255, 0.22);
+            border-radius: 10px;
+            background: rgba(10, 18, 43, 0.86);
+            box-shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+          }
+          h1 { margin: 0 0 8px; letter-spacing: 0; }
+          p { color: #8fa4c8; line-height: 1.5; }
+          a {
+            display: inline-flex;
+            margin: 8px 8px 0 0;
+            padding: 9px 12px;
+            border: 1px solid rgba(24, 215, 242, 0.38);
+            border-radius: 8px;
+            color: #eef7ff;
+            text-decoration: none;
+            background: rgba(24, 215, 242, 0.1);
+            font-weight: 700;
+          }
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>АТОМ API</h1>
+          <p>/api — обзорная точка входа. Рабочий API живет под /api/v1, документация доступна через Swagger.</p>
+          <a href="/docs">Открыть Swagger</a>
+          <a href="/api/v1/health">Health check</a>
+          <a href="/api/v1/admin/cabinet/view">Dashboard</a>
+        </main>
+      </body>
+    </html>
+    """
 
 
 @app.get("/modules/price-history", tags=["module-compatibility"], include_in_schema=False)

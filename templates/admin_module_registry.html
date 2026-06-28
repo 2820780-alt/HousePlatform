@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>АТОМ · Реестр модулей</title>
+  <style>
+    :root {
+      --bg: #050917;
+      --surface: rgba(10, 18, 43, 0.9);
+      --surface-2: rgba(14, 28, 67, 0.72);
+      --line: rgba(119, 172, 255, 0.22);
+      --text: #eef7ff;
+      --muted: #8fa4c8;
+      --cyan: #18d7f2;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ff3b7f;
+      --violet: #a855f7;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 16% 12%, rgba(24, 215, 242, 0.14), transparent 28%),
+        radial-gradient(circle at 84% 80%, rgba(168, 85, 247, 0.14), transparent 28%),
+        linear-gradient(135deg, var(--bg), #0b1434 56%, #130d29);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select {
+      font: inherit;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(4, 10, 26, 0.78);
+    }
+    button { cursor: pointer; }
+    main {
+      width: min(1560px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 22px 0 48px;
+    }
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 15px; }
+    .muted { color: var(--muted); line-height: 1.45; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 5px 9px;
+      border: 1px solid rgba(119, 172, 255, 0.2);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(7, 14, 35, 0.72);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .chip strong { color: var(--text); }
+    .chip.ok { border-color: rgba(34, 197, 94, 0.35); color: #9ef0bd; }
+    .chip.warn { border-color: rgba(245, 158, 11, 0.42); color: #ffd28a; }
+    .chip.danger { border-color: rgba(255, 59, 127, 0.42); color: #ff9fbe; }
+    .chip.info { border-color: rgba(24, 215, 242, 0.42); color: #9eefff; }
+    .chip.future { border-color: rgba(168, 85, 247, 0.42); color: #d8b4fe; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1.38fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(145deg, var(--surface), rgba(7, 13, 33, 0.94));
+      box-shadow: var(--shadow);
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .module-list {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      max-height: calc(100vh - 178px);
+      overflow: auto;
+    }
+    .module-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 11px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.58);
+    }
+    .module-row:hover,
+    .module-row.active {
+      border-color: rgba(24, 215, 242, 0.44);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .module-row strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+    .module-row span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .detail {
+      display: grid;
+      gap: 14px;
+    }
+    .hero-card {
+      padding: 16px;
+      border: 1px solid rgba(24, 215, 242, 0.25);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 88% 8%, rgba(24, 215, 242, 0.14), transparent 36%),
+        var(--surface);
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .code {
+      font-family: Consolas, Monaco, monospace;
+      color: #bfe9ff;
+      overflow-wrap: anywhere;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .mini-card {
+      min-height: 116px;
+      padding: 13px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: var(--surface-2);
+    }
+    .row-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .data-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 9px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.46);
+    }
+    .data-row small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    form {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    select, input {
+      width: 100%;
+      min-height: 36px;
+      padding: 7px 9px;
+    }
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.44);
+      color: var(--text);
+    }
+    .check input {
+      width: auto;
+      min-height: auto;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 8px 11px;
+      border: 1px solid rgba(24, 215, 242, 0.38);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(24, 215, 242, 0.1);
+      font-weight: 700;
+    }
+    .btn.danger {
+      border-color: rgba(255, 59, 127, 0.46);
+      background: rgba(255, 59, 127, 0.1);
+    }
+    .btn:disabled,
+    input:disabled,
+    select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .empty {
+      padding: 14px;
+      border: 1px dashed rgba(119, 172, 255, 0.26);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(5, 12, 30, 0.38);
+    }
+    @media (max-width: 1080px) {
+      main { width: min(100vw - 20px, 1560px); }
+      .layout, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .page-head { align-items: flex-start; flex-direction: column; }
+      .module-list { max-height: none; }
+    }
+  </style>
+  {% include "_atom_ui_standards.html" %}
+</head>
+<body data-atom-page data-rbac-ready>
+  {% include "_atom_platform_topbar.html" %}
+
+  <main>
+    <div class="page-head">
+      <div>
+        <h1>Реестр модулей</h1>
+        <div class="muted">Module 3 управляет PlatformModuleRegistry. Dashboard только читает нормализованные moduleCode/canonicalModuleCode.</div>
+      </div>
+      <div class="toolbar">
+        <a class="chip info" href="/api/v1/admin/users-roles/view">Пользователи и роли</a>
+        {% for role in overview.actorRoleCodes %}
+        <span class="chip ok"><strong>{{ role }}</strong></span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>PlatformModuleRegistry</h2>
+          <span class="chip"><strong>{{ overview.modules|length }}</strong> записей</span>
+        </div>
+        <div class="module-list">
+          {% for module in overview.modules %}
+          <a class="module-row {% if detail and detail.module.moduleCode == module.moduleCode %}active{% endif %}" href="/api/v1/admin/module-registry/view/{{ module.moduleCode }}">
+            <span>
+              <strong>{{ module.title }}</strong>
+              <span class="code">{{ module.moduleCode }}</span>
+              {% if module.canonicalModuleCode != module.moduleCode %}
+              <span>canonical: <span class="code">{{ module.canonicalModuleCode }}</span></span>
+              {% endif %}
+            </span>
+            <span class="toolbar">
+              <span class="chip {% if module.status == 'ACTIVE' %}ok{% elif module.status in ['DRAFT','PLANNED'] %}future{% elif module.status in ['DISABLED','DEPRECATED'] %}warn{% else %}danger{% endif %}">{{ module.status }}</span>
+              {% if module.isLegacyOrAlias %}<span class="chip warn">alias</span>{% endif %}
+            </span>
+          </a>
+          {% else %}
+          <div class="empty">Записи реестра пока не найдены.</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="detail">
+        {% if detail %}
+        {% set module = detail.module %}
+        <article class="hero-card">
+          <div class="hero-top">
+            <div>
+              <h2>{{ module.title }}</h2>
+              <div class="code">{{ module.moduleCode }}</div>
+              <div class="muted">{{ module.description or "Описание не задано." }}</div>
+            </div>
+            <div class="toolbar">
+              <span class="chip {% if module.status == 'ACTIVE' %}ok{% elif module.status in ['DRAFT','PLANNED'] %}future{% elif module.status in ['DISABLED','DEPRECATED'] %}warn{% else %}danger{% endif %}">{{ module.status }}</span>
+              {% if module.isSystem %}<span class="chip info">system</span>{% endif %}
+              {% if module.isLegacyOrAlias %}<span class="chip warn">legacy / alias</span>{% endif %}
+              <span class="chip danger">physical delete forbidden</span>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="mini-card">
+              <h3>Canonical</h3>
+              <div class="row-list">
+                <div class="data-row"><span>canonicalModuleCode</span><span class="code">{{ module.canonicalModuleCode }}</span></div>
+                <div class="data-row"><span>mergedIntoModuleCode</span><span class="code">{{ module.mergedIntoModuleCode or "—" }}</span></div>
+                <div class="data-row"><span>ownerModuleCode</span><span class="code">{{ module.ownerModuleCode or "—" }}</span></div>
+                <div class="data-row"><span>parentModuleCode</span><span class="code">{{ module.parentModuleCode or "—" }}</span></div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <h3>Routes</h3>
+              <div class="row-list">
+                <div class="data-row"><span>route</span><span class="code">{{ module.route or "—" }}</span></div>
+                <div class="data-row"><span>redirectRoute</span><span class="code">{{ module.redirectRoute or "—" }}</span></div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <h3>Зависимости</h3>
+              <div class="row-list">
+                <div class="data-row"><span>permissions</span><span class="chip">{{ module.dependencyCounts.permissions }}</span></div>
+                <div class="data-row"><span>widgets</span><span class="chip">{{ module.dependencyCounts.widgets }}</span></div>
+                <div class="data-row"><span>dashboard layouts</span><span class="chip">{{ module.dependencyCounts.dashboardLayouts }}</span></div>
+                <div class="data-row"><span>audit notes</span><span class="chip">{{ module.dependencyCounts.auditNotes }}</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="grid-2">
+          <section class="mini-card">
+            <h3>Статус и видимость</h3>
+            <form method="post" action="/api/v1/admin/module-registry/view/{{ module.moduleCode }}/update">
+              <label>
+                Статус
+                <select name="status">
+                  {% for status in detail.statuses %}
+                  <option value="{{ status }}" {% if status == module.status %}selected{% endif %} {% if not detail.canUpdateStatus[status] %}disabled{% endif %}>{{ status }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="visible_in_sidebar" {% if module.visibleFlags.sidebar %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Sidebar</label>
+                <label class="check"><input type="checkbox" name="visible_on_dashboard" {% if module.visibleFlags.dashboard %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Dashboard</label>
+                <label class="check"><input type="checkbox" name="visible_on_atom_map" {% if module.visibleFlags.atomMap %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Atom map</label>
+                <label class="check"><input type="checkbox" name="available_for_widgets" {% if module.visibleFlags.widgets %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Widgets</label>
+              </div>
+              <button class="btn" type="submit">Сохранить</button>
+            </form>
+          </section>
+
+          <section class="mini-card">
+            <h3>Архивирование</h3>
+            <div class="muted">Удаление не предусмотрено. Архивирование скрывает модуль из активных зон и сохраняет историю, permissions, widgets и layouts.</div>
+            <form method="post" action="/api/v1/admin/module-registry/view/{{ module.moduleCode }}/archive">
+              <label>
+                Введите {{ archive_confirmation }}
+                <input name="confirmation" placeholder="{{ archive_confirmation }}">
+              </label>
+              <button class="btn danger" type="submit" {% if not detail.canUpdateStatus.ARCHIVED %}disabled{% endif %}>Архивировать</button>
+            </form>
+          </section>
+        </div>
+
+        <div class="grid-2">
+          <section class="mini-card">
+            <h3>Legacy / feature</h3>
+            <div class="row-list">
+              <div class="data-row">
+                <span>legacyCodes</span>
+                <span class="code">{{ module.legacyCodes|join(", ") if module.legacyCodes else "—" }}</span>
+              </div>
+              <div class="data-row">
+                <span>featureCodes</span>
+                <span class="code">{{ module.featureCodes|join(", ") if module.featureCodes else "—" }}</span>
+              </div>
+              <div class="data-row">
+                <span>dashboardWidgets</span>
+                <span class="code">{{ module.dashboardWidgets|join(", ") if module.dashboardWidgets else "—" }}</span>
+              </div>
+              <div class="data-row">
+                <span>availableActions</span>
+                <span class="code">{{ module.availableActions|join(", ") if module.availableActions else "—" }}</span>
+              </div>
+            </div>
+          </section>
+          <section class="mini-card">
+            <h3>Default permissions</h3>
+            <div class="row-list">
+              {% for permission in module.defaultPermissions %}
+              <div class="data-row">
+                <span class="code">{{ permission.role or permission.roleCode }}</span>
+                <span class="chip">{{ permission.accessLevel }} · {{ permission.scope }}</span>
+              </div>
+              {% else %}
+              <div class="empty">Default permissions не заданы.</div>
+              {% endfor %}
+            </div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head"><h2>Связанные permissions</h2><span class="chip">{{ module.permissions|length + module.moduleAccess|length + module.featureAccess|length }}</span></div>
+          <div class="module-list">
+            {% for item in module.permissions %}
+            <div class="data-row"><span><strong>{{ item.permissionKey }}</strong><small>{{ item.moduleCode }} · {{ item.actionCode }}</small></span><span class="chip">{{ item.accessLevel }} · {{ item.accessScope }}</span></div>
+            {% endfor %}
+            {% for item in module.moduleAccess %}
+            <div class="data-row"><span><strong>ModuleAccess</strong><small>{{ item.moduleCode }} → {{ item.canonicalModuleCode }}</small></span><span class="chip">{{ item.accessLevel }} · {{ item.accessScope }}</span></div>
+            {% endfor %}
+            {% for item in module.featureAccess %}
+            <div class="data-row"><span><strong>FunctionAccess</strong><small>{{ item.moduleCode }} / {{ item.featureCode }}</small></span><span class="chip">{{ item.accessLevel }} · {{ item.accessScope }}</span></div>
+            {% endfor %}
+            {% if not module.permissions and not module.moduleAccess and not module.featureAccess %}
+            <div class="empty">Связанные permissions не найдены.</div>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2>Связанные widgets и layouts</h2><span class="chip">{{ module.widgets|length + module.dashboardLayouts|length }}</span></div>
+          <div class="module-list">
+            {% for item in module.widgets %}
+            <div class="data-row"><span><strong>{{ item.title }}</strong><small>{{ item.widgetKey }} · {{ item.sourceModuleCode }}{% if item.featureCode %} / {{ item.featureCode }}{% endif %}</small></span><span class="chip">{{ item.status }}</span></div>
+            {% endfor %}
+            {% for item in module.dashboardLayouts %}
+            <div class="data-row"><span><strong>{{ item.type }}</strong><small>{{ item.name or item.profileId or "placements" }}</small></span><span class="chip">{{ item.count or item.status or "ref" }}</span></div>
+            {% endfor %}
+            {% if not module.widgets and not module.dashboardLayouts %}
+            <div class="empty">Связанные widgets/layouts не найдены.</div>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2>История / audit note</h2><span class="chip">AuditLog</span></div>
+          <div class="module-list">
+            {% for item in detail.history %}
+            <div class="data-row"><span><strong>{{ item.actionType }}</strong><small>{{ item.actor }} · {{ item.createdAt }}</small></span><span class="chip">{{ item.result }}</span></div>
+            {% else %}
+            <div class="empty">AuditLog по записи пока пуст.</div>
+            {% endfor %}
+          </div>
+        </section>
+        {% else %}
+        <article class="hero-card">
+          <h2>Реестр пуст</h2>
+          <div class="muted">Сначала нужны seed-записи PlatformModuleRegistry.</div>
+        </article>
+        {% endif %}
+      </section>
+    </div>
+  </main>
+</body>
+</html>

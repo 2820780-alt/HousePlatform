@@ -248,6 +248,7 @@
         <div class="muted">Module 3 управляет пользователями, ролями, workspace и правами. PLATFORM_ADMIN не равен SUPER_ADMIN.</div>
       </div>
       <div class="toolbar">
+        <a class="chip info" href="/api/v1/admin/module-registry/view">Реестр модулей</a>
         {% for role in overview.actorRoleCodes %}
         <span class="chip ok"><strong>{{ role }}</strong></span>
         {% endfor %}
