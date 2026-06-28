@@ -25,6 +25,7 @@ from app.models.user import User
 from app.models.user_role_assignment import UserRoleAssignment
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
+from app.services.audit_log_service import AuditLogType, write_audit_event
 
 
 LEGACY_ROLE_ALIASES: dict[str, str] = {
@@ -210,6 +211,20 @@ async def assign_role_to_user(
     if workspace:
         await _upsert_workspace_member(db, user, workspace, normalized_role_code)
 
+    await write_audit_event(
+        db,
+        AuditLogType.ROLE_CHANGED,
+        actor_user_id=_get_value(actor, "id"),
+        target_user_id=user.id,
+        workspace_id=workspace.id if workspace else None,
+        role_code=normalized_role_code,
+        old_value=None,
+        new_value={"roleCode": normalized_role_code, "workspaceId": str(workspace.id) if workspace else None},
+        reason="Role assignment through Module 03 admin UI.",
+        entity_type="User",
+        entity_id=user.id,
+        metadata={"rule": "PLATFORM_ADMIN cannot assign SUPER_ADMIN"},
+    )
     _add_audit_log(
         db,
         actor,
@@ -242,6 +257,19 @@ async def assign_workspace_to_user(
         raise ValidationError("Role code is required.")
     await _get_or_create_role(db, normalized_role_code)
     member = await _upsert_workspace_member(db, user, workspace, normalized_role_code)
+    await write_audit_event(
+        db,
+        AuditLogType.ROLE_CHANGED,
+        actor_user_id=_get_value(actor, "id"),
+        target_user_id=user.id,
+        workspace_id=workspace.id,
+        role_code=normalized_role_code,
+        old_value=None,
+        new_value={"workspaceId": str(workspace.id), "roleCode": normalized_role_code},
+        reason="Workspace role assignment through Module 03 admin UI.",
+        entity_type="User",
+        entity_id=user.id,
+    )
     _add_audit_log(
         db,
         actor,
@@ -263,8 +291,21 @@ async def disable_user_account(
 ) -> User:
     user = await _get_user(db, user_id)
     require_can_disable_user(actor, user, confirmation)
+    old_status = _enum_value(user.status)
     user.status = UserStatus.BLOCKED
     user.updated_at = datetime.utcnow()
+    await write_audit_event(
+        db,
+        AuditLogType.PERMISSION_CHANGED,
+        actor_user_id=_get_value(actor, "id"),
+        target_user_id=user.id,
+        old_value={"status": old_status},
+        new_value={"status": UserStatus.BLOCKED.value},
+        reason="User disabled through Module 03 admin UI.",
+        entity_type="User",
+        entity_id=user.id,
+        metadata={"confirmation": confirmation},
+    )
     _add_audit_log(
         db,
         actor,

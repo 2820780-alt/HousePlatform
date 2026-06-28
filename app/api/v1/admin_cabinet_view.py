@@ -63,6 +63,7 @@ from app.services.dashboard_widget_payload import atom_widget_payload_from_admin
 from app.services.dashboard_widget_registry import (
     get_dashboard_widget_registry,
 )
+from app.services.audit_log_service import record_view_as_role_entered
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -73,10 +74,17 @@ templates = Jinja2Templates(directory="templates")
 async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
+    preview_role_code = request.query_params.get("preview_role")
+    if preview_role_code:
+        record_view_as_role_entered(
+            actor={"userId": "dev-admin-mock"},
+            role_code=preview_role_code,
+            reason="Dashboard preview-role mode entered from admin view.",
+        )
     dashboard_context = await _load_dashboard_context(
         db,
         cards,
-        preview_role_code=request.query_params.get("preview_role"),
+        preview_role_code=preview_role_code,
     )
     satellite_cards = _select_atom_map_cards(cards, dashboard_context["dashboard_user_context"])
     all_atom_cards = _select_all_atom_cards(cards, dashboard_context["dashboard_user_context"])

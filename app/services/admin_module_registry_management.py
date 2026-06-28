@@ -18,6 +18,7 @@ from app.models.module_access import ModuleAccess
 from app.models.permission import Permission
 from app.models.platform_module_registry import PlatformModuleRegistry
 from app.services.admin_user_role_management import active_role_codes_for_user
+from app.services.audit_log_service import AuditLogType, write_audit_event
 
 
 MODULE_REGISTRY_STATUSES: tuple[str, ...] = (
@@ -167,6 +168,26 @@ async def update_module_registry_item(
     if normalized_status in TERMINAL_MODULE_STATUSES:
         module.is_active = False
     module.updated_at = datetime.utcnow()
+    await write_audit_event(
+        db,
+        AuditLogType.MODULE_STATUS_CHANGED
+        if old_state.get("status") != normalized_status
+        else AuditLogType.PLATFORM_MODULE_REGISTRY_CHANGED,
+        actor_user_id=_get_value(actor, "id"),
+        module_code=module.module_code,
+        canonical_module_code=module.canonical_module_code or module.module_code,
+        feature_code=",".join(module.feature_codes or []) if module.feature_codes else None,
+        old_value=old_state,
+        new_value=_module_state(module),
+        reason="PlatformModuleRegistry update through Module 03 admin UI.",
+        entity_type="PlatformModuleRegistry",
+        entity_id=module.id,
+        metadata={
+            "redirectRoute": module.redirect_route,
+            "legacyCodes": module.legacy_codes or [],
+            "mergedIntoModuleCode": module.merged_into_module_code,
+        },
+    )
     _add_audit_log(
         db,
         actor,
@@ -198,6 +219,19 @@ async def archive_module_registry_item(
     module.is_visible_on_atom_map = False
     module.is_available_for_widgets = False
     module.updated_at = datetime.utcnow()
+    await write_audit_event(
+        db,
+        AuditLogType.MODULE_ARCHIVED,
+        actor_user_id=_get_value(actor, "id"),
+        module_code=module.module_code,
+        canonical_module_code=module.canonical_module_code or module.module_code,
+        old_value=old_state,
+        new_value=_module_state(module),
+        reason="Module archived through Module 03 admin UI.",
+        entity_type="PlatformModuleRegistry",
+        entity_id=module.id,
+        metadata={"physicalDelete": "forbidden"},
+    )
     _add_audit_log(
         db,
         actor,

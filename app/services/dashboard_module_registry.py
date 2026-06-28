@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.services.audit_log_service import record_legacy_module_normalization
 from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_SOURCE_MODULE
 from app.services.platform_region_registry import is_known_platform_region_code
 
@@ -649,6 +650,12 @@ def _normalize_widget_layout(widget: Any) -> Any:
         canonical = get_canonical_module_code(module_code)
         if canonical and canonical != module_code:
             normalized.setdefault("legacyModuleCode", module_code)
+            record_legacy_module_normalization(
+                legacy_module_code=module_code,
+                canonical_module_code=canonical,
+                feature_code=normalized.get("featureCode"),
+                reason="UserDashboardLayout widget source normalized.",
+            )
         normalized["sourceModuleCode"] = canonical
         normalized["moduleCode"] = canonical
         normalized["canonicalModuleCode"] = canonical
@@ -664,6 +671,12 @@ def _normalize_module_code_list(module_codes: list[Any]) -> list[Any]:
     seen: set[Any] = set()
     for module_code in module_codes:
         canonical = get_canonical_module_code(module_code) if isinstance(module_code, str) else module_code
+        if isinstance(module_code, str) and canonical != module_code:
+            record_legacy_module_normalization(
+                legacy_module_code=module_code,
+                canonical_module_code=canonical,
+                reason="UserDashboardLayout module list normalized.",
+            )
         if canonical in seen:
             continue
         seen.add(canonical)

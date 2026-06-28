@@ -16,6 +16,10 @@ from app.models.enums import RegionStatus
 from app.models.module_action_registry import ModuleActionRegistry
 from app.models.platform_module_registry import PlatformModuleRegistry
 from app.models.platform_region import PlatformRegion
+from app.services.audit_log_service import (
+    record_inactive_module_open_attempt,
+    record_legacy_module_normalization,
+)
 from app.services.platform_region_registry import get_default_active_region, get_platform_region_registry_item
 
 
@@ -231,7 +235,21 @@ def normalize_legacy_module_mapping(
             canonical_code = _canonical_registry_code(item)
             feature_codes = _unique_strings(_list_value(_get_value(item, "feature_codes")))
             redirect_route = _get_value(item, "redirect_route")
+            status = _status(item)
+            if status in HIDDEN_ACTIVE_STATUSES:
+                record_inactive_module_open_attempt(
+                    module_code=module_code,
+                    canonical_module_code=canonical_code,
+                    status=status,
+                )
             break
+    if canonical_code != module_code:
+        record_legacy_module_normalization(
+            legacy_module_code=module_code,
+            canonical_module_code=canonical_code,
+            feature_code=feature_codes[0] if feature_codes else None,
+            reason="Module Visibility API legacy mapping normalized.",
+        )
     return {
         "moduleCode": module_code,
         "canonicalModuleCode": canonical_code,

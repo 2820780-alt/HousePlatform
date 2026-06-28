@@ -1,6 +1,7 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.audit_event import AuditEvent
+from app.services.audit_log_service import sanitize_audit_details
 
 
 async def log_event(
@@ -17,7 +18,7 @@ async def log_event(
         entity_type=entity_type,
         entity_id=entity_id,
         user_id=user_id,
-        details=details,
+        details=sanitize_audit_details(details or {}),
         ip_address=ip_address,
     )
     db.add(event)

@@ -8,6 +8,7 @@ from app.core.access_scopes import AccessScope, is_valid_access_scope
 from app.core.exceptions import ForbiddenError
 from app.core.module_registration import DEFAULT_MODULE_REGISTRATIONS
 from app.core.role_access_matrix import get_starter_role_module_access
+from app.services.audit_log_service import record_access_denied_attempt
 
 
 ACCESS_LEVEL_RANK: dict[str, int] = {
@@ -116,6 +117,13 @@ def require_permission(
     scope: str = AccessScope.GLOBAL,
 ) -> Any:
     if not can(user, moduleCode, actionCode, scope):
+        record_access_denied_attempt(
+            user=user,
+            module_code=canonical_module_code(moduleCode),
+            action_code=actionCode,
+            scope=_enum_value(scope),
+            reason="Permission Guard denied access.",
+        )
         raise ForbiddenError(
             f"Required permission: {moduleCode}:{actionCode}:{_enum_value(scope)}"
         )
