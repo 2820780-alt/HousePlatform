@@ -12,6 +12,7 @@ from app.services.audit_log_service import (
     record_module_merge_or_alias_change,
     record_permission_change,
     record_view_as_role_entered,
+    record_view_as_role_exited,
     record_widget_permission_change,
     record_widget_registry_change,
     sanitize_audit_details,
@@ -116,6 +117,7 @@ def test_permission_scope_widget_layout_and_preview_helpers_emit_expected_events
     record_inaccessible_widget_add_attempt(widget_code="future.widget", reason="planned")
     record_dashboard_layout_change(user={"userId": "u-1"}, old_layout={}, new_layout={"widgets": []})
     record_view_as_role_entered(actor={"userId": "admin"}, role_code="CUSTOMER")
+    record_view_as_role_exited(actor={"userId": "admin"}, role_code="CUSTOMER")
     record_module_merge_or_alias_change(
         module_code="MODULE_07_DIGITAL_OBJECT",
         canonical_module_code="MODULE_07_DIGITAL_HOUSE",
@@ -129,4 +131,5 @@ def test_permission_scope_widget_layout_and_preview_helpers_emit_expected_events
     assert AuditLogType.INACCESSIBLE_WIDGET_ADD_ATTEMPT in event_types
     assert AuditLogType.USER_DASHBOARD_LAYOUT_CHANGED in event_types
     assert AuditLogType.VIEW_AS_ROLE_ENTERED in event_types
+    assert AuditLogType.VIEW_AS_ROLE_EXITED in event_types
     assert AuditLogType.MODULE_MERGED in event_types

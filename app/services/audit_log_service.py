@@ -24,6 +24,7 @@ class AuditLogType(StrEnum):
     WIDGET_PERMISSION_CHANGED = "widget_permission_changed"
     USER_DASHBOARD_LAYOUT_CHANGED = "user_dashboard_layout_changed"
     VIEW_AS_ROLE_ENTERED = "view_as_role_entered"
+    VIEW_AS_ROLE_EXITED = "view_as_role_exited"
     ACCESS_DENIED = "access_denied"
     LEGACY_MODULE_CODE_NORMALIZED = "legacy_module_code_normalized"
     PRICE_HISTORY_MIGRATED_TO_ANALYTICS = "price_history_migrated_to_analytics"
@@ -337,6 +338,24 @@ def record_view_as_role_entered(
             workspaceId=_string_or_none(workspace_id),
             roleCode=role_code,
             reason=reason or "Dashboard preview role entered.",
+        ).to_details()
+    )
+
+
+def record_view_as_role_exited(
+    *,
+    actor: Any,
+    role_code: str | None = None,
+    workspace_id: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.VIEW_AS_ROLE_EXITED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            workspaceId=_string_or_none(workspace_id),
+            roleCode=role_code,
+            reason=reason or "Dashboard preview role exited.",
         ).to_details()
     )
 

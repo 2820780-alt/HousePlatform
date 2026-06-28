@@ -63,7 +63,7 @@ from app.services.dashboard_widget_payload import atom_widget_payload_from_admin
 from app.services.dashboard_widget_registry import (
     get_dashboard_widget_registry,
 )
-from app.services.audit_log_service import record_view_as_role_entered
+from app.services.preview_role import enter_preview_role
 
 
 router = APIRouter(prefix="/admin/cabinet/view", tags=["admin-cabinet-view"])
@@ -75,12 +75,6 @@ async def admin_cabinet_view(request: Request, db: DBSession):
     cards = await _load_module_passports(db)
     center_card = next(card for card in cards if card["number"] == 16)
     preview_role_code = request.query_params.get("preview_role")
-    if preview_role_code:
-        record_view_as_role_entered(
-            actor={"userId": "dev-admin-mock"},
-            role_code=preview_role_code,
-            reason="Dashboard preview-role mode entered from admin view.",
-        )
     dashboard_context = await _load_dashboard_context(
         db,
         cards,
@@ -468,6 +462,20 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     source_health = await _load_source_health(db)
     personalization = await _load_personalization_context(db, cards)
     active_region = await _load_active_region_context(db)
+    if preview_role_code:
+        enter_preview_role(
+            {
+                "userId": "dev-admin-mock",
+                "roleCode": "ADMIN",
+                "activeRegionCode": active_region.get("code"),
+                "activeRegionName": active_region.get("name"),
+                "authMode": "mock",
+            },
+            preview_role_code,
+            active_region_code=active_region.get("code"),
+            active_region_name=active_region.get("name"),
+            reason="Dashboard preview-role mode entered from admin view.",
+        )
     dashboard_user_context = get_dashboard_user_context(
         personalization=personalization,
         active_region=active_region,
