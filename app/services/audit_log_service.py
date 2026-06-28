@@ -30,6 +30,10 @@ class AuditLogType(StrEnum):
     PRICE_HISTORY_MIGRATED_TO_ANALYTICS = "price_history_migrated_to_analytics"
     INACCESSIBLE_WIDGET_ADD_ATTEMPT = "inaccessible_widget_add_attempt"
     INACTIVE_MODULE_OPEN_ATTEMPT = "inactive_module_open_attempt"
+    AI_RECOMMENDATION_CREATED = "ai_recommendation_created"
+    AI_ACCESS_CHANGE_SUGGESTED = "ai_access_change_suggested"
+    AI_ADMIN_APPROVAL_REQUIRED = "ai_admin_approval_required"
+    AI_FORBIDDEN_ACCESS_CHANGE_BLOCKED = "ai_forbidden_access_change_blocked"
 
 
 SENSITIVE_KEYS = {
@@ -233,6 +237,118 @@ def record_inaccessible_widget_add_attempt(
             widgetCode=widget_code,
             result="DENIED",
             reason=reason or "Widget is not allowed by Module 03 / Module 08 / WidgetRegistry.",
+        ).to_details()
+    )
+
+
+def record_ai_recommendation_created(
+    *,
+    recommendation_code: str,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    widget_code: str | None = None,
+    role_code: str | None = None,
+    reason: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.AI_RECOMMENDATION_CREATED,
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            widgetCode=widget_code,
+            roleCode=role_code,
+            reason=reason or "AI created a non-mutating recommendation.",
+            entityType="AIRecommendation",
+            entityId=recommendation_code,
+            metadata=metadata or {},
+        ).to_details()
+    )
+
+
+def record_ai_access_change_suggested(
+    *,
+    suggestion_code: str,
+    change_type: str,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    widget_code: str | None = None,
+    role_code: str | None = None,
+    old_value: Any | None = None,
+    new_value: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.AI_ACCESS_CHANGE_SUGGESTED,
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            widgetCode=widget_code,
+            roleCode=role_code,
+            oldValue=old_value,
+            newValue=new_value,
+            reason=reason or "AI prepared an access-change draft for administrator review.",
+            result="PENDING_ADMIN_APPROVAL",
+            entityType="AccessChangeSuggestion",
+            entityId=suggestion_code,
+            metadata={"changeType": change_type, "requiresAdminApproval": True},
+        ).to_details()
+    )
+
+
+def record_ai_admin_approval_required(
+    *,
+    change_type: str,
+    suggestion_code: str | None = None,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    widget_code: str | None = None,
+    role_code: str | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.AI_ADMIN_APPROVAL_REQUIRED,
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            widgetCode=widget_code,
+            roleCode=role_code,
+            reason=reason or "AI cannot apply this administrative change without administrator approval.",
+            result="BLOCKED",
+            entityType="AccessChangeSuggestion",
+            entityId=suggestion_code,
+            metadata={"changeType": change_type, "requiresAdminApproval": True},
+        ).to_details()
+    )
+
+
+def record_ai_forbidden_access_change_blocked(
+    *,
+    change_type: str,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    widget_code: str | None = None,
+    role_code: str | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.AI_FORBIDDEN_ACCESS_CHANGE_BLOCKED,
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            widgetCode=widget_code,
+            roleCode=role_code,
+            reason=reason or "Blocked direct AI mutation of access, role, registry, module, widget or layout state.",
+            result="DENIED",
+            metadata={"changeType": change_type, "aiCanApply": False},
         ).to_details()
     )
 

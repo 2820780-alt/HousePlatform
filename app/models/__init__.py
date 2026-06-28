@@ -1,5 +1,7 @@
 from app.models.audit_event import AuditEvent
 from app.models.audit_log import AuditLog
+from app.models.access_change_suggestion import AccessChangeSuggestion
+from app.models.ai_recommendation import AIRecommendation
 from app.models.brand import Brand
 from app.models.catalog_product import CatalogProduct
 from app.models.classification_rule import ClassificationRule
@@ -93,7 +95,9 @@ from app.models.widget_registry_item import WidgetRegistryItem
 
 __all__ = [
     "AccessStatus",
+    "AccessChangeSuggestion",
     "AdminDecision",
+    "AIRecommendation",
     "ActiveRegion",
     "AuditEvent",
     "AuditLog",
