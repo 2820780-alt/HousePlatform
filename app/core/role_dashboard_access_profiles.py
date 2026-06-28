@@ -107,7 +107,14 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("MODERATOR"),
         allowedFeatureCodes=_role_features("MODERATOR"),
         defaultWidgetCodes=("classification-queue", "materials-kpi", "source-health"),
-        defaultQuickActionCodes=("MATERIAL_MODERATION_OPEN", "SOURCE_ERRORS_OPEN", "DASHBOARD_CONFIGURE"),
+        defaultQuickActionCodes=(
+            "MATERIAL_MODERATION_OPEN",
+            "MATERIAL_APPROVE",
+            "MATERIAL_CLASSIFICATION_FIX",
+            "MATERIAL_RECHECK_SEND",
+            "SOURCE_ERRORS_OPEN",
+            "DASHBOARD_CONFIGURE",
+        ),
         defaultLayoutCode="MODERATION_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "MODERATION",

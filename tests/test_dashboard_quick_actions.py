@@ -9,6 +9,7 @@ from app.services.dashboard_quick_actions import (
 def test_quick_actions_are_filtered_by_permissions_and_cabinet_preset():
     user_context = {
         "roleCode": "ADMIN",
+        "activeRegionCode": "KRASNODAR_KRAI",
         "allowedActionCodes": ["SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"],
     }
     cabinet_context = get_current_cabinet_context(user_context).to_dict()
@@ -24,6 +25,7 @@ def test_quick_actions_are_filtered_by_permissions_and_cabinet_preset():
 def test_admin_quick_actions_have_module_and_feature_codes():
     user_context = {
         "roleCode": "ADMIN",
+        "activeRegionCode": "KRASNODAR_KRAI",
         "allowedActionCodes": [
             "SUPPLIER_PRICE_UPLOAD",
             "SOURCE_TASK_CREATE",
@@ -50,6 +52,7 @@ def test_admin_quick_actions_have_module_and_feature_codes():
 def test_atom_card_quick_actions_are_module_scoped_and_limited():
     user_context = {
         "roleCode": "ADMIN",
+        "activeRegionCode": "KRASNODAR_KRAI",
         "allowedActionCodes": [
             "SUPPLIER_PRICE_UPLOAD",
             "SOURCE_TASK_CREATE",
