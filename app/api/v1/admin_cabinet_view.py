@@ -774,10 +774,10 @@ def _module_passports(
             "Accounts",
             "Пользователи, роли и доступы",
             "Управляет учетными записями, ролями и правами доступа к модулям.",
-            "Запланирован",
+            "Реализуется",
             "#5b7cfa",
-            None,
-            "Ожидает реализации",
+            "/api/v1/admin/users-roles/view",
+            "Управлять пользователями",
             "docs/Modules/Module_03_Accounts_v1.0.md",
             "Пользователи и роли.",
             "Права доступа, статусы пользователей, связи с кабинетами.",
@@ -994,7 +994,7 @@ def _side_nav() -> list[dict]:
         {"label": "Аналитика", "href": "/api/v1/admin/cabinet/view/modules/11", "icon": "▥"},
         {"label": "AI-помощник", "href": "/api/v1/admin/cabinet/view/modules/12", "icon": "✦"},
         {"label": "Настройки", "href": "/api/v1/admin/cabinet/view/modules/16", "icon": "⚙"},
-        {"label": "Пользователи", "href": "/api/v1/admin/cabinet/view/modules/3", "icon": "☻"},
+        {"label": "Пользователи", "href": "/api/v1/admin/users-roles/view", "icon": "☻"},
         {"label": "Журнал событий", "href": "/api/v1/admin/cabinet/view/modules/13", "icon": "◷"},
     ]
 

@@ -169,7 +169,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         "Пользователи и доступ",
         number=3,
         order=30,
-        route="/api/v1/admin/cabinet/view/modules/3",
+        route="/api/v1/admin/users-roles/view",
         short_title="Доступ",
         description="Пользователи, роли, workspace и права.",
         icon="users",
