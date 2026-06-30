@@ -18,6 +18,8 @@ from app.services.admin_user_role_management import (
     get_user_role_admin_detail,
     get_user_role_admin_overview,
     revoke_company_admin,
+    set_company_employee_module_access,
+    set_company_employee_widget_access,
 )
 
 
@@ -157,6 +159,56 @@ async def admin_disable_user(
     await db.commit()
     return RedirectResponse(
         f"/api/v1/admin/users-roles/view/users/{user_id}",
+        status_code=303,
+    )
+
+
+@router.post("/users/{user_id}/module-access")
+async def admin_set_user_module_access(
+    user_id: UUID,
+    db: DBSession,
+    workspace_id: str = Form(...),
+    module_code: str = Form(...),
+    access_level: str = Form(...),
+    access_scope: str = Form("OWN"),
+):
+    await set_company_employee_module_access(
+        db,
+        actor=_dev_actor(),
+        user_id=user_id,
+        workspace_id=_required_uuid(workspace_id, "workspace_id"),
+        module_code=module_code,
+        access_level=access_level,
+        access_scope=access_scope,
+    )
+    await db.commit()
+    return RedirectResponse(
+        f"/api/v1/admin/users-roles/view/users/{user_id}#access-matrix-detail",
+        status_code=303,
+    )
+
+
+@router.post("/users/{user_id}/widget-access")
+async def admin_set_user_widget_access(
+    user_id: UUID,
+    db: DBSession,
+    workspace_id: str = Form(...),
+    widget_code: str = Form(...),
+    access_level: str = Form(...),
+    access_scope: str = Form("OWN"),
+):
+    await set_company_employee_widget_access(
+        db,
+        actor=_dev_actor(),
+        user_id=user_id,
+        workspace_id=_required_uuid(workspace_id, "workspace_id"),
+        widget_code=widget_code,
+        access_level=access_level,
+        access_scope=access_scope,
+    )
+    await db.commit()
+    return RedirectResponse(
+        f"/api/v1/admin/users-roles/view/users/{user_id}#access-matrix-detail",
         status_code=303,
     )
 

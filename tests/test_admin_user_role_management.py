@@ -16,6 +16,7 @@ from app.services.admin_user_role_management import (
     DISABLE_CONFIRMATION,
     MONETIZATION_READY_FIELDS,
     access_matrix_for_subject,
+    admin_scope_for_actor,
     active_permissions_for_user,
     active_role_codes_for_user,
     audit_log_summary,
@@ -33,6 +34,7 @@ from app.services.admin_user_role_management import (
     require_can_assign_role,
     require_can_disable_user,
     quick_action_rows_for_user,
+    role_group_panel_summary,
     widget_access_rows_for_user,
 )
 from app.services.access_distribution_registry import (
@@ -146,6 +148,13 @@ def test_company_admin_role_is_company_scoped_and_cannot_escape_company_access()
     company.members = [company_admin_member, employee_member]
     other_company.members = [other_employee_member]
 
+    admin_scope = admin_scope_for_actor(company_admin)
+
+    assert can_open_user_role_admin(company_admin)
+    assert admin_scope["isCompanyAdminMode"] is True
+    assert admin_scope["companyWorkspaceIds"] == [str(company.id)]
+    assert admin_scope["canSeeRegistryDiagnostics"] is False
+    assert admin_scope["canSeeSystemCriticalModules"] is False
     assert can_assign_company_admin(platform_admin, company)
     assert not can_assign_company_admin(company_admin, company)
     assert can_manage_company_employee(company_admin, company, employee_member)
@@ -169,6 +178,30 @@ def test_company_admin_role_is_company_scoped_and_cannot_escape_company_access()
         employee_member,
         "MODULE_01_MATERIAL_HUB",
     )
+
+
+def test_company_admin_access_matrix_hides_system_critical_modules():
+    company_admin = _user(UserRole.CUSTOMER)
+    company = _company_workspace()
+    company_admin_member = _workspace_member(company_admin, company, COMPANY_ADMIN_ROLE_CODE)
+    company_admin.workspace_members = [company_admin_member]
+    company.members = [company_admin_member]
+    admin_scope = admin_scope_for_actor(company_admin)
+
+    matrix = access_matrix_for_subject(
+        {
+            "id": str(company_admin.id),
+            "roleCodes": ["CUSTOMER"],
+            "workspaces": [{"workspaceId": str(company.id)}],
+        },
+        workspaces=[company],
+        roles=[],
+        permissions=[],
+        include_system_critical=admin_scope["canSeeSystemCriticalModules"],
+    )
+
+    module_codes = {row["moduleCode"] for row in matrix["rows"]}
+    assert "MODULE_03_USERS_ROLES" not in module_codes
 
 
 def test_company_admin_cannot_open_widget_when_source_module_is_closed_for_company():
@@ -384,6 +417,40 @@ def test_active_permissions_are_role_matrix_based_and_code_first():
     assert all("moduleNumber" not in permission for permission in permissions)
 
 
+def test_role_group_panel_summary_exposes_cards_without_becoming_registry_debug():
+    user = _user_with_assignment("SUPPLIER")
+    company = _company_workspace()
+    member = _workspace_member(user, company, "SUPPLIER")
+    user.workspace_members = [member]
+    company.members = [member]
+    roles = [
+        {
+            "roleCode": "SUPPLIER",
+            "title": "Поставщик",
+            "description": "Работа с прайсами и заявками.",
+            "isSystem": True,
+            "isAssignable": True,
+        }
+    ]
+
+    panel = role_group_panel_summary(
+        roles,
+        users=[user],
+        workspaces=[company],
+        recent_history=[],
+        admin_scope={"canSeeSystemSettings": False, "canSeeSystemCriticalModules": False},
+    )
+
+    role = panel["selectedRole"]
+    assert role["title"] == "Поставщик"
+    assert role["memberCount"] == 1
+    assert role["modules"]
+    assert all("moduleCode" in item for item in role["modules"])
+    assert "technicalDetails" in role
+    assert panel["technicalDetailsVisible"] is False
+    assert panel["groups"][0]["title"] == "Системные роли"
+
+
 def test_admin_users_roles_view_route_is_registered():
     paths = {route.path for route in admin_users_roles_router.routes}
 
@@ -462,6 +529,16 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Обзор управления" in nav
     assert "Пользователи" in nav
     assert "Роли и группы" in nav
+    assert 'id="roles-permissions"' in template
+    assert "Список ролей" in template
+    assert "Список групп" in template
+    assert "Карточка роли" in template
+    assert "Карточка группы" in template
+    assert "Участники" in template
+    assert "Связанные модули / виджеты" in template
+    assert "История изменений роли / группы" in template
+    assert "Технические детали" in template
+    assert "Коды доступны в tooltip" in template
     assert "Рабочие области" in nav
     assert "Журнал изменений" in nav
     assert "Настройки" in nav

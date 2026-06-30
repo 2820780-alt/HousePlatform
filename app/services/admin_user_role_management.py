@@ -49,6 +49,7 @@ ROLE_LABELS: dict[str, str] = {
 }
 
 ADMIN_UI_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
+PLATFORM_ADMIN_UI_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
 PROTECTED_ROLE_CODES = {"SUPER_ADMIN"}
 DISABLE_CONFIRMATION = "DISABLE_USER"
 COMPANY_ADMIN_ROLE_CODE = "COMPANY_ADMIN"
@@ -59,6 +60,15 @@ COMPANY_ADMIN_COMPATIBLE_ROLE_CODES = {
     "OWNER",
     "DIRECTOR",
     "COMPANY_OWNER",
+}
+COMPANY_ADMIN_VISIBLE_ROLE_CODES = {
+    COMPANY_ADMIN_ROLE_CODE,
+    "SUPPLIER",
+    "CONTRACTOR",
+    "CUSTOMER",
+    "ESTIMATOR",
+    "ENGINEER_DESIGNER",
+    "VIEWER",
 }
 
 ACCESS_RESOLUTION_SOURCES: tuple[str, ...] = (
@@ -228,13 +238,23 @@ def active_role_codes_for_user(user: Any) -> set[str]:
 
 
 def can_open_user_role_admin(actor: Any) -> bool:
-    return bool(active_role_codes_for_user(actor) & ADMIN_UI_ROLE_CODES)
+    return is_platform_admin_actor(actor) or is_company_admin_actor(actor)
+
+
+def is_platform_admin_actor(actor: Any) -> bool:
+    return bool(active_role_codes_for_user(actor) & PLATFORM_ADMIN_UI_ROLE_CODES)
+
+
+def is_company_admin_actor(actor: Any) -> bool:
+    return bool(company_admin_workspace_ids(actor))
 
 
 def can_assign_role_code(actor: Any, role_code: str) -> bool:
     actor_roles = active_role_codes_for_user(actor)
     target_role = normalize_role_code(role_code)
     if not target_role or not can_open_user_role_admin(actor):
+        return False
+    if not is_platform_admin_actor(actor):
         return False
     if target_role in PROTECTED_ROLE_CODES and "SUPER_ADMIN" not in actor_roles:
         return False
@@ -244,7 +264,7 @@ def can_assign_role_code(actor: Any, role_code: str) -> bool:
 def can_disable_user(actor: Any, target_user: Any) -> bool:
     actor_roles = active_role_codes_for_user(actor)
     target_roles = active_role_codes_for_user(target_user)
-    if not can_open_user_role_admin(actor):
+    if not is_platform_admin_actor(actor):
         return False
     if target_roles & PROTECTED_ROLE_CODES and "SUPER_ADMIN" not in actor_roles:
         return False
@@ -269,6 +289,26 @@ def company_admin_workspace_ids(actor: Any) -> set[str]:
         if workspace_id and status in {"", "ACTIVE"} and is_company_admin_role(role_code):
             ids.add(str(workspace_id))
     return ids
+
+
+def admin_scope_for_actor(actor: Any) -> dict[str, Any]:
+    actor_roles = sorted(active_role_codes_for_user(actor))
+    company_workspace_ids = sorted(company_admin_workspace_ids(actor))
+    is_platform_admin = bool(set(actor_roles) & PLATFORM_ADMIN_UI_ROLE_CODES)
+    is_company_admin = bool(company_workspace_ids) and not is_platform_admin
+    return {
+        "mode": "platform" if is_platform_admin else "company" if is_company_admin else "none",
+        "isPlatformAdminMode": is_platform_admin,
+        "isCompanyAdminMode": is_company_admin,
+        "actorRoleCodes": actor_roles,
+        "companyWorkspaceIds": company_workspace_ids,
+        "companyWorkspaceCount": len(company_workspace_ids),
+        "canSeeSystemSettings": is_platform_admin,
+        "canSeeRegistryDiagnostics": is_platform_admin,
+        "canSeeSystemCriticalModules": is_platform_admin,
+        "canManageOtherCompanies": is_platform_admin,
+        "canAssignPlatformRoles": is_platform_admin,
+    }
 
 
 def can_assign_company_admin(actor: Any, workspace: Workspace | dict[str, Any]) -> bool:
@@ -388,7 +428,10 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
         return actor
     result = await db.execute(
         select(User)
-        .options(selectinload(User.role_assignments).selectinload(UserRoleAssignment.role))
+        .options(
+            selectinload(User.role_assignments).selectinload(UserRoleAssignment.role),
+            selectinload(User.workspace_members).selectinload(WorkspaceMember.workspace),
+        )
         .where(User.id == actor_id)
     )
     return result.scalar_one_or_none() or actor
@@ -396,21 +439,35 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
 
 async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str, Any]:
     require_user_role_admin(actor)
+    admin_scope = admin_scope_for_actor(actor)
     users = await _load_users(db)
     roles = await _load_role_options(db, actor)
     workspaces = await _load_workspaces(db)
-    recent_history = await _load_recent_access_history(db)
-    summary = _overview_summary(users, workspaces, recent_history)
+    users = _filter_users_for_admin_scope(users, admin_scope)
+    roles = _filter_roles_for_admin_scope(roles, admin_scope)
+    workspaces = _filter_workspaces_for_admin_scope(workspaces, admin_scope)
+    recent_history = await _load_recent_access_history(db, workspace_ids=_workspace_uuid_scope(admin_scope))
+    recent_history = _filter_history_for_admin_scope(recent_history, admin_scope)
+    pending_items = [] if admin_scope["isCompanyAdminMode"] else pending_access_distribution_items()
+    summary = _overview_summary(users, workspaces, recent_history, pending_items=pending_items)
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
+        "adminScope": admin_scope,
         "users": [user_summary(user) for user in users],
         "roles": roles,
         "workspaces": [workspace_summary(workspace) for workspace in workspaces],
         "companies": [company_summary(workspace) for workspace in workspaces if _is_company_workspace(workspace)],
         "companyEmployees": company_employee_summaries(workspaces),
         "groups": access_group_summaries(roles),
+        "roleGroupPanel": role_group_panel_summary(
+            roles,
+            users=users,
+            workspaces=workspaces,
+            recent_history=recent_history,
+            admin_scope=admin_scope,
+        ),
         "summary": summary,
-        "pendingAccessDistributionItems": pending_access_distribution_items(),
+        "pendingAccessDistributionItems": pending_items,
         "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
     }
@@ -418,11 +475,17 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
 
 async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any) -> dict[str, Any]:
     require_user_role_admin(actor)
+    admin_scope = admin_scope_for_actor(actor)
     user = await _get_user(db, user_id)
+    _require_user_visible_to_admin_scope(user, admin_scope)
     roles = await _load_role_options(db, actor)
     workspaces = await _load_workspaces(db)
+    roles = _filter_roles_for_admin_scope(roles, admin_scope)
+    workspaces = _filter_workspaces_for_admin_scope(workspaces, admin_scope)
     history = await _load_user_history(db, user_id)
+    history = _filter_history_for_admin_scope(history, admin_scope)
     user_data = user_summary(user, include_permissions=True)
+    apply_company_context_to_user_summary(user_data, workspaces)
     access_context = build_access_context_for_cabinet(user_data)
     module8_preview = get_module8_cabinet_admin_preview(
         user_data,
@@ -452,18 +515,27 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
     )
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
+        "adminScope": admin_scope,
         "user": user_data,
         "roles": roles,
         "workspaces": [workspace_summary(workspace) for workspace in workspaces],
         "companies": [company_summary(workspace) for workspace in workspaces if _is_company_workspace(workspace)],
         "companyEmployees": company_employee_summaries(workspaces),
         "groups": access_group_summaries(roles),
+        "roleGroupPanel": role_group_panel_summary(
+            roles,
+            users=[user],
+            workspaces=workspaces,
+            recent_history=history,
+            admin_scope=admin_scope,
+        ),
         "permissions": permissions,
         "accessMatrix": access_matrix_for_subject(
             user_data,
             workspaces=workspaces,
             roles=roles,
             permissions=permissions,
+            include_system_critical=admin_scope["canSeeSystemCriticalModules"],
         ),
         "accessContextForCabinet": access_context.to_dict(),
         "module8CabinetPreview": module8_preview_data,
@@ -881,6 +953,17 @@ async def disable_user_account(
 
 def user_summary(user: User, *, include_permissions: bool = False) -> dict[str, Any]:
     role_codes = sorted(active_role_codes_for_user(user))
+    permissions = active_permissions_for_user(user)
+    allowed_module_codes = {
+        permission["moduleCode"]
+        for permission in permissions
+        if permission.get("moduleCode") and permission.get("accessLevel") != "NO_ACCESS"
+    }
+    allowed_feature_codes = {
+        permission["featureCode"]
+        for permission in permissions
+        if permission.get("featureCode") and permission.get("accessLevel") != "NO_ACCESS"
+    }
     workspaces = [
         workspace_member_summary(member)
         for member in sorted(
@@ -897,12 +980,15 @@ def user_summary(user: User, *, include_permissions: bool = False) -> dict[str, 
         "status": _enum_value(user.status),
         "roleCodes": role_codes,
         "roleTitle": ", ".join(role_label(code) for code in role_codes) or "Нет роли",
+        "groupTitles": [role_label(code) for code in role_codes],
+        "allowedModuleCount": len(allowed_module_codes),
+        "allowedFeatureCount": len(allowed_feature_codes),
         "workspaces": workspaces,
         "createdAt": user.created_at,
         "updatedAt": user.updated_at,
     }
     if include_permissions:
-        data["permissions"] = active_permissions_for_user(user)
+        data["permissions"] = permissions
     return data
 
 
@@ -916,6 +1002,26 @@ def workspace_member_summary(member: WorkspaceMember) -> dict[str, Any]:
         "roleTitle": role_label(member.roleCode),
         "status": member.status,
     }
+
+
+def apply_company_context_to_user_summary(user_data: dict[str, Any], workspaces: list[Workspace]) -> None:
+    companies_by_id = {
+        str(workspace.id): company_summary(workspace)
+        for workspace in workspaces
+        if _is_company_workspace(workspace)
+    }
+    for member in user_data.get("workspaces", []):
+        company = companies_by_id.get(str(member.get("workspaceId")))
+        if not company:
+            continue
+        member.update({
+            "companyStatus": company["status"],
+            "isCompanyActive": company["isActive"],
+            "employeeCount": company["employeeCount"],
+            "adminTitle": company["adminTitle"],
+            "moduleAccessState": company["moduleAccessState"],
+            "widgetAccessState": company["widgetAccessState"],
+        })
 
 
 def workspace_summary(workspace: Workspace) -> dict[str, Any]:
@@ -991,6 +1097,235 @@ def access_group_summaries(roles: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def role_group_panel_summary(
+    roles: list[dict[str, Any]],
+    *,
+    users: list[User],
+    workspaces: list[Workspace],
+    recent_history: list[AuditLog],
+    admin_scope: dict[str, Any],
+) -> dict[str, Any]:
+    role_cards = [
+        _role_card_summary(
+            role,
+            users=users,
+            workspaces=workspaces,
+            recent_history=recent_history,
+            admin_scope=admin_scope,
+        )
+        for role in roles
+    ]
+    group_cards = _role_group_cards(role_cards, recent_history=recent_history)
+    return {
+        "roles": role_cards,
+        "groups": group_cards,
+        "selectedRole": role_cards[0] if role_cards else None,
+        "selectedGroup": group_cards[0] if group_cards else None,
+        "technicalDetailsVisible": bool(admin_scope.get("canSeeSystemSettings")),
+    }
+
+
+def _role_card_summary(
+    role: dict[str, Any],
+    *,
+    users: list[User],
+    workspaces: list[Workspace],
+    recent_history: list[AuditLog],
+    admin_scope: dict[str, Any],
+) -> dict[str, Any]:
+    role_code = str(role.get("roleCode") or "")
+    participants = _role_participants(role_code, users, workspaces)
+    modules = _role_module_summaries(role_code, admin_scope=admin_scope)
+    features = _role_feature_summaries(role_code)
+    widgets = _role_widget_summaries(role_code)
+    history = _history_for_role(recent_history, role_code)
+    return {
+        "roleCode": role_code,
+        "title": role.get("title") or role_label(role_code),
+        "description": role.get("description"),
+        "isSystem": bool(role.get("isSystem")),
+        "isAssignable": bool(role.get("isAssignable")),
+        "memberCount": len(participants),
+        "participants": participants[:5],
+        "modules": modules,
+        "features": features,
+        "widgets": widgets,
+        "history": history[:4],
+        "technicalDetails": {
+            "roleCode": role_code,
+            "moduleCodes": [item["moduleCode"] for item in modules],
+            "widgetCodes": [item["widgetCode"] for item in widgets],
+            "featureCodes": [item["featureCode"] for item in features],
+        },
+    }
+
+
+def _role_participants(role_code: str, users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
+    company_titles_by_id = {str(workspace.id): workspace.title for workspace in workspaces}
+    participants: dict[str, dict[str, Any]] = {}
+    for user in users:
+        if _user_has_role_code(user, role_code):
+            participants[str(user.id)] = {
+                "userId": str(user.id),
+                "name": _user_display_name(user),
+                "email": user.email,
+                "companyTitle": _first_user_company_title(user, company_titles_by_id),
+            }
+    return sorted(participants.values(), key=lambda item: (item["companyTitle"] or "", item["name"]))
+
+
+def _role_module_summaries(role_code: str, *, admin_scope: dict[str, Any]) -> list[dict[str, Any]]:
+    modules: list[dict[str, Any]] = []
+    for rule in get_starter_role_module_access():
+        if rule.get("roleCode") != role_code:
+            continue
+        module_code = _canonical_module_code_value(rule.get("moduleCode"))
+        module_item = get_dashboard_module_registry_item(module_code)
+        if module_item and module_item.isSystemCritical and not admin_scope.get("canSeeSystemCriticalModules"):
+            continue
+        modules.append(
+            {
+                "moduleCode": module_code or rule.get("moduleCode"),
+                "title": _get_value(module_item, "title") or module_code or rule.get("moduleCode"),
+                "accessLevel": rule.get("accessLevel"),
+                "accessScope": rule.get("accessScope"),
+            }
+        )
+    return modules
+
+
+def _role_feature_summaries(role_code: str) -> list[dict[str, Any]]:
+    features: list[dict[str, Any]] = []
+    for rule in get_starter_role_feature_access():
+        if rule.get("roleCode") != role_code:
+            continue
+        module_code = _canonical_module_code_value(rule.get("moduleCode")) or rule.get("moduleCode")
+        module_item = get_dashboard_module_registry_item(module_code)
+        features.append(
+            {
+                "moduleCode": module_code,
+                "moduleTitle": _get_value(module_item, "title") or module_code,
+                "featureCode": rule.get("featureCode"),
+                "accessLevel": rule.get("accessLevel"),
+                "accessScope": rule.get("accessScope"),
+            }
+        )
+    return features
+
+
+def _role_widget_summaries(role_code: str) -> list[dict[str, Any]]:
+    profile = get_role_dashboard_access_profile(role_code) or {}
+    widget_codes = _list_strings(profile.get("defaultWidgetCodes"))
+    hidden_widgets = set(_list_strings(profile.get("hiddenWidgetCodes")))
+    widgets: list[dict[str, Any]] = []
+    for widget_code in widget_codes:
+        widget = get_widget_registry_item(widget_code)
+        if not widget:
+            continue
+        widgets.append(
+            {
+                "widgetCode": widget.widgetCode,
+                "title": widget.title,
+                "sourceModuleCode": widget.sourceModuleCode,
+                "featureCode": widget.featureCode,
+                "status": widget.status,
+                "isHidden": widget.widgetCode in hidden_widgets,
+            }
+        )
+    return widgets
+
+
+def _role_group_cards(role_cards: list[dict[str, Any]], *, recent_history: list[AuditLog]) -> list[dict[str, Any]]:
+    system_roles = [role for role in role_cards if role["isSystem"]]
+    company_roles = [
+        role
+        for role in role_cards
+        if role["roleCode"] in COMPANY_ADMIN_VISIBLE_ROLE_CODES or role["roleCode"] == COMPANY_ADMIN_ROLE_CODE
+    ]
+    groups = [
+        {
+            "groupCode": "SYSTEM_ROLES",
+            "title": "Системные роли",
+            "description": "Базовый набор ролей платформы. Code системной роли не переименовывается.",
+            "roles": system_roles,
+            "roleCount": len(system_roles),
+            "memberCount": sum(role["memberCount"] for role in system_roles),
+            "modules": _unique_role_group_modules(system_roles),
+            "widgets": _unique_role_group_widgets(system_roles),
+            "history": _history_for_group(recent_history, "SYSTEM_ROLES"),
+        },
+        {
+            "groupCode": "COMPANY_ACCESS_GROUPS",
+            "title": "Группы компаний",
+            "description": "Внутренние роли сотрудников компании без выхода за пределы доступа компании.",
+            "roles": company_roles,
+            "roleCount": len(company_roles),
+            "memberCount": sum(role["memberCount"] for role in company_roles),
+            "modules": _unique_role_group_modules(company_roles),
+            "widgets": _unique_role_group_widgets(company_roles),
+            "history": _history_for_group(recent_history, "COMPANY_ACCESS_GROUPS"),
+        },
+    ]
+    return groups
+
+
+def _unique_role_group_modules(role_cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    modules: dict[str, dict[str, Any]] = {}
+    for role in role_cards:
+        for module in role["modules"]:
+            modules.setdefault(module["moduleCode"], module)
+    return list(modules.values())[:8]
+
+
+def _unique_role_group_widgets(role_cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    widgets: dict[str, dict[str, Any]] = {}
+    for role in role_cards:
+        for widget in role["widgets"]:
+            widgets.setdefault(widget["widgetCode"], widget)
+    return list(widgets.values())[:8]
+
+
+def _history_for_role(recent_history: list[AuditLog], role_code: str) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for item in recent_history:
+        details = item.details or {}
+        if details.get("roleCode") == role_code or details.get("newRoleCode") == role_code:
+            result.append(audit_log_summary(item))
+    return result
+
+
+def _history_for_group(recent_history: list[AuditLog], group_code: str) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for item in recent_history:
+        details = item.details or {}
+        if details.get("groupCode") == group_code:
+            result.append(audit_log_summary(item))
+    return result[:4]
+
+
+def _user_has_role_code(user: User, role_code: str) -> bool:
+    if role_code in active_role_codes_for_user(user):
+        return True
+    for member in _safe_iterable(user.workspace_members):
+        if _enum_value(_get_value(member, "status")).upper() not in {"", "ACTIVE"}:
+            continue
+        if normalize_role_code(_get_value(member, "role_code") or _get_value(member, "roleCode")) == role_code:
+            return True
+    return False
+
+
+def _user_display_name(user: User) -> str:
+    return str(_get_value(user, "name") or _get_value(user, "email") or user.id)
+
+
+def _first_user_company_title(user: User, company_titles_by_id: dict[str, str]) -> str | None:
+    for member in _safe_iterable(user.workspace_members):
+        workspace_id = str(_get_value(member, "workspace_id") or _get_value(member, "workspaceId") or "")
+        if workspace_id in company_titles_by_id:
+            return company_titles_by_id[workspace_id]
+    return None
+
+
 def _company_admin_title(admins: list[WorkspaceMember]) -> str:
     if not admins:
         return "администратор не назначен"
@@ -1044,6 +1379,7 @@ def access_matrix_for_subject(
     workspaces: list[Workspace],
     roles: list[dict[str, Any]],
     permissions: list[dict[str, Any]],
+    include_system_critical: bool = True,
 ) -> dict[str, Any]:
     user_workspace_ids = {item.get("workspaceId") for item in user_data.get("workspaces", [])}
     selected_company = next(
@@ -1055,10 +1391,18 @@ def access_matrix_for_subject(
         None,
     )
     permission_map = _permission_map_by_module(permissions)
+    pending_module_codes, pending_widget_codes = _pending_access_distribution_codes()
     rows = [
-        _access_matrix_module_row(module, permission_map=permission_map, selected_company=selected_company)
+        _access_matrix_module_row(
+            module,
+            permission_map=permission_map,
+            selected_company=selected_company,
+            pending_module_codes=pending_module_codes,
+            pending_widget_codes=pending_widget_codes,
+        )
         for module in get_dashboard_module_registry()
         if module.get("status") not in {"merged", "archived", "deprecated"}
+        and (include_system_critical or not module.get("isSystemCritical"))
     ]
     selected_module = next((row for row in rows if row["widgets"]), rows[0] if rows else None)
     return {
@@ -1072,6 +1416,7 @@ def access_matrix_for_subject(
         "selectedModule": selected_module,
         "selectedModuleWidgets": selected_module["widgets"] if selected_module else [],
         "selectedCompanyTitle": selected_company.title if selected_company else None,
+        "selectedCompanyId": str(selected_company.id) if selected_company else None,
         "noInheritanceUi": True,
     }
 
@@ -1081,10 +1426,11 @@ def _access_matrix_module_row(
     *,
     permission_map: dict[str, dict[str, Any]],
     selected_company: Workspace | None,
+    pending_module_codes: set[str],
+    pending_widget_codes: set[str],
 ) -> dict[str, Any]:
     module_code = module["canonicalModuleCode"] or module["moduleCode"]
     module_status = str(module.get("status") or "").lower()
-    module_disabled = module_status != "active" or not module.get("isAvailableForDashboard")
     module_limit_code = _module_limit_reason_code(module)
     role_permission = permission_map.get(module_code)
     user_state = _module_access_cell(
@@ -1106,19 +1452,47 @@ def _access_matrix_module_row(
         closed_reason="SYSTEM_LIMIT",
         open_reason="Открыто ролью пользователя.",
     )
-    widgets = _access_matrix_widgets_for_module(module_code, company_state=company_state, user_state=user_state)
+    widgets = _access_matrix_widgets_for_module(
+        module_code,
+        company_state=company_state,
+        user_state=user_state,
+        pending_widget_codes=pending_widget_codes,
+    )
+    cells = [
+        {**user_state, "key": "user", "title": "Пользователь", "isEditable": False, "disabledReason": "Настраивается в карточке пользователя или роли."},
+        {**company_state, "key": "company", "title": "Компания", "isEditable": False, "disabledReason": "Доступ компании меняется в карточке компании."},
+        _editable_employee_cell(
+            employee_state,
+            company_state=company_state,
+            module_limit_code=module_limit_code,
+            selected_company=selected_company,
+        ),
+        {**group_state, "key": "group", "title": "Группа", "isEditable": False, "disabledReason": "Группы меняются во вкладке Роли и группы."},
+        {**role_state, "key": "role", "title": "Роль", "isEditable": False, "disabledReason": "Роли меняются во вкладке Роли и группы."},
+    ]
+    open_widget_count = len([widget for widget in widgets if widget["stateCode"] == "OPEN"])
+    revoked_widget_count = len([widget for widget in widgets if widget["stateCode"] == "WIDGET_REVOKED_BY_MODULE_DENY"])
+    blocked_widget_count = len(widgets) - open_widget_count
     return {
         "moduleCode": module_code,
         "title": module.get("title") or module_code,
         "status": module.get("status"),
+        "statusLabel": _module_status_label(module_status),
+        "statusTone": _status_tone(module_status),
         "route": module.get("route") or module.get("redirectRoute"),
+        "isNew": module_code in pending_module_codes,
+        "workspaceId": str(selected_company.id) if selected_company else None,
         "user": user_state,
         "company": company_state,
         "employee": employee_state,
         "group": group_state,
         "role": role_state,
+        "cells": cells,
         "widgets": widgets,
-        "revokedWidgetCount": len([widget for widget in widgets if widget["stateCode"] == "WIDGET_REVOKED_BY_MODULE_DENY"]),
+        "widgetCount": len(widgets),
+        "openWidgetCount": open_widget_count,
+        "blockedWidgetCount": blocked_widget_count,
+        "revokedWidgetCount": revoked_widget_count,
     }
 
 
@@ -1127,6 +1501,7 @@ def _access_matrix_widgets_for_module(
     *,
     company_state: dict[str, str],
     user_state: dict[str, str],
+    pending_widget_codes: set[str],
 ) -> list[dict[str, Any]]:
     widgets: list[dict[str, Any]] = []
     for widget in get_widget_registry():
@@ -1151,10 +1526,72 @@ def _access_matrix_widgets_for_module(
                 "title": widget["title"],
                 "sourceModuleCode": source_code,
                 "featureCode": widget.get("featureCode"),
+                "isNew": widget["widgetCode"] in pending_widget_codes,
+                "canOpen": cell["stateCode"] != "OPEN" and company_state["stateCode"] == "OPEN" and user_state["stateCode"] == "OPEN",
+                "canClose": cell["stateCode"] == "OPEN",
+                "disabledReason": _widget_action_disabled_reason(cell, company_state=company_state, user_state=user_state),
                 **cell,
             }
         )
     return widgets
+
+
+def _editable_employee_cell(
+    cell: dict[str, str],
+    *,
+    company_state: dict[str, str],
+    module_limit_code: str | None,
+    selected_company: Workspace | None,
+) -> dict[str, Any]:
+    if not selected_company:
+        return {
+            **cell,
+            "key": "employee",
+            "title": "Сотрудник компании",
+            "isEditable": False,
+            "canOpen": False,
+            "canClose": False,
+            "disabledReason": "Сначала привяжите пользователя к компании.",
+        }
+    if module_limit_code:
+        return {
+            **cell,
+            "key": "employee",
+            "title": "Сотрудник компании",
+            "isEditable": False,
+            "canOpen": False,
+            "canClose": False,
+            "disabledReason": ACCESS_DENY_REASONS[module_limit_code],
+        }
+    can_open = company_state["stateCode"] == "OPEN" and cell["stateCode"] != "OPEN"
+    can_close = cell["stateCode"] == "OPEN"
+    disabled_reason = ""
+    if company_state["stateCode"] != "OPEN":
+        disabled_reason = "Сначала откройте доступ компании."
+    elif not can_open and not can_close:
+        disabled_reason = cell["reason"]
+    return {
+        **cell,
+        "key": "employee",
+        "title": "Сотрудник компании",
+        "isEditable": True,
+        "canOpen": can_open,
+        "canClose": can_close,
+        "disabledReason": disabled_reason,
+    }
+
+
+def _widget_action_disabled_reason(
+    cell: dict[str, str],
+    *,
+    company_state: dict[str, str],
+    user_state: dict[str, str],
+) -> str:
+    if cell["stateCode"] == "OPEN":
+        return ""
+    if company_state["stateCode"] != "OPEN" or user_state["stateCode"] != "OPEN":
+        return ACCESS_DENY_REASONS["WIDGET_REVOKED_BY_MODULE_DENY"]
+    return cell["reason"]
 
 
 def _module_access_cell(
@@ -1218,6 +1655,41 @@ def _matrix_cell(state_code: str, reason: str, resolution_source: str, *, reason
         "resolutionSource": resolution_source,
         "monetization": _monetization_placeholder(normalized_reason_code or state_code),
     }
+
+
+def _pending_access_distribution_codes() -> tuple[set[str], set[str]]:
+    pending_items = pending_access_distribution_items()
+    module_codes = {
+        str(item.get("canonicalModuleCode") or item.get("moduleCode") or item.get("code"))
+        for item in pending_items
+        if item.get("itemKind") == "module"
+    }
+    widget_codes = {
+        str(item.get("widgetCode") or item.get("code"))
+        for item in pending_items
+        if item.get("itemKind") == "widget"
+    }
+    return module_codes, widget_codes
+
+
+def _module_status_label(status: str) -> str:
+    return {
+        "active": "активен",
+        "planned": "запланирован",
+        "draft": "в подготовке",
+        "disabled": "отключен",
+        "deprecated": "устаревает",
+        "archived": "архив",
+        "merged": "объединен",
+    }.get(status, status or "не задан")
+
+
+def _status_tone(status: str) -> str:
+    if status == "active":
+        return "ok"
+    if status in {"disabled", "archived", "merged"}:
+        return "danger"
+    return "warn"
 
 
 def _module_limit_reason_code(module: dict[str, Any]) -> str | None:
@@ -1641,6 +2113,80 @@ def _audit_subject_label(
     return str(target_user_id or object_type)
 
 
+def _filter_users_for_admin_scope(users: list[User], admin_scope: dict[str, Any]) -> list[User]:
+    if admin_scope.get("isPlatformAdminMode"):
+        return users
+    company_ids = set(admin_scope.get("companyWorkspaceIds") or [])
+    if not company_ids:
+        return []
+    return [user for user in users if _user_in_company_scope(user, company_ids)]
+
+
+def _filter_workspaces_for_admin_scope(workspaces: list[Workspace], admin_scope: dict[str, Any]) -> list[Workspace]:
+    if admin_scope.get("isPlatformAdminMode"):
+        return workspaces
+    company_ids = set(admin_scope.get("companyWorkspaceIds") or [])
+    return [
+        workspace
+        for workspace in workspaces
+        if str(_workspace_id(workspace)) in company_ids and _is_company_workspace(workspace)
+    ]
+
+
+def _filter_roles_for_admin_scope(roles: list[dict[str, Any]], admin_scope: dict[str, Any]) -> list[dict[str, Any]]:
+    if admin_scope.get("isPlatformAdminMode"):
+        return roles
+    return [
+        {**role, "isAssignable": False}
+        for role in roles
+        if role.get("roleCode") in COMPANY_ADMIN_VISIBLE_ROLE_CODES
+    ]
+
+
+def _filter_history_for_admin_scope(rows: list[AuditLog], admin_scope: dict[str, Any]) -> list[AuditLog]:
+    if admin_scope.get("isPlatformAdminMode"):
+        return rows
+    company_ids = set(admin_scope.get("companyWorkspaceIds") or [])
+    if not company_ids:
+        return []
+    filtered: list[AuditLog] = []
+    for row in rows:
+        details = row.details or {}
+        workspace_id = row.workspace_id or details.get("workspaceId") or details.get("workspace_id")
+        if str(workspace_id) in company_ids:
+            filtered.append(row)
+    return filtered
+
+
+def _require_user_visible_to_admin_scope(user: User, admin_scope: dict[str, Any]) -> None:
+    if admin_scope.get("isPlatformAdminMode"):
+        return
+    company_ids = set(admin_scope.get("companyWorkspaceIds") or [])
+    if not company_ids or not _user_in_company_scope(user, company_ids):
+        raise ForbiddenError("Company administrator can open only employees inside the assigned company.")
+
+
+def _user_in_company_scope(user: User, company_ids: set[str]) -> bool:
+    for member in _safe_iterable(_get_value(user, "workspace_members")):
+        status = _enum_value(_get_value(member, "status")).upper()
+        workspace_id = _get_value(member, "workspace_id") or _get_value(member, "workspaceId")
+        if str(workspace_id) in company_ids and status in {"", "ACTIVE"}:
+            return True
+    return False
+
+
+def _workspace_uuid_scope(admin_scope: dict[str, Any]) -> list[UUID] | None:
+    if admin_scope.get("isPlatformAdminMode"):
+        return None
+    ids: list[UUID] = []
+    for workspace_id in admin_scope.get("companyWorkspaceIds") or []:
+        try:
+            ids.append(UUID(str(workspace_id)))
+        except ValueError:
+            continue
+    return ids
+
+
 def _history_bucket_counts(rows: list[dict[str, Any]], field_name: str) -> list[dict[str, Any]]:
     counts: dict[str, int] = {}
     for row in rows:
@@ -1662,7 +2208,13 @@ def _date_filter_value(value: Any) -> str:
     return text[:10] if text else ""
 
 
-def _overview_summary(users: list[User], workspaces: list[Workspace], recent_history: list[AuditLog]) -> dict[str, Any]:
+def _overview_summary(
+    users: list[User],
+    workspaces: list[Workspace],
+    recent_history: list[AuditLog],
+    *,
+    pending_items: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     company_workspaces = [workspace for workspace in workspaces if _is_company_workspace(workspace)]
     blocked_users = [
         user
@@ -1674,7 +2226,7 @@ def _overview_summary(users: list[User], workspaces: list[Workspace], recent_his
         for workspace in company_workspaces
         if not workspace.isActive or str(workspace.status or "").upper() in {"BLOCKED", "DISABLED", "ARCHIVED"}
     ]
-    pending_items = pending_access_distribution_items()
+    pending_items = pending_items if pending_items is not None else pending_access_distribution_items()
     return {
         "usersTotal": len(users),
         "companiesTotal": len(company_workspaces),
@@ -1795,6 +2347,8 @@ async def _load_users(db: AsyncSession) -> list[User]:
             selectinload(User.role_assignments).selectinload(UserRoleAssignment.role),
             selectinload(User.role_assignments).selectinload(UserRoleAssignment.workspace),
             selectinload(User.workspace_members).selectinload(WorkspaceMember.workspace),
+            selectinload(User.module_access),
+            selectinload(User.function_access),
         )
         .order_by(User.email.asc())
     )
@@ -1861,21 +2415,26 @@ async def _load_user_history(db: AsyncSession, user_id: UUID) -> list[AuditLog]:
     return list(result.scalars().all())
 
 
-async def _load_recent_access_history(db: AsyncSession) -> list[AuditLog]:
+async def _load_recent_access_history(db: AsyncSession, *, workspace_ids: list[UUID] | None = None) -> list[AuditLog]:
+    filters = [
+        AuditLog.action_type.in_(
+            [
+                AuditLogType.ROLE_CHANGED.value,
+                AuditLogType.PERMISSION_CHANGED.value,
+                AuditLogType.PLATFORM_MODULE_REGISTRY_CHANGED.value,
+                AuditLogType.WIDGET_REGISTRY_CHANGED.value,
+                AuditLogType.USER_DASHBOARD_LAYOUT_CHANGED.value,
+            ]
+        )
+    ]
+    if workspace_ids is not None:
+        if not workspace_ids:
+            return []
+        filters.append(AuditLog.workspace_id.in_(workspace_ids))
     result = await db.execute(
         select(AuditLog)
         .options(selectinload(AuditLog.user))
-        .where(
-            AuditLog.action_type.in_(
-                [
-                    AuditLogType.ROLE_CHANGED.value,
-                    AuditLogType.PERMISSION_CHANGED.value,
-                    AuditLogType.PLATFORM_MODULE_REGISTRY_CHANGED.value,
-                    AuditLogType.WIDGET_REGISTRY_CHANGED.value,
-                    AuditLogType.USER_DASHBOARD_LAYOUT_CHANGED.value,
-                ]
-            )
-        )
+        .where(*filters)
         .order_by(desc(AuditLog.created_at))
         .limit(6)
     )
