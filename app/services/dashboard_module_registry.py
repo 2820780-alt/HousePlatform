@@ -26,6 +26,8 @@ class DashboardModuleRegistryItem:
     isVisibleInSidebar: bool
     isVisibleOnAtomMap: bool
     isAvailableForDashboard: bool
+    isSystemCritical: bool = False
+    isBillingEligible: bool = False
     canonicalModuleCode: str | None = None
     shortTitle: str | None = None
     description: str | None = None
@@ -43,6 +45,9 @@ class DashboardModuleRegistryItem:
     redirectRoute: str | None = None
     requiredPermissions: list[str] = field(default_factory=list)
     widgetCodes: list[str] = field(default_factory=list)
+    moduleOwnedWidgets: list[str] = field(default_factory=list)
+    requiresAccessDistribution: bool = False
+    accessDistributionStatus: str = "DISTRIBUTED"
     createdAt: str | None = None
     updatedAt: str | None = None
 
@@ -73,6 +78,11 @@ def _registry_item(
     planned_reason: str | None = None,
     redirect_route: str | None = None,
     widget_codes: list[str] | None = None,
+    module_owned_widgets: list[str] | None = None,
+    is_system_critical: bool = False,
+    is_billing_eligible: bool = False,
+    requires_access_distribution: bool = False,
+    access_distribution_status: str = "DISTRIBUTED",
 ) -> DashboardModuleRegistryItem:
     return DashboardModuleRegistryItem(
         id=module_code.lower().replace("_", "-"),
@@ -99,7 +109,12 @@ def _registry_item(
         isVisibleInSidebar=visible_sidebar,
         isVisibleOnAtomMap=visible_atom,
         isAvailableForDashboard=available_dashboard,
+        isSystemCritical=is_system_critical,
+        isBillingEligible=is_billing_eligible,
         widgetCodes=widget_codes or [],
+        moduleOwnedWidgets=module_owned_widgets or widget_codes or [],
+        requiresAccessDistribution=requires_access_distribution,
+        accessDistributionStatus=access_distribution_status,
     )
 
 
@@ -175,6 +190,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         description="Пользователи, роли, workspace и права.",
         icon="users",
         color="#38bdf8",
+        is_system_critical=True,
     ),
     _registry_item(
         "MODULE_04_WORKS_COSTS",

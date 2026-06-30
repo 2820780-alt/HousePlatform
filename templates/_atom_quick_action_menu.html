@@ -1,0 +1,846 @@
+<style>
+  .atom-action-with-menu {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .atom-action-with-menu > button:first-child {
+    min-width: 0;
+  }
+  .atom-quick-action-menu-button {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(24, 215, 242, 0.35);
+    background: rgba(24, 215, 242, 0.1);
+    color: var(--atom-text, #eef7ff);
+    box-shadow: none;
+  }
+  .atom-quick-action-menu-button::before {
+    content: "...";
+    display: block;
+    transform: translateY(-3px);
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+  .atom-quick-action-context-menu {
+    position: fixed;
+    z-index: 10000;
+    display: none;
+    min-width: 230px;
+    padding: 6px;
+    border: 1px solid rgba(119, 172, 255, 0.26);
+    border-radius: 8px;
+    background: #0b1434;
+    box-shadow: 0 22px 64px rgba(0, 0, 0, 0.42);
+  }
+  .atom-quick-action-context-menu.open {
+    display: block;
+  }
+  .atom-quick-action-context-menu button {
+    display: flex;
+    width: 100%;
+    min-height: 32px;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--atom-text, #eef7ff);
+    box-shadow: none;
+    text-align: left;
+  }
+  .atom-quick-action-context-menu button:hover {
+    background: rgba(24, 215, 242, 0.11);
+  }
+  .atom-quick-action-context-menu button:disabled {
+    cursor: not-allowed;
+    color: var(--atom-muted, #8fa4c8);
+    opacity: 0.58;
+  }
+  .atom-quick-action-toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 10001;
+    max-width: min(380px, calc(100vw - 36px));
+    padding: 10px 12px;
+    border: 1px solid rgba(24, 215, 242, 0.34);
+    border-radius: 8px;
+    background: #0b1434;
+    color: var(--atom-text, #eef7ff);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+    font-size: 13px;
+  }
+  .atom-module-quick-actions {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-top: 1px solid rgba(119, 172, 255, 0.22);
+    border-bottom: 1px solid rgba(119, 172, 255, 0.22);
+    background: rgba(7, 13, 33, 0.34);
+  }
+  .atom-module-quick-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .atom-module-quick-actions-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .atom-module-quick-actions-toolset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .atom-module-quick-actions-tool {
+    min-height: 28px;
+    padding: 4px 8px;
+    border: 1px solid rgba(119, 172, 255, 0.24);
+    border-radius: 7px;
+    background: rgba(7, 13, 33, 0.46);
+    color: var(--atom-muted, #8fa4c8);
+    box-shadow: none;
+    font-size: 12px;
+  }
+  .atom-module-quick-action {
+    display: inline-flex;
+    min-height: 32px;
+    max-width: 260px;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 9px;
+    border: 1px solid rgba(24, 215, 242, 0.34);
+    border-radius: 8px;
+    background: rgba(24, 215, 242, 0.09);
+    color: var(--atom-text, #eef7ff);
+    box-shadow: none;
+    font-weight: 700;
+  }
+  .atom-module-quick-action-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .atom-module-quick-action[disabled] {
+    cursor: not-allowed;
+    border-color: rgba(143, 164, 200, 0.24);
+    background: rgba(143, 164, 200, 0.08);
+    color: var(--atom-muted, #8fa4c8);
+    opacity: 0.76;
+  }
+  .atom-module-quick-action-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 1px solid rgba(119, 172, 255, 0.22);
+    border-radius: 7px;
+    background: rgba(7, 13, 33, 0.46);
+    color: var(--atom-muted, #8fa4c8);
+    box-shadow: none;
+  }
+  .atom-module-quick-action-order {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 1px solid rgba(119, 172, 255, 0.22);
+    border-radius: 7px;
+    background: rgba(7, 13, 33, 0.46);
+    color: var(--atom-muted, #8fa4c8);
+    box-shadow: none;
+  }
+  .atom-module-quick-actions-empty {
+    color: var(--atom-muted, #8fa4c8);
+    font-size: 13px;
+  }
+  .atom-card-pinned-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+  }
+  .atom-card-pinned-actions.empty {
+    visibility: hidden;
+  }
+  .atom-card-pinned-action {
+    --quick-action-accent: var(--atom-cyan, #18d7f2);
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    border: 1px solid color-mix(in srgb, var(--quick-action-accent) 52%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--quick-action-accent) 12%, rgba(6, 13, 31, 0.86));
+    color: var(--atom-text, #eef7ff);
+    box-shadow: 0 0 13px color-mix(in srgb, var(--quick-action-accent) 20%, transparent);
+    font-weight: 900;
+    text-decoration: none;
+  }
+  .atom-card-pinned-action[data-accent="blue"] { --quick-action-accent: var(--atom-blue, #3b82f6); }
+  .atom-card-pinned-action[data-accent="cyan"] { --quick-action-accent: var(--atom-cyan, #18d7f2); }
+  .atom-card-pinned-action[data-accent="green"] { --quick-action-accent: var(--atom-green, #22c55e); }
+  .atom-card-pinned-action[data-accent="orange"] { --quick-action-accent: var(--atom-amber, #f59e0b); }
+  .atom-card-pinned-action[data-accent="red"] { --quick-action-accent: var(--atom-red, #ff3b7f); }
+  .atom-card-pinned-action[data-accent="purple"] { --quick-action-accent: var(--atom-violet, #a855f7); }
+  .atom-card-pinned-action.disabled {
+    cursor: not-allowed;
+    border-color: rgba(143, 164, 200, 0.26);
+    background: rgba(143, 164, 200, 0.08);
+    color: var(--atom-muted, #8fa4c8);
+    box-shadow: none;
+    filter: saturate(0.65);
+  }
+  .atom-card-pinned-action::after {
+    content: attr(data-action-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    z-index: 30;
+    min-width: max-content;
+    max-width: 220px;
+    padding: 7px 9px;
+    border: 1px solid rgba(119, 172, 255, 0.24);
+    border-radius: 8px;
+    background: #071226;
+    color: var(--atom-text, #eef7ff);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+    white-space: normal;
+  }
+  .atom-card-pinned-action:hover::after,
+  .atom-card-pinned-action:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  @media (max-width: 820px) {
+    .atom-module-quick-action {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<div id="atom-quick-action-context-menu" class="atom-quick-action-context-menu" role="menu" aria-label="Быстрые действия">
+  <button type="button" data-quick-action-menu-command="add">Добавить в быстрые действия</button>
+  <button type="button" data-quick-action-menu-command="remove">Убрать из быстрых действий</button>
+  <button type="button" data-quick-action-menu-command="pin">Закрепить на карточке модуля</button>
+  <button type="button" data-quick-action-menu-command="unpin">Снять с карточки модуля</button>
+  <button type="button" data-quick-action-menu-command="rename">Переименовать shortcut</button>
+</div>
+
+<script>
+  (() => {
+    const STORAGE_KEY = "atom:userModuleQuickActions:v1";
+    const MAX_MODULE_ACTIONS = 9;
+    const MAX_PINNED_ACTIONS = 3;
+    const FORBIDDEN_CONFIG_KEYS = new Set([
+      "businessPayload",
+      "business_payload",
+      "resultPayload",
+      "result_payload",
+      "rawData",
+      "raw_data",
+      "sourceRows",
+      "source_rows",
+      "rows",
+      "password",
+      "token"
+    ]);
+    let activeCandidate = null;
+
+    function readStore() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writeStore(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      renderAllModuleQuickActionBars();
+      renderAllAtomCardPinnedActions();
+    }
+
+    function candidateId(candidate) {
+      return [
+        candidate.userId || "current-user",
+        candidate.workspaceId || "",
+        candidate.activeRegionCode || "",
+        candidate.sourceModuleCode,
+        candidate.featureCode || "",
+        candidate.actionKey,
+        candidate.savedConfigRef || JSON.stringify(candidate.configSnapshot || {})
+      ].join("::");
+    }
+
+    function candidateFromElement(element) {
+      if (!element) return null;
+      const sourceModuleCode = element.dataset.quickActionSourceModuleCode;
+      const actionKey = element.dataset.quickActionKey;
+      const title = element.dataset.quickActionTitle || element.textContent.trim();
+      if (!sourceModuleCode || !actionKey || !title) return null;
+      const config = readCandidateConfig(element);
+      if (config.error) {
+        showToast(config.error);
+        return null;
+      }
+      return {
+        id: null,
+        localId: "",
+        userId: element.dataset.quickActionUserId || "current-user",
+        workspaceId: element.dataset.quickActionWorkspaceId || "",
+        activeRegionCode: element.dataset.quickActionActiveRegionCode || "",
+        sourceModuleCode,
+        featureCode: element.dataset.quickActionFeatureCode || "",
+        actionKey,
+        title,
+        description: element.dataset.quickActionDescription || "",
+        icon: element.dataset.quickActionIcon || "",
+        route: element.dataset.quickActionRoute || window.location.pathname,
+        deepLink: element.dataset.quickActionDeepLink || "",
+        savedConfigRef: element.dataset.quickActionSavedConfigRef || "",
+        configSnapshot: config.value,
+        order: 0,
+        isVisibleInModuleBar: true,
+        isPinnedToAtomCard: false,
+        atomCardOrder: null,
+        atomCardAccent: element.dataset.quickActionAtomCardAccent || "cyan",
+        status: "ACTIVE",
+        createdAt: "",
+        updatedAt: ""
+      };
+    }
+
+    function readCandidateConfig(element) {
+      const providerName = element.dataset.quickActionConfigProvider;
+      let value = null;
+      if (providerName && typeof window[providerName] === "function") {
+        value = window[providerName](element);
+      } else if (element.dataset.quickActionConfigSnapshot) {
+        try {
+          value = JSON.parse(element.dataset.quickActionConfigSnapshot);
+        } catch (error) {
+          return { error: "Настройки quick action не удалось прочитать." };
+        }
+      }
+      const forbidden = findForbiddenConfigKeys(value);
+      if (forbidden.length > 0) {
+        return { error: "Shortcut не сохраняет business/raw payload: " + forbidden.join(", ") + "." };
+      }
+      return { value };
+    }
+
+    function findForbiddenConfigKeys(value, result = []) {
+      if (!value || typeof value !== "object") return result;
+      if (Array.isArray(value)) {
+        value.forEach((item) => findForbiddenConfigKeys(item, result));
+        return result;
+      }
+      Object.entries(value).forEach(([key, child]) => {
+        if (FORBIDDEN_CONFIG_KEYS.has(key)) result.push(key);
+        findForbiddenConfigKeys(child, result);
+      });
+      return Array.from(new Set(result));
+    }
+
+    function findStored(candidate) {
+      const id = candidateId(candidate);
+      return readStore().find((item) => item.localId === id) || null;
+    }
+
+    function moduleActions(sourceModuleCode) {
+      return readStore()
+        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isVisibleInModuleBar !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .slice(0, MAX_MODULE_ACTIONS);
+    }
+
+    function pinnedActions(sourceModuleCode) {
+      return readStore()
+        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isPinnedToAtomCard)
+        .sort((a, b) => (a.atomCardOrder || 0) - (b.atomCardOrder || 0) || (a.order || 0) - (b.order || 0))
+        .slice(0, MAX_PINNED_ACTIONS);
+    }
+
+    function activeModuleActions(sourceModuleCode) {
+      return readStore()
+        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.status === "ACTIVE")
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
+    function addCandidate(candidate, pinToAtomCard = false) {
+      const store = readStore();
+      const existing = findStored(candidate);
+      if (existing) {
+        if (pinToAtomCard && !existing.isPinnedToAtomCard) return pinCandidate(existing);
+        showToast("Это действие уже добавлено в быстрые действия.");
+        return existing;
+      }
+      const moduleItems = activeModuleActions(candidate.sourceModuleCode);
+      if (moduleItems.length >= MAX_MODULE_ACTIONS) {
+        showToast("В этом модуле уже добавлено 9 быстрых действий. Уберите одно действие, чтобы добавить новое.");
+        return null;
+      }
+      if (pinToAtomCard && pinnedActions(candidate.sourceModuleCode).length >= MAX_PINNED_ACTIONS) {
+        showToast("На карточке модуля можно закрепить не более 3 быстрых действий.");
+        return null;
+      }
+      const now = new Date().toISOString();
+      const item = {
+        ...candidate,
+        localId: candidateId(candidate),
+        order: moduleItems.length + 1,
+        isPinnedToAtomCard: pinToAtomCard,
+        atomCardOrder: pinToAtomCard ? pinnedActions(candidate.sourceModuleCode).length + 1 : null,
+        createdAt: now,
+        updatedAt: now
+      };
+      store.push(item);
+      writeStore(store);
+      dispatchQuickActionEvent("atom:quick-action:add", item);
+      showToast("Добавлено в быстрые действия.");
+      return item;
+    }
+
+    function removeCandidate(candidate) {
+      const existing = findStored(candidate);
+      if (!existing) {
+        showToast("Этого действия нет в быстрых действиях.");
+        return null;
+      }
+      const updated = readStore().filter((item) => item.localId !== existing.localId);
+      writeStore(reorderModule(updated, existing.sourceModuleCode));
+      dispatchQuickActionEvent("atom:quick-action:remove", existing);
+      showToast("Удалено из быстрых действий.");
+      return existing;
+    }
+
+    function pinCandidate(candidate) {
+      const existing = findStored(candidate) || addCandidate(candidate, false);
+      if (!existing) return null;
+      if (existing.isPinnedToAtomCard) {
+        showToast("Действие уже закреплено на карточке модуля.");
+        return existing;
+      }
+      if (pinnedActions(existing.sourceModuleCode).length >= MAX_PINNED_ACTIONS) {
+        showToast("На карточке модуля можно закрепить не более 3 быстрых действий.");
+        return null;
+      }
+      const updated = readStore().map((item) => {
+        if (item.localId !== existing.localId) return item;
+        return {
+          ...item,
+          isPinnedToAtomCard: true,
+          atomCardOrder: pinnedActions(existing.sourceModuleCode).length + 1,
+          updatedAt: new Date().toISOString()
+        };
+      });
+      writeStore(updated);
+      dispatchQuickActionEvent("atom:quick-action:pin", existing);
+      showToast("Закреплено на карточке модуля.");
+      return existing;
+    }
+
+    function unpinCandidate(candidate) {
+      const existing = findStored(candidate);
+      if (!existing) {
+        showToast("Этого действия нет в быстрых действиях.");
+        return null;
+      }
+      const updated = readStore().map((item) => {
+        if (item.localId !== existing.localId) return item;
+        return {
+          ...item,
+          isPinnedToAtomCard: false,
+          atomCardOrder: null,
+          updatedAt: new Date().toISOString()
+        };
+      });
+      writeStore(reorderPinned(updated, existing.sourceModuleCode));
+      dispatchQuickActionEvent("atom:quick-action:unpin", existing);
+      showToast("Снято с карточки модуля.");
+      return existing;
+    }
+
+    function renameCandidate(candidate) {
+      const existing = findStored(candidate);
+      if (!existing) {
+        showToast("Сначала добавьте действие в быстрые действия.");
+        return null;
+      }
+      const nextTitle = window.prompt("Новое название shortcut", existing.title);
+      if (!nextTitle) return existing;
+      const updated = readStore().map((item) => {
+        if (item.localId !== existing.localId) return item;
+        return { ...item, title: nextTitle.trim(), updatedAt: new Date().toISOString() };
+      });
+      writeStore(updated);
+      dispatchQuickActionEvent("atom:quick-action:rename", { ...existing, title: nextTitle.trim() });
+      showToast("Shortcut переименован.");
+      return existing;
+    }
+
+    function renderModuleQuickActionBar(container) {
+      const sourceModuleCode = container.dataset.quickActionModuleBar;
+      if (!sourceModuleCode) return;
+      const items = moduleActions(sourceModuleCode);
+      container.innerHTML = "";
+      if (items.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "atom-module-quick-actions-empty";
+        empty.textContent = "В этом модуле еще нет быстрых действий. Откройте действие в модуле и выберите “Добавить в быстрые действия”.";
+        container.appendChild(empty);
+        return;
+      }
+      const row = document.createElement("div");
+      row.className = "atom-module-quick-actions-row";
+      container.appendChild(renderModuleQuickActionTools(sourceModuleCode, items.length));
+      items.forEach((item) => row.appendChild(renderModuleQuickActionButton(item)));
+      container.appendChild(row);
+    }
+
+    function renderModuleQuickActionTools(sourceModuleCode, count) {
+      const tools = document.createElement("div");
+      tools.className = "atom-module-quick-actions-tools";
+      const label = document.createElement("div");
+      label.className = "atom-module-quick-actions-empty";
+      label.textContent = `Быстрые действия: ${count} / ${MAX_MODULE_ACTIONS}`;
+      const toolset = document.createElement("div");
+      toolset.className = "atom-module-quick-actions-toolset";
+      const resetPinned = document.createElement("button");
+      resetPinned.type = "button";
+      resetPinned.className = "atom-module-quick-actions-tool";
+      resetPinned.dataset.quickActionResetPinned = sourceModuleCode;
+      resetPinned.textContent = "Сбросить карточку";
+      resetPinned.addEventListener("click", () => resetAtomCardPinnedQuickActions(sourceModuleCode, { confirm: true }));
+      const resetModule = document.createElement("button");
+      resetModule.type = "button";
+      resetModule.className = "atom-module-quick-actions-tool";
+      resetModule.dataset.quickActionResetModule = sourceModuleCode;
+      resetModule.textContent = "Сбросить все";
+      resetModule.addEventListener("click", () => resetModuleQuickActions(sourceModuleCode, { confirm: true }));
+      toolset.append(resetPinned, resetModule);
+      tools.append(label, toolset);
+      return tools;
+    }
+
+    function renderModuleQuickActionButton(item) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "atom-module-quick-action";
+      button.title = stateMessage(item);
+      if (item.status !== "ACTIVE") button.disabled = true;
+      const title = document.createElement("span");
+      title.className = "atom-module-quick-action-title";
+      title.textContent = item.title;
+      button.appendChild(title);
+      button.addEventListener("click", () => {
+        if (item.status !== "ACTIVE") {
+          showToast(stateMessage(item));
+          return;
+        }
+        dispatchQuickActionEvent("atom:quick-action:run", item);
+        if (item.deepLink) {
+          window.location.href = item.deepLink;
+          return;
+        }
+        if (item.route) {
+          window.location.href = item.route;
+        }
+      });
+
+      const moveUp = document.createElement("button");
+      moveUp.type = "button";
+      moveUp.className = "atom-module-quick-action-order";
+      moveUp.title = "Переместить левее";
+      moveUp.textContent = "↑";
+      moveUp.addEventListener("click", (event) => {
+        event.stopPropagation();
+        moveStoredQuickAction(item, -1);
+      });
+      button.appendChild(moveUp);
+
+      const moveDown = document.createElement("button");
+      moveDown.type = "button";
+      moveDown.className = "atom-module-quick-action-order";
+      moveDown.title = "Переместить правее";
+      moveDown.textContent = "↓";
+      moveDown.addEventListener("click", (event) => {
+        event.stopPropagation();
+        moveStoredQuickAction(item, 1);
+      });
+      button.appendChild(moveDown);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "atom-module-quick-action-remove";
+      remove.title = "Убрать из быстрых действий";
+      remove.textContent = "×";
+      remove.addEventListener("click", (event) => {
+        event.stopPropagation();
+        removeStoredQuickAction(item);
+      });
+      button.appendChild(remove);
+      return button;
+    }
+
+    function removeStoredQuickAction(item) {
+      const updated = readStore().filter((entry) => entry.localId !== item.localId);
+      writeStore(reorderModule(updated, item.sourceModuleCode));
+      dispatchQuickActionEvent("atom:quick-action:remove", item);
+      showToast("Удалено из быстрых действий.");
+    }
+
+    function moveStoredQuickAction(item, direction) {
+      const store = readStore();
+      const moduleItems = moduleActions(item.sourceModuleCode);
+      const currentIndex = moduleItems.findIndex((entry) => entry.localId === item.localId);
+      const nextIndex = currentIndex + direction;
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= moduleItems.length) return;
+      const current = moduleItems[currentIndex];
+      const target = moduleItems[nextIndex];
+      const reordered = store.map((entry) => {
+        if (entry.localId === current.localId) return { ...entry, order: target.order, updatedAt: new Date().toISOString() };
+        if (entry.localId === target.localId) return { ...entry, order: current.order, updatedAt: new Date().toISOString() };
+        return entry;
+      });
+      writeStore(reorderModule(reordered, item.sourceModuleCode));
+      dispatchQuickActionEvent("atom:quick-action:reorder", {
+        sourceModuleCode: item.sourceModuleCode,
+        orderedIds: moduleActions(item.sourceModuleCode).map((entry) => entry.localId)
+      });
+      showToast("Порядок быстрых действий обновлен.");
+    }
+
+    function resetModuleQuickActions(sourceModuleCode, options = {}) {
+      const items = readStore().filter((item) => item.sourceModuleCode === sourceModuleCode);
+      if (items.length === 0) {
+        showToast("В этом модуле нет быстрых действий для сброса.");
+        return 0;
+      }
+      if (options.confirm && !window.confirm("Удалить все быстрые действия этого модуля?")) return 0;
+      const updated = readStore().filter((item) => item.sourceModuleCode !== sourceModuleCode);
+      writeStore(updated);
+      dispatchQuickActionEvent("atom:quick-action:reset-module", { sourceModuleCode, removedCount: items.length });
+      showToast("Быстрые действия модуля сброшены.");
+      return items.length;
+    }
+
+    function resetAtomCardPinnedQuickActions(sourceModuleCode, options = {}) {
+      const items = pinnedActions(sourceModuleCode);
+      if (items.length === 0) {
+        showToast("На карточке модуля нет закрепленных действий.");
+        return 0;
+      }
+      if (options.confirm && !window.confirm("Снять все быстрые действия с карточки модуля?")) return 0;
+      const updated = readStore().map((item) => {
+        if (item.sourceModuleCode !== sourceModuleCode || !item.isPinnedToAtomCard) return item;
+        return {
+          ...item,
+          isPinnedToAtomCard: false,
+          atomCardOrder: null,
+          updatedAt: new Date().toISOString()
+        };
+      });
+      writeStore(reorderPinned(updated, sourceModuleCode));
+      dispatchQuickActionEvent("atom:quick-action:reset-pinned", { sourceModuleCode, unpinnedCount: items.length });
+      showToast("Закрепленные действия на карточке сброшены.");
+      return items.length;
+    }
+
+    function stateMessage(item) {
+      const messages = {
+        DISABLED: "Быстрое действие временно отключено.",
+        BROKEN_CONFIG: "Настройки этого быстрого действия устарели. Откройте модуль и настройте действие заново.",
+        MODULE_DISABLED: "Модуль-владелец отключен.",
+        NO_LONGER_AVAILABLE: "Это действие больше недоступно в модуле. Вы можете убрать его из быстрых действий.",
+        LOADING: "Быстрое действие обновляется. Попробуйте еще раз через несколько секунд.",
+        ERROR: "Не удалось подготовить быстрое действие. Откройте модуль и проверьте действие заново."
+      };
+      return messages[item.status] || item.title;
+    }
+
+    function renderAllModuleQuickActionBars(root = document) {
+      root.querySelectorAll("[data-quick-action-module-bar]").forEach(renderModuleQuickActionBar);
+    }
+
+    function renderAtomCardPinnedActions(container) {
+      const sourceModuleCode = container.dataset.quickActionAtomCard;
+      if (!sourceModuleCode) return;
+      const items = pinnedActions(sourceModuleCode);
+      container.innerHTML = "";
+      container.classList.toggle("empty", items.length === 0);
+      items.forEach((item) => container.appendChild(renderAtomCardPinnedAction(item)));
+    }
+
+    function renderAtomCardPinnedAction(item) {
+      const node = document.createElement(item.status === "ACTIVE" && (item.deepLink || item.route) ? "a" : "button");
+      node.className = "atom-card-pinned-action" + (item.status === "ACTIVE" ? "" : " disabled");
+      node.dataset.accent = item.atomCardAccent || "cyan";
+      node.dataset.actionTooltip = stateMessage(item);
+      node.title = stateMessage(item);
+      node.setAttribute("aria-label", item.title);
+      node.textContent = item.icon || item.title.slice(0, 1);
+      if (node.tagName === "A") {
+        node.href = item.deepLink || item.route || "#";
+        node.addEventListener("click", () => dispatchQuickActionEvent("atom:quick-action:atom-card-run", item));
+      } else {
+        node.type = "button";
+        node.disabled = true;
+        node.addEventListener("click", () => showToast(stateMessage(item)));
+      }
+      return node;
+    }
+
+    function renderAllAtomCardPinnedActions(root = document) {
+      root.querySelectorAll("[data-quick-action-atom-card]").forEach(renderAtomCardPinnedActions);
+    }
+
+    function reorderModule(items, sourceModuleCode) {
+      let index = 1;
+      return items.map((item) => {
+        if (item.sourceModuleCode !== sourceModuleCode) return item;
+        return { ...item, order: index++ };
+      });
+    }
+
+    function reorderPinned(items, sourceModuleCode) {
+      let index = 1;
+      return items.map((item) => {
+        if (item.sourceModuleCode !== sourceModuleCode || !item.isPinnedToAtomCard) return item;
+        return { ...item, atomCardOrder: index++ };
+      });
+    }
+
+    function openMenu(candidate, x, y) {
+      const menu = document.getElementById("atom-quick-action-context-menu");
+      if (!menu || !candidate) return;
+      activeCandidate = candidate;
+      const existing = findStored(candidate);
+      const pinned = existing && existing.isPinnedToAtomCard;
+      setCommandDisabled("add", Boolean(existing));
+      setCommandDisabled("remove", !existing);
+      setCommandDisabled("pin", pinned);
+      setCommandDisabled("unpin", !pinned);
+      setCommandDisabled("rename", !existing);
+      menu.style.left = Math.min(x, window.innerWidth - 250) + "px";
+      menu.style.top = Math.min(y, window.innerHeight - 190) + "px";
+      menu.classList.add("open");
+    }
+
+    function closeMenu() {
+      const menu = document.getElementById("atom-quick-action-context-menu");
+      if (menu) menu.classList.remove("open");
+      activeCandidate = null;
+    }
+
+    function setCommandDisabled(command, disabled) {
+      const item = document.querySelector(`[data-quick-action-menu-command="${command}"]`);
+      if (item) item.disabled = disabled;
+    }
+
+    function dispatchQuickActionEvent(name, detail) {
+      document.dispatchEvent(new CustomEvent(name, { detail }));
+    }
+
+    function showToast(message) {
+      const previous = document.querySelector(".atom-quick-action-toast");
+      if (previous) previous.remove();
+      const toast = document.createElement("div");
+      toast.className = "atom-quick-action-toast";
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      window.setTimeout(() => toast.remove(), 2800);
+    }
+
+    function initQuickActionMenus(root = document) {
+      root.querySelectorAll("[data-quick-action-candidate]").forEach((element) => {
+        if (element.dataset.quickActionMenuReady === "true") return;
+        element.dataset.quickActionMenuReady = "true";
+        element.addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openMenu(candidateFromElement(element), event.clientX, event.clientY);
+        });
+      });
+      root.querySelectorAll("[data-quick-action-menu-for]").forEach((button) => {
+        if (button.dataset.quickActionMenuReady === "true") return;
+        button.dataset.quickActionMenuReady = "true";
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const target = document.getElementById(button.dataset.quickActionMenuFor);
+          const rect = button.getBoundingClientRect();
+          openMenu(candidateFromElement(target), rect.left, rect.bottom + 6);
+        });
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      const menu = document.getElementById("atom-quick-action-context-menu");
+      if (menu && !menu.contains(event.target)) closeMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+      initQuickActionMenus();
+      renderAllModuleQuickActionBars();
+      renderAllAtomCardPinnedActions();
+      document.getElementById("atom-quick-action-context-menu")?.addEventListener("click", (event) => {
+        const command = event.target?.dataset?.quickActionMenuCommand;
+        if (!command || !activeCandidate || event.target.disabled) return;
+        event.stopPropagation();
+        if (command === "add") addCandidate(activeCandidate, false);
+        if (command === "remove") removeCandidate(activeCandidate);
+        if (command === "pin") pinCandidate(activeCandidate);
+        if (command === "unpin") unpinCandidate(activeCandidate);
+        if (command === "rename") renameCandidate(activeCandidate);
+        closeMenu();
+      });
+    });
+
+    window.ATOMQuickActionMenu = {
+      init: initQuickActionMenus,
+      addCandidate,
+      removeCandidate,
+      pinCandidate,
+      unpinCandidate,
+      moveStoredQuickAction,
+      resetModuleQuickActions,
+      resetAtomCardPinnedQuickActions,
+      readStore,
+      renderModuleQuickActionBar,
+      renderAllModuleQuickActionBars,
+      renderAtomCardPinnedActions,
+      renderAllAtomCardPinnedActions,
+      limits: {
+        maxModuleActions: MAX_MODULE_ACTIONS,
+        maxPinnedActions: MAX_PINNED_ACTIONS
+      }
+    };
+  })();
+</script>

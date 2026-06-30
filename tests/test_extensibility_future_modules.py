@@ -48,6 +48,12 @@ def _future_registration() -> NewModuleRegistration:
         dashboardWidgets=(FUTURE_WIDGET_CODE,),
         ownerScopeRules={"ownerField": "workspaceId", "regionField": "activeRegionCode"},
         featureCodes=("FUTURE_SANDBOX_STATUS",),
+        description="Test-only future module registration without business logic.",
+        route="/modules/test-future-sandbox",
+        icon="box",
+        isSystemCritical=False,
+        isBillingEligible=True,
+        moduleOwnedWidgets=(FUTURE_WIDGET_CODE,),
     )
 
 
@@ -114,6 +120,12 @@ def test_new_future_module_registration_exports_registry_permissions_actions_and
     assert metadata["availableActions"] == ["VIEW", "RUN_SANDBOX"]
     assert metadata["dashboardWidgets"] == [FUTURE_WIDGET_CODE]
     assert metadata["ownerScopeRules"]["regionField"] == "activeRegionCode"
+    assert metadata["description"] == "Test-only future module registration without business logic."
+    assert metadata["route"] == "/modules/test-future-sandbox"
+    assert metadata["icon"] == "box"
+    assert metadata["isSystemCritical"] is False
+    assert metadata["isBillingEligible"] is True
+    assert metadata["moduleOwnedWidgets"] == [FUTURE_WIDGET_CODE]
     assert "moduleNumber" not in metadata
 
     assert registration_to_module_access_defaults(registration) == [

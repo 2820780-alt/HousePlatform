@@ -28,6 +28,7 @@ class PlatformModuleRegistry(Base):
     icon: Mapped[str | None] = mapped_column(String(80))
     color: Mapped[str | None] = mapped_column(String(50))
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    is_system_critical: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_visible_in_sidebar: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

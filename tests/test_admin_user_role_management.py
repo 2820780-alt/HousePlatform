@@ -1,21 +1,46 @@
 import uuid
+from datetime import datetime
 
 import pytest
 
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
-from app.models import Role, User, UserRoleAssignment
+from app.models import AuditLog, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole
 from app.services.admin_user_role_management import (
+    ACCESS_DENY_REASONS,
+    ACCESS_REASON_CATEGORIES,
+    ACCESS_RESOLUTION_SOURCES,
+    ADMIN_UI_STATE_LEGEND,
+    COMPANY_ADMIN_ROLE_CODE,
     DISABLE_CONFIRMATION,
+    MONETIZATION_READY_FIELDS,
+    access_matrix_for_subject,
     active_permissions_for_user,
     active_role_codes_for_user,
+    audit_log_summary,
+    can_assign_company_admin,
     can_assign_role_code,
+    can_company_admin_open_employee_module,
+    can_company_admin_open_employee_widget,
     can_disable_user,
+    can_manage_company_employee,
     can_open_user_role_admin,
+    company_module_is_open,
+    company_widget_is_open,
+    change_history_for_admin_panel,
+    pending_access_distribution_items,
     require_can_assign_role,
     require_can_disable_user,
+    quick_action_rows_for_user,
+    widget_access_rows_for_user,
 )
+from app.services.access_distribution_registry import (
+    build_pending_access_distribution_items,
+    register_module_for_access_system,
+    register_widget_for_access_system,
+)
+from app.services.module8_cabinet_admin_preview import get_module8_cabinet_admin_preview
 
 
 def _user(role=UserRole.ADMIN) -> User:
@@ -40,6 +65,31 @@ def _user_with_assignment(role_code: str) -> User:
         )
     ]
     return user
+
+
+def _company_workspace() -> Workspace:
+    return Workspace(
+        id=uuid.uuid4(),
+        name=f"Компания {uuid.uuid4()}",
+        slug=f"company-{uuid.uuid4()}",
+        workspace_type="CONTRACTOR",
+        status="ACTIVE",
+        is_active=True,
+    )
+
+
+def _workspace_member(user: User, workspace: Workspace, role_code: str) -> WorkspaceMember:
+    member = WorkspaceMember(
+        id=uuid.uuid4(),
+        user_id=user.id,
+        workspace_id=workspace.id,
+        role_key=role_code,
+        role_code=role_code,
+        status="ACTIVE",
+    )
+    member.user = user
+    member.workspace = workspace
+    return member
 
 
 def test_legacy_admin_is_platform_admin_not_super_admin():
@@ -81,6 +131,249 @@ def test_disable_user_requires_explicit_confirmation():
     require_can_disable_user(actor, target, DISABLE_CONFIRMATION)
 
 
+def test_company_admin_role_is_company_scoped_and_cannot_escape_company_access():
+    platform_admin = _user(UserRole.ADMIN)
+    company_admin = _user(UserRole.CUSTOMER)
+    employee = _user(UserRole.SUPPLIER)
+    other_employee = _user(UserRole.SUPPLIER)
+    company = _company_workspace()
+    other_company = _company_workspace()
+
+    company_admin_member = _workspace_member(company_admin, company, COMPANY_ADMIN_ROLE_CODE)
+    employee_member = _workspace_member(employee, company, "SUPPLIER")
+    other_employee_member = _workspace_member(other_employee, other_company, "SUPPLIER")
+    company_admin.workspace_members = [company_admin_member]
+    company.members = [company_admin_member, employee_member]
+    other_company.members = [other_employee_member]
+
+    assert can_assign_company_admin(platform_admin, company)
+    assert not can_assign_company_admin(company_admin, company)
+    assert can_manage_company_employee(company_admin, company, employee_member)
+    assert not can_manage_company_employee(company_admin, other_company, other_employee_member)
+
+    company.module_access = [
+        ModuleAccess(
+            workspace_id=company.id,
+            module_code="MODULE_01_MATERIAL_HUB",
+            canonical_module_code="MODULE_01_MATERIAL_HUB",
+            access_level="NO_ACCESS",
+            access_scope="GLOBAL",
+            status="ACTIVE",
+        )
+    ]
+
+    assert not company_module_is_open(company, "MODULE_01_MATERIAL_HUB")
+    assert not can_company_admin_open_employee_module(
+        company_admin,
+        company,
+        employee_member,
+        "MODULE_01_MATERIAL_HUB",
+    )
+
+
+def test_company_admin_cannot_open_widget_when_source_module_is_closed_for_company():
+    company_admin = _user(UserRole.CUSTOMER)
+    employee = _user(UserRole.SUPPLIER)
+    company = _company_workspace()
+    company_admin_member = _workspace_member(company_admin, company, COMPANY_ADMIN_ROLE_CODE)
+    employee_member = _workspace_member(employee, company, "SUPPLIER")
+    company_admin.workspace_members = [company_admin_member]
+    company.members = [company_admin_member, employee_member]
+    company.module_access = [
+        ModuleAccess(
+            workspace_id=company.id,
+            module_code="MODULE_11_ANALYTICS",
+            canonical_module_code="MODULE_11_ANALYTICS",
+            access_level="NO_ACCESS",
+            access_scope="GLOBAL",
+            status="ACTIVE",
+        )
+    ]
+
+    assert not company_widget_is_open(company, "price-dynamics")
+    assert not can_company_admin_open_employee_widget(company_admin, company, employee_member, "price-dynamics")
+
+
+def test_access_matrix_uses_visible_reasons_without_inheritance_ui_and_revokes_widgets():
+    company = _company_workspace()
+    company.module_access = [
+        ModuleAccess(
+            workspace_id=company.id,
+            module_code="MODULE_11_ANALYTICS",
+            canonical_module_code="MODULE_11_ANALYTICS",
+            access_level="NO_ACCESS",
+            access_scope="GLOBAL",
+            status="ACTIVE",
+        )
+    ]
+
+    matrix = access_matrix_for_subject(
+        {
+            "id": "user-1",
+            "roleCodes": ["SUPPLIER"],
+            "workspaces": [{"workspaceId": str(company.id)}],
+        },
+        workspaces=[company],
+        roles=[],
+        permissions=[],
+    )
+
+    assert matrix["noInheritanceUi"] is True
+    assert "ROLE_DEFAULT" in ACCESS_RESOLUTION_SOURCES
+    assert "USER_OVERRIDE" in ACCESS_RESOLUTION_SOURCES
+    assert ACCESS_DENY_REASONS["PLATFORM_ADMIN_DENY"] == "Закрыто администратором платформы"
+    assert set(ACCESS_DENY_REASONS) == {
+        "PLATFORM_ADMIN_DENY",
+        "COMPANY_ADMIN_DENY",
+        "TARIFF_LIMIT",
+        "SYSTEM_LIMIT",
+        "MODULE_DISABLED",
+        "MODULE_PLANNED",
+        "MODULE_DRAFT",
+        "WIDGET_DISABLED",
+        "WIDGET_REVOKED_BY_MODULE_DENY",
+        "USER_BLOCKED",
+        "COMPANY_BLOCKED",
+    }
+    assert ACCESS_REASON_CATEGORIES["PLATFORM_ADMIN_DENY"] == "manual_platform"
+    assert ACCESS_REASON_CATEGORIES["COMPANY_ADMIN_DENY"] == "manual_company"
+    assert ACCESS_REASON_CATEGORIES["TARIFF_LIMIT"] == "tariff"
+    assert tuple(matrix["monetizationReadyFields"]) == MONETIZATION_READY_FIELDS
+
+    analytics = next(row for row in matrix["rows"] if row["moduleCode"] == "MODULE_11_ANALYTICS")
+    assert analytics["company"]["label"] == "закрыто"
+    assert analytics["company"]["reason"] == "Закрыто администратором платформы"
+    assert analytics["company"]["reasonCategory"] == "manual_platform"
+    assert analytics["employee"]["label"] == "закрыто"
+    assert analytics["revokedWidgetCount"] >= 1
+
+    price_widget = next(widget for widget in analytics["widgets"] if widget["widgetCode"] == "price-dynamics")
+    assert price_widget["stateCode"] == "WIDGET_REVOKED_BY_MODULE_DENY"
+    assert price_widget["reason"] == "Недоступно: виджет закрыт вместе с модулем"
+    assert price_widget["monetization"]["isBillingRestricted"] is False
+
+    planned = next(row for row in matrix["rows"] if row["status"] == "planned")
+    assert planned["user"]["stateCode"] == "MODULE_PLANNED"
+    assert planned["user"]["reason"] == "Недоступно: модуль еще не активен"
+
+
+def test_active_module_and_widget_registration_requires_access_distribution():
+    module = register_module_for_access_system(
+        moduleCode="MODULE_TEST_AUTO_ACCESS",
+        canonicalModuleCode="MODULE_TEST_AUTO_ACCESS",
+        title="Auto Access Module",
+        description="Future module metadata only.",
+        status="ACTIVE",
+        route="/modules/auto-access",
+        icon="box",
+        isSystemCritical=True,
+        isBillingEligible=True,
+        moduleOwnedWidgets=["auto-access-status"],
+        registeredAt="2026-06-30",
+    )
+    widget = register_widget_for_access_system(
+        widgetCode="auto-access-status",
+        sourceModuleCode="MODULE_TEST_AUTO_ACCESS",
+        title="Auto access status",
+        description="Future widget metadata only.",
+        status="ACTIVE",
+        featureCode="AUTO_ACCESS_STATUS",
+        isDashboardEligible=True,
+        allowedDashboardZones=["TOP"],
+        isBillingEligible=True,
+        registeredAt="2026-06-30",
+    )
+
+    items = build_pending_access_distribution_items([module], [widget])
+
+    assert [item["itemKind"] for item in items] == ["module", "widget"]
+    assert {item["code"] for item in items} == {"MODULE_TEST_AUTO_ACCESS", "auto-access-status"}
+    assert all(item["statusLabel"] == "новое" for item in items)
+    assert all(item["actionLabel"] == "Распределить доступ" for item in items)
+    assert all(item["actionTarget"] == "#access-matrix" for item in items)
+    assert items[0]["isSystemCritical"] is True
+    assert items[0]["isBillingEligible"] is True
+    assert items[0]["moduleOwnedWidgets"] == ["auto-access-status"]
+    assert items[1]["sourceModuleCode"] == "MODULE_TEST_AUTO_ACCESS"
+    assert items[1]["allowedDashboardZones"] == ["TOP"]
+
+
+def test_pending_distribution_hides_inactive_or_already_distributed_items():
+    planned_module = register_module_for_access_system(
+        moduleCode="MODULE_TEST_PLANNED_ACCESS",
+        title="Planned access module",
+        status="PLANNED",
+    )
+    distributed_module = register_module_for_access_system(
+        moduleCode="MODULE_TEST_DISTRIBUTED_ACCESS",
+        title="Distributed module",
+        status="ACTIVE",
+        isAccessDistributed=True,
+    )
+    draft_widget = register_widget_for_access_system(
+        widgetCode="draft-access-widget",
+        sourceModuleCode="MODULE_TEST_PLANNED_ACCESS",
+        title="Draft widget",
+        status="DRAFT",
+    )
+
+    assert build_pending_access_distribution_items(
+        [planned_module, distributed_module],
+        [draft_widget],
+    ) == []
+    assert pending_access_distribution_items(
+        modules=[distributed_module],
+        widgets=[],
+        distributed_module_codes={"MODULE_TEST_DISTRIBUTED_ACCESS"},
+    ) == []
+
+
+def test_change_history_exposes_filters_old_new_values_and_reason():
+    audit = AuditLog(
+        id=uuid.uuid4(),
+        user_id=None,
+        workspace_id=uuid.uuid4(),
+        action_type="permission_changed",
+        entity_type="ModuleAccess",
+        entity_id=uuid.uuid4(),
+        result="SUCCESS",
+        created_at=datetime(2026, 6, 30, 10, 15, 0),
+        details={
+            "actorUserId": "actor-1",
+            "targetUserId": "user-1",
+            "workspaceId": "workspace-1",
+            "moduleCode": "MODULE_11_ANALYTICS",
+            "canonicalModuleCode": "MODULE_11_ANALYTICS",
+            "widgetCode": "price-dynamics",
+            "roleCode": "SUPPLIER",
+            "oldValue": {"accessLevel": "VIEW"},
+            "newValue": {"accessLevel": "NO_ACCESS"},
+            "reason": "Закрыто администратором платформы",
+            "entityType": "ModuleAccess",
+        },
+    )
+
+    summary = audit_log_summary(audit)
+    assert summary["objectType"] == "виджет"
+    assert summary["moduleCode"] == "MODULE_11_ANALYTICS"
+    assert summary["widgetCode"] == "price-dynamics"
+    assert summary["oldValue"] == {"accessLevel": "VIEW"}
+    assert summary["newValue"] == {"accessLevel": "NO_ACCESS"}
+    assert summary["reason"] == "Закрыто администратором платформы"
+
+    history = change_history_for_admin_panel([audit], {"id": "user-1", "name": "User One"})
+    assert history["filters"]["authors"] == ["system/dev"]
+    assert history["filters"]["dates"] == ["2026-06-30"]
+    assert history["filters"]["actions"] == ["permission_changed"]
+    assert history["filters"]["objectTypes"] == ["виджет"]
+    assert history["filters"]["modules"] == ["MODULE_11_ANALYTICS"]
+    assert history["filters"]["widgets"] == ["price-dynamics"]
+    assert history["bySubject"] == [{"label": "виджет", "count": 1}]
+    assert history["notes"]["oldNewValuesVisible"] is True
+    assert history["notes"]["reasonOptional"] is True
+    assert history["notes"]["businessPayloadLogged"] is False
+
+
 def test_active_permissions_are_role_matrix_based_and_code_first():
     actor = _user(UserRole.ADMIN)
     permissions = active_permissions_for_user(actor)
@@ -96,11 +389,279 @@ def test_admin_users_roles_view_route_is_registered():
 
     assert "/admin/users-roles/view" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
+    assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
+    assert "/admin/users-roles/view/users/{user_id}/company-admin/revoke" in paths
 
 
 def test_admin_users_roles_template_contains_module8_bridge_copy():
     template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+    nav = template.split('<nav class="module3-nav"', 1)[1].split("</nav>", 1)[0]
+    overview = template.split('<section class="command-hero" id="overview">', 1)[1].split(
+        '<section class="panel" id="settings"',
+        1,
+    )[0]
+    users_section = template.split('<section class="panel" id="users">', 1)[1].split(
+        '<section class="detail">',
+        1,
+    )[0]
 
     assert "Кабинеты и контекст" in template
+    assert 'hidden data-system-section="module8-context-diagnostics"' in template
     assert "MODULE_08_PARTNER_PORTAL" in template
     assert "Module №3 их не хранит" in template
+    assert "Source of truth остается в MODULE_08_PARTNER_PORTAL" in template
+    assert "Список кабинетов пользователя" in template
+    assert "Настройки видимости placeholder" in template
+    assert "Настройки предложений placeholder" in template
+    assert "Рекомендованные виджеты" in template
+    assert "Рекомендованные быстрые действия" in template
+    assert "Виджеты и доступ" in template
+    assert "WidgetRegistry управляет metadata и доступом" in template
+    assert "Payload формирует модуль-владелец данных" in template
+    assert "UserDashboardLayout:" in template
+    assert "Настройки конкретного экземпляра виджета" in template
+    assert "WidgetSettingsSchema" in template
+    assert "Модуль-владелец еще не отдал schema" in template
+    assert "Быстрые действия" in template
+    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' in template
+    assert "savedConfigRef:" in template
+    assert "requirePermission(" in template
+    assert "Обзор управления" in overview
+    assert "Пользователи всего" in overview
+    assert "Компании всего" in overview
+    assert "Заблокированные пользователи" in overview
+    assert "Заблокированные компании" in overview
+    assert "Новые модули / виджеты" in overview
+    assert "История изменений" in overview
+    assert "Новые модули и виджеты требуют распределения" in overview
+    assert "новое" in overview
+    assert "canonicalModuleCode" in overview
+    assert "sourceModuleCode" in overview
+    assert "Распределить доступ" in overview
+    assert "system-critical" in overview
+    assert "billing-ready" in overview
+    assert "История изменений доступа" in overview
+    assert "Быстрые переходы администратора" in overview
+    assert "Это не пользовательские быстрые действия платформы" in overview
+    assert "MODULE_03_USERS_ROLES · unified admin panel" not in overview
+    assert "Роли, доступы и кабинетный контекст" not in overview
+    assert "Единая системная панель управления" not in overview
+    assert "User</span>" not in overview
+    assert "Cabinet Context" not in overview
+    assert "QuickAction Permission" not in overview
+    assert "Состояния и причины недоступности" not in overview
+    assert "пользователи без роли" not in overview.lower()
+    assert "компании на проверке" not in overview.lower()
+    assert "сотрудники компаний" not in overview.lower()
+    assert "администраторы компаний" not in overview.lower()
+    assert "конфликты доступа" not in overview.lower()
+    assert "тарифные ограничения" not in overview.lower()
+    assert "Последние изменения" not in overview
+    assert "что требует внимания" not in overview.lower()
+    assert "Рабочее меню" in nav
+    assert "Обзор управления" in nav
+    assert "Пользователи" in nav
+    assert "Роли и группы" in nav
+    assert "Рабочие области" in nav
+    assert "Журнал изменений" in nav
+    assert "Настройки" in nav
+    assert "Реестр модулей" not in nav
+    assert "Виджеты и доступ" not in nav
+    assert "Быстрые действия" not in nav
+    assert "Макеты Dashboard" not in nav
+    assert "Кабинеты и контекст" not in nav
+    assert "Предпросмотр роли" not in nav
+    assert "Системные разделы" in template
+    assert "Registry / developer-only" in template
+    assert "Главный центр управления физлицами, компаниями, сотрудниками компаний, группами, доступами и историей" in users_section
+    assert "Ручное создание пользователя здесь не предусмотрено" in users_section
+    assert "Физические лица" in users_section
+    assert "Компании" in users_section
+    assert "Сотрудники компаний" in users_section
+    assert "Группы" in users_section
+    assert "Доступы" in users_section
+    assert "История" in users_section
+    assert "Фильтр по роли" in users_section
+    assert "Фильтр по компании" in users_section
+    assert "Фильтр по статусу" in users_section
+    assert "Матрица доступа открывается в карточке выбранного пользователя" in users_section
+    assert "Если модуль закрыт компании, связанные виджеты закрываются для сотрудников автоматически" in users_section
+    assert "Доступы к модулям и виджетам" in template
+    assert "Пользователь" in template
+    assert "Компания" in template
+    assert "Сотрудник компании" in template
+    assert "Группа" in template
+    assert "Роль" in template
+    assert "Виджеты выбранного модуля" in template
+    assert "Причины ограничения" in template
+    assert "Закрыто администратором платформы" in template
+    assert "Закрыто администратором компании" in template
+    assert "Недоступно по тарифу" in template
+    assert "Недоступно: системное ограничение" in template
+    assert "Недоступно: модуль отключен" in template
+    assert "Недоступно: модуль еще не активен" in template
+    assert "Недоступно: модуль в подготовке" in template
+    assert "Недоступно: виджет отключен" in template
+    assert "Недоступно: виджет закрыт вместе с модулем" in template
+    assert "Недоступно: пользователь заблокирован" in template
+    assert "Недоступно: компания заблокирована" in template
+    assert "ручной запрет ≠ тарифное ограничение" in template
+    assert "Тарифное ограничение не равно ручному запрету администратора" in template
+    assert "Future monetization fields" in template
+    assert "planCode" in template
+    assert "subscriptionCode" in template
+    assert "billingFeatureCode" in template
+    assert "billingRestrictionReason" in template
+    assert "tariffLevel" in template
+    assert "tariffExpiresAt" in template
+    assert "isBillingRestricted" in template
+    assert "Оплата, подписки, тарифные страницы и billing не реализуются в Module №3" in template
+    assert "Открыть модуль" not in users_section
+    assert "наследуется" not in template.lower()
+    assert "Добавить пользователя" not in users_section
+    assert "Создать пользователя" not in users_section
+    assert "Карточка пользователя" in template
+    assert "Карточка компании" in template
+    assert "Карточка сотрудника компании" in template
+    assert "Назначить группу" in template
+    assert "Отвязать от компании" in template
+    assert "Назначить администратора" in template
+    assert "Назначить администратора компании" in template
+    assert "Снять администратора компании" in template
+    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin"' in template
+    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin/revoke"' in template
+    assert "не может открыть сотруднику модуль или виджет, закрытый компании платформой" in template
+    assert "тарифные ограничения: внутри карточки" in template
+    assert "кто, когда, что изменил" in template
+    assert "Фильтр истории по автору" in template
+    assert "Фильтр истории по дате" in template
+    assert "Фильтр истории по действию" in template
+    assert "Фильтр истории по типу объекта" in template
+    assert "Фильтр истории по модулю" in template
+    assert "Фильтр истории по виджету" in template
+    assert "Срез по объектам" in template
+    assert "Модули и виджеты" in template
+    assert "Старое значение:" in template
+    assert "Новое значение:" in template
+    assert "Причина:" in template
+
+    state_text = " ".join(state["description"] for state in ADMIN_UI_STATE_LEGEND)
+    assert "Виджет недоступен: нет прав на данные модуля" in state_text
+    assert "Это действие запланировано, но еще не активно" in state_text
+    assert "Модуль объединен с другим модулем" in state_text
+
+
+def test_module8_cabinet_admin_preview_exposes_context_placeholders():
+    preview = get_module8_cabinet_admin_preview(
+        {
+            "id": "user-1",
+            "activeRegionCode": "KRASNODAR_KRAI",
+            "workspaces": [
+                {
+                    "workspaceId": "workspace-1",
+                    "workspaceTitle": "ООО СтройДом",
+                    "workspaceType": "CONTRACTOR",
+                    "roleCode": "CONTRACTOR",
+                    "status": "ACTIVE",
+                }
+            ],
+        },
+        access_context={
+            "userId": "user-1",
+            "workspaceId": "workspace-1",
+            "activeRegionCode": "KRASNODAR_KRAI",
+            "allowedWidgetCodes": ["TEST_WIDGET"],
+            "allowedQuickActionCodes": ["TEST_ACTION"],
+        },
+    ).to_dict()
+
+    assert preview["sourceModuleCode"] == "MODULE_08_PARTNER_PORTAL"
+    assert preview["activeCabinetType"] == "CONSTRUCTION_COMPANY"
+    assert preview["activeBusinessRole"] == "CONTRACTOR"
+    assert preview["visibilitySettingsPreview"]["sourceOfTruth"] == "MODULE_08_PARTNER_PORTAL"
+    assert preview["offerSettingsPreview"]["sourceOfTruth"] == "MODULE_08_PARTNER_PORTAL"
+    assert preview["dashboardContextPreview"]["recommendedWidgetCodes"] == ["TEST_WIDGET"]
+    assert preview["dashboardContextPreview"]["recommendedQuickActionCodes"] == ["TEST_ACTION"]
+
+
+def test_widget_access_rows_are_registry_metadata_without_payload():
+    rows = widget_access_rows_for_user(
+        {"id": "user-1", "roleCodes": ["PLATFORM_ADMIN"]},
+        access_context={
+            "userId": "user-1",
+            "roleCodes": ["PLATFORM_ADMIN"],
+            "activeRegionCode": "KRASNODAR_KRAI",
+            "allowedFeatureCodes": ["PRICE_DYNAMICS"],
+            "allowedWidgetCodes": ["materials-kpi", "price-dynamics"],
+        },
+        module8_preview={
+            "dashboardContextPreview": {
+                "recommendedWidgetCodes": ["price-dynamics"],
+            }
+        },
+    )
+
+    assert rows
+    assert all("widgetCode" in row for row in rows)
+    assert all("sourceModuleCode" in row for row in rows)
+    assert all("businessPayload" not in row for row in rows)
+
+    price_row = next(row for row in rows if row["widgetCode"] == "price-dynamics")
+    assert price_row["sourceModuleCode"] == "MODULE_11_ANALYTICS"
+    assert price_row["featureCode"] == "PRICE_DYNAMICS"
+    assert price_row["legacyModuleCode"] == "MODULE_14_PRICE_HISTORY"
+    assert price_row["module8Recommendation"] == "рекомендован"
+    assert "UserDashboardLayout" not in price_row["unavailableReason"]
+    assert price_row["layoutRelation"]
+    assert price_row["settingsPreview"]["schemaSourceModuleCode"] == "MODULE_11_ANALYTICS"
+    assert price_row["settingsPreview"]["featureCode"] == "PRICE_DYNAMICS"
+    assert price_row["settingsPreview"]["storageLayer"] == "UserDashboardLayout.widgets[].userSettings"
+    assert price_row["settingsPreview"]["auditEventType"] == "user_dashboard_layout_changed"
+    assert "businessPayload" not in price_row["settingsPreview"]
+    assert price_row["stateCode"] == "LEGACY_MERGED"
+    assert "canonical moduleCode" in price_row["stateDescription"]
+
+    setting_codes = {field["settingCode"] for field in price_row["settingsPreview"]["fields"]}
+    assert {"period", "material", "region", "chart_type"}.issubset(setting_codes)
+
+    future_row = next(row for row in rows if row["widgetCode"] == "digital-house-status")
+    assert future_row["stateCode"] == "FUTURE_FEATURE"
+    assert future_row["isAllowed"] is False
+
+
+def test_quick_action_rows_expose_safe_preference_instance_without_business_result():
+    rows = quick_action_rows_for_user(
+        {"id": "user-1", "roleCodes": ["PLATFORM_ADMIN"]},
+        access_context={
+            "userId": "user-1",
+            "workspaceId": "workspace-1",
+            "roleCodes": ["PLATFORM_ADMIN"],
+            "activeRegionCode": "KRASNODAR_KRAI",
+            "allowedQuickActionCodes": ["SOURCE_TASK_CREATE", "DASHBOARD_CONFIGURE"],
+        },
+        module8_preview={
+            "activeCabinetId": "admin-cabinet",
+            "activeCabinetType": "ADMIN",
+            "dashboardContextPreview": {
+                "recommendedQuickActionCodes": ["SOURCE_TASK_CREATE"],
+            },
+        },
+    )
+
+    source_task = next(row for row in rows if row["quickActionCode"] == "SOURCE_TASK_CREATE")
+
+    assert source_task["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
+    assert source_task["actionCode"] == "CREATE"
+    assert source_task["isAllowed"] is True
+    assert source_task["preferencePreview"]["savedConfigRef"].startswith(
+        "MODULE_01_MATERIAL_HUB:SOURCE_TASK_CREATE:"
+    )
+    assert source_task["preferencePreview"]["activeCabinetId"] == "admin-cabinet"
+    assert source_task["preferencePreview"]["requiresPermissionOnRun"] is True
+    assert source_task["preferencePreview"]["auditEventType"] == "quick_action_preference_changed"
+    assert "businessResult" not in source_task["preferencePreview"]
+    assert source_task["stateCode"] == "AVAILABLE"
+
+    future_action = next(row for row in rows if row["quickActionCode"] == "CUSTOMER_OBJECT_CREATE")
+    assert future_action["stateCode"] == "FUTURE_FEATURE"
+    assert future_action["isAllowed"] is False

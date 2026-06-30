@@ -70,6 +70,16 @@ def test_supplier_can_open_price_upload_but_cannot_use_admin_source_task():
     assert not can_use_quick_action(supplier, "SOURCE_TASK_CREATE", context)
 
 
+def test_module8_material_supplier_cabinet_alias_allows_supplier_action():
+    supplier = _user(
+        roleCode="SUPPLIER",
+        allowedActionCodes=["SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"],
+    )
+    context = _context(roleCode="SUPPLIER", activeCabinetType="MATERIAL_SUPPLIER")
+
+    assert can_use_quick_action(supplier, "SUPPLIER_PRICE_UPLOAD", context)
+
+
 def test_moderator_actions_are_profile_and_permission_backed():
     moderator = _user(
         roleCode="MODERATOR",

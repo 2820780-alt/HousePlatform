@@ -47,6 +47,7 @@ HIDDEN_MODULE_STATUSES: set[str] = MODULE_USER_HIDDEN_STATUSES
 TERMINAL_MODULE_STATUSES: set[str] = MODULE_TERMINAL_STATUSES
 PLATFORM_ADMIN_ALLOWED_STATUSES: set[str] = {"ACTIVE", "DRAFT", "PLANNED", "DISABLED"}
 ARCHIVE_CONFIRMATION = "ARCHIVE_MODULE"
+SYSTEM_CRITICAL_MODULE_CONFIRMATION = "CONFIRM_SYSTEM_CRITICAL_MODULE_CHANGE"
 
 
 def can_open_module_registry_admin(actor: Any) -> bool:
@@ -68,6 +69,10 @@ def is_legacy_or_alias_module(module: PlatformModuleRegistry | Any) -> bool:
     )
 
 
+def is_system_critical_module(module: PlatformModuleRegistry | Any) -> bool:
+    return bool(_get_value(module, "is_system_critical") or _get_value(module, "isSystemCritical"))
+
+
 def require_module_registry_admin(actor: Any) -> None:
     if not can_open_module_registry_admin(actor):
         raise ForbiddenError("Module registry administration requires PLATFORM_ADMIN or SUPER_ADMIN.")
@@ -83,6 +88,8 @@ def can_update_module_status(actor: Any, module: PlatformModuleRegistry, target_
         return False
     if is_super_admin(actor):
         return True
+    if is_system_critical_module(module):
+        return False
     if normalized_status not in PLATFORM_ADMIN_ALLOWED_STATUSES:
         return False
     if module.is_system or is_legacy_or_alias_module(module):
@@ -93,7 +100,39 @@ def can_update_module_status(actor: Any, module: PlatformModuleRegistry, target_
 def can_update_module_flags(actor: Any, module: PlatformModuleRegistry) -> bool:
     if is_super_admin(actor):
         return True
-    return can_open_module_registry_admin(actor) and not module.is_system and not is_legacy_or_alias_module(module)
+    return (
+        can_open_module_registry_admin(actor)
+        and not module.is_system
+        and not is_system_critical_module(module)
+        and not is_legacy_or_alias_module(module)
+    )
+
+
+def module_status_change_requires_confirmation(
+    actor: Any,
+    module: PlatformModuleRegistry | Any,
+    target_status: str | None,
+) -> bool:
+    normalized_status = normalize_module_status(target_status)
+    if not normalized_status or not is_system_critical_module(module):
+        return False
+    if not is_super_admin(actor):
+        return False
+    return normalized_status in HIDDEN_MODULE_STATUSES
+
+
+def require_system_critical_module_confirmation(
+    actor: Any,
+    module: PlatformModuleRegistry | Any,
+    target_status: str | None,
+    confirmation: str | None,
+) -> None:
+    if not module_status_change_requires_confirmation(actor, module, target_status):
+        return
+    if confirmation != SYSTEM_CRITICAL_MODULE_CONFIRMATION:
+        raise ValidationError(
+            f"Confirm system-critical module lifecycle change with {SYSTEM_CRITICAL_MODULE_CONFIRMATION}."
+        )
 
 
 async def get_module_registry_overview(db: AsyncSession, actor: Any) -> dict[str, Any]:
@@ -128,8 +167,13 @@ async def get_module_registry_detail(db: AsyncSession, module_code: str, actor: 
             status: can_update_module_status(actor, module, status)
             for status in MODULE_REGISTRY_STATUSES
         },
+        "requiresCriticalConfirmation": {
+            status: module_status_change_requires_confirmation(actor, module, status)
+            for status in MODULE_REGISTRY_STATUSES
+        },
         "canUpdateFlags": can_update_module_flags(actor, module),
         "archiveConfirmation": ARCHIVE_CONFIRMATION,
+        "criticalConfirmation": SYSTEM_CRITICAL_MODULE_CONFIRMATION,
     }
 
 
@@ -143,6 +187,7 @@ async def update_module_registry_item(
     visible_on_dashboard: bool,
     visible_on_atom_map: bool,
     available_for_widgets: bool,
+    critical_confirmation: str | None = None,
 ) -> PlatformModuleRegistry:
     require_module_registry_admin(actor)
     module = await _get_module(db, module_code)
@@ -154,6 +199,7 @@ async def update_module_registry_item(
         raise ValidationError("; ".join(lifecycle_errors))
     if not can_update_module_status(actor, module, normalized_status):
         raise ForbiddenError("The current administrator cannot set this module status.")
+    require_system_critical_module_confirmation(actor, module, normalized_status, critical_confirmation)
 
     flags_allowed = can_update_module_flags(actor, module)
     old_state = _module_state(module)
@@ -190,6 +236,8 @@ async def update_module_registry_item(
             "redirectRoute": module.redirect_route,
             "legacyCodes": module.legacy_codes or [],
             "mergedIntoModuleCode": module.merged_into_module_code,
+            "isSystemCritical": is_system_critical_module(module),
+            "criticalConfirmationRequired": module_status_change_requires_confirmation(actor, module, normalized_status),
         },
     )
     _add_audit_log(
@@ -209,12 +257,14 @@ async def archive_module_registry_item(
     actor: Any,
     module_code: str,
     confirmation: str | None,
+    critical_confirmation: str | None = None,
 ) -> PlatformModuleRegistry:
     if confirmation != ARCHIVE_CONFIRMATION:
         raise ValidationError(f"Confirm dangerous action with {ARCHIVE_CONFIRMATION}.")
     module = await _get_module(db, module_code)
     if not can_update_module_status(actor, module, "ARCHIVED"):
         raise ForbiddenError("The current administrator cannot archive this module.")
+    require_system_critical_module_confirmation(actor, module, "ARCHIVED", critical_confirmation)
     old_state = _module_state(module)
     apply_module_lifecycle_state(module, "ARCHIVED")
     module.updated_at = datetime.utcnow()
@@ -229,7 +279,11 @@ async def archive_module_registry_item(
         reason="Module archived through Module 03 admin UI.",
         entity_type="PlatformModuleRegistry",
         entity_id=module.id,
-        metadata={"physicalDelete": "forbidden"},
+        metadata={
+            "physicalDelete": "forbidden",
+            "isSystemCritical": is_system_critical_module(module),
+            "criticalConfirmationRequired": module_status_change_requires_confirmation(actor, module, "ARCHIVED"),
+        },
     )
     _add_audit_log(
         db,
@@ -240,6 +294,7 @@ async def archive_module_registry_item(
             "old": old_state,
             "new": _module_state(module),
             "physicalDelete": "forbidden",
+            "isSystemCritical": is_system_critical_module(module),
         },
     )
     await db.flush()
@@ -257,6 +312,7 @@ def module_summary(module: PlatformModuleRegistry, dependencies: dict[str, Any] 
         "status": module.status,
         "isActive": module.is_active,
         "isSystem": module.is_system,
+        "isSystemCritical": is_system_critical_module(module),
         "isLegacyOrAlias": legacy,
         "lifecycle": module_lifecycle_summary(module),
         "displayOrder": module.display_order,
@@ -590,6 +646,7 @@ def _module_state(module: PlatformModuleRegistry) -> dict[str, Any]:
         "moduleCode": module.module_code,
         "status": module.status,
         "isActive": module.is_active,
+        "isSystemCritical": is_system_critical_module(module),
         "visibleFlags": _visible_flags(module),
         "route": module.route,
         "redirectRoute": module.redirect_route,

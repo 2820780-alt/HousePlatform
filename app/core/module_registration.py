@@ -42,10 +42,16 @@ class NewModuleRegistration:
     defaultPermissions: tuple[DefaultModulePermission, ...]
     availableActions: tuple[str, ...]
     dashboardWidgets: tuple[str, ...] = ()
+    moduleOwnedWidgets: tuple[str, ...] = ()
     ownerScopeRules: dict[str, Any] = field(default_factory=dict)
     canonicalModuleCode: str | None = None
     featureCodes: tuple[str, ...] = ()
     status: str = "PLANNED"
+    description: str | None = None
+    route: str | None = None
+    icon: str | None = None
+    isSystemCritical: bool = False
+    isBillingEligible: bool = False
 
     def __post_init__(self) -> None:
         validate_module_registration(self)
@@ -57,9 +63,15 @@ class NewModuleRegistration:
             "defaultPermissions": [permission.to_dict() for permission in self.defaultPermissions],
             "availableActions": list(self.availableActions),
             "dashboardWidgets": list(self.dashboardWidgets),
+            "moduleOwnedWidgets": list(self.moduleOwnedWidgets),
             "ownerScopeRules": dict(self.ownerScopeRules),
             "featureCodes": list(self.featureCodes),
             "status": self.status,
+            "description": self.description,
+            "route": self.route,
+            "icon": self.icon,
+            "isSystemCritical": self.isSystemCritical,
+            "isBillingEligible": self.isBillingEligible,
         }
 
 
@@ -77,6 +89,8 @@ def validate_module_registration(registration: NewModuleRegistration) -> None:
         raise ValueError("availableActions must not contain duplicates.")
     if len(set(registration.dashboardWidgets)) != len(registration.dashboardWidgets):
         raise ValueError("dashboardWidgets must not contain duplicates.")
+    if len(set(registration.moduleOwnedWidgets)) != len(registration.moduleOwnedWidgets):
+        raise ValueError("moduleOwnedWidgets must not contain duplicates.")
 
 
 def registration_to_module_access_defaults(registration: NewModuleRegistration) -> list[dict[str, str]]:

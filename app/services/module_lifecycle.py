@@ -197,6 +197,8 @@ def can_transition_module_lifecycle(module: Any, target_status: str | None) -> b
 def can_physically_delete_module(module: Any, dependencies: dict[str, Any] | None = None) -> bool:
     if _bool_value(module, "is_system"):
         return False
+    if _bool_value(module, "is_system_critical") or _bool_value(module, "isSystemCritical"):
+        return False
     if _get_value(module, "legacy_codes") or _get_value(module, "merged_into_module_code"):
         return False
     for items in (dependencies or {}).values():

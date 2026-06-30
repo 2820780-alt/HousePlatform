@@ -77,11 +77,244 @@
     .chip.ok { border-color: rgba(34, 197, 94, 0.35); color: #9ef0bd; }
     .chip.warn { border-color: rgba(245, 158, 11, 0.42); color: #ffd28a; }
     .chip.danger { border-color: rgba(255, 59, 127, 0.42); color: #ff9fbe; }
+    .command-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 14px;
+      padding: 16px;
+      border: 1px solid rgba(24, 215, 242, 0.24);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 12% 16%, rgba(24, 215, 242, 0.14), transparent 32%),
+        radial-gradient(circle at 88% 20%, rgba(168, 85, 247, 0.12), transparent 28%),
+        linear-gradient(145deg, rgba(10, 18, 43, 0.92), rgba(7, 13, 33, 0.94));
+      box-shadow: var(--shadow);
+    }
+    .command-title {
+      display: grid;
+      gap: 6px;
+    }
+    .command-title .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .command-title h1 {
+      font-size: clamp(24px, 2.4vw, 34px);
+      line-height: 1.08;
+    }
+    .status-rail {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: 620px;
+    }
+    .control-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .module3-nav {
+      position: sticky;
+      top: 78px;
+      display: grid;
+      gap: 7px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(10, 18, 43, 0.9), rgba(7, 13, 33, 0.96));
+      box-shadow: var(--shadow);
+    }
+    .module3-nav-title {
+      padding: 7px 9px 9px;
+      color: var(--muted);
+      font-size: 12px;
+      border-bottom: 1px solid rgba(119, 172, 255, 0.14);
+    }
+    .module3-nav a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(5, 12, 30, 0.32);
+    }
+    .module3-nav a:hover,
+    .module3-nav a.active {
+      color: var(--text);
+      border-color: rgba(24, 215, 242, 0.34);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .control-main {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .system-card {
+      min-height: 112px;
+      padding: 13px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 88% 10%, rgba(24, 215, 242, 0.08), transparent 38%),
+        var(--surface-2);
+    }
+    .system-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .system-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 24px;
+      line-height: 1;
+      overflow-wrap: anywhere;
+    }
+    .relationship-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.52);
+    }
+    .relationship-node {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 6px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.24);
+      border-radius: 8px;
+      background: rgba(24, 215, 242, 0.07);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .relationship-arrow {
+      color: var(--muted);
+    }
+    .overview-panels {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+    .state-legend {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .state-card {
+      min-height: 84px;
+      padding: 10px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.48);
+    }
+    .state-card strong {
+      display: block;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .state-card small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .state-card.ok,
+    .chip.state-ok { border-color: rgba(34, 197, 94, 0.28); }
+    .state-card.info,
+    .chip.state-info { border-color: rgba(24, 215, 242, 0.28); }
+    .state-card.warning,
+    .chip.state-warning { border-color: rgba(245, 158, 11, 0.34); }
+    .state-card.error,
+    .chip.state-error { border-color: rgba(255, 59, 127, 0.34); }
     .layout {
       display: grid;
       grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.35fr);
       gap: 14px;
       align-items: start;
+    }
+    .user-admin-tabs,
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid rgba(119, 172, 255, 0.14);
+    }
+    .user-admin-tabs a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid rgba(119, 172, 255, 0.2);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(5, 12, 30, 0.42);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .user-admin-tabs a:hover,
+    .user-admin-tabs a.active {
+      color: var(--text);
+      border-color: rgba(24, 215, 242, 0.36);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .filter-row select,
+    .filter-row input {
+      width: min(100%, 190px);
+    }
+    .access-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .access-matrix-table th,
+    .access-matrix-table td {
+      padding: 9px;
+      border-bottom: 1px solid rgba(119, 172, 255, 0.14);
+      vertical-align: top;
+      text-align: left;
+    }
+    .access-matrix-table th {
+      color: var(--muted);
+      font-weight: 700;
+      background: rgba(5, 12, 30, 0.36);
+    }
+    .access-cell {
+      display: grid;
+      gap: 5px;
+      min-width: 116px;
+    }
+    .access-cell small {
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .access-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
     }
     .panel {
       border: 1px solid var(--line);
@@ -219,9 +452,89 @@
       color: var(--muted);
       overflow-wrap: anywhere;
     }
+    .permission-row.new-distribution {
+      border-color: rgba(24, 215, 242, 0.42);
+      background:
+        linear-gradient(90deg, rgba(24, 215, 242, 0.1), rgba(5, 12, 30, 0.5));
+    }
+    .chip.new {
+      border-color: rgba(24, 215, 242, 0.45);
+      color: #93f5ff;
+    }
     .history {
       display: grid;
       gap: 8px;
+    }
+    .widget-registry {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+    }
+    .widget-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.1fr) minmax(160px, 0.9fr) minmax(190px, 1fr) minmax(220px, 1.1fr);
+      gap: 10px;
+      padding: 11px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.48);
+    }
+    .widget-row.allowed {
+      border-color: rgba(34, 197, 94, 0.26);
+      background: rgba(34, 197, 94, 0.06);
+    }
+    .widget-row.blocked {
+      border-color: rgba(245, 158, 11, 0.22);
+    }
+    .widget-row strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+    .widget-row small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .widget-settings-preview {
+      margin-top: 9px;
+    }
+    .widget-settings-preview summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.28);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(24, 215, 242, 0.08);
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+    }
+    .widget-settings-preview summary::-webkit-details-marker { display: none; }
+    .widget-settings-panel {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 10px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(4, 10, 26, 0.52);
+    }
+    .setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      padding: 7px;
+      border: 1px solid rgba(119, 172, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.42);
+    }
+    .setting-row.hidden {
+      opacity: 0.72;
     }
     .bridge-grid {
       display: grid;
@@ -258,8 +571,10 @@
     }
     @media (max-width: 980px) {
       main { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .control-shell, .command-hero, .system-grid, .widget-row, .state-legend { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
+      .module3-nav { position: static; }
+      .status-rail { justify-content: flex-start; }
     }
   </style>
   {% include "_atom_ui_standards.html" %}
@@ -268,44 +583,283 @@
   {% include "_atom_platform_topbar.html" %}
 
   <main>
-    <div class="page-head">
-      <div>
-        <h1>Пользователи и роли</h1>
-        <div class="muted">Module 3 управляет пользователями, ролями, workspace и правами. PLATFORM_ADMIN не равен SUPER_ADMIN.</div>
+    <section class="command-hero" id="overview">
+      <div class="command-title">
+        <h1>Обзор управления</h1>
+        <div class="muted">Рабочий экран администратора: пользователи, компании, блокировки, распределение новых модулей и история изменений доступа.</div>
       </div>
-      <div class="toolbar">
-        <a class="chip info" href="/api/v1/admin/module-registry/view">Реестр модулей</a>
+      <div class="status-rail" aria-label="Состояние панели управления">
+        <span class="chip"><span>Workspace:</span> <strong>{% if detail and detail.accessContextForCabinet.workspaceId %}{{ detail.accessContextForCabinet.workspaceId }}{% else %}platform-admin{% endif %}</strong></span>
+        <span class="chip"><span>Регион:</span> <strong>{% if detail and detail.accessContextForCabinet.activeRegionCode %}{{ detail.accessContextForCabinet.activeRegionCode }}{% else %}не задан{% endif %}</strong></span>
+        <a
+          class="chip info"
+          href="#users"
+        >Пользователи</a>
+        <a
+          class="chip info"
+          href="#audit-log"
+        >AuditLog</a>
         {% for role in overview.actorRoleCodes %}
         <span class="chip ok"><strong>{{ role }}</strong></span>
         {% endfor %}
       </div>
-    </div>
+    </section>
 
-    <div class="layout">
-      <section class="panel">
+    <div class="control-shell">
+      <nav class="module3-nav" aria-label="Разделы единой панели Module №3">
+        <div class="module3-nav-title">Рабочее меню</div>
+        <a class="active" href="#overview"><span>Обзор управления</span><span>01</span></a>
+        <a href="#users"><span>Пользователи</span><span>02</span></a>
+        <a href="#roles-permissions"><span>Роли и группы</span><span>03</span></a>
+        <a href="#workspaces"><span>Рабочие области</span><span>04</span></a>
+        <a href="#audit-log"><span>Журнал изменений</span><span>05</span></a>
+        <a href="#settings"><span>Настройки</span><span>06</span></a>
+      </nav>
+
+      <section class="control-main">
+        <div class="system-grid" aria-label="Рабочие показатели управления">
+          <article class="system-card">
+            <span>Пользователи всего</span>
+            <strong>{{ overview.summary.usersTotal }}</strong>
+            <div class="muted">Физические лица, роли, группы и индивидуальные ограничения.</div>
+          </article>
+          <article class="system-card">
+            <span>Компании всего</span>
+            <strong>{{ overview.summary.companiesTotal }}</strong>
+            <div class="muted">Поставщики, строительные компании и организации.</div>
+          </article>
+          <article class="system-card">
+            <span>Заблокированные пользователи</span>
+            <strong>{{ overview.summary.blockedUsersTotal }}</strong>
+            <div class="muted">Пользователи, которым закрыт вход или работа в системе.</div>
+          </article>
+          <article class="system-card">
+            <span>Заблокированные компании</span>
+            <strong>{{ overview.summary.blockedCompaniesTotal }}</strong>
+            <div class="muted">Компании, доступ которых ограничен платформой.</div>
+          </article>
+          <article class="system-card">
+            <span>Новые модули / виджеты</span>
+            <strong>{{ overview.summary.pendingAccessDistributionTotal }}</strong>
+            <div class="muted">Активные элементы, которым нужно распределить доступ.</div>
+          </article>
+          <article class="system-card">
+            <span>История изменений</span>
+            <strong>{{ overview.summary.historyTotal }}</strong>
+            <div class="muted">Журнал изменений ролей, прав, модулей, виджетов и layout.</div>
+          </article>
+        </div>
+
+        <div class="overview-panels">
+          <section class="panel" aria-labelledby="pending-distribution-title">
+            <div class="panel-head">
+              <div>
+                <h2 id="pending-distribution-title">Новые модули и виджеты требуют распределения</h2>
+                <div class="muted">Новые ACTIVE элементы появляются здесь до настройки доступа для пользователей, компаний, групп или ролей.</div>
+              </div>
+              <span class="chip warn">{{ overview.summary.pendingAccessDistributionTotal }}</span>
+            </div>
+            <div class="user-list">
+              {% for item in overview.pendingAccessDistributionItems %}
+              <div class="permission-row new-distribution">
+                <div>
+                  <strong>{{ item.title }} <span class="chip new" title="статус: новое">{{ item.statusLabel }}</span></strong>
+                  <small title="{{ item.code }}">{{ item.type }} · {{ item.code }} · статус: {{ item.status }} · зарегистрировано: {{ item.registeredAt }}</small>
+                  {% if item.sourceModuleCode %}<small>sourceModuleCode: {{ item.sourceModuleCode }}{% if item.featureCode %} · featureCode: {{ item.featureCode }}{% endif %}</small>{% endif %}
+                  {% if item.canonicalModuleCode %}<small>canonicalModuleCode: {{ item.canonicalModuleCode }}</small>{% endif %}
+                  <small>{{ item.reason }}</small>
+                  <div class="code-list">
+                    {% if item.isSystemCritical %}<span class="chip danger">system-critical</span>{% endif %}
+                    {% if item.isBillingEligible %}<span class="chip warn">billing-ready</span>{% endif %}
+                    {% for zone in item.allowedDashboardZones %}
+                    <span class="chip">{{ zone }}</span>
+                    {% endfor %}
+                    {% for widget_code in item.moduleOwnedWidgets[:3] %}
+                    <span class="chip">widget: {{ widget_code }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                <a class="chip info" title="Распределить доступ" href="{{ item.actionTarget }}">{{ item.actionLabel or 'Распределить доступ' }}</a>
+              </div>
+              {% else %}
+              <div class="empty">Новых модулей и виджетов для распределения нет.</div>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="access-history-title">
+            <div class="panel-head">
+              <div>
+                <h2 id="access-history-title">История изменений доступа</h2>
+                <div class="muted">Краткий журнал административных изменений с переходом к полной истории.</div>
+              </div>
+              <a class="chip info" href="#audit-log">Открыть полную историю</a>
+            </div>
+            <div class="user-list">
+              {% for item in overview.recentAccessHistory %}
+              <div class="history-row">
+                <div>
+                  <strong>{{ item.actionType }}</strong>
+                  <small>{{ item.actor }} · {{ item.createdAt }}</small>
+                </div>
+                <span class="chip">{{ item.result }}</span>
+              </div>
+              {% else %}
+              <div class="empty">Изменений доступа пока нет.</div>
+              {% endfor %}
+            </div>
+          </section>
+        </div>
+
+        <section class="panel" aria-labelledby="admin-shortcuts-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="admin-shortcuts-title">Быстрые переходы администратора</h2>
+              <div class="muted">Навигация внутри панели управления. Это не пользовательские быстрые действия платформы.</div>
+            </div>
+          </div>
+          <div class="bridge-grid">
+            <a class="chip info" href="#users">Открыть пользователей</a>
+            <a class="chip info" href="#users">Открыть компании</a>
+            <a class="chip info" href="#roles-permissions">Открыть группы</a>
+            <a class="chip info" href="#roles-permissions">Открыть роли</a>
+            <a class="chip info" href="#audit-log">Открыть историю изменений</a>
+          </div>
+        </section>
+
+        <section class="panel" id="settings" aria-labelledby="settings-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="settings-title">Настройки</h2>
+              <div class="muted">Рабочее меню администратора не перегружается registry/debug-разделами. Системные инструменты остаются здесь для Super Admin / developer mode и не удаляются из платформы.</div>
+            </div>
+            <span class="chip warn">system</span>
+          </div>
+          <div class="bridge-grid">
+            <div class="bridge-card">
+              <h3>Рабочие разделы</h3>
+              <div class="code-list">
+                <a class="chip info" href="#users">Пользователи</a>
+                <a class="chip info" href="#roles-permissions">Роли и группы</a>
+                <a class="chip info" href="#workspaces">Рабочие области</a>
+                <a class="chip info" href="#audit-log">Журнал изменений</a>
+              </div>
+            </div>
+            <div class="bridge-card">
+              <h3>Системные разделы</h3>
+              <div class="muted">Registry, diagnostics и layout-механика скрыты из рабочего меню, но доступны без удаления маршрутов.</div>
+              <div class="code-list">
+                <a class="chip warn" href="/api/v1/admin/module-registry/view">Registry / developer-only</a>
+                <a class="chip warn" href="#widget-access">Widget/system diagnostics</a>
+                <a class="chip warn" href="#dashboard-layouts">Dashboard layout presets</a>
+                <a class="chip warn" href="#cabinet-context-title">Module №8 context preview</a>
+                <a class="chip warn" href="#preview-role">Preview role diagnostics</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="layout">
+      <section class="panel" id="users">
         <div class="panel-head">
-          <h2>Список пользователей</h2>
-          <span class="chip"><strong>{{ overview.users|length }}</strong> всего</span>
+          <div>
+            <h2>Пользователи</h2>
+            <div class="muted">Главный центр управления физлицами, компаниями, сотрудниками компаний, группами, доступами и историей. Ручное создание пользователя здесь не предусмотрено: пользователь появляется через стандартную регистрацию.</div>
+          </div>
+          <span class="chip"><strong>{{ overview.users|length }}</strong> физлиц</span>
+        </div>
+        <div class="user-admin-tabs" aria-label="Подразделы пользователей">
+          <a class="active" href="#physical-users">Физические лица</a>
+          <a href="#companies">Компании</a>
+          <a href="#company-employees">Сотрудники компаний</a>
+          <a href="#access-groups">Группы</a>
+          <a href="#access-matrix">Доступы</a>
+          <a href="#audit-log">История</a>
+        </div>
+        <div class="filter-row" aria-label="Фильтры пользователей">
+          <select aria-label="Фильтр по роли">
+            <option>Все роли</option>
+            {% for role in overview.roles %}
+            <option>{{ role.roleCode }}</option>
+            {% endfor %}
+          </select>
+          <select aria-label="Фильтр по компании">
+            <option>Все компании</option>
+            {% for company in overview.companies %}
+            <option>{{ company.title }}</option>
+            {% endfor %}
+          </select>
+          <select aria-label="Фильтр по статусу">
+            <option>Все статусы</option>
+            <option>active</option>
+            <option>blocked</option>
+            <option>disabled</option>
+          </select>
+          <input aria-label="Поиск пользователя или компании" placeholder="Поиск">
         </div>
         <div class="user-list">
+          <h3 id="physical-users">Физические лица</h3>
           {% for user in overview.users %}
           <a class="user-row {% if detail and detail.user.id == user.id %}active{% endif %}" href="/api/v1/admin/users-roles/view/users/{{ user.id }}">
             <span class="user-main">
               <strong>{{ user.name }}</strong>
               <span>{{ user.email }}</span>
-              <span>{{ user.roleTitle }}</span>
+              <span>{{ user.roleTitle }}{% if user.workspaces %} · компания: {{ user.workspaces[0].workspaceTitle }}{% endif %}</span>
             </span>
             <span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.status }}</span>
           </a>
           {% else %}
           <div class="empty">Пользователи еще не найдены.</div>
           {% endfor %}
+
+          <h3 id="companies">Компании</h3>
+          {% for company in overview.companies %}
+          <div class="user-row">
+            <span class="user-main">
+              <strong>{{ company.title }}</strong>
+              <span>{{ company.type }} · сотрудников: {{ company.employeeCount }}</span>
+              <span>Администратор компании: {{ company.adminTitle }}</span>
+              <span>{{ company.moduleAccessState }} · {{ company.widgetAccessState }}</span>
+            </span>
+            <span class="chip {% if company.isActive %}ok{% else %}danger{% endif %}">{{ company.status }}</span>
+          </div>
+          {% else %}
+          <div class="empty">Компании еще не найдены. Компания появится после регистрации/подключения через профиль участника.</div>
+          {% endfor %}
+
+          <h3 id="company-employees">Сотрудники компаний</h3>
+          {% for employee in overview.companyEmployees %}
+          <div class="user-row">
+            <span class="user-main">
+              <strong>{{ employee.userName }}</strong>
+              <span>{{ employee.userEmail or 'email не задан' }}</span>
+              <span>{{ employee.companyTitle }} · {{ employee.roleTitle }} · {{ employee.accessBoundary }}</span>
+            </span>
+            <span class="chip {% if employee.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ employee.status }}</span>
+          </div>
+          {% else %}
+          <div class="empty">Сотрудники компаний пока не связаны с компаниями.</div>
+          {% endfor %}
+
+          <h3 id="access-groups">Группы</h3>
+          {% for group in overview.groups %}
+          <div class="permission-row">
+            <div>
+              <strong>{{ group.title }}</strong>
+              <small>{{ group.groupCode }} · {{ group.description }}</small>
+            </div>
+            <span class="chip">{{ group.itemCount }}</span>
+          </div>
+          {% endfor %}
+
+          <h3 id="access-matrix">Доступы</h3>
+          <div class="empty">Матрица доступа открывается в карточке выбранного пользователя: строки — модули, область применения — пользователь / компания / сотрудник компании / группа / роль, ячейка — открыть или закрыть. Если модуль закрыт компании, связанные виджеты закрываются для сотрудников автоматически.</div>
         </div>
       </section>
 
       <section class="detail">
         {% if detail %}
-        <article class="hero-card">
+        <article class="hero-card" id="roles-permissions">
           <div class="hero-top">
             <div class="card-title">
               <strong>{{ detail.user.name }}</strong>
@@ -318,8 +872,194 @@
               {% endfor %}
             </div>
           </div>
-          <div class="muted">Карточка пользователя показывает активные роли, workspace и итоговые права. Реальные проверки доступа остаются на сервере через Permission Guard.</div>
+          <div class="muted">Карточка пользователя показывает роль, группы, компанию, статус в компании, разрешенные модули и виджеты, ограничения и историю. Реальные проверки доступа остаются на сервере через Permission Guard.</div>
         </article>
+
+        <div class="grid-2">
+          <section class="mini-card">
+            <h3>Карточка пользователя</h3>
+            <div class="muted">
+              email: {{ detail.user.email }}<br>
+              телефон: {{ detail.user.phone or 'не задан' }}<br>
+              статус: {{ detail.user.status }}<br>
+              роли: {{ detail.user.roleCodes|join(', ') or 'нет роли' }}
+            </div>
+            <div class="code-list">
+              <span class="chip ok">разрешенные модули: {{ detail.accessContextForCabinet.allowedModuleCodes|length }}</span>
+              <span class="chip ok">разрешенные виджеты: {{ detail.accessContextForCabinet.allowedWidgetCodes|length }}</span>
+              <span class="chip">тарифные ограничения: внутри карточки, не KPI</span>
+              <span class="chip warn">USER_BLOCKED: {{ detail.accessMatrix.denyReasons.USER_BLOCKED }}</span>
+            </div>
+            <div class="button-row">
+              <button class="btn danger" type="button" {% if not detail.canDisable %}disabled{% endif %}>Заблокировать</button>
+              <button class="btn" type="button" disabled>Разблокировать</button>
+              <button class="btn danger" type="button" disabled>Удалить</button>
+            </div>
+          </section>
+
+          <section class="mini-card">
+            <h3>Карточка компании</h3>
+            {% if detail.user.workspaces %}
+            {% set active_company = detail.user.workspaces[0] %}
+            <div class="muted">
+              компания: {{ active_company.workspaceTitle }}<br>
+              тип: {{ active_company.workspaceType }}<br>
+              статус связи: {{ active_company.status }}<br>
+              роль в компании: {{ active_company.roleTitle }}
+            </div>
+            <div class="code-list">
+              <span class="chip warn">COMPANY_BLOCKED: {{ detail.accessMatrix.denyReasons.COMPANY_BLOCKED }}</span>
+              <span class="chip warn">COMPANY_ADMIN_DENY: {{ detail.accessMatrix.denyReasons.COMPANY_ADMIN_DENY }}</span>
+            </div>
+            <div class="button-row">
+              <button class="btn danger" type="button" disabled>Заблокировать компанию</button>
+              <button class="btn" type="button" disabled>Разблокировать компанию</button>
+              <button class="btn danger" type="button" disabled>Архивировать компанию</button>
+              <form method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin">
+                <input type="hidden" name="workspace_id" value="{{ active_company.workspaceId }}">
+                <button class="btn" type="submit">Назначить администратора компании</button>
+              </form>
+              <form method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin/revoke">
+                <input type="hidden" name="workspace_id" value="{{ active_company.workspaceId }}">
+                <button class="btn" type="submit">Снять администратора компании</button>
+              </form>
+            </div>
+            {% else %}
+            <div class="empty">Пользователь пока не связан с компанией.</div>
+            {% endif %}
+          </section>
+        </div>
+
+        <div class="grid-2">
+          <section class="mini-card">
+            <h3>Карточка сотрудника компании</h3>
+            {% if detail.user.workspaces %}
+            {% for workspace in detail.user.workspaces %}
+            <div class="permission-row">
+              <div>
+                <strong>{{ detail.user.name }}</strong>
+                <small>{{ workspace.workspaceTitle }} · {{ workspace.roleTitle }} · {{ workspace.status }}</small>
+                <small>Причина ограничения виджета при закрытии модуля: {{ detail.accessMatrix.denyReasons.WIDGET_REVOKED_BY_MODULE_DENY }}</small>
+              </div>
+              <span class="chip">в пределах компании</span>
+            </div>
+            {% endfor %}
+            <div class="button-row">
+              <button class="btn" type="button" disabled>Назначить группу</button>
+              <button class="btn" type="button" disabled>Изменить статус</button>
+              <button class="btn danger" type="button" disabled>Отвязать от компании</button>
+            </div>
+            {% else %}
+            <div class="empty">Карточка сотрудника появится после привязки пользователя к компании.</div>
+            {% endif %}
+          </section>
+
+          <section class="mini-card">
+            <h3>Доступы и ограничения</h3>
+            <div class="muted">Можно все, что не запрещено. Администратор компании управляет сотрудниками только своей компании и не может открыть сотруднику модуль или виджет, закрытый компании платформой.</div>
+            <div class="code-list">
+              <span class="chip ok">открыть модуль</span>
+              <span class="chip danger">закрыть модуль</span>
+              <span class="chip ok">открыть виджет</span>
+              <span class="chip danger">закрыть виджет</span>
+              <span class="chip warn">в пределах компании</span>
+              <span class="chip warn">ручной запрет ≠ тарифное ограничение</span>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel" id="access-matrix-detail" aria-labelledby="access-matrix-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="access-matrix-title">Доступы к модулям и виджетам</h2>
+              <div class="muted">Администратор видит только понятные состояния: открыто, закрыто, ограничено тарифом, ограничено системой, модуль запланирован, модуль в подготовке, модуль отключен, виджет отключен или виджет закрыт вместе с модулем. Внутренняя resolution-логика остается в сервисе.</div>
+            </div>
+            <span class="chip">{{ detail.accessMatrix.rows|length }} модулей</span>
+          </div>
+          <div class="widget-registry">
+            <table class="access-matrix-table" aria-label="Матрица доступа к модулям: Пользователь, Компания, Сотрудник компании, Группа, Роль">
+              <thead>
+                <tr>
+                  <th>Модуль</th>
+                  {% for column in detail.accessMatrix.columns %}
+                  <th>{{ column }}</th>
+                  {% endfor %}
+                  <th>Виджеты</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in detail.accessMatrix.rows[:12] %}
+                <tr>
+                  <td>
+                    <strong>{{ row.title }}</strong>
+                    <small>{{ row.moduleCode }} · {{ row.status }}</small>
+                  </td>
+                  {% for cell in [row.user, row.company, row.employee, row.group, row.role] %}
+                  <td>
+                    <div class="access-cell">
+                      <span class="chip {% if cell.stateCode == 'OPEN' %}ok{% elif cell.stateCode == 'CLOSED' %}danger{% else %}warn{% endif %}">{{ cell.label }}</span>
+                      <small>{{ cell.reason }}</small>
+                      <div class="access-actions">
+                        <button class="btn" type="button" disabled>Открыть</button>
+                        <button class="btn danger" type="button" disabled>Закрыть</button>
+                      </div>
+                    </div>
+                  </td>
+                  {% endfor %}
+                  <td>
+                    <span class="chip">{{ row.widgets|length }}</span>
+                    {% if row.revokedWidgetCount %}
+                    <small>{{ row.revokedWidgetCount }} закрыто вместе с модулем</small>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="bridge-grid">
+            <div class="bridge-card">
+              <h3>Виджеты выбранного модуля</h3>
+              {% if detail.accessMatrix.selectedModule %}
+              <div class="muted">{{ detail.accessMatrix.selectedModule.title }} · {{ detail.accessMatrix.selectedModule.moduleCode }}</div>
+              {% endif %}
+              <div class="widget-registry">
+                {% for widget in detail.accessMatrix.selectedModuleWidgets %}
+                <div class="permission-row">
+                  <div>
+                    <strong>{{ widget.title }}</strong>
+                    <small>{{ widget.widgetCode }}{% if widget.featureCode %} · {{ widget.featureCode }}{% endif %}</small>
+                    <small>{{ widget.reason }}</small>
+                  </div>
+                  <div class="toolbar">
+                    <span class="chip {% if widget.stateCode == 'OPEN' %}ok{% elif widget.stateCode == 'WIDGET_REVOKED_BY_MODULE_DENY' %}danger{% else %}warn{% endif %}">{{ widget.label }}</span>
+                    <button class="btn" type="button" disabled>Открыть виджет</button>
+                    <button class="btn danger" type="button" disabled>Закрыть виджет</button>
+                  </div>
+                </div>
+                {% else %}
+                <div class="empty">У выбранного модуля нет dashboard-виджетов.</div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="bridge-card" aria-label="Причины ограничения: Закрыто администратором платформы; Закрыто администратором компании; Недоступно по тарифу; Недоступно: системное ограничение; Недоступно: модуль отключен; Недоступно: модуль еще не активен; Недоступно: модуль в подготовке; Недоступно: виджет отключен; Недоступно: виджет закрыт вместе с модулем; Недоступно: пользователь заблокирован; Недоступно: компания заблокирована">
+              <h3>Причины ограничения</h3>
+              <div class="code-list">
+                {% for code, title in detail.accessMatrix.denyReasons.items() %}
+                <span class="chip warn" title="{{ code }}">{{ title }}</span>
+                {% endfor %}
+              </div>
+              <div class="muted">Закрытие модуля автоматически отзывает связанные виджеты в этом контексте. Администратор не закрывает каждый виджет вручную. Тарифное ограничение не равно ручному запрету администратора.</div>
+              <h3 aria-label="Future monetization fields: planCode, subscriptionCode, billingFeatureCode, billingRestrictionReason, tariffLevel, tariffExpiresAt, isBillingRestricted">Future monetization fields</h3>
+              <div class="code-list">
+                {% for field in detail.accessMatrix.monetizationReadyFields %}
+                <span class="chip">{{ field }}</span>
+                {% endfor %}
+              </div>
+              <div class="muted">Оплата, подписки, тарифные страницы и billing не реализуются в Module №3; здесь только future-ready поля ограничения.</div>
+            </div>
+          </div>
+        </section>
 
         <div class="grid-2">
           <section class="mini-card">
@@ -367,7 +1107,7 @@
         </div>
 
         <div class="grid-2">
-          <section class="mini-card">
+          <section class="mini-card" id="workspaces">
             <h3>Workspace пользователя</h3>
             <div class="permissions">
               {% for workspace in detail.user.workspaces %}
@@ -384,7 +1124,7 @@
             </div>
           </section>
 
-          <section class="mini-card">
+          <section class="mini-card" id="danger-zone">
             <h3>Отключить пользователя</h3>
             <div class="muted">Опасное действие требует подтверждения. SUPER_ADMIN защищен от отключения Platform Admin'ом.</div>
             <form method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/disable">
@@ -395,31 +1135,62 @@
           </section>
         </div>
 
-        <section class="panel" aria-labelledby="cabinet-context-title">
+        <section class="panel" aria-labelledby="cabinet-context-title" hidden data-system-section="module8-context-diagnostics">
           <div class="panel-head">
-            <h2 id="cabinet-context-title">Кабинеты и контекст</h2>
-            <span class="chip">MODULE_08_PARTNER_PORTAL</span>
+            <div>
+              <h2 id="cabinet-context-title">Кабинеты и контекст</h2>
+              <div class="muted">Карточка пользователя показывает Module №8 через adapter / DTO. Source of truth остается в MODULE_08_PARTNER_PORTAL.</div>
+            </div>
+            <div class="toolbar">
+              <span class="chip">MODULE_08_PARTNER_PORTAL</span>
+              <span class="chip warn">{% if detail.module8CabinetPreview.isModule8Connected %}connected{% else %}adapter/mock{% endif %}</span>
+            </div>
           </div>
           <div class="bridge-grid">
             <div class="bridge-stack">
               <div class="bridge-card">
-                <h3>Preview Module №8</h3>
+                <h3>Предупреждение границы</h3>
                 <div class="muted">{{ detail.module8CabinetPreview.warning }}</div>
               </div>
-              {% if detail.module8CabinetPreview.cabinets %}
-                {% for cabinet in detail.module8CabinetPreview.cabinets %}
-                <div class="bridge-card">
-                  <strong>{{ cabinet.title }}</strong>
-                  <div class="muted">{{ cabinet.cabinetType }}{% if cabinet.businessRole %} · {{ cabinet.businessRole }}{% endif %}</div>
-                  <div class="toolbar" style="margin-top: 8px;">
-                    <span class="chip {% if cabinet.isActive %}ok{% else %}warn{% endif %}">{% if cabinet.isActive %}Активный{% else %}Preview{% endif %}</span>
-                    <span class="chip">{{ cabinet.status }}</span>
-                  </div>
+
+              <div class="bridge-card">
+                <h3>Активный кабинет</h3>
+                {% if detail.module8CabinetPreview.activeCabinetId %}
+                <strong>{{ detail.module8CabinetPreview.activeCabinetTitle or 'Кабинет участника' }}</strong>
+                <div class="muted">
+                  {{ detail.module8CabinetPreview.activeCabinetType or 'тип не задан' }}
+                  {% if detail.module8CabinetPreview.activeBusinessRole %} · {{ detail.module8CabinetPreview.activeBusinessRole }}{% endif %}
                 </div>
-                {% endfor %}
-              {% else %}
-              <div class="empty">{{ detail.module8CabinetPreview.emptyState }}</div>
-              {% endif %}
+                <div class="code-list">
+                  <span class="chip ok">activeCabinetId: {{ detail.module8CabinetPreview.activeCabinetId }}</span>
+                  <span class="chip">workspace: {{ detail.module8CabinetPreview.workspaceId or detail.accessContextForCabinet.workspaceId or '—' }}</span>
+                  <span class="chip">region: {{ detail.module8CabinetPreview.activeRegionCode or detail.accessContextForCabinet.activeRegionCode or 'не задан' }}</span>
+                </div>
+                {% else %}
+                <div class="empty">{{ detail.module8CabinetPreview.emptyState }}</div>
+                {% endif %}
+              </div>
+
+              <div class="bridge-card">
+                <h3>Список кабинетов пользователя</h3>
+                {% if detail.module8CabinetPreview.cabinets %}
+                  {% for cabinet in detail.module8CabinetPreview.cabinets %}
+                  <div class="permission-row">
+                    <div>
+                      <strong>{{ cabinet.title }}</strong>
+                      <small>{{ cabinet.cabinetType }}{% if cabinet.businessRole %} · {{ cabinet.businessRole }}{% endif %} · {{ cabinet.workspaceId }}</small>
+                    </div>
+                    <div class="toolbar">
+                      <span class="chip {% if cabinet.isActive %}ok{% else %}warn{% endif %}">{% if cabinet.isActive %}Активный{% else %}Preview{% endif %}</span>
+                      <span class="chip">{{ cabinet.status }}</span>
+                    </div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                <div class="empty">{{ detail.module8CabinetPreview.emptyState }}</div>
+                {% endif %}
+              </div>
+
               <div class="bridge-card">
                 <h3>Связанные объекты</h3>
                 {% if detail.module8CabinetPreview.linkedObjects %}
@@ -433,47 +1204,71 @@
                   </div>
                   {% endfor %}
                 {% else %}
-                <div class="muted">Объекты и настройки видимости будут приходить из Module №8. Module №3 их не хранит.</div>
+                <div class="muted">Связанные объекты placeholder: объект хранится в Module №7, а связи и visibility preview приходят из Module №8. Module №3 их не хранит.</div>
                 {% endif %}
               </div>
             </div>
 
             <div class="bridge-stack">
-              <div class="bridge-card">
+              <div class="bridge-card" id="preview-role">
                 <h3>Access context от Module №3</h3>
                 <div class="muted">
                   userId: {{ detail.accessContextForCabinet.userId or '—' }}<br>
                   workspaceId: {{ detail.accessContextForCabinet.workspaceId or '—' }}<br>
+                  roleCodes: {{ detail.accessContextForCabinet.roleCodes|join(', ') or '—' }}<br>
                   activeRegionCode: {{ detail.accessContextForCabinet.activeRegionCode or 'не задан' }}
                 </div>
               </div>
+
               <div class="bridge-card">
-                <h3>Доступные модули</h3>
+                <h3>Настройки видимости placeholder</h3>
+                <div class="muted">{{ detail.module8CabinetPreview.visibilitySettingsPreview.summary }}</div>
                 <div class="code-list">
-                  {% for code in detail.accessContextForCabinet.allowedModuleCodes[:10] %}
+                  {% for item in detail.module8CabinetPreview.visibilitySettingsPreview.visibleByDefault %}
+                  <span class="chip ok">{{ item }}</span>
+                  {% endfor %}
+                  {% for item in detail.module8CabinetPreview.visibilitySettingsPreview.hiddenByDefault %}
+                  <span class="chip danger">{{ item }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="bridge-card">
+                <h3>Настройки предложений placeholder</h3>
+                <div class="muted">{{ detail.module8CabinetPreview.offerSettingsPreview.summary }}</div>
+                <div class="code-list">
+                  {% for item in detail.module8CabinetPreview.offerSettingsPreview.options %}
+                  <span class="chip">{{ item }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="bridge-card" id="module8-widget-recommendations">
+                <h3>Рекомендованные виджеты</h3>
+                <div class="muted">Module №3 разрешает widgetCode, Module №8 позже определяет уместность для активного кабинета.</div>
+                <div class="code-list">
+                  {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedWidgetCodes %}
                   <span class="chip">{{ code }}</span>
                   {% else %}
-                  <span class="muted">Нет доступных модулей.</span>
+                  <span class="muted">Нет разрешенных recommended widgets для текущего access context.</span>
                   {% endfor %}
                 </div>
               </div>
-              <div class="bridge-card">
-                <h3>Виджеты и действия</h3>
-                <div class="muted">Module №3 разрешает, Module №8 позже определяет уместность для активного кабинета.</div>
+
+              <div class="bridge-card" id="module8-quick-action-recommendations">
+                <h3>Рекомендованные быстрые действия</h3>
+                <div class="muted">Quick actions остаются permission-driven. Module №8 не выполняет бизнес-операции из этой панели.</div>
                 <div class="code-list">
-                  {% for code in detail.accessContextForCabinet.allowedWidgetCodes[:6] %}
-                  <span class="chip">{{ code }}</span>
-                  {% endfor %}
-                  {% for code in detail.accessContextForCabinet.allowedQuickActionCodes[:6] %}
+                  {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedQuickActionCodes %}
                   <span class="chip ok">{{ code }}</span>
+                  {% else %}
+                  <span class="muted">Нужен activeRegionCode и подключенные quick action permissions.</span>
                   {% endfor %}
-                  {% if not detail.accessContextForCabinet.allowedWidgetCodes and not detail.accessContextForCabinet.allowedQuickActionCodes %}
-                  <span class="muted">Нужен activeRegionCode и подключенные registry/permissions.</span>
-                  {% endif %}
                 </div>
               </div>
+
               <div class="bridge-card">
-                <h3>Что редактируется здесь</h3>
+                <h3>Что можно редактировать в Module №3</h3>
                 <div class="code-list">
                   {% for item in detail.module8CabinetPreview.editableInModule03 %}
                   <span class="chip">{{ item }}</span>
@@ -484,7 +1279,171 @@
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="widget-access">
+          <div class="panel-head">
+            <div>
+              <h2>Виджеты и доступ</h2>
+              <div class="muted">WidgetRegistry управляет metadata и доступом. Payload формирует модуль-владелец данных, Dashboard только отображает.</div>
+            </div>
+            <div class="toolbar">
+              <span class="chip"><strong>{{ detail.widgetAccessRows|length }}</strong> widgetCode</span>
+              <span class="chip ok"><strong>{{ detail.accessContextForCabinet.allowedWidgetCodes|length }}</strong> разрешено</span>
+            </div>
+          </div>
+          <div class="widget-registry">
+            {% for widget in detail.widgetAccessRows %}
+            <div class="widget-row {% if widget.isAllowed %}allowed{% else %}blocked{% endif %}">
+              <div>
+                <strong>{{ widget.title }}</strong>
+                <small>{{ widget.widgetCode }}</small>
+                <div class="code-list">
+                  <span class="chip {% if widget.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ widget.status }}</span>
+                  <span class="chip">{{ widget.widgetType }}</span>
+                  {% if widget.isMock %}<span class="chip warn">mock</span>{% endif %}
+                </div>
+              </div>
+              <div>
+                <strong>{{ widget.sourceModuleCode }}</strong>
+                <small>canonical: {{ widget.canonicalModuleCode }}</small>
+                {% if widget.featureCode %}<small>feature: {{ widget.featureCode }}</small>{% endif %}
+                {% if widget.legacyModuleCode %}<small>legacy: {{ widget.legacyModuleCode }}</small>{% endif %}
+              </div>
+              <div>
+                <strong>Permissions</strong>
+                <small>{{ widget.requiredAccessLevel or 'VIEW' }} · {{ widget.requiredScope or 'LIMITED' }}</small>
+                {% if widget.requiredActionCode %}<small>action: {{ widget.requiredActionCode }}</small>{% endif %}
+                <div class="code-list">
+                  {% for role in widget.allowedRoles[:3] %}
+                  <span class="chip">{{ role }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div>
+                <strong>{% if widget.isAllowed %}Доступен{% else %}Недоступен{% endif %}</strong>
+                <small>{{ widget.unavailableReason }}</small>
+                <small>{{ widget.stateDescription }}</small>
+                <small>Module №8: {{ widget.module8Recommendation }}</small>
+                <small>UserDashboardLayout: {{ widget.layoutRelation }}</small>
+                <div class="code-list">
+                  <span class="chip state-{{ widget.stateSeverity }}">{{ widget.stateCode }}</span>
+                  {% for cabinet in widget.allowedCabinetTypes[:2] %}
+                  <span class="chip">{{ cabinet }}</span>
+                  {% endfor %}
+                </div>
+                <details class="widget-settings-preview">
+                  <summary title="Настройки конкретного экземпляра виджета">⚙ Настройки</summary>
+                  <div class="widget-settings-panel">
+                    <div>
+                      <strong>WidgetSettingsSchema</strong>
+                      <small>{{ widget.settingsPreview.schemaStatus }} · source: {{ widget.settingsPreview.schemaSourceModuleCode }}</small>
+                      <small>instance: {{ widget.settingsPreview.settingsInstanceKey }}</small>
+                      <small>storage: {{ widget.settingsPreview.storageLayer }}</small>
+                      <small>AuditLog: {{ widget.settingsPreview.auditEventType }}</small>
+                    </div>
+                    <div class="muted">{{ widget.settingsPreview.warning }}</div>
+                    {% for field in widget.settingsPreview.fields %}
+                    <div class="setting-row {% if field.isHidden %}hidden{% endif %}">
+                      <div>
+                        <strong>{{ field.title }}</strong>
+                        <small>{{ field.settingCode }} · {{ field.valueType }}</small>
+                        {% if field.unavailableReason %}<small>{{ field.unavailableReason }}</small>{% endif %}
+                      </div>
+                      <span class="chip {% if field.isAllowed %}ok{% else %}warn{% endif %}">{% if field.isAllowed %}разрешено{% else %}скрыто{% endif %}</span>
+                    </div>
+                    {% else %}
+                    <div class="empty">Модуль-владелец еще не отдал schema для этого виджета.</div>
+                    {% endfor %}
+                  </div>
+                </details>
+              </div>
+            </div>
+            {% else %}
+            <div class="empty">WidgetRegistry пока пуст. Виджеты должны регистрироваться через Module №3, а payload отдавать модуль-владелец данных.</div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="panel" id="quick-actions" hidden data-system-section="quick-action-diagnostics">
+          <div class="panel-head">
+            <div>
+              <h2>Быстрые действия</h2>
+              <div class="muted">QuickActionRegistry управляет закреплением и доступом. Действие выполняет модуль-владелец и каждый запуск снова проходит requirePermission().</div>
+            </div>
+            <div class="toolbar">
+              <span class="chip"><strong>{{ detail.quickActionRows|length }}</strong> actionCode</span>
+              <span class="chip ok"><strong>{{ detail.accessContextForCabinet.allowedQuickActionCodes|length }}</strong> разрешено</span>
+            </div>
+          </div>
+          <div class="widget-registry">
+            {% for action in detail.quickActionRows %}
+            <div class="widget-row {% if action.isAllowed %}allowed{% else %}blocked{% endif %}">
+              <div>
+                <strong>{{ action.title }}</strong>
+                <small>{{ action.quickActionCode }}</small>
+                <div class="code-list">
+                  <span class="chip {% if action.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ action.status }}</span>
+                  <span class="chip">{{ action.actionCode }}</span>
+                  {% if action.widgetCode %}<span class="chip">widget: {{ action.widgetCode }}</span>{% endif %}
+                </div>
+              </div>
+              <div>
+                <strong>{{ action.sourceModuleCode }}</strong>
+                <small>canonical: {{ action.canonicalModuleCode }}</small>
+                {% if action.featureCode %}<small>feature: {{ action.featureCode }}</small>{% endif %}
+                {% if action.route %}<small>route: {{ action.route }}</small>{% endif %}
+              </div>
+              <div>
+                <strong>Permission</strong>
+                <small>{{ action.requiredAccessLevel }} · {{ action.requiredScope }}</small>
+                <small>actionCode: {{ action.actionCode }}</small>
+                <div class="code-list">
+                  {% for role in action.allowedRoles[:3] %}
+                  <span class="chip">{{ role }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div>
+                <strong>{% if action.isAllowed %}Можно закрепить{% else %}Недоступно{% endif %}</strong>
+                <small>{{ action.unavailableReason }}</small>
+                <small>{{ action.stateDescription }}</small>
+                <small>Module №8: {{ action.module8Recommendation }}</small>
+                <div class="code-list">
+                  <span class="chip state-{{ action.stateSeverity }}">{{ action.stateCode }}</span>
+                  {% for cabinet in action.allowedCabinetTypes[:2] %}
+                  <span class="chip">{{ cabinet }}</span>
+                  {% endfor %}
+                </div>
+                <details class="widget-settings-preview">
+                  <summary title="Добавить в быстрые действия">＋ Добавить в быстрые действия</summary>
+                  <div class="widget-settings-panel">
+                    <div>
+                      <strong>QuickActionPreference / instance</strong>
+                      <small>savedConfigRef: {{ action.preferencePreview.savedConfigRef }}</small>
+                      <small>workspaceId: {{ action.preferencePreview.workspaceId or '—' }}</small>
+                      <small>activeRegionCode: {{ action.preferencePreview.activeRegionCode or 'не задан' }}</small>
+                      <small>activeCabinetId: {{ action.preferencePreview.activeCabinetId or 'ожидает Module №8' }}</small>
+                      <small>AuditLog: {{ action.preferencePreview.auditEventType }}</small>
+                    </div>
+                    <div class="muted">{{ action.preferencePreview.warning }}</div>
+                    <div class="setting-row {% if not action.preferencePreview.canRunQuickAction %}hidden{% endif %}">
+                      <div>
+                        <strong>Перед запуском</strong>
+                        <small>requirePermission({{ action.sourceModuleCode }}, {{ action.actionCode }}, {{ action.requiredScope }})</small>
+                        <small>Результаты действия не хранятся в quick action preference.</small>
+                      </div>
+                      <span class="chip {% if action.preferencePreview.canRunQuickAction %}ok{% else %}warn{% endif %}">{% if action.preferencePreview.canRunQuickAction %}canRunQuickAction{% else %}заблокировано{% endif %}</span>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+            {% else %}
+            <div class="empty">QuickActionRegistry пока пуст. Действия должны регистрироваться через Module №3, а выполнять их должен модуль-владелец.</div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="panel" id="dashboard-layouts">
           <div class="panel-head">
             <h2>Активные права</h2>
             <span class="chip"><strong>{{ detail.permissions|length }}</strong> правил</span>
@@ -504,17 +1463,87 @@
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="audit-log">
           <div class="panel-head">
-            <h2>История изменений</h2>
-            <span class="chip">AuditLog</span>
+            <div>
+              <h2>История изменений</h2>
+              <div class="muted">Здесь видно, кто, когда, что изменил, для какого пользователя, компании, сотрудника, модуля или виджета, а также старое значение, новое значение и причину.</div>
+            </div>
+            <span class="chip">AuditLog · {{ detail.changeHistory.rows|length }}</span>
+          </div>
+          <div class="filter-row" aria-label="Фильтры истории изменений">
+            <select aria-label="Фильтр истории по автору">
+              <option>Все авторы</option>
+              {% for author in detail.changeHistory.filters.authors %}
+              <option>{{ author }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Фильтр истории по дате">
+              <option>Все даты</option>
+              {% for date in detail.changeHistory.filters.dates %}
+              <option>{{ date }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Фильтр истории по действию">
+              <option>Все действия</option>
+              {% for action in detail.changeHistory.filters.actions %}
+              <option>{{ action }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Фильтр истории по типу объекта">
+              <option>Все типы объектов</option>
+              {% for object_type in detail.changeHistory.filters.objectTypes %}
+              <option>{{ object_type }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Фильтр истории по модулю">
+              <option>Все модули</option>
+              {% for module_code in detail.changeHistory.filters.modules %}
+              <option>{{ module_code }}</option>
+              {% endfor %}
+            </select>
+            <select aria-label="Фильтр истории по виджету">
+              <option>Все виджеты</option>
+              {% for widget_code in detail.changeHistory.filters.widgets %}
+              <option>{{ widget_code }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="bridge-grid">
+            <div class="bridge-card">
+              <h3>Срез по объектам</h3>
+              <div class="code-list">
+                {% for item in detail.changeHistory.bySubject %}
+                <span class="chip">{{ item.label }}: {{ item.count }}</span>
+                {% else %}
+                <span class="muted">Изменений пока нет.</span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="bridge-card">
+              <h3>Модули и виджеты</h3>
+              <div class="code-list">
+                {% for item in detail.changeHistory.byModule %}
+                <span class="chip">{{ item.label }}: {{ item.count }}</span>
+                {% endfor %}
+                {% for item in detail.changeHistory.byWidget %}
+                <span class="chip warn">{{ item.label }}: {{ item.count }}</span>
+                {% endfor %}
+              </div>
+            </div>
           </div>
           <div class="user-list">
-            {% for item in detail.history %}
+            {% for item in detail.changeHistory.rows %}
             <div class="history-row">
               <div>
-                <strong>{{ item.actionType }}</strong>
-                <small>{{ item.actor }} · {{ item.createdAt }}</small>
+                <strong>{{ item.actionType }} · {{ item.objectType }}</strong>
+                <small>Автор: {{ item.actor }} · Дата: {{ item.createdAt }} · Объект: {{ item.subjectLabel }}</small>
+                {% if item.moduleCode %}<small>moduleCode: {{ item.moduleCode }}{% if item.featureCode %} · featureCode: {{ item.featureCode }}{% endif %}</small>{% endif %}
+                {% if item.widgetCode %}<small>widgetCode: {{ item.widgetCode }}</small>{% endif %}
+                {% if item.roleCode %}<small>roleCode: {{ item.roleCode }}</small>{% endif %}
+                <small>Старое значение: {{ item.oldValue or '—' }}</small>
+                <small>Новое значение: {{ item.newValue or '—' }}</small>
+                <small>Причина: {{ item.reason or 'не указана' }}</small>
               </div>
               <span class="chip">{{ item.result }}</span>
             </div>
@@ -529,6 +1558,8 @@
           <div class="muted">Откроется карточка с ролями, workspace, активными правами, формами назначения и журналом изменений.</div>
         </article>
         {% endif %}
+      </section>
+        </div>
       </section>
     </div>
   </main>

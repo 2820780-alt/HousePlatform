@@ -8,6 +8,7 @@ from app.api.deps import DBSession
 from app.core.permission_guard import DEV_USER
 from app.services.admin_module_registry_management import (
     ARCHIVE_CONFIRMATION,
+    SYSTEM_CRITICAL_MODULE_CONFIRMATION,
     archive_module_registry_item,
     get_module_registry_detail,
     get_module_registry_overview,
@@ -46,6 +47,7 @@ async def admin_update_module_registry_item(
     visible_on_dashboard: bool = Form(False),
     visible_on_atom_map: bool = Form(False),
     available_for_widgets: bool = Form(False),
+    critical_confirmation: str | None = Form(None),
 ):
     await update_module_registry_item(
         db,
@@ -56,6 +58,7 @@ async def admin_update_module_registry_item(
         visible_on_dashboard=visible_on_dashboard,
         visible_on_atom_map=visible_on_atom_map,
         available_for_widgets=available_for_widgets,
+        critical_confirmation=critical_confirmation,
     )
     await db.commit()
     return RedirectResponse(f"/api/v1/admin/module-registry/view/{module_code}", status_code=303)
@@ -66,12 +69,14 @@ async def admin_archive_module_registry_item(
     module_code: str,
     db: DBSession,
     confirmation: str = Form(...),
+    critical_confirmation: str | None = Form(None),
 ):
     await archive_module_registry_item(
         db,
         actor=_dev_actor(),
         module_code=module_code,
         confirmation=confirmation,
+        critical_confirmation=critical_confirmation,
     )
     await db.commit()
     return RedirectResponse(f"/api/v1/admin/module-registry/view/{module_code}", status_code=303)
@@ -85,6 +90,7 @@ def _template(request: Request, overview: dict, detail: dict | None):
             "overview": overview,
             "detail": detail,
             "archive_confirmation": ARCHIVE_CONFIRMATION,
+            "critical_confirmation": SYSTEM_CRITICAL_MODULE_CONFIRMATION,
             "atom_topbar_current_block": "Реестр модулей",
             "atom_topbar_profile_name": "Администратор",
         },

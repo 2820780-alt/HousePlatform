@@ -1,15 +1,21 @@
 from fastapi.testclient import TestClient
+import pytest
 
 from app.api.v1.admin_module_registry_view import router as admin_module_registry_router
+from app.core.exceptions import ValidationError
 from app.main import app
 from app.models import PlatformModuleRegistry
 from app.services.admin_module_registry_management import (
+    SYSTEM_CRITICAL_MODULE_CONFIRMATION,
     can_open_module_registry_admin,
     can_update_module_flags,
     can_update_module_status,
     is_legacy_or_alias_module,
+    is_system_critical_module,
+    module_status_change_requires_confirmation,
     module_summary,
     normalize_module_status,
+    require_system_critical_module_confirmation,
 )
 
 
@@ -21,6 +27,7 @@ def _module(
     redirect_route: str | None = None,
     status: str = "ACTIVE",
     is_system: bool = False,
+    is_system_critical: bool = False,
 ) -> PlatformModuleRegistry:
     return PlatformModuleRegistry(
         module_code=module_code,
@@ -31,6 +38,7 @@ def _module(
         status=status,
         is_active=status == "ACTIVE",
         is_system=is_system,
+        is_system_critical=is_system_critical,
         is_visible_in_sidebar=status == "ACTIVE",
         is_visible_on_dashboard=status == "ACTIVE",
         is_visible_on_atom_map=status == "ACTIVE",
@@ -72,6 +80,28 @@ def test_platform_admin_can_only_manage_non_system_regular_statuses():
     assert not can_update_module_flags(actor, system)
 
 
+def test_system_critical_modules_require_super_admin_and_confirmation_for_hidden_status():
+    critical = _module("MODULE_03_USERS_ROLES", is_system_critical=True)
+
+    assert is_system_critical_module(critical)
+    assert not can_update_module_status({"roleCode": "PLATFORM_ADMIN"}, critical, "DISABLED")
+    assert not can_update_module_status({"roleCode": "MODERATOR"}, critical, "DISABLED")
+    assert not can_update_module_flags({"roleCode": "PLATFORM_ADMIN"}, critical)
+    assert can_update_module_status({"roleCode": "SUPER_ADMIN"}, critical, "DISABLED")
+    assert module_status_change_requires_confirmation({"roleCode": "SUPER_ADMIN"}, critical, "DISABLED")
+    assert not module_status_change_requires_confirmation({"roleCode": "SUPER_ADMIN"}, critical, "ACTIVE")
+
+    with pytest.raises(ValidationError):
+        require_system_critical_module_confirmation({"roleCode": "SUPER_ADMIN"}, critical, "DISABLED", None)
+
+    require_system_critical_module_confirmation(
+        {"roleCode": "SUPER_ADMIN"},
+        critical,
+        "DISABLED",
+        SYSTEM_CRITICAL_MODULE_CONFIRMATION,
+    )
+
+
 def test_module_summary_exposes_canonical_flags_and_dependency_counts():
     module = _module(
         "MODULE_07_DIGITAL_OBJECT",
@@ -95,6 +125,7 @@ def test_module_summary_exposes_canonical_flags_and_dependency_counts():
     assert summary["moduleCode"] == "MODULE_07_DIGITAL_OBJECT"
     assert summary["canonicalModuleCode"] == "MODULE_07_DIGITAL_HOUSE"
     assert summary["isLegacyOrAlias"]
+    assert summary["isSystemCritical"] is False
     assert summary["lifecycle"]["rule"]["status"] == "MERGED"
     assert summary["dependencyCounts"] == {
         "permissions": 4,
@@ -141,6 +172,15 @@ def test_admin_module_registry_routes_are_registered():
     assert "/admin/module-registry/view/{module_code}" in paths
     assert "/admin/module-registry/view/{module_code}/update" in paths
     assert "/admin/module-registry/view/{module_code}/archive" in paths
+
+
+def test_admin_module_registry_template_exposes_system_critical_confirmation():
+    template = open("templates/admin_module_registry.html", encoding="utf-8").read()
+
+    assert "system-critical" in template
+    assert "Системно-критичный модуль нельзя отключить обычному администратору или модератору" in template
+    assert "critical_confirmation" in template
+    assert "CONFIRM_SYSTEM_CRITICAL_MODULE_CHANGE" not in template
 
 
 def test_api_entrypoint_is_not_blank():

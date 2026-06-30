@@ -238,7 +238,8 @@ def _role_and_cabinet_allow_action(
     role_codes = _role_codes(user, context)
     if action.allowedRoles and not role_codes.intersection(set(action.allowedRoles)):
         return False
-    if action.allowedCabinetTypes and context.cabinetType not in set(action.allowedCabinetTypes):
+    cabinet_types = _cabinet_type_aliases(context.cabinetType)
+    if action.allowedCabinetTypes and not cabinet_types.intersection(set(action.allowedCabinetTypes)):
         return False
     return True
 
@@ -297,6 +298,20 @@ def _role_codes(user: Any, context: QuickActionPermissionContext) -> set[str]:
         if upper in LEGACY_ADMIN_ROLE_CODES:
             normalized.add("PLATFORM_ADMIN")
     return normalized
+
+
+def _cabinet_type_aliases(cabinet_type: str | None) -> set[str]:
+    if not cabinet_type:
+        return set()
+    normalized = cabinet_type.upper()
+    aliases = {normalized}
+    if normalized == "MATERIAL_SUPPLIER":
+        aliases.add("SUPPLIER")
+    if normalized == "CONSTRUCTION_COMPANY":
+        aliases.add("CONTRACTOR")
+    if normalized in {"PLATFORM_ADMIN", "SYSTEM_ADMIN"}:
+        aliases.add("ADMIN")
+    return aliases
 
 
 def _context_dict(value: Any) -> dict[str, Any]:

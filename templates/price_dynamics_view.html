@@ -71,6 +71,7 @@
     @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:820px; } .module-header-grid { grid-template-columns:1fr; } .header-links { justify-content:flex-start; } }
   </style>
   {% include "_atom_ui_standards.html" %}
+  {% include "_atom_quick_action_menu.html" %}
 </head>
 <body data-atom-page data-rbac-ready>
   {% set atom_topbar_current_block = "Динамика цен" %}
@@ -85,6 +86,18 @@
         </div>
       </div>
       <div class="header-links">
+        <a
+          id="quick-action-open-price-dynamics"
+          href="/api/v1/admin/price-dynamics/view"
+          data-quick-action-candidate
+          data-quick-action-source-module-code="MODULE_11_ANALYTICS"
+          data-quick-action-feature-code="PRICE_DYNAMICS"
+          data-quick-action-key="OPEN_PRICE_DYNAMICS"
+          data-quick-action-title="Открыть динамику цен"
+          data-quick-action-route="/api/v1/admin/price-dynamics/view"
+          data-quick-action-icon="↗"
+          data-quick-action-accent="purple"
+        >Динамика цен</a>
         <a href="/api/v1/admin/cabinet/view">Кабинет</a>
         <a href="/api/v1/admin/material-hub/view">База материалов</a>
       </div>
@@ -92,6 +105,12 @@
   </header>
 
   <main>
+    <div
+      class="atom-module-quick-actions"
+      data-quick-action-module-bar="MODULE_11_ANALYTICS"
+      aria-label="Быстрые действия модуля Аналитика"
+    ></div>
+
     <div class="quick-grid">
       <div class="quick-card">
         <strong>Текущий график</strong>
@@ -193,6 +212,32 @@
         <div>
           <label for="date-to">Дата по</label>
           <input id="date-to" type="date" onchange="setCustomPeriod(); renderPriceChart();">
+        </div>
+        <div>
+          <label for="quick-action-current-price-dynamics-slice">Текущий срез</label>
+          <div class="atom-action-with-menu">
+            <button
+              id="quick-action-current-price-dynamics-slice"
+              type="button"
+              onclick="renderPriceChart()"
+              data-quick-action-candidate
+              data-quick-action-source-module-code="MODULE_11_ANALYTICS"
+              data-quick-action-feature-code="PRICE_DYNAMICS"
+              data-quick-action-key="OPEN_CURRENT_PRICE_DYNAMICS_SLICE"
+              data-quick-action-title="Открыть текущий срез динамики цен"
+              data-quick-action-route="/api/v1/admin/price-dynamics/view"
+              data-quick-action-icon="≋"
+              data-quick-action-accent="blue"
+              data-quick-action-config-provider="priceDynamicsCurrentSliceQuickActionConfig"
+            >Обновить график</button>
+            <button
+              class="atom-quick-action-menu-button"
+              type="button"
+              aria-label="Меню быстрого действия"
+              title="Меню быстрого действия"
+              data-quick-action-menu-for="quick-action-current-price-dynamics-slice"
+            ></button>
+          </div>
         </div>
       </div>
     </section>
@@ -536,6 +581,27 @@
 
     function normalizedInput(id) {
       return (document.getElementById(id).value || "").toLocaleLowerCase();
+    }
+
+    function priceDynamicsCurrentSliceQuickActionConfig() {
+      const valueOrNull = (id) => {
+        const value = document.getElementById(id).value;
+        return value ? value : null;
+      };
+      return {
+        analysisType: document.getElementById("analysis-type").value,
+        selectedTargets: selectedTargetValues(),
+        categoryFilter: valueOrNull("category-filter"),
+        subcategoryFilter: valueOrNull("subcategory-filter"),
+        groupFilter: valueOrNull("group-filter"),
+        subgroupFilter: valueOrNull("subgroup-filter"),
+        manufacturerFilter: valueOrNull("manufacturer-filter"),
+        sourceFilter: valueOrNull("source-filter"),
+        regionFilter: valueOrNull("region-filter"),
+        period: document.getElementById("period-filter").value,
+        dateFrom: valueOrNull("date-from"),
+        dateTo: valueOrNull("date-to")
+      };
     }
 
     function escapeHtml(value) {

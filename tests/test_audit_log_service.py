@@ -10,10 +10,16 @@ from app.services.audit_log_service import (
     record_inaccessible_widget_add_attempt,
     record_legacy_module_normalization,
     record_module_merge_or_alias_change,
+    record_module_access_change,
+    record_module8_context_adapter_read,
     record_permission_change,
+    record_preview_role_changed,
+    record_quick_action_permission_change,
+    record_quick_action_preference_change,
     record_view_as_role_entered,
     record_view_as_role_exited,
     record_widget_permission_change,
+    record_widget_preference_change,
     record_widget_registry_change,
     sanitize_audit_details,
     write_audit_event_mock,
@@ -112,24 +118,100 @@ def test_permission_scope_widget_layout_and_preview_helpers_emit_expected_events
         old_value={"accessScope": "LIMITED"},
         new_value={"accessScope": "OWN"},
     )
+    record_module_access_change(
+        actor={"userId": "admin"},
+        target_user_id="u-1",
+        role_code="SUPPLIER",
+        module_code="MODULE_01_MATERIAL_HUB",
+        old_value={"accessLevel": "VIEW"},
+        new_value={"accessLevel": "EDIT"},
+    )
     record_widget_registry_change(widget_code="materials.kpi", module_code="MODULE_01_MATERIAL_HUB")
     record_widget_permission_change(widget_code="materials.kpi", role_code="SUPPLIER")
+    record_widget_preference_change(
+        widget_code="materials.kpi",
+        module_code="MODULE_01_MATERIAL_HUB",
+        active_region_code="KRASNODAR_KRAI",
+        old_value={"size": "small"},
+        new_value={"size": "medium"},
+    )
+    record_quick_action_permission_change(
+        quick_action_code="SOURCE_TASK_CREATE",
+        action_code="CREATE",
+        module_code="MODULE_01_MATERIAL_HUB",
+        role_code="PLATFORM_ADMIN",
+    )
+    record_quick_action_preference_change(
+        quick_action_code="SOURCE_TASK_CREATE",
+        action_code="CREATE",
+        module_code="MODULE_01_MATERIAL_HUB",
+        active_region_code="KRASNODAR_KRAI",
+        active_cabinet_id="admin-cabinet",
+        operation="pin",
+    )
+    record_quick_action_preference_change(
+        quick_action_code="SOURCE_TASK_CREATE",
+        action_code="CREATE",
+        module_code="MODULE_01_MATERIAL_HUB",
+        active_region_code="KRASNODAR_KRAI",
+        operation="unpin",
+    )
     record_inaccessible_widget_add_attempt(widget_code="future.widget", reason="planned")
     record_dashboard_layout_change(user={"userId": "u-1"}, old_layout={}, new_layout={"widgets": []})
     record_view_as_role_entered(actor={"userId": "admin"}, role_code="CUSTOMER")
+    record_preview_role_changed(actor={"userId": "admin"}, old_role_code="CUSTOMER", new_role_code="SUPPLIER")
     record_view_as_role_exited(actor={"userId": "admin"}, role_code="CUSTOMER")
     record_module_merge_or_alias_change(
         module_code="MODULE_07_DIGITAL_OBJECT",
         canonical_module_code="MODULE_07_DIGITAL_HOUSE",
         merged_into_module_code="MODULE_07_DIGITAL_HOUSE",
     )
+    record_module8_context_adapter_read(
+        actor={"userId": "admin"},
+        target_user_id="u-1",
+        active_region_code="KRASNODAR_KRAI",
+        active_cabinet_id="module8-preview:cabinet",
+        active_cabinet_type="MATERIAL_SUPPLIER",
+        is_mock=True,
+        cabinet_count=1,
+    )
 
     event_types = {event["eventType"] for event in MOCK_AUDIT_EVENTS}
     assert AuditLogType.SCOPE_CHANGED in event_types
+    assert AuditLogType.MODULE_ACCESS_CHANGED in event_types
     assert AuditLogType.WIDGET_REGISTRY_CHANGED in event_types
     assert AuditLogType.WIDGET_PERMISSION_CHANGED in event_types
+    assert AuditLogType.WIDGET_PREFERENCE_CHANGED in event_types
+    assert AuditLogType.QUICK_ACTION_PERMISSION_CHANGED in event_types
+    assert AuditLogType.QUICK_ACTION_PREFERENCE_CHANGED in event_types
     assert AuditLogType.INACCESSIBLE_WIDGET_ADD_ATTEMPT in event_types
     assert AuditLogType.USER_DASHBOARD_LAYOUT_CHANGED in event_types
     assert AuditLogType.VIEW_AS_ROLE_ENTERED in event_types
+    assert AuditLogType.PREVIEW_ROLE_CHANGED in event_types
     assert AuditLogType.VIEW_AS_ROLE_EXITED in event_types
     assert AuditLogType.MODULE_MERGED in event_types
+    assert AuditLogType.MODULE8_CONTEXT_ADAPTER_READ in event_types
+
+    quick_action_events = [
+        event for event in MOCK_AUDIT_EVENTS
+        if event["eventType"] == AuditLogType.QUICK_ACTION_PREFERENCE_CHANGED
+    ]
+    assert {event["metadata"]["operation"] for event in quick_action_events} == {"pin", "unpin"}
+    assert all(event["metadata"]["payloadLogged"] is False for event in quick_action_events)
+
+    module8_event = next(event for event in MOCK_AUDIT_EVENTS if event["eventType"] == AuditLogType.MODULE8_CONTEXT_ADAPTER_READ)
+    assert module8_event["metadata"]["businessPayloadLogged"] is False
+    assert module8_event["metadata"]["cabinetCount"] == 1
+
+
+def test_audit_helpers_redact_payload_like_values():
+    event = record_widget_preference_change(
+        widget_code="secure-widget",
+        module_code="MODULE_03_USERS_ROLES",
+        old_value={"token": "secret", "visible": True},
+        new_value={"apiKey": "secret", "visible": False},
+    )
+
+    assert event["oldValue"]["token"] == "[REDACTED]"
+    assert event["newValue"]["apiKey"] == "[REDACTED]"
+    assert event["metadata"]["payloadLogged"] is False

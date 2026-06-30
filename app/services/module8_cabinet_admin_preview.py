@@ -54,6 +54,51 @@ class Module8DashboardContextPreview:
 
 
 @dataclass(frozen=True)
+class Module8VisibilitySettingsPreview:
+    status: str = "PLACEHOLDER"
+    sourceOfTruth: str = SOURCE_MODULE_CODE
+    summary: str = (
+        "ObjectVisibilitySettings будет храниться в Module №8. Module №3 показывает только "
+        "permission/visibility preview."
+    )
+    visibleByDefault: list[str] = field(default_factory=lambda: [
+        "cabinet title",
+        "cabinet type",
+        "business role",
+        "region code",
+    ])
+    hiddenByDefault: list[str] = field(default_factory=lambda: [
+        "точный адрес",
+        "контакты заказчика",
+        "смета",
+        "финансовые данные",
+        "личные данные",
+    ])
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class Module8OfferSettingsPreview:
+    status: str = "PLACEHOLDER"
+    sourceOfTruth: str = SOURCE_MODULE_CODE
+    summary: str = (
+        "ObjectOfferSettings и offer policies будут приходить из Module №8. Module №3 может "
+        "управлять только доступом к этим настройкам."
+    )
+    options: list[str] = field(default_factory=lambda: [
+        "получать предложения от поставщиков",
+        "получать предложения от строительных компаний",
+        "получать предложения от специалистов",
+        "показывать объект в подборках",
+    ])
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
 class Module8CabinetAdminPreviewDTO:
     userId: str
     sourceModuleCode: str = SOURCE_MODULE_CODE
@@ -62,8 +107,12 @@ class Module8CabinetAdminPreviewDTO:
     cabinets: list[Module8CabinetPreviewItem] = field(default_factory=list)
     activeCabinetId: str | None = None
     activeCabinetType: str | None = None
+    activeCabinetTitle: str | None = None
+    activeBusinessRole: str | None = None
     linkedObjects: list[Module8LinkedObjectPreviewItem] = field(default_factory=list)
     dashboardContextPreview: Module8DashboardContextPreview = field(default_factory=Module8DashboardContextPreview)
+    visibilitySettingsPreview: Module8VisibilitySettingsPreview = field(default_factory=Module8VisibilitySettingsPreview)
+    offerSettingsPreview: Module8OfferSettingsPreview = field(default_factory=Module8OfferSettingsPreview)
     isModule8Connected: bool = False
     isMock: bool = True
     warning: str = MODULE8_BRIDGE_WARNING
@@ -99,6 +148,8 @@ class Module8CabinetAdminPreviewDTO:
         data["cabinets"] = [item.to_dict() for item in self.cabinets]
         data["linkedObjects"] = [item.to_dict() for item in self.linkedObjects]
         data["dashboardContextPreview"] = self.dashboardContextPreview.to_dict()
+        data["visibilitySettingsPreview"] = self.visibilitySettingsPreview.to_dict()
+        data["offerSettingsPreview"] = self.offerSettingsPreview.to_dict()
         if self.cabinets:
             data["emptyState"] = None
         return data
@@ -128,6 +179,8 @@ def get_module8_cabinet_admin_preview(
         cabinets=cabinets,
         activeCabinetId=active.cabinetId if active else None,
         activeCabinetType=active.cabinetType if active else None,
+        activeCabinetTitle=active.title if active else None,
+        activeBusinessRole=active.businessRole if active else None,
         linkedObjects=[],
         dashboardContextPreview=Module8DashboardContextPreview(
             mainFocus=_main_focus(active),

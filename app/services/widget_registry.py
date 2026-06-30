@@ -57,9 +57,15 @@ class WidgetRegistryItemDefinition:
     allowedRoles: list[str] = field(default_factory=list)
     allowedCabinetTypes: list[str] = field(default_factory=list)
     allowedSizes: list[str] = field(default_factory=lambda: ["small", "medium", "large"])
+    isDashboardEligible: bool = True
+    allowedDashboardZones: list[str] = field(default_factory=list)
+    isBillingEligible: bool = False
+    requiresAccessDistribution: bool = False
+    accessDistributionStatus: str = "DISTRIBUTED"
     isMock: bool = False
     registryLayer: str = WIDGET_REGISTRY_LAYER
     compatibilityNote: str = WIDGET_REGISTRY_NOTE
+    createdAt: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -124,6 +130,11 @@ def widget_registry_item_from_dashboard(item: DashboardWidgetRegistryItem, *, or
         allowedCabinetTypes=[],
         defaultSize=item.defaultSize if item.defaultSize in WIDGET_SIZES else "medium",
         allowedSizes=[size for size in item.allowedSizes if size in WIDGET_SIZES] or ["small", "medium", "large"],
+        isDashboardEligible=True,
+        allowedDashboardZones=[],
+        isBillingEligible=False,
+        requiresAccessDistribution=False,
+        accessDistributionStatus="DISTRIBUTED",
         status=status,
         isSystem=True,
         isMock=bool(item.mockDataProvider or item.status == "mock_only"),

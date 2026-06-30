@@ -11,11 +11,13 @@ from app.core.exceptions import ValidationError
 from app.core.permission_guard import DEV_USER
 from app.services.admin_user_role_management import (
     DISABLE_CONFIRMATION,
+    assign_company_admin,
     assign_role_to_user,
     assign_workspace_to_user,
     disable_user_account,
     get_user_role_admin_detail,
     get_user_role_admin_overview,
+    revoke_company_admin,
 )
 
 
@@ -94,6 +96,44 @@ async def admin_assign_user_workspace(
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
         role_code=role_code,
+    )
+    await db.commit()
+    return RedirectResponse(
+        f"/api/v1/admin/users-roles/view/users/{user_id}",
+        status_code=303,
+    )
+
+
+@router.post("/users/{user_id}/company-admin")
+async def admin_assign_company_admin(
+    user_id: UUID,
+    db: DBSession,
+    workspace_id: str = Form(...),
+):
+    await assign_company_admin(
+        db,
+        actor=_dev_actor(),
+        user_id=user_id,
+        workspace_id=_required_uuid(workspace_id, "workspace_id"),
+    )
+    await db.commit()
+    return RedirectResponse(
+        f"/api/v1/admin/users-roles/view/users/{user_id}",
+        status_code=303,
+    )
+
+
+@router.post("/users/{user_id}/company-admin/revoke")
+async def admin_revoke_company_admin(
+    user_id: UUID,
+    db: DBSession,
+    workspace_id: str = Form(...),
+):
+    await revoke_company_admin(
+        db,
+        actor=_dev_actor(),
+        user_id=user_id,
+        workspace_id=_required_uuid(workspace_id, "workspace_id"),
     )
     await db.commit()
     return RedirectResponse(

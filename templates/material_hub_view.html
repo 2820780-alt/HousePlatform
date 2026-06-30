@@ -336,6 +336,7 @@
     }
   </style>
   {% include "_atom_ui_standards.html" %}
+  {% include "_atom_quick_action_menu.html" %}
 </head>
 <body data-atom-page data-rbac-ready>
   {% set atom_topbar_current_block = "База материалов" %}
@@ -353,11 +354,57 @@
         <a href="/api/v1/admin/cabinet/view">Кабинет администратора</a>
         <a href="/api/v1/admin/price-dynamics/view">Динамика цен</a>
         <a href="/api/v1/admin/material-hub/view/materials">Основная таблица</a>
+        <span class="atom-action-with-menu">
+          <a
+            id="quick-action-open-material-moderation"
+            href="/api/v1/admin/material-hub/view/moderation"
+            data-quick-action-candidate
+            data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
+            data-quick-action-feature-code="MATERIAL_MODERATION"
+            data-quick-action-key="OPEN_MATERIAL_MODERATION"
+            data-quick-action-title="Открыть модерацию"
+            data-quick-action-route="/api/v1/admin/material-hub/view/moderation"
+            data-quick-action-atom-card-accent="orange"
+          >Модерация</a>
+          <button
+            class="atom-quick-action-menu-button"
+            type="button"
+            data-quick-action-menu-for="quick-action-open-material-moderation"
+            title="Быстрые действия"
+            aria-label="Быстрые действия: открыть модерацию"
+          ></button>
+        </span>
+        <span class="atom-action-with-menu">
+          <a
+            id="quick-action-check-source-cards"
+            href="/api/v1/admin/material-hub/view/products?status=NEEDS_REVIEW"
+            data-quick-action-candidate
+            data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
+            data-quick-action-feature-code="SOURCE_PRODUCTS"
+            data-quick-action-key="CHECK_SOURCE_CARDS"
+            data-quick-action-title="Проверить карточки источников"
+            data-quick-action-route="/api/v1/admin/material-hub/view/products?status=NEEDS_REVIEW"
+            data-quick-action-atom-card-accent="green"
+          >Карточки источников</a>
+          <button
+            class="atom-quick-action-menu-button"
+            type="button"
+            data-quick-action-menu-for="quick-action-check-source-cards"
+            title="Быстрые действия"
+            aria-label="Быстрые действия: проверить карточки источников"
+          ></button>
+        </span>
       </div>
     </div>
   </header>
 
   <main>
+    <div
+      class="atom-module-quick-actions"
+      data-quick-action-module-bar="MODULE_01_MATERIAL_HUB"
+      aria-label="Быстрые действия модуля База материалов"
+    ></div>
+
     <section class="run-card">
       <div class="run-head">
         <div>
@@ -420,8 +467,28 @@
             {% endfor %}
           </select>
         </div>
-        <div>
-          <button class="run-button" type="button" onclick="runAnalysis()">Запустить</button>
+        <div class="atom-action-with-menu">
+          <button
+            id="quick-action-run-source-analysis"
+            class="run-button"
+            type="button"
+            onclick="runAnalysis()"
+            data-quick-action-candidate
+            data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
+            data-quick-action-feature-code="SOURCE_ANALYSIS"
+            data-quick-action-key="RUN_SOURCE_ANALYSIS"
+            data-quick-action-title="Запустить анализ источника"
+            data-quick-action-route="/api/v1/admin/material-hub/view"
+            data-quick-action-config-provider="materialHubSourceAnalysisQuickActionConfig"
+            data-quick-action-atom-card-accent="cyan"
+          >Запустить</button>
+          <button
+            class="atom-quick-action-menu-button"
+            type="button"
+            data-quick-action-menu-for="quick-action-run-source-analysis"
+            title="Быстрые действия"
+            aria-label="Быстрые действия: запуск анализа"
+          ></button>
         </div>
       </div>
       <div class="scenario-preview" id="scenario-preview"></div>
@@ -472,8 +539,27 @@
           <label for="supplier-city">Город</label>
           <input id="supplier-city" placeholder="Например: Краснодар">
         </div>
-        <div>
-          <button type="button" onclick="uploadSupplierFile()">Загрузить</button>
+        <div class="atom-action-with-menu">
+          <button
+            id="quick-action-upload-supplier-price"
+            type="button"
+            onclick="uploadSupplierFile()"
+            data-quick-action-candidate
+            data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
+            data-quick-action-feature-code="SUPPLIER_PRICE_UPLOAD"
+            data-quick-action-key="UPLOAD_SUPPLIER_PRICE"
+            data-quick-action-title="Загрузить прайс"
+            data-quick-action-route="/api/v1/admin/material-hub/view"
+            data-quick-action-config-provider="materialHubSupplierUploadQuickActionConfig"
+            data-quick-action-atom-card-accent="blue"
+          >Загрузить</button>
+          <button
+            class="atom-quick-action-menu-button"
+            type="button"
+            data-quick-action-menu-for="quick-action-upload-supplier-price"
+            title="Быстрые действия"
+            aria-label="Быстрые действия: загрузка прайса"
+          ></button>
         </div>
       </div>
       <div class="upload-note">Файл сохраняется, строки извлекаются, цены сопоставляются только с существующими материалами. Несопоставленные строки уйдут на проверку.</div>
@@ -612,6 +698,28 @@
       setTimeout(() => window.location.reload(), 900);
     }
 
+    function materialHubSourceAnalysisQuickActionConfig() {
+      const sourceCategory = selectedSourceCategory();
+      const categoryFilter = document.getElementById("category-filter").value.trim();
+      const categoryFilters = [];
+      if (sourceCategory) {
+        sourceCategory.filters.forEach((item) => categoryFilters.push(item));
+      }
+      if (categoryFilter) {
+        categoryFilters.push(categoryFilter);
+      }
+      return {
+        sourceMode: document.getElementById("all-sources").checked ? "ALL_ACTIVE" : "SELECTED",
+        selectedSources: selectedSourceNames(),
+        actionType: document.getElementById("action-type").value,
+        scanMode: document.getElementById("scan-mode").value,
+        sourceCategoryLabel: sourceCategory ? sourceCategory.label : null,
+        categoryUrlContains: categoryFilters,
+        maxPages: Number(document.getElementById("max-pages").value || 5),
+        maxDocuments: Number(document.getElementById("max-documents").value || 10)
+      };
+    }
+
     async function uploadSupplierFile() {
       const status = document.getElementById("upload-status");
       const fileInput = document.getElementById("supplier-file");
@@ -643,6 +751,15 @@
       const summary = data.task && data.task.result_summary ? data.task.result_summary : {};
       status.textContent = "Готово. Строк: " + (summary.rows_processed || 0) + ", сопоставлено: " + (summary.rows_matched || 0) + ", на проверку: " + (summary.rows_needs_review || 0) + ".";
       setTimeout(() => window.location.reload(), 1200);
+    }
+
+    function materialHubSupplierUploadQuickActionConfig() {
+      return {
+        supplierName: document.getElementById("supplier-name").value.trim() || null,
+        regionLabel: document.getElementById("supplier-region").value.trim() || null,
+        cityLabel: document.getElementById("supplier-city").value.trim() || null,
+        requiresFileSelection: true
+      };
     }
 
     function toggleSourceSelection() {

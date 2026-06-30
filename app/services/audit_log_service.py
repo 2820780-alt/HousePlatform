@@ -22,9 +22,15 @@ class AuditLogType(StrEnum):
     LEGACY_ALIAS_REDIRECT_CHANGED = "legacy_alias_redirect_changed"
     WIDGET_REGISTRY_CHANGED = "widget_registry_changed"
     WIDGET_PERMISSION_CHANGED = "widget_permission_changed"
+    WIDGET_PREFERENCE_CHANGED = "widget_preference_changed"
+    QUICK_ACTION_PERMISSION_CHANGED = "quick_action_permission_changed"
+    QUICK_ACTION_PREFERENCE_CHANGED = "quick_action_preference_changed"
+    MODULE_ACCESS_CHANGED = "module_access_changed"
     USER_DASHBOARD_LAYOUT_CHANGED = "user_dashboard_layout_changed"
     VIEW_AS_ROLE_ENTERED = "view_as_role_entered"
     VIEW_AS_ROLE_EXITED = "view_as_role_exited"
+    PREVIEW_ROLE_CHANGED = "preview_role_changed"
+    MODULE8_CONTEXT_ADAPTER_READ = "module8_context_adapter_read"
     ACCESS_DENIED = "access_denied"
     LEGACY_MODULE_CODE_NORMALIZED = "legacy_module_code_normalized"
     PRICE_HISTORY_MIGRATED_TO_ANALYTICS = "price_history_migrated_to_analytics"
@@ -440,6 +446,142 @@ def record_widget_permission_change(
     )
 
 
+def record_widget_preference_change(
+    *,
+    widget_code: str,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    workspace_id: Any | None = None,
+    active_region_code: str | None = None,
+    actor: Any | None = None,
+    old_value: Any | None = None,
+    new_value: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.WIDGET_PREFERENCE_CHANGED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            workspaceId=_string_or_none(workspace_id),
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            widgetCode=widget_code,
+            oldValue=old_value,
+            newValue=new_value,
+            reason=reason or "Widget instance preference changed.",
+            metadata={
+                "activeRegionCode": active_region_code,
+                "payloadLogged": False,
+                "storageLayer": "UserDashboardLayout.widgets[].userSettings",
+            },
+        ).to_details()
+    )
+
+
+def record_quick_action_permission_change(
+    *,
+    quick_action_code: str,
+    action_code: str | None = None,
+    role_code: str | None = None,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    workspace_id: Any | None = None,
+    actor: Any | None = None,
+    old_value: Any | None = None,
+    new_value: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.QUICK_ACTION_PERMISSION_CHANGED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            workspaceId=_string_or_none(workspace_id),
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            roleCode=role_code,
+            oldValue=old_value,
+            newValue=new_value,
+            reason=reason or "Quick action access changed.",
+            metadata={
+                "quickActionCode": quick_action_code,
+                "actionCode": action_code,
+            },
+        ).to_details()
+    )
+
+
+def record_quick_action_preference_change(
+    *,
+    quick_action_code: str,
+    action_code: str | None = None,
+    module_code: str | None = None,
+    canonical_module_code: str | None = None,
+    feature_code: str | None = None,
+    workspace_id: Any | None = None,
+    active_region_code: str | None = None,
+    active_cabinet_id: str | None = None,
+    actor: Any | None = None,
+    old_value: Any | None = None,
+    new_value: Any | None = None,
+    operation: str = "change",
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.QUICK_ACTION_PREFERENCE_CHANGED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            workspaceId=_string_or_none(workspace_id),
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code,
+            featureCode=feature_code,
+            oldValue=old_value,
+            newValue=new_value,
+            reason=reason or "Quick action preference changed.",
+            metadata={
+                "quickActionCode": quick_action_code,
+                "actionCode": action_code,
+                "activeRegionCode": active_region_code,
+                "activeCabinetId": active_cabinet_id,
+                "operation": operation,
+                "requiresPermissionOnRun": True,
+                "payloadLogged": False,
+            },
+        ).to_details()
+    )
+
+
+def record_module_access_change(
+    *,
+    module_code: str,
+    canonical_module_code: str | None = None,
+    role_code: str | None = None,
+    workspace_id: Any | None = None,
+    actor: Any | None = None,
+    target_user_id: Any | None = None,
+    old_value: Any | None = None,
+    new_value: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.MODULE_ACCESS_CHANGED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            targetUserId=_string_or_none(target_user_id),
+            workspaceId=_string_or_none(workspace_id),
+            moduleCode=module_code,
+            canonicalModuleCode=canonical_module_code or module_code,
+            roleCode=role_code,
+            oldValue=old_value,
+            newValue=new_value,
+            reason=reason or "Module access changed.",
+        ).to_details()
+    )
+
+
 def record_view_as_role_entered(
     *,
     actor: Any,
@@ -472,6 +614,63 @@ def record_view_as_role_exited(
             workspaceId=_string_or_none(workspace_id),
             roleCode=role_code,
             reason=reason or "Dashboard preview role exited.",
+        ).to_details()
+    )
+
+
+def record_preview_role_changed(
+    *,
+    actor: Any,
+    old_role_code: str | None,
+    new_role_code: str | None,
+    workspace_id: Any | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.PREVIEW_ROLE_CHANGED,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            workspaceId=_string_or_none(workspace_id),
+            roleCode=new_role_code,
+            oldValue={"previewRoleCode": old_role_code},
+            newValue={"previewRoleCode": new_role_code},
+            reason=reason or "Preview role changed without changing real permissions.",
+            metadata={"realRoleUnchanged": True},
+        ).to_details()
+    )
+
+
+def record_module8_context_adapter_read(
+    *,
+    actor: Any | None,
+    target_user_id: Any | None,
+    workspace_id: Any | None = None,
+    active_region_code: str | None = None,
+    active_cabinet_id: str | None = None,
+    active_cabinet_type: str | None = None,
+    is_mock: bool = True,
+    cabinet_count: int = 0,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    return write_audit_event_mock(
+        AuditEventPayload(
+            eventType=AuditLogType.MODULE8_CONTEXT_ADAPTER_READ,
+            actorUserId=_get_value(actor, "id") or _get_value(actor, "userId"),
+            targetUserId=_string_or_none(target_user_id),
+            workspaceId=_string_or_none(workspace_id),
+            moduleCode="MODULE_08_PARTNER_PORTAL",
+            canonicalModuleCode="MODULE_08_PARTNER_PORTAL",
+            reason=reason or "Module 03 Admin UI read Module 08 cabinet context through adapter/DTO.",
+            entityType="Module8CabinetAdminPreviewDTO",
+            entityId=active_cabinet_id,
+            metadata={
+                "sourceModuleCode": "MODULE_08_PARTNER_PORTAL",
+                "activeRegionCode": active_region_code,
+                "activeCabinetType": active_cabinet_type,
+                "isMock": is_mock,
+                "cabinetCount": cabinet_count,
+                "businessPayloadLogged": False,
+            },
         ).to_details()
     )
 

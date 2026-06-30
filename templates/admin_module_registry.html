@@ -324,6 +324,7 @@
             <div class="toolbar">
               <span class="chip {% if module.status == 'ACTIVE' %}ok{% elif module.status in ['DRAFT','PLANNED'] %}future{% elif module.status in ['DISABLED','DEPRECATED'] %}warn{% else %}danger{% endif %}">{{ module.status }}</span>
               {% if module.isSystem %}<span class="chip info">system</span>{% endif %}
+              {% if module.isSystemCritical %}<span class="chip danger">system-critical</span>{% endif %}
               {% if module.isLegacyOrAlias %}<span class="chip warn">legacy / alias</span>{% endif %}
               <span class="chip danger">physical delete forbidden</span>
             </div>
@@ -369,6 +370,16 @@
                   {% endfor %}
                 </select>
               </label>
+              {% if module.isSystemCritical %}
+              <div class="empty">
+                Системно-критичный модуль нельзя отключить обычному администратору или модератору.
+                Super Admin должен подтвердить опасное изменение: {{ critical_confirmation }}.
+              </div>
+              <label>
+                Подтверждение для system-critical изменения
+                <input name="critical_confirmation" placeholder="{{ critical_confirmation }}">
+              </label>
+              {% endif %}
               <div class="checks">
                 <label class="check"><input type="checkbox" name="visible_in_sidebar" {% if module.visibleFlags.sidebar %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Sidebar</label>
                 <label class="check"><input type="checkbox" name="visible_on_dashboard" {% if module.visibleFlags.dashboard %}checked{% endif %} {% if not detail.canUpdateFlags %}disabled{% endif %}> Dashboard</label>
@@ -387,6 +398,12 @@
                 Введите {{ archive_confirmation }}
                 <input name="confirmation" placeholder="{{ archive_confirmation }}">
               </label>
+              {% if module.isSystemCritical %}
+              <label>
+                Введите {{ critical_confirmation }}
+                <input name="critical_confirmation" placeholder="{{ critical_confirmation }}">
+              </label>
+              {% endif %}
               <button class="btn danger" type="submit" {% if not detail.canUpdateStatus.ARCHIVED %}disabled{% endif %}>Архивировать</button>
             </form>
           </section>
