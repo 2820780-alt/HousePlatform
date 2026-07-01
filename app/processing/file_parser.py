@@ -7,6 +7,13 @@ from decimal import Decimal, InvalidOperation
 import pandas as pd
 
 from app.processing.file_validator import FileType
+from app.services.material_normalization_rules import normalize_material_title
+from app.services.supplier_price_standard import (
+    analyze_supplier_price_columns,
+    normalize_currency,
+    region_needs_review,
+    unit_needs_review,
+)
 
 
 @dataclass
@@ -20,6 +27,33 @@ class ParsedRow:
     sku: str | None
     brand: str | None
     manufacturer: str | None
+    supplier_category: str | None = None
+    currency: str | None = None
+    availability: str | None = None
+    region: str | None = None
+    city: str | None = None
+    price_date: str | None = None
+    gost_tu: str | None = None
+    size: str | None = None
+    grade_class: str | None = None
+    packing: str | None = None
+    weight: Decimal | None = None
+    volume: Decimal | None = None
+    product_url: str | None = None
+    certificate_url: str | None = None
+    tech_sheet_url: str | None = None
+    delivery_terms: str | None = None
+    price_valid_until: str | None = None
+    comment: str | None = None
+    unit_review_status: str | None = None
+    region_review_status: str | None = None
+    normalization_review_status: str | None = None
+    ignored_candidate_status: str | None = None
+    normalized_title: str | None = None
+    search_title: str | None = None
+    normalization_direction: str | None = None
+    normalization_profile: dict = field(default_factory=dict)
+    review_reasons: list[str] = field(default_factory=list)
     raw_data: dict = field(default_factory=dict)
 
 
@@ -29,6 +63,11 @@ class ParseResult:
     errors: list[str]
     total_rows_found: int
     sheets_parsed: int = 1
+    column_mapping: dict[str, str | None] = field(default_factory=dict)
+    missing_required_columns: list[str] = field(default_factory=list)
+    unknown_columns: list[str] = field(default_factory=list)
+    mapping_preview: dict[str, str | None] = field(default_factory=dict)
+    standard_valid: bool = True
 
 
 def _to_decimal(value) -> Decimal | None:
@@ -57,7 +96,8 @@ def _find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
 
 
 def _detect_columns(df: pd.DataFrame) -> dict[str, str | None]:
-    return {
+    standard_report = analyze_supplier_price_columns([str(column) for column in df.columns])
+    detected = {
         "name": _find_column(df, [
             "name", "description", "item", "product", "material",
             "наименование", "название", "товар", "материал",
@@ -84,13 +124,18 @@ def _detect_columns(df: pd.DataFrame) -> dict[str, str | None]:
             "manufacturer", "vendor", "производитель", "изготовитель",
         ]),
     }
+    for field_name, column_name in standard_report.column_mapping.items():
+        if column_name:
+            detected[field_name] = column_name
+    return detected
 
 
-def _df_to_parsed_rows(df: pd.DataFrame, row_offset: int = 0) -> tuple[list[ParsedRow], list[str]]:
+def _df_to_parsed_rows(df: pd.DataFrame, row_offset: int = 0) -> tuple[list[ParsedRow], list[str], dict]:
     rows: list[ParsedRow] = []
     errors: list[str] = []
+    standard_report = analyze_supplier_price_columns([str(column) for column in df.columns])
     if df.empty:
-        return rows, errors
+        return rows, errors, _report_dict(standard_report)
 
     col_map = _detect_columns(df)
     name_col = col_map["name"] or df.columns[0]
@@ -113,20 +158,81 @@ def _df_to_parsed_rows(df: pd.DataFrame, row_offset: int = 0) -> tuple[list[Pars
                     price = value
                     break
 
+        unit = _safe_str(row.get(col_map["unit"])) if col_map.get("unit") else None
+        region = _safe_str(row.get(col_map["region"])) if col_map.get("region") else None
+        city = _safe_str(row.get(col_map["city"])) if col_map.get("city") else None
+        brand = _safe_str(row.get(col_map["brand"])) if col_map["brand"] else None
+        manufacturer = _safe_str(row.get(col_map["manufacturer"])) if col_map["manufacturer"] else None
+        supplier_category = _safe_str(row.get(col_map["category"])) if col_map.get("category") else None
+        availability = _safe_str(row.get(col_map["availability"])) if col_map.get("availability") else None
+        review_reasons: list[str] = []
+        unit_review_status = None
+        region_review_status = None
+        normalization_review_status = None
+        if unit_needs_review(unit):
+            unit_review_status = "needs_unit_review"
+            review_reasons.append("Единица измерения не распознана")
+        if region_needs_review(region, city):
+            region_review_status = "needs_region_review"
+            review_reasons.append("Регион или город не указаны")
+        normalization = normalize_material_title(
+            name,
+            brand=brand,
+            manufacturer=manufacturer,
+            category=supplier_category,
+            unit=unit,
+            price=price,
+            availability=availability,
+            region=region,
+            city=city,
+        )
+        if normalization.needs_review_reasons:
+            normalization_review_status = "needs_review"
+            for reason in normalization.needs_review_reasons:
+                if reason not in review_reasons:
+                    review_reasons.append(reason)
+
         rows.append(ParsedRow(
             row_number=row_num,
             original_name=name,
             original_price=price,
-            original_unit=_safe_str(row.get(col_map["unit"])) if col_map["unit"] else None,
-            quantity=_to_decimal(row.get(col_map["quantity"]) if col_map["quantity"] else None),
+            original_unit=unit,
+            quantity=_to_decimal(row.get(col_map.get("quantity")) if col_map.get("quantity") else None),
             total_sum=_to_decimal(row.get(col_map["total_sum"]) if col_map["total_sum"] else None),
             sku=_safe_str(row.get(col_map["sku"])) if col_map["sku"] else None,
-            brand=_safe_str(row.get(col_map["brand"])) if col_map["brand"] else None,
-            manufacturer=_safe_str(row.get(col_map["manufacturer"])) if col_map["manufacturer"] else None,
+            brand=brand,
+            manufacturer=manufacturer,
+            supplier_category=supplier_category,
+            currency=normalize_currency(_safe_str(row.get(col_map["currency"])) if col_map.get("currency") else None),
+            availability=availability,
+            region=region,
+            city=city,
+            price_date=_safe_str(row.get(col_map["price_date"])) if col_map.get("price_date") else None,
+            gost_tu=_safe_str(row.get(col_map["gost_tu"])) if col_map.get("gost_tu") else None,
+            size=_safe_str(row.get(col_map["size"])) if col_map.get("size") else None,
+            grade_class=_safe_str(row.get(col_map["grade_class"])) if col_map.get("grade_class") else None,
+            packing=_safe_str(row.get(col_map["packing"])) if col_map.get("packing") else None,
+            weight=_to_decimal(row.get(col_map["weight"]) if col_map.get("weight") else None),
+            volume=_to_decimal(row.get(col_map["volume"]) if col_map.get("volume") else None),
+            product_url=_safe_str(row.get(col_map["product_url"])) if col_map.get("product_url") else None,
+            certificate_url=_safe_str(row.get(col_map["certificate_url"])) if col_map.get("certificate_url") else None,
+            tech_sheet_url=_safe_str(row.get(col_map["tech_sheet_url"])) if col_map.get("tech_sheet_url") else None,
+            delivery_terms=_safe_str(row.get(col_map["delivery_terms"])) if col_map.get("delivery_terms") else None,
+            price_valid_until=_safe_str(row.get(col_map["price_valid_until"])) if col_map.get("price_valid_until") else None,
+            comment=_safe_str(row.get(col_map["comment"])) if col_map.get("comment") else None,
+            unit_review_status=unit_review_status,
+            region_review_status=region_review_status,
+            normalization_review_status=normalization_review_status,
+            ignored_candidate_status=normalization.ignored_candidate_status,
+            normalized_title=normalization.normalized_title,
+            search_title=normalization.search_title,
+            normalization_direction=normalization.direction_code,
+            normalization_profile=normalization.model_dump(),
+            review_reasons=review_reasons,
             raw_data={str(k): str(v) for k, v in row.items() if not pd.isna(v) and str(v).strip()},
         ))
 
-    return rows, errors
+    return rows, errors, _report_dict(standard_report)
 
 
 def _safe_str(value) -> str | None:
@@ -151,18 +257,31 @@ def parse_excel(content: bytes) -> ParseResult:
         sheets_parsed += 1
         try:
             df = pd.read_excel(excel_file, sheet_name=sheet_name)
-            sheet_rows, sheet_errors = _df_to_parsed_rows(df, row_offset)
+            sheet_rows, sheet_errors, sheet_report = _df_to_parsed_rows(df, row_offset)
             rows.extend(sheet_rows)
             errors.extend([f"{sheet_name}: {error}" for error in sheet_errors])
+            if sheet_report.get("missing_required_columns"):
+                errors.extend([
+                    f"{sheet_name}: missing required column: {column}"
+                    for column in sheet_report["missing_required_columns"]
+                ])
             row_offset += len(df)
+            if sheets_parsed == 1:
+                report = sheet_report
         except Exception as exc:
             errors.append(f"{sheet_name}: {exc}")
 
+    report = locals().get("report", {})
     return ParseResult(
         rows=rows,
         errors=errors,
         total_rows_found=len(rows),
         sheets_parsed=sheets_parsed,
+        column_mapping=report.get("column_mapping", {}),
+        missing_required_columns=report.get("missing_required_columns", []),
+        unknown_columns=report.get("unknown_columns", []),
+        mapping_preview=report.get("mapping_preview", {}),
+        standard_valid=report.get("valid", True),
     )
 
 
@@ -197,8 +316,19 @@ def parse_csv(content: bytes) -> ParseResult:
             total_rows_found=0,
         )
 
-    rows, errors = _df_to_parsed_rows(df)
-    return ParseResult(rows=rows, errors=errors, total_rows_found=len(rows), sheets_parsed=1)
+    rows, errors, report = _df_to_parsed_rows(df)
+    errors.extend([f"missing required column: {column}" for column in report["missing_required_columns"]])
+    return ParseResult(
+        rows=rows,
+        errors=errors,
+        total_rows_found=len(rows),
+        sheets_parsed=1,
+        column_mapping=report["column_mapping"],
+        missing_required_columns=report["missing_required_columns"],
+        unknown_columns=report["unknown_columns"],
+        mapping_preview=report["mapping_preview"],
+        standard_valid=report["valid"],
+    )
 
 
 def parse_file(content: bytes, file_type: FileType) -> ParseResult:
@@ -211,3 +341,13 @@ def parse_file(content: bytes, file_type: FileType) -> ParseResult:
         errors=[f"Unsupported MVP file type: {file_type}"],
         total_rows_found=0,
     )
+
+
+def _report_dict(report) -> dict:
+    return {
+        "column_mapping": report.column_mapping,
+        "missing_required_columns": report.missing_required_columns,
+        "unknown_columns": report.unknown_columns,
+        "mapping_preview": report.mapping_preview,
+        "valid": report.valid,
+    }

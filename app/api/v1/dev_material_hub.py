@@ -52,6 +52,7 @@ from app.services.material_hub_first_wave import (
     first_wave_safe_source_status,
     is_first_wave_blocked_source,
 )
+from app.services.supplier_price_standard import supplier_price_standard_validation_error
 from app.processing.file_parser import parse_file
 from app.processing.file_validator import validate_file
 from app.services.upload_storage import save_uploaded_file
@@ -391,6 +392,17 @@ async def upload_dev_supplier_file(
 
     if str(write_mode or "").upper() == "PREVIEW":
         parsed = parse_file(content, validation.file_type)
+        validation_error = supplier_price_standard_validation_error(parsed)
+        if validation_error:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message": validation_error,
+                    "missing_required_columns": parsed.missing_required_columns,
+                    "unknown_columns": parsed.unknown_columns,
+                    "mapping_preview": parsed.mapping_preview,
+                },
+            )
         now = datetime.utcnow()
         parameters = attach_source_profile_snapshot(
             None,
@@ -428,12 +440,28 @@ async def upload_dev_supplier_file(
                 "rows_total": parsed.total_rows_found,
                 "rows_previewed": len(parsed.rows),
                 "parse_errors": parsed.errors[:10],
+                "missing_required_columns": parsed.missing_required_columns,
+                "unknown_columns": parsed.unknown_columns,
+                "mapping_preview": parsed.mapping_preview,
             },
         )
         db.add(task)
         await db.flush()
         await db.refresh(task)
         return DevUploadSupplierFileResponse(task=task)
+
+    parsed_for_validation = parse_file(content, validation.file_type)
+    validation_error = supplier_price_standard_validation_error(parsed_for_validation)
+    if validation_error:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": validation_error,
+                "missing_required_columns": parsed_for_validation.missing_required_columns,
+                "unknown_columns": parsed_for_validation.unknown_columns,
+                "mapping_preview": parsed_for_validation.mapping_preview,
+            },
+        )
 
     supplier = await _get_or_create_dev_supplier(db, supplier_name, city, region)
     source = await _get_or_create_admin_upload_source(db, supplier.name)

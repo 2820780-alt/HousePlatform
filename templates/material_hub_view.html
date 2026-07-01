@@ -578,6 +578,12 @@
         <div>
           <label for="supplier-file">Файл CSV/XLSX</label>
           <input id="supplier-file" type="file" onchange="updateScenarioPreview()" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          <div class="muted" style="margin-top:6px">
+            Шаблон прайса:
+            <a href="/api/v1/admin/material-hub/view/supplier-price-template/csv">CSV</a>
+            ·
+            <a href="/api/v1/admin/material-hub/view/supplier-price-template/xlsx">XLSX</a>
+          </div>
         </div>
         <div>
           <label for="supplier-name">Поставщик</label>
@@ -590,6 +596,9 @@
         <div>
           <label for="supplier-city">Город</label>
           <input id="supplier-city" placeholder="Например: Краснодар">
+        </div>
+        <div class="muted">
+          Обязательные поля: название, артикул, категория, единица, цена, валюта, наличие, регион, город, дата актуальности цены.
         </div>
       </div>
       <div class="run-action-row">

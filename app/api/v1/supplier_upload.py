@@ -18,11 +18,13 @@ from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.supplier_account import SupplierAccount
 from app.models.supplier_upload import SupplierUpload
+from app.processing.file_parser import parse_file
 from app.processing.file_validator import validate_file
 from app.schemas.common import PaginatedResponse
 from app.schemas.material_hub import SupplierUploadRead
 from app.services.audit_service import log_event
 from app.services.source_profiles import attach_source_profile_snapshot
+from app.services.supplier_price_standard import supplier_price_standard_validation_error
 from app.services.upload_storage import save_uploaded_file
 
 router = APIRouter(prefix="/supplier", tags=["supplier-upload"])
@@ -90,6 +92,19 @@ async def upload_document(
     )
     if not validation.valid:
         raise HTTPException(status_code=422, detail=validation.error)
+
+    parsed_for_validation = parse_file(content, validation.file_type)
+    validation_error = supplier_price_standard_validation_error(parsed_for_validation)
+    if validation_error:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": validation_error,
+                "missing_required_columns": parsed_for_validation.missing_required_columns,
+                "unknown_columns": parsed_for_validation.unknown_columns,
+                "mapping_preview": parsed_for_validation.mapping_preview,
+            },
+        )
 
     source = await _get_or_create_manual_source(db, supplier_id)
 

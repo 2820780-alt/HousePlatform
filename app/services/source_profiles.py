@@ -29,6 +29,10 @@ from app.services.material_hub_first_wave import (
     apply_first_wave_policy_to_parameters,
     first_wave_source_policy,
 )
+from app.services.material_normalization_rules import (
+    get_normalization_profile_snapshot,
+    get_source_normalization_rule_specs,
+)
 from app.services.source_document_refs import source_documents_from_parameters
 
 
@@ -115,6 +119,7 @@ def build_source_profile_snapshot(
         "source_profile": source_profile.model_dump(mode="json"),
         "extraction_profile": extraction_profile.model_dump(mode="json"),
         "source_adapter": source_adapter.model_dump(mode="json"),
+        "normalization_profile": get_normalization_profile_snapshot(),
         "moderator_update_ready": True,
         "notes": [
             "Profile snapshot is a preparation layer; existing source integrations still own extraction.",
@@ -358,6 +363,7 @@ def _build_mapping_profile(parameters: dict) -> SourceMappingProfile:
             SourceNormalizationRule(rule_code="collapse_spaces", target="name", transform="collapse_spaces", status="ACTIVE"),
             SourceNormalizationRule(rule_code="normalize_square_meter", target="unit", pattern="м2|m2", replacement="м²", status="ACTIVE"),
             SourceNormalizationRule(rule_code="needs_region_review_without_region", target="region", transform="needs_review_when_empty", status="ACTIVE"),
+            *[SourceNormalizationRule(**spec) for spec in get_source_normalization_rule_specs()],
         ],
         source_moderation_rules=[
             SourceModerationRule(

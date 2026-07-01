@@ -43,6 +43,7 @@ from app.services.material_classification import (
     apply_classification_categories,
     classify_catalog_product,
 )
+from app.services.material_normalization_rules import normalize_material_title
 from app.services.material_taxonomy import (
     infer_baucenter_taxonomy,
     sync_extracted_specifications,
@@ -54,6 +55,7 @@ from app.services.material_hub_first_wave import (
     apply_first_wave_policy_to_parameters,
     is_first_wave_blocked_source,
 )
+from app.services.supplier_price_standard import supplier_price_standard_validation_error
 
 
 async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
@@ -353,12 +355,45 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
 
     file_type = _parser_file_type(upload.file_type)
     parsed = parse_file(file_path.read_bytes(), file_type)
+    validation_error = supplier_price_standard_validation_error(parsed)
+    if validation_error:
+        upload.status = UploadStatus.FAILED
+        upload.rows_total = parsed.total_rows_found
+        upload.rows_errors = len(parsed.missing_required_columns)
+        db.add(upload)
+        task.result_summary = {
+            "supplier_upload_id": str(upload.id),
+            "rows_total": parsed.total_rows_found,
+            "rows_processed": 0,
+            "rows_matched": 0,
+            "rows_needs_review": 0,
+            "rows_errors": upload.rows_errors,
+            "missing_required_columns": parsed.missing_required_columns,
+            "unknown_columns": parsed.unknown_columns,
+            "mapping_preview": parsed.mapping_preview,
+            "validation_error": validation_error,
+        }
+        await _result(
+            db,
+            task,
+            TaskResultType.ERROR,
+            entity_type="SupplierUpload",
+            entity_id=upload.id,
+            status="validation_error",
+            new_value=task.result_summary,
+        )
+        raise ValueError(validation_error)
     await _log(
         db,
         task,
         TaskLogLevel.INFO,
         f"Parsed supplier file rows: {parsed.total_rows_found}; sheets: {parsed.sheets_parsed}",
-        {"errors": parsed.errors[:10]},
+        {
+            "errors": parsed.errors[:10],
+            "missing_required_columns": parsed.missing_required_columns,
+            "unknown_columns": parsed.unknown_columns,
+            "mapping_preview": parsed.mapping_preview,
+        },
     )
 
     matched = 0
@@ -372,18 +407,57 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
             upload_id=upload.id,
             row_number=parsed_row.row_number,
             raw_name=parsed_row.original_name,
-            normalized_name=_normalize(parsed_row.original_name or ""),
+            normalized_name=parsed_row.normalized_title or _normalize(parsed_row.original_name or ""),
             raw_brand=parsed_row.brand,
             raw_manufacturer=parsed_row.manufacturer,
             raw_unit=parsed_row.original_unit,
             raw_price=parsed_row.original_price,
             raw_quantity=parsed_row.quantity,
             raw_article=parsed_row.sku,
-            parsed_data=parsed_row.raw_data,
+            parsed_data=_parsed_row_payload(parsed_row),
             status=UploadRowStatus.EXTRACTED,
         )
 
         try:
+            if parsed_row.ignored_candidate_status:
+                row.status = UploadRowStatus.REJECTED
+                row.error_message = "; ".join(parsed_row.review_reasons) or "ignored_candidate"
+                needs_review += 1
+                db.add(row)
+                await db.flush()
+                await _result(
+                    db,
+                    task,
+                    TaskResultType.NEEDS_REVIEW,
+                    entity_type="SupplierUploadRow",
+                    entity_id=row.id,
+                    status=parsed_row.ignored_candidate_status,
+                    new_value=_upload_row_snapshot(row),
+                )
+                continue
+
+            review_status = (
+                parsed_row.unit_review_status
+                or parsed_row.region_review_status
+                or parsed_row.normalization_review_status
+            )
+            if review_status:
+                row.status = UploadRowStatus.NEEDS_REVIEW
+                row.error_message = "; ".join(parsed_row.review_reasons)
+                needs_review += 1
+                db.add(row)
+                await db.flush()
+                await _result(
+                    db,
+                    task,
+                    TaskResultType.NEEDS_REVIEW,
+                    entity_type="SupplierUploadRow",
+                    entity_id=row.id,
+                    status=review_status,
+                    new_value=_upload_row_snapshot(row),
+                )
+                continue
+
             material = await _match_upload_material(db, parsed_row.original_name)
             if not material:
                 row.status = UploadRowStatus.NEEDS_REVIEW
@@ -459,6 +533,9 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
         "rows_needs_review": upload.rows_needs_review,
         "rows_errors": upload.rows_errors,
         "parse_errors": parsed.errors[:10],
+        "missing_required_columns": parsed.missing_required_columns,
+        "unknown_columns": parsed.unknown_columns,
+        "mapping_preview": parsed.mapping_preview,
     }
     await _result(
         db,
@@ -494,6 +571,23 @@ async def _run_supplier_upload_preview(db: AsyncSession, task: SourceTask) -> No
         raise ValueError(f"Uploaded file is not available: {upload.file_url}")
 
     parsed = parse_file(file_path.read_bytes(), _parser_file_type(upload.file_type))
+    validation_error = supplier_price_standard_validation_error(parsed)
+    if validation_error:
+        task.result_summary = {
+            **payload,
+            "preview": True,
+            "write_mode": "PREVIEW",
+            "supplier_upload_id": str(upload.id),
+            "rows_total": parsed.total_rows_found,
+            "rows_previewed": 0,
+            "missing_required_columns": parsed.missing_required_columns,
+            "unknown_columns": parsed.unknown_columns,
+            "mapping_preview": parsed.mapping_preview,
+            "validation_error": validation_error,
+        }
+        db.add(task)
+        await _log(db, task, TaskLogLevel.ERROR, validation_error)
+        return
     task.result_summary = {
         **payload,
         "preview": True,
@@ -502,6 +596,9 @@ async def _run_supplier_upload_preview(db: AsyncSession, task: SourceTask) -> No
         "rows_total": parsed.total_rows_found,
         "rows_previewed": len(parsed.rows),
         "parse_errors": parsed.errors[:10],
+        "missing_required_columns": parsed.missing_required_columns,
+        "unknown_columns": parsed.unknown_columns,
+        "mapping_preview": parsed.mapping_preview,
         "sample": [_parsed_row_preview(row) for row in parsed.rows[:10]],
     }
     db.add(task)
@@ -557,13 +654,24 @@ async def _upsert_catalog_product(
     product: SourceProduct,
 ) -> tuple[CatalogProduct, TaskResultType, bool]:
     existing = await _find_catalog_product(db, task.source_id, product)
+    normalization = normalize_material_title(
+        product.raw_name,
+        brand=product.raw_brand,
+        manufacturer=product.raw_manufacturer,
+        category=product.raw_category,
+        unit=product.unit,
+        price=product.price,
+        availability=product.availability,
+        region=product.region,
+    )
+    product_normalized_name = product.normalized_name or normalization.normalized_title
     if not existing:
         catalog_product = CatalogProduct(
             source_id=task.source_id,
             external_id=product.external_id,
             external_url=product.external_url,
             raw_name=product.raw_name,
-            normalized_name=product.normalized_name,
+            normalized_name=product_normalized_name,
             raw_category=product.raw_category,
             raw_brand=product.raw_brand,
             raw_manufacturer=product.raw_manufacturer,
@@ -581,7 +689,7 @@ async def _upsert_catalog_product(
     price_changed = _price_changed(existing.price, product.price)
     changed = price_changed or any([
         existing.raw_name != product.raw_name,
-        existing.normalized_name != product.normalized_name,
+        existing.normalized_name != product_normalized_name,
         existing.raw_category != product.raw_category,
         existing.raw_brand != product.raw_brand,
         existing.raw_manufacturer != product.raw_manufacturer,
@@ -595,7 +703,7 @@ async def _upsert_catalog_product(
 
     old_snapshot = _product_snapshot(existing)
     existing.raw_name = product.raw_name
-    existing.normalized_name = product.normalized_name
+    existing.normalized_name = product_normalized_name
     existing.raw_category = product.raw_category
     existing.raw_brand = product.raw_brand
     existing.raw_manufacturer = product.raw_manufacturer
@@ -904,8 +1012,9 @@ async def _upsert_supplier_price_from_upload(
 ) -> None:
     if not row.material_id or not upload.supplier_id:
         return
+    row_payload = row.parsed_data or {}
     unit = row.raw_unit or payload.get("unit")
-    region = payload.get("region") or payload.get("city")
+    region = row_payload.get("region") or row_payload.get("city") or payload.get("region") or payload.get("city")
 
     result = await db.execute(
         select(SupplierPrice)
@@ -921,10 +1030,10 @@ async def _upsert_supplier_price_from_upload(
             supplier_id=upload.supplier_id,
             material_id=row.material_id,
             price=price,
-            currency=payload.get("currency") or "RUB",
+            currency=row_payload.get("currency") or payload.get("currency") or "RUB",
             unit=unit,
             region=region,
-            availability=payload.get("availability") or "загружено из файла",
+            availability=row_payload.get("availability") or payload.get("availability") or "загружено из файла",
             min_order_quantity=row.raw_quantity,
             source_upload_id=upload.id,
         )
@@ -933,10 +1042,10 @@ async def _upsert_supplier_price_from_upload(
         return
 
     supplier_price.price = price
-    supplier_price.currency = payload.get("currency") or supplier_price.currency or "RUB"
+    supplier_price.currency = row_payload.get("currency") or payload.get("currency") or supplier_price.currency or "RUB"
     supplier_price.unit = unit
     supplier_price.region = region
-    supplier_price.availability = payload.get("availability") or supplier_price.availability
+    supplier_price.availability = row_payload.get("availability") or payload.get("availability") or supplier_price.availability
     supplier_price.min_order_quantity = row.raw_quantity or supplier_price.min_order_quantity
     supplier_price.source_upload_id = upload.id
     db.add(supplier_price)
@@ -952,6 +1061,7 @@ async def _write_supplier_price_history_from_upload(
 ) -> None:
     if not row.material_id:
         return
+    row_payload = row.parsed_data or {}
     history = PriceHistory(
         material_id=row.material_id,
         catalog_product_id=None,
@@ -959,11 +1069,11 @@ async def _write_supplier_price_history_from_upload(
         supplier_id=upload.supplier_id,
         supplier_upload_id=upload.id,
         price=price,
-        currency=payload.get("currency") or "RUB",
+        currency=row_payload.get("currency") or payload.get("currency") or "RUB",
         unit=row.raw_unit or payload.get("unit"),
-        region=payload.get("region") or payload.get("city"),
-        availability=payload.get("availability") or "загружено из файла",
-        price_date=_payload_price_date(payload),
+        region=row_payload.get("region") or row_payload.get("city") or payload.get("region") or payload.get("city"),
+        availability=row_payload.get("availability") or payload.get("availability") or "загружено из файла",
+        price_date=_payload_price_date(row_payload) or _payload_price_date(payload),
     )
     db.add(history)
     await db.flush()
@@ -979,6 +1089,7 @@ def _upload_row_snapshot(row: SupplierUploadRow) -> dict:
         "raw_unit": row.raw_unit,
         "raw_quantity": str(row.raw_quantity) if row.raw_quantity is not None else None,
         "raw_article": row.raw_article,
+        "parsed_data": row.parsed_data or {},
         "material_id": str(row.material_id) if row.material_id else None,
         "status": row.status.value if row.status else None,
         "error_message": row.error_message,
@@ -1026,11 +1137,25 @@ def _product_snapshot(product: CatalogProduct) -> dict:
 
 
 def _source_product_preview(product: SourceProduct) -> dict:
+    normalization = normalize_material_title(
+        product.raw_name,
+        brand=product.raw_brand,
+        manufacturer=product.raw_manufacturer,
+        category=product.raw_category,
+        unit=product.unit,
+        price=product.price,
+        availability=product.availability,
+        region=product.region,
+    )
     return {
         "external_id": product.external_id,
         "external_url": product.external_url,
         "raw_name": product.raw_name,
-        "normalized_name": product.normalized_name,
+        "normalized_name": product.normalized_name or normalization.normalized_title,
+        "search_title": normalization.search_title,
+        "normalization_direction": normalization.direction_code,
+        "normalization_review_reasons": normalization.needs_review_reasons,
+        "ignored_candidate_reasons": normalization.ignored_candidate_reasons,
         "raw_category": product.raw_category,
         "raw_brand": product.raw_brand,
         "raw_manufacturer": product.raw_manufacturer,
@@ -1069,15 +1194,48 @@ def _source_document_preview(document: SourceDocument) -> dict:
 
 
 def _parsed_row_preview(row) -> dict:
+    return _parsed_row_payload(row)
+
+
+def _parsed_row_payload(row) -> dict:
     return {
         "row_number": row.row_number,
         "raw_name": row.original_name,
         "raw_price": str(row.original_price) if row.original_price is not None else None,
         "raw_unit": row.original_unit,
         "raw_quantity": str(row.quantity) if row.quantity is not None else None,
+        "total_sum": str(row.total_sum) if row.total_sum is not None else None,
         "raw_article": row.sku,
         "raw_brand": row.brand,
         "raw_manufacturer": row.manufacturer,
+        "supplier_category": row.supplier_category,
+        "currency": row.currency,
+        "availability": row.availability,
+        "region": row.region,
+        "city": row.city,
+        "price_date": row.price_date,
+        "gost_tu": row.gost_tu,
+        "size": row.size,
+        "grade_class": row.grade_class,
+        "packing": row.packing,
+        "weight": str(row.weight) if row.weight is not None else None,
+        "volume": str(row.volume) if row.volume is not None else None,
+        "product_url": row.product_url,
+        "certificate_url": row.certificate_url,
+        "tech_sheet_url": row.tech_sheet_url,
+        "delivery_terms": row.delivery_terms,
+        "price_valid_until": row.price_valid_until,
+        "comment": row.comment,
+        "unit_review_status": row.unit_review_status,
+        "region_review_status": row.region_review_status,
+        "normalization_review_status": row.normalization_review_status,
+        "ignored_candidate_status": row.ignored_candidate_status,
+        "normalized_title": row.normalized_title,
+        "search_title": row.search_title,
+        "normalization_direction": row.normalization_direction,
+        "normalization_profile": row.normalization_profile,
+        "review_reasons": row.review_reasons,
+        "raw_data": row.raw_data,
     }
 
 

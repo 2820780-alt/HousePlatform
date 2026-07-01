@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
@@ -41,6 +41,11 @@ from app.services.material_hub_first_wave import (
     first_wave_source_note,
     first_wave_source_status_label,
     is_first_wave_blocked_source,
+)
+from app.services.supplier_price_standard import (
+    TEMPLATE_BASENAME,
+    build_supplier_price_template_csv,
+    build_supplier_price_template_xlsx,
 )
 
 
@@ -179,6 +184,24 @@ DOCUMENT_GROUP_LABELS = {
     "TEST_REPORT": "Протоколы испытаний",
     "TECHNICAL_APPROVAL": "Технические свидетельства",
 }
+
+
+@router.get("/supplier-price-template/{file_type}")
+async def supplier_price_template(file_type: str):
+    normalized = file_type.lower().strip(".")
+    if normalized == "csv":
+        return Response(
+            build_supplier_price_template_csv(),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{TEMPLATE_BASENAME}.csv"'},
+        )
+    if normalized == "xlsx":
+        return Response(
+            build_supplier_price_template_xlsx(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{TEMPLATE_BASENAME}.xlsx"'},
+        )
+    raise HTTPException(status_code=404, detail="Template format not found")
 
 
 @router.get("", response_class=HTMLResponse)
