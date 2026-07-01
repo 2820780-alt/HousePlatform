@@ -253,7 +253,7 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
         if price_changed:
             price_changes += 1
 
-        matched = await _match_or_create_material(db, catalog_product)
+        matched = await _match_or_queue_material(db, catalog_product)
         if matched in {"candidate", "needs_review"}:
             candidates += 1
         if price_changed and catalog_product.material_id and catalog_product.price is not None:
@@ -669,7 +669,7 @@ async def _get_or_create_manufacturer(db: AsyncSession, name: str | None, offici
     return manufacturer
 
 
-async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogProduct) -> str:
+async def _match_or_queue_material(db: AsyncSession, catalog_product: CatalogProduct) -> str:
     normalized = catalog_product.normalized_name or _normalize(catalog_product.raw_name)
     classification = classify_catalog_product(catalog_product)
     quality = assess_material_quality(catalog_product, classification)

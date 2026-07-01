@@ -46,6 +46,7 @@ from app.services.material_taxonomy import (
 )
 from app.services.rule_memory import build_rule_patterns, remember_material_rule
 from app.services.audit_service import log_event
+from app.services.material_pipeline_guard import create_material_from_moderated_candidate
 from app.services.source_profiles import attach_source_profile_snapshot
 from app.processing.file_parser import parse_file
 from app.processing.file_validator import validate_file
@@ -981,36 +982,15 @@ async def create_dev_material_from_candidate(candidate_id: UUID, data: DevModera
     if not product:
         raise HTTPException(status_code=404, detail="Catalog product not found")
 
-    canonical_name = data.canonical_name or product.raw_name or product.normalized_name
-    material = Material(
-        canonical_name=canonical_name,
+    material = await create_material_from_moderated_candidate(
+        db,
+        candidate,
+        product,
+        canonical_name=data.canonical_name,
         brand=product.raw_brand,
         manufacturer=product.raw_manufacturer,
-        status=MaterialStatus.AUTO_CREATED,
+        reason=data.reason or "dev moderation create-material",
     )
-    db.add(material)
-    await db.flush()
-    await db.refresh(material)
-
-    alias = MaterialAlias(
-        material_id=material.id,
-        original_name=product.raw_name,
-        normalized_name=product.normalized_name or product.raw_name,
-        confidence_score=candidate.match_score or Decimal("0.5"),
-    )
-    db.add(alias)
-
-    product.material_id = material.id
-    product.status = CatalogProductStatus.ACTIVE
-    candidate.candidate_material_id = material.id
-    candidate.status = MatchCandidateStatus.APPROVED
-    candidate.admin_decision = AdminDecision.APPROVE
-    if data.reason:
-        candidate.match_reason = f"{candidate.match_reason or ''}\nСоздан новый Material: {data.reason}".strip()
-
-    db.add(product)
-    db.add(candidate)
-    await db.flush()
     return {"status": "created", "candidate_id": str(candidate.id), "material_id": str(material.id)}
 
 

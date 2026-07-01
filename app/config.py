@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 50
     TEMP_UPLOAD_DIR: str = "/tmp/uploads"
 
+    # Module 01 Material Hub MVP collection region. Override in .env to add
+    # regions without changing business logic.
+    MATERIAL_HUB_ACTIVE_REGION_LABEL: str = "Краснодарский край"
+    MATERIAL_HUB_ACTIVE_REGION_CODE: str = "RU-KDA"
+    MATERIAL_HUB_SOURCE_REGION_ID: Optional[str] = None
+    MATERIAL_HUB_SOURCE_CITY_ID: Optional[str] = None
+    MATERIAL_HUB_DELIVERY_ZONE_ID: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

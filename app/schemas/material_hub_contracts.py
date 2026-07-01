@@ -24,6 +24,7 @@ from app.models.enums import (
 
 
 MODULE_01_MATERIAL_HUB = "MODULE_01_MATERIAL_HUB"
+RegionStatusValue = RegionStatus | Literal["needs_review"]
 
 
 class AuthMode(str, Enum):
@@ -110,6 +111,23 @@ class SourceProfileStatus(str, Enum):
     ARCHIVED = "ARCHIVED"
 
 
+class AccountLinkStatus(str, Enum):
+    NOT_LINKED = "NOT_LINKED"
+    LINK_REQUESTED = "LINK_REQUESTED"
+    LINKED = "LINKED"
+    SYNC_CONFLICT = "SYNC_CONFLICT"
+    BLOCKED = "BLOCKED"
+    ARCHIVED = "ARCHIVED"
+
+
+class AccountSyncStatus(str, Enum):
+    NOT_SYNCED = "NOT_SYNCED"
+    IN_SYNC = "IN_SYNC"
+    PENDING_REVIEW = "PENDING_REVIEW"
+    CONFLICT = "CONFLICT"
+    ERROR = "ERROR"
+
+
 class DataSourceKind(str, Enum):
     SUPPLIER_SITE = "SUPPLIER_SITE"
     API = "API"
@@ -156,6 +174,20 @@ class ModeratorDecisionAction(str, Enum):
     CREATE_CANONICAL_FROM_CANDIDATE = "CREATE_CANONICAL_FROM_CANDIDATE"
     REQUEST_CHANGES = "REQUEST_CHANGES"
     REJECT = "REJECT"
+    ARCHIVE = "ARCHIVE"
+
+
+class ConstructionUsageStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    REJECTED = "REJECTED"
+    ARCHIVED = "ARCHIVED"
+
+
+class ConstructionUsageModerationAction(str, Enum):
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
+    UPDATE = "UPDATE"
     ARCHIVE = "ARCHIVE"
 
 
@@ -248,6 +280,74 @@ class ConsumptionCharacteristic(MaterialCharacteristic):
     applicability_note: str | None = None
 
 
+class RequiredCharacteristicRef(BaseModel):
+    characteristic_name: str
+    expected_value: str | Decimal | bool | None = None
+    expected_unit: str | None = None
+    condition: str | None = None
+
+
+class MaterialConstructionUsage(Module01Contract):
+    id: UUID | None = None
+    material_id: UUID | None = None
+    construction_group: str
+    construction_subgroup: str | None = None
+    construction_element: str | None = None
+    technology_context: str | None = None
+    usage_role: str | None = None
+    condition: str | None = None
+    required_characteristics: list[RequiredCharacteristicRef] = Field(default_factory=list)
+    source_module: str | None = MODULE_01_MATERIAL_HUB
+    source_reference_id: UUID | str | None = None
+    confidence: Decimal | None = None
+    verified_by_moderator: bool = False
+    moderator_note: str | None = None
+    status: ConstructionUsageStatus = ConstructionUsageStatus.NEEDS_REVIEW
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class Module2TechnologyKnowledgeRef(Module01Contract):
+    source_module_code: str | None = "MODULE_02_KNOWLEDGE_BASE"
+    target_module_code: str | None = MODULE_01_MATERIAL_HUB
+    technology: str | None = None
+    construction: str | None = None
+    node: str | None = None
+    work_stage: str | None = None
+    material_name: str | None = None
+    material_role: str | None = None
+    construction_group: str | None = None
+    construction_subgroup: str | None = None
+    usage_condition: str | None = None
+    required_characteristics: list[RequiredCharacteristicRef] = Field(default_factory=list)
+    linked_document_refs: list[str] = Field(default_factory=list)
+    consumption_hint: str | None = None
+    source_reference_id: UUID | str | None = None
+    confidence: Decimal | None = None
+
+
+class MaterialConstructionUsageCandidate(Module01Contract):
+    id: UUID | None = None
+    material_id: UUID | None = None
+    material_name: str | None = None
+    proposed_usage: MaterialConstructionUsage
+    module2_knowledge_ref: Module2TechnologyKnowledgeRef | None = None
+    status: ConstructionUsageStatus = ConstructionUsageStatus.NEEDS_REVIEW
+    moderator_note: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class MaterialConstructionUsageModerationDecision(Module01Contract):
+    id: UUID | None = None
+    candidate_id: UUID | None = None
+    material_id: UUID | None = None
+    action: ConstructionUsageModerationAction
+    updated_usage: MaterialConstructionUsage | None = None
+    moderator_note: str | None = None
+    decided_at: datetime | None = None
+
+
 class MaterialCanonicalObject(Module01Contract):
     id: UUID | None = None
     canonical_name: str
@@ -263,6 +363,7 @@ class MaterialCanonicalObject(Module01Contract):
     description: str | None = None
     characteristics: list[MaterialCharacteristic] = Field(default_factory=list)
     consumption_characteristics: list[ConsumptionCharacteristic] = Field(default_factory=list)
+    construction_usage: list[MaterialConstructionUsage] = Field(default_factory=list)
     status: MaterialStatus = MaterialStatus.DRAFT
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -287,7 +388,7 @@ class PriceObservation(Module01Contract):
     supplier_branch_id: UUID | None = None
     delivery_included: bool | None = None
     pickup_available: bool | None = None
-    region_status: RegionStatus | None = None
+    region_status: RegionStatusValue | None = None
 
 
 class RawIngestionItem(Module01Contract):
@@ -314,7 +415,7 @@ class RawIngestionItem(Module01Contract):
     detected_region_id: UUID | None = None
     detected_city_id: UUID | None = None
     region_confidence: Decimal | None = None
-    region_status: RegionStatus | None = None
+    region_status: RegionStatusValue | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -371,7 +472,7 @@ class DocumentRecord(Module01Contract):
     linked_technology_refs: list[str] = Field(default_factory=list)
     regional_restrictions: str | None = None
     applicable_region_ids: list[UUID] = Field(default_factory=list)
-    region_status: RegionStatus | None = None
+    region_status: RegionStatusValue | None = None
     parse_status: DocumentParseStatus = DocumentParseStatus.NOT_PROCESSED
     summary: str | None = None
     change_history: list[dict[str, Any]] = Field(default_factory=list)
@@ -387,10 +488,28 @@ class SupplierContract(Module01Contract):
     site: str | None = None
     email: str | None = None
     phone: str | None = None
+    address: str | None = None
+    contacts: dict[str, Any] = Field(default_factory=dict)
+    manager_contacts: list[dict[str, Any]] = Field(default_factory=list)
+    bank_details: dict[str, Any] = Field(default_factory=dict)
+    profile: dict[str, Any] = Field(default_factory=dict)
     supplier_account_id: UUID | None = None
+    account_link_status: AccountLinkStatus = AccountLinkStatus.NOT_LINKED
+    verified_account: bool = False
+    linked_at: datetime | None = None
+    sync_status: AccountSyncStatus = AccountSyncStatus.NOT_SYNCED
+    last_synced_at: datetime | None = None
     supplier_region_id: UUID | None = None
     supplier_city_id: UUID | None = None
     delivery_zone_ids: list[UUID] = Field(default_factory=list)
+    pickup_available: bool | None = None
+    delivery_available: bool | None = None
+    region_status: RegionStatusValue | None = None
+    linked_material_ids: list[UUID] = Field(default_factory=list)
+    linked_document_ids: list[UUID] = Field(default_factory=list)
+    linked_source_ids: list[UUID] = Field(default_factory=list)
+    upload_history_refs: list[UUID] = Field(default_factory=list)
+    parsing_error_summary: list[dict[str, Any]] = Field(default_factory=list)
     status: SupplierStatus = SupplierStatus.POTENTIAL
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -401,14 +520,35 @@ class SupplierBranchContract(Module01Contract):
     supplier_id: UUID
     name: str | None = None
     branch_account_id: UUID | None = None
+    account_link_status: AccountLinkStatus = AccountLinkStatus.NOT_LINKED
+    verified_account: bool = False
+    linked_at: datetime | None = None
+    sync_status: AccountSyncStatus = AccountSyncStatus.NOT_SYNCED
+    last_synced_at: datetime | None = None
     branch_region_id: UUID | None = None
     branch_city_id: UUID | None = None
     branch_delivery_zone_ids: list[UUID] = Field(default_factory=list)
     address: str | None = None
     contacts: dict[str, Any] | None = None
+    manager_contacts: list[dict[str, Any]] = Field(default_factory=list)
+    pickup_available: bool | None = None
+    delivery_available: bool | None = None
+    region_status: RegionStatusValue | None = None
     is_main: bool = False
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+class SupplierCard(Module01Contract):
+    supplier: SupplierContract
+    branches: list[SupplierBranchContract] = Field(default_factory=list)
+    material_count: int = 0
+    document_count: int = 0
+    source_count: int = 0
+    upload_count: int = 0
+    parsing_error_count: int = 0
+    archive_policy: str = "Archive instead of delete when supplier has linked prices, uploads, documents or sources."
+    module8_todo: str = "Future cabinet link belongs to MODULE_08_PARTNER_PORTAL; Module 01 stores only link metadata."
 
 
 class SourceSection(BaseModel):
@@ -496,7 +636,7 @@ class SourceProfile(Module01Contract):
     source_region_id: UUID | None = None
     source_city_id: UUID | None = None
     source_delivery_zone_id: UUID | None = None
-    region_status: RegionStatus | None = None
+    region_status: RegionStatusValue | None = None
     region_coverage: list[UUID] = Field(default_factory=list)
     city_coverage: list[UUID] = Field(default_factory=list)
     delivery_zone_coverage: list[UUID] = Field(default_factory=list)
@@ -552,18 +692,49 @@ class WorkRateObservation(Module01Contract):
     work_rate_source_id: UUID | None = None
     contractor_profile_ref: str | None = None
     work_producer_ref: str | None = None
+    work_producer_account_id: UUID | None = None
+    account_link_status: AccountLinkStatus = AccountLinkStatus.NOT_LINKED
+    verified_account: bool = False
+    sync_status: AccountSyncStatus = AccountSyncStatus.NOT_SYNCED
+    last_synced_at: datetime | None = None
     work_name: str
+    normalized_work_name: str | None = None
     raw_unit: str | None = None
+    normalized_unit: str | None = None
     raw_price: Decimal | None = None
     currency: str = "RUB"
+    source_price_date: datetime | None = None
+    observed_at: datetime | None = None
+    source_id: UUID | None = None
+    source_url: str | None = None
+    linked_material_ids: list[UUID] = Field(default_factory=list)
+    linked_technology_refs: list[str] = Field(default_factory=list)
+    linked_construction_refs: list[str] = Field(default_factory=list)
+    linked_node_refs: list[str] = Field(default_factory=list)
     work_region_id: UUID | None = None
     work_city_id: UUID | None = None
     work_zone_id: UUID | None = None
     source_region_id: UUID | None = None
-    region_status: RegionStatus | None = None
+    region_status: RegionStatusValue | None = None
+    moderation_note: str | None = None
+    change_history: list[dict[str, Any]] = Field(default_factory=list)
     status: Literal["RAW", "NORMALIZED", "NEEDS_REVIEW", "LINKED", "REJECTED"] = "RAW"
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+class WorkProducerProfile(Module01Contract):
+    id: UUID | None = None
+    name: str
+    work_producer_account_id: UUID | None = None
+    account_link_status: AccountLinkStatus = AccountLinkStatus.NOT_LINKED
+    verified_account: bool = False
+    sync_status: AccountSyncStatus = AccountSyncStatus.NOT_SYNCED
+    last_synced_at: datetime | None = None
+    source_module_code: str | None = MODULE_01_MATERIAL_HUB
+    target_module_code: str | None = "MODULE_04_WORKS_COSTS"
+    source_refs: list[str] = Field(default_factory=list)
+    status: Literal["DRAFT", "NEEDS_REVIEW", "ACTIVE", "BLOCKED", "ARCHIVED"] = "NEEDS_REVIEW"
 
 
 class ModeratorDecision(Module01Contract):

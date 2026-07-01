@@ -535,6 +535,43 @@
                   <div class="muted" style="margin-top:6px">Характеристики пока не указаны. Нормы расхода не создаются, если они не применимы или данных недостаточно.</div>
                 {% endif %}
               </details>
+              {% set construction_usages = construction_usage_for_material(material) %}
+              <details style="margin-top:8px">
+                <summary class="muted">Строительная применимость: {{ construction_usages|length }}</summary>
+                {% if construction_usages %}
+                  <div style="display:grid; gap:6px; margin-top:8px">
+                    {% for usage in construction_usages %}
+                      <div style="border:1px solid rgba(99,224,255,.22); border-radius:5px; padding:7px; background:rgba(6,24,34,.34)">
+                        <div>
+                          <strong>{{ usage.construction_group }}</strong>
+                          {% if usage.construction_subgroup %} → {{ usage.construction_subgroup }}{% endif %}
+                          {% if usage.construction_element %} · {{ usage.construction_element }}{% endif %}
+                          <span class="pill">{{ enum_label(usage.status) }}</span>
+                        </div>
+                        <div class="muted">
+                          Роль: {{ usage.usage_role or "не указана" }}
+                          · Условие: {{ usage.condition or "не указано" }}
+                        </div>
+                        {% if usage.required_characteristics %}
+                          <div class="muted">
+                            Требуемые характеристики:
+                            {% for required in usage.required_characteristics %}
+                              {{ required.characteristic_name }}{% if required.expected_value %}: {{ required.expected_value }}{% endif %}{% if not loop.last %}; {% endif %}
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                        <div class="muted">
+                          Источник: {{ construction_usage_source_label(usage.source_module) }}
+                          · confidence: {{ usage.confidence if usage.confidence is not none else "не указано" }}
+                          · verified_by_moderator: {{ "да" if usage.verified_by_moderator else "нет" }}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="muted" style="margin-top:6px">Строительная применимость пока не указана. Module №1 готов принять кандидаты от Module №2 через адаптер и модерацию, но не считает категорию материала строительной группой.</div>
+                {% endif %}
+              </details>
             </td>
             <td>{{ material.category.name if material.category else "" }}</td>
             <td>{{ material.subcategory.name if material.subcategory else "" }}</td>

@@ -1,20 +1,18 @@
 from uuid import UUID
-from decimal import Decimal
-
 from fastapi import APIRouter, Query
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.models.catalog_product import CatalogProduct
-from app.models.enums import AdminDecision, CatalogProductStatus, MatchCandidateStatus, MaterialStatus, UserRole
+from app.models.enums import AdminDecision, CatalogProductStatus, MatchCandidateStatus, UserRole
 from app.models.material import Material
-from app.models.material_alias import MaterialAlias
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.schemas.common import PaginatedResponse
 from app.schemas.material_hub import MaterialMatchCandidateRead
 from app.schemas.moderation import ModerationApprove, ModerationCreateMaterial, ModerationReject
 from app.services.audit_service import log_event
+from app.services.material_pipeline_guard import create_material_from_moderated_candidate
 
 router = APIRouter(prefix="/admin/moderation", tags=["admin-moderation"])
 
@@ -158,34 +156,16 @@ async def create_material_from_candidate(
     if not catalog_product:
         raise NotFoundError("Catalog product not found")
 
-    material = Material(
-        canonical_name=data.canonical_name or catalog_product.normalized_name or catalog_product.raw_name,
+    material = await create_material_from_moderated_candidate(
+        db,
+        candidate,
+        catalog_product,
+        canonical_name=data.canonical_name,
         category_id=data.category_id,
-        brand=data.brand or catalog_product.raw_brand,
-        manufacturer=data.manufacturer or catalog_product.raw_manufacturer,
-        status=MaterialStatus.AUTO_CREATED,
+        brand=data.brand,
+        manufacturer=data.manufacturer,
+        reason="admin moderation create-material",
     )
-    db.add(material)
-    await db.flush()
-    await db.refresh(material)
-
-    alias = MaterialAlias(
-        material_id=material.id,
-        original_name=catalog_product.raw_name,
-        normalized_name=catalog_product.normalized_name or catalog_product.raw_name,
-        confidence_score=candidate.match_score or Decimal("0.5"),
-    )
-    db.add(alias)
-
-    catalog_product.material_id = material.id
-    catalog_product.status = CatalogProductStatus.ACTIVE
-    candidate.candidate_material_id = material.id
-    candidate.status = MatchCandidateStatus.APPROVED
-    candidate.admin_decision = AdminDecision.APPROVE
-
-    db.add(catalog_product)
-    db.add(candidate)
-    await db.flush()
     await db.refresh(candidate)
 
     await log_event(db, "material_created_from_candidate", "Material", material.id, user.id, {

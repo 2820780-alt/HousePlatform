@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DBSession
+from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
     CatalogProductStatus,
@@ -22,6 +23,7 @@ from app.models.material_document import MaterialDocument
 from app.models.material_match_candidate import MaterialMatchCandidate
 from app.models.material_quality_issue import MaterialQualityIssue
 from app.models.material_specification import MaterialSpecification
+from app.models.material_type import MaterialType
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.price_history import PriceHistory
 from app.models.source import Source
@@ -29,6 +31,12 @@ from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
 from app.models.unit_conversion_rule import UnitConversionRule
+from app.services.material_construction_usage import get_material_construction_usage
+from app.services.material_hub_supplier_workspaces import (
+    load_supplier_cards,
+    load_supplier_workspace_summary,
+    load_work_rates_workspace_summary,
+)
 
 
 router = APIRouter(prefix="/admin/material-hub/view", tags=["material-hub-view"])
@@ -151,14 +159,6 @@ DOCUMENT_TYPE_OPTIONS = {
     "TECH_DOCUMENTS": "Технические документы",
 }
 
-ACTIVE_COLLECTION_REGION = {
-    "label": "Краснодарский край",
-    "activeRegionCode": "RU-KDA",
-    "source_region_id": None,
-    "source_city_id": None,
-    "delivery_zone_id": None,
-}
-
 DOCUMENT_GROUP_LABELS = {
     "CERTIFICATE": "Сертификаты",
     "DECLARATION": "Декларации",
@@ -220,7 +220,10 @@ async def material_hub_view(
                 {"value": value, "label": label}
                 for value, label in DOCUMENT_TYPE_OPTIONS.items()
             ],
-            "active_collection_region": ACTIVE_COLLECTION_REGION,
+            "active_collection_region": _active_collection_region(),
+            "supplier_workspace_summary": await load_supplier_workspace_summary(db),
+            "supplier_cards": await load_supplier_cards(db),
+            "work_rates_workspace_summary": await load_work_rates_workspace_summary(db),
             "in_stock_only": in_stock_only,
         },
     )
@@ -350,6 +353,8 @@ async def _render_data_page(
             "is_consumption_characteristic": _is_consumption_characteristic,
             "characteristic_verified_by_moderator": _characteristic_verified_by_moderator,
             "characteristic_history_label": _characteristic_history_label,
+            "construction_usage_for_material": get_material_construction_usage,
+            "construction_usage_source_label": _construction_usage_source_label,
             "dt": _format_datetime,
             "in_stock_only": in_stock_only,
             "price_recommendations": await _load_price_recommendations(db, in_stock_only),
@@ -418,6 +423,16 @@ def _format_datetime(value) -> str:
     return str(value)
 
 
+def _active_collection_region() -> dict[str, str | None]:
+    return {
+        "label": settings.MATERIAL_HUB_ACTIVE_REGION_LABEL,
+        "activeRegionCode": settings.MATERIAL_HUB_ACTIVE_REGION_CODE,
+        "source_region_id": settings.MATERIAL_HUB_SOURCE_REGION_ID,
+        "source_city_id": settings.MATERIAL_HUB_SOURCE_CITY_ID,
+        "delivery_zone_id": settings.MATERIAL_HUB_DELIVERY_ZONE_ID,
+    }
+
+
 def _characteristic_label(specification: MaterialSpecification) -> str:
     template = getattr(specification, "template", None)
     if template and getattr(template, "name", None):
@@ -451,6 +466,14 @@ def _characteristic_history_label(specification: MaterialSpecification) -> str:
     if created_at:
         return f"создано {created_at}"
     return "история пока не зафиксирована"
+
+
+def _construction_usage_source_label(source_module: str | None) -> str:
+    if source_module == "MODULE_02_KNOWLEDGE_BASE":
+        return "Module №2 / База технологий"
+    if source_module == "MODULE_01_MATERIAL_HUB":
+        return "Module №1 / Material Hub"
+    return source_module or "источник не указан"
 
 
 def _group_sources_by_direction(sources: list[Source]) -> list[dict]:
@@ -658,6 +681,7 @@ async def _load_materials(db: DBSession) -> list[Material]:
         .options(
             selectinload(Material.category),
             selectinload(Material.subcategory),
+            selectinload(Material.material_type).selectinload(MaterialType.construction_group),
             selectinload(Material.documents),
             selectinload(Material.specifications).selectinload(MaterialSpecification.template),
             selectinload(Material.specifications).selectinload(MaterialSpecification.source),
@@ -675,6 +699,7 @@ async def _load_unclassified_materials(db: DBSession) -> list[Material]:
         .options(
             selectinload(Material.category),
             selectinload(Material.subcategory),
+            selectinload(Material.material_type).selectinload(MaterialType.construction_group),
             selectinload(Material.documents),
             selectinload(Material.specifications).selectinload(MaterialSpecification.template),
             selectinload(Material.specifications).selectinload(MaterialSpecification.source),

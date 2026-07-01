@@ -14,6 +14,20 @@ from app.core.exceptions import NotFoundError
 router = APIRouter(prefix="/admin/suppliers", tags=["admin-suppliers"])
 
 
+SUPPLIER_MODEL_FIELDS = {
+    "name",
+    "inn",
+    "site",
+    "email",
+    "phone",
+    "city",
+    "region",
+    "country",
+    "address",
+    "description",
+}
+
+
 @router.get("", response_model=PaginatedResponse[SupplierRead])
 async def list_suppliers(
     db: DBSession,
@@ -36,7 +50,7 @@ async def create_supplier(data: SupplierCreate, db: DBSession, user: CurrentUser
     if user.role != UserRole.ADMIN:
         from app.core.exceptions import ForbiddenError
         raise ForbiddenError()
-    supplier = Supplier(**data.model_dump())
+    supplier = Supplier(**_supplier_model_payload(data.model_dump()))
     db.add(supplier)
     await db.flush()
     await db.refresh(supplier)
@@ -65,7 +79,7 @@ async def update_supplier(supplier_id: UUID, data: SupplierUpdate, db: DBSession
     supplier = result.scalar_one_or_none()
     if not supplier:
         raise NotFoundError("Supplier not found")
-    for field, value in data.model_dump(exclude_unset=True).items():
+    for field, value in _supplier_model_payload(data.model_dump(exclude_unset=True)).items():
         setattr(supplier, field, value)
     db.add(supplier)
     await db.flush()
@@ -89,3 +103,7 @@ async def update_supplier_status(supplier_id: UUID, data: SupplierStatusUpdate, 
     await db.refresh(supplier)
     await log_event(db, "supplier_status_changed", "Supplier", supplier.id, user.id, {"new_status": data.status.value})
     return supplier
+
+
+def _supplier_model_payload(payload: dict) -> dict:
+    return {key: value for key, value in payload.items() if key in SUPPLIER_MODEL_FIELDS}
