@@ -37,6 +37,11 @@ from app.services.material_hub_supplier_workspaces import (
     load_supplier_workspace_summary,
     load_work_rates_workspace_summary,
 )
+from app.services.material_hub_first_wave import (
+    first_wave_source_note,
+    first_wave_source_status_label,
+    is_first_wave_blocked_source,
+)
 
 
 router = APIRouter(prefix="/admin/material-hub/view", tags=["material-hub-view"])
@@ -195,6 +200,9 @@ async def material_hub_view(
             "action_labels": ACTION_LABELS,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
+            "source_status_label": _source_status_label,
+            "source_policy_note": first_wave_source_note,
+            "is_first_wave_blocked_source": is_first_wave_blocked_source,
             "dt": _format_datetime,
             "scan_modes": [
                 {"value": value, "label": label}
@@ -349,6 +357,9 @@ async def _render_data_page(
             "action_labels": ACTION_LABELS,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
+            "source_status_label": _source_status_label,
+            "source_policy_note": first_wave_source_note,
+            "is_first_wave_blocked_source": is_first_wave_blocked_source,
             "characteristic_label": _characteristic_label,
             "is_consumption_characteristic": _is_consumption_characteristic,
             "characteristic_verified_by_moderator": _characteristic_verified_by_moderator,
@@ -403,6 +414,10 @@ def _source_display_name(source_or_name) -> str:
         return ""
     name = getattr(source_or_name, "name", source_or_name)
     return SOURCE_DISPLAY_NAMES.get(str(name), str(name))
+
+
+def _source_status_label(source: Source) -> str:
+    return first_wave_source_status_label(source) or _enum_label(source.status)
 
 
 def _enum_label(value) -> str:

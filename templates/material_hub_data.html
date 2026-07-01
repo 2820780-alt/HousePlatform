@@ -325,13 +325,18 @@
             <td>{{ source_display_name(source) }}</td>
             <td><span class="pill">{{ enum_label(source.source_type) }}</span></td>
             <td>{% if source.url %}<a href="{{ source.url }}" target="_blank">{{ source.url }}</a>{% endif %}</td>
-            <td>{{ enum_label(source.status) }}</td>
+            <td>
+              {{ source_status_label(source) }}
+              {% if source_policy_note(source) %}
+                <div class="muted">{{ source_policy_note(source) }}</div>
+              {% endif %}
+            </td>
             <td data-sort-value="{{ source.priority }}">{{ source.priority }}</td>
             <td>{{ dt(source.last_full_scan_at) }}</td>
             <td>{{ dt(source.last_price_update_at) }}</td>
             <td>{{ dt(source.last_document_update_at) }}</td>
             <td>
-              <button type="button" onclick="setSourceStatus('{{ source.id }}', 'ACTIVE')">Включить</button>
+              <button type="button" onclick="setSourceStatus('{{ source.id }}', 'ACTIVE')" {% if is_first_wave_blocked_source(source) %}disabled title="{{ source_policy_note(source) }}"{% endif %}>Включить</button>
               <button type="button" onclick="setSourceStatus('{{ source.id }}', 'PAUSED')">Пауза</button>
               <button type="button" onclick="setSourceStatus('{{ source.id }}', 'DISABLED')">Отключить</button>
             </td>

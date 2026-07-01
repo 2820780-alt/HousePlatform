@@ -100,12 +100,15 @@ class SourceAdapterStatus(str, Enum):
     PLANNED = "PLANNED"
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
+    BLOCKED = "BLOCKED"
     DISABLED = "DISABLED"
     ERROR = "ERROR"
 
 
 class SourceProfileStatus(str, Enum):
     ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    BLOCKED = "BLOCKED"
     NEEDS_REVIEW = "NEEDS_REVIEW"
     ERROR = "ERROR"
     ARCHIVED = "ARCHIVED"
@@ -712,6 +715,23 @@ class SourceParsingRules(BaseModel):
     region_detection_rules: dict[str, Any] = Field(default_factory=dict)
 
 
+class SourceAdapterConfig(BaseModel):
+    adapter_code: str
+    adapter_version: str | None = None
+    source_code: str | None = None
+    source_type: SourceType | DataSourceKind | str | None = None
+    supported_actions: list[str] = Field(default_factory=list)
+    enabled: bool = True
+    parser_status: SourceProfileStatus | SourceAdapterStatus | str | None = None
+    update_mode: str | None = None
+    write_mode: ResultWriteMode | str | None = None
+    trust_level: SourceTrustLevel = SourceTrustLevel.NORMAL
+    rate_limit_policy: dict[str, Any] = Field(default_factory=dict)
+    robots_policy_note: str | None = None
+    config: dict[str, Any] = Field(default_factory=dict)
+    notes: str | None = None
+
+
 class FieldMappingRule(BaseModel):
     id: UUID | None = None
     source_field: str
@@ -745,11 +765,96 @@ class CategoryMappingRule(BaseModel):
     requires_moderation: bool = True
 
 
+class SourceCategoryMapping(CategoryMappingRule):
+    source_category_path: list[str] = Field(default_factory=list)
+    source_category_url: str | None = None
+    direction: str | None = None
+    status: Literal["ACTIVE", "NEEDS_REVIEW", "REJECTED", "ARCHIVED"] = "NEEDS_REVIEW"
+
+
+class SourceNormalizationRule(BaseModel):
+    rule_code: str
+    target: Literal[
+        "name",
+        "category",
+        "unit",
+        "price",
+        "brand",
+        "manufacturer",
+        "article",
+        "characteristic",
+        "document",
+        "region",
+    ]
+    pattern: str | None = None
+    replacement: str | None = None
+    transform: str | None = None
+    priority: int = 100
+    confidence: Decimal | None = None
+    status: Literal["ACTIVE", "NEEDS_REVIEW", "DISABLED", "ARCHIVED"] = "NEEDS_REVIEW"
+
+
+class SourceModerationRule(BaseModel):
+    rule_code: str
+    condition: str
+    action: AutomationAction | str
+    reason: str
+    severity: Literal["INFO", "WARNING", "ERROR", "BLOCKING"] = "WARNING"
+    applies_to: list[CollectionObject | str] = Field(default_factory=list)
+    status: Literal["ACTIVE", "NEEDS_REVIEW", "DISABLED", "ARCHIVED"] = "NEEDS_REVIEW"
+
+
+class SourceQualityReport(BaseModel):
+    source_code: str | None = None
+    generated_at: datetime | None = None
+    parser_status: SourceProfileStatus | SourceAdapterStatus | str | None = None
+    trust_level: SourceTrustLevel = SourceTrustLevel.NORMAL
+    products_checked: int = 0
+    documents_checked: int = 0
+    document_candidates_found: int = 0
+    document_duplicates_skipped: int = 0
+    issues: list[dict[str, Any]] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+
+
+class SourceDocumentRef(Module01Contract):
+    title: str
+    url: str
+    document_type: DocumentType | ExtendedDocumentKind | str
+    file_type: DocumentFileType | str
+    mime_type: str | None = None
+    origin: DocumentOrigin = DocumentOrigin.EXTERNAL_LINK
+    extraction_suitability: TextExtractionSuitability = TextExtractionSuitability.UNKNOWN
+    parse_status: DocumentParseStatus = DocumentParseStatus.NOT_PROCESSED
+    manufacturer: str | None = None
+    supplier: str | None = None
+    product_name: str | None = None
+    source_code: str | None = None
+    source_url: str | None = None
+    linked_catalog_product_id: UUID | None = None
+    linked_material_id: UUID | None = None
+    applicable_category_ids: list[UUID] = Field(default_factory=list)
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None
+    fetched_at: datetime | None = None
+    checksum: str | None = None
+    needs_review: bool = True
+    review_reason: str | None = None
+    dedupe_key: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+DocumentCandidate = SourceDocumentRef
+
+
 class SourceMappingProfile(BaseModel):
     field_mapping_rules: list[FieldMappingRule] = Field(default_factory=list)
     category_mappings: list[CategoryMappingRule] = Field(default_factory=list)
+    source_category_mappings: list[SourceCategoryMapping] = Field(default_factory=list)
     characteristic_aliases: list[CharacteristicAliasRule] = Field(default_factory=list)
     unit_normalization_rules: list[UnitNormalizationRule] = Field(default_factory=list)
+    source_normalization_rules: list[SourceNormalizationRule] = Field(default_factory=list)
+    source_moderation_rules: list[SourceModerationRule] = Field(default_factory=list)
     name_cleanup_rules: list[str] = Field(default_factory=list)
     manufacturer_extraction_rules: dict[str, Any] = Field(default_factory=dict)
     supplier_extraction_rules: dict[str, Any] = Field(default_factory=dict)
@@ -783,6 +888,11 @@ class SourceProfile(Module01Contract):
     has_certificates: bool | None = None
     has_characteristics: bool | None = None
     has_region_selector: bool | None = None
+    adapter_config: SourceAdapterConfig | None = None
+    source_category_mappings: list[SourceCategoryMapping] = Field(default_factory=list)
+    normalization_rules: list[SourceNormalizationRule] = Field(default_factory=list)
+    moderation_rules: list[SourceModerationRule] = Field(default_factory=list)
+    quality_report: SourceQualityReport | None = None
     collectable_objects: list[CollectionObject] = Field(default_factory=list)
     parsing_rules: SourceParsingRules | None = None
     mapping_profile: SourceMappingProfile | None = None
@@ -819,7 +929,13 @@ class ExtractionProfile(Module01Contract):
     collectable_objects: list[CollectionObject] = Field(default_factory=list)
     parsing_rules: SourceParsingRules = Field(default_factory=SourceParsingRules)
     mapping_profile: SourceMappingProfile = Field(default_factory=SourceMappingProfile)
+    adapter_config: SourceAdapterConfig | None = None
     field_mapping_rules: list[FieldMappingRule] = Field(default_factory=list)
+    source_category_mappings: list[SourceCategoryMapping] = Field(default_factory=list)
+    normalization_rules: list[SourceNormalizationRule] = Field(default_factory=list)
+    moderation_rules: list[SourceModerationRule] = Field(default_factory=list)
+    document_candidates: list[SourceDocumentRef] = Field(default_factory=list)
+    quality_report: SourceQualityReport | None = None
     source_sections: list[SourceSection] = Field(default_factory=list)
     region_coverage: list[UUID] = Field(default_factory=list)
     city_coverage: list[UUID] = Field(default_factory=list)
@@ -838,6 +954,7 @@ class SourceAdapter(Module01Contract):
     source_name: str | None = None
     data_source_kind: DataSourceKind | None = None
     supported_actions: list[str] = Field(default_factory=list)
+    config: SourceAdapterConfig | None = None
     extraction_profile_id: UUID | None = None
     source_profile_snapshot: dict[str, Any] | None = None
     status: SourceAdapterStatus = SourceAdapterStatus.PLANNED

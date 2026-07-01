@@ -543,11 +543,11 @@
               <label style="margin-bottom:8px"><input id="all-sources" type="checkbox" style="width:auto;min-height:0" onchange="toggleSourceSelection()"> Все активные источники</label>
               {% for group in source_groups %}
                 {% for source in group.sources %}
-                  <label class="source-option" data-direction="{{ group.direction }}">
-                    <input class="source-checkbox" type="checkbox" value="{{ source.name }}" data-display="{{ source_display_name(source) }}" data-direction="{{ group.direction }}" onchange="updateSourcePickerLabel()">
+                  <label class="source-option" data-direction="{{ group.direction }}" title="{{ source_policy_note(source) or '' }}">
+                    <input class="source-checkbox" type="checkbox" value="{{ source.name }}" data-display="{{ source_display_name(source) }}" data-direction="{{ group.direction }}" data-blocked="{{ '1' if is_first_wave_blocked_source(source) else '0' }}" onchange="updateSourcePickerLabel()" {% if is_first_wave_blocked_source(source) %}disabled{% endif %}>
                     <span>
                       {{ source_display_name(source) }}
-                      <span class="source-meta">{{ enum_label(source.source_type) }} · {{ enum_label(source.status) }}</span>
+                      <span class="source-meta">{{ enum_label(source.source_type) }} · {{ source_status_label(source) }}</span>
                     </span>
                   </label>
                 {% endfor %}
@@ -1005,7 +1005,11 @@
     function toggleSourceSelection() {
       const allSources = document.getElementById("all-sources").checked;
       document.querySelectorAll(".source-checkbox").forEach((input) => {
-        input.disabled = allSources;
+        const blocked = input.dataset.blocked === "1";
+        input.disabled = blocked || allSources;
+        if (blocked) {
+          input.checked = false;
+        }
       });
       updateSourcePickerLabel();
       updateSourceCategoryOptions();
@@ -1044,7 +1048,11 @@
       document.getElementById("source-direction").disabled = isFile;
       document.getElementById("source-category-filter").disabled = isFile;
       document.querySelectorAll(".source-checkbox").forEach((input) => {
-        input.disabled = isFile || document.getElementById("all-sources").checked;
+        const blocked = input.dataset.blocked === "1";
+        input.disabled = blocked || isFile || document.getElementById("all-sources").checked;
+        if (blocked) {
+          input.checked = false;
+        }
       });
       if (isFile) {
         document.getElementById("all-sources").checked = false;
@@ -1071,8 +1079,11 @@
     function selectVisibleSources() {
       document.getElementById("all-sources").checked = false;
       document.querySelectorAll(".source-checkbox").forEach((input) => {
-        input.disabled = false;
-        if (isSourceVisible(input)) {
+        const blocked = input.dataset.blocked === "1";
+        input.disabled = blocked;
+        if (blocked) {
+          input.checked = false;
+        } else if (isSourceVisible(input)) {
           input.checked = true;
         }
       });
@@ -1083,7 +1094,7 @@
     function clearSourceSelection() {
       document.getElementById("all-sources").checked = false;
       document.querySelectorAll(".source-checkbox").forEach((input) => {
-        input.disabled = false;
+        input.disabled = input.dataset.blocked === "1";
         input.checked = false;
       });
       updateSourcePickerLabel();
@@ -1091,7 +1102,9 @@
     }
 
     function selectedSourceNames() {
-      return Array.from(document.querySelectorAll(".source-checkbox:checked")).map((input) => input.value);
+      return Array.from(document.querySelectorAll(".source-checkbox:checked"))
+        .filter((input) => input.dataset.blocked !== "1")
+        .map((input) => input.value);
     }
 
     function selectedSourceDisplayNames() {

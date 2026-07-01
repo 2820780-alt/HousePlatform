@@ -10,6 +10,12 @@ from app.models.source import Source
 from app.source_integrations.base import HealthCheckResult, SourceIntegration, SourceProduct
 
 
+FIRST_WAVE_BLOCKED_MESSAGE = (
+    "Lemana PRO blocks automatic analysis; excluded from the first wave. "
+    "Do not bypass source protection. Use approved feed/file workflow later."
+)
+
+
 class _TextAndLinkParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -43,50 +49,26 @@ class _TextAndLinkParser(HTMLParser):
 class LemanaProIntegration(SourceIntegration):
     supported_actions = {
         SourceActionType.CHECK_SOURCE_HEALTH,
-        SourceActionType.INITIAL_MATERIAL_SCAN,
-        SourceActionType.UPDATE_PRICES,
-        SourceActionType.FIND_NEW_PRODUCTS,
     }
+    parser_status = "BLOCKED"
+    update_mode = "disabled"
+    write_mode = "preview_only"
+    trust_level = "BLOCKED"
+    notes = FIRST_WAVE_BLOCKED_MESSAGE
 
     def __init__(self, source: Source):
         self.source = source
         self.base_url = source.url or "https://lemanapro.ru/"
 
     async def check_health(self) -> HealthCheckResult:
-        import httpx
-
-        try:
-            async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
-                response = await client.get(self.base_url, headers=_headers())
-            return HealthCheckResult(
-                ok=200 <= response.status_code < 400,
-                status_code=response.status_code,
-                message=response.reason_phrase,
-            )
-        except Exception as exc:
-            return HealthCheckResult(ok=False, message=str(exc))
+        return HealthCheckResult(ok=False, message=FIRST_WAVE_BLOCKED_MESSAGE)
 
     async def fetch_products(
         self,
         action_type: SourceActionType,
         parameters: dict | None = None,
     ) -> list[SourceProduct]:
-        import httpx
-
-        if action_type not in self.supported_actions:
-            return []
-        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            response = await client.get(self.base_url, headers=_headers())
-            if response.status_code == 403:
-                raise RuntimeError(
-                    "Lemana PRO returned 403 Forbidden for direct server-side fetch. "
-                    "Do not bypass anti-bot protection; use an approved/public feed or manual import."
-                )
-            response.raise_for_status()
-
-        parser = _TextAndLinkParser()
-        parser.feed(response.text)
-        return _extract_products(parser.text_items, parser.links, self.base_url)
+        raise RuntimeError(FIRST_WAVE_BLOCKED_MESSAGE)
 
 
 def _extract_products(

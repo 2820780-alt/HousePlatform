@@ -49,6 +49,11 @@ from app.services.material_taxonomy import (
 )
 from app.services.rule_memory import find_rule_for_product
 from app.services.source_profiles import attach_source_profile_snapshot
+from app.services.material_hub_first_wave import (
+    FIRST_WAVE_BLOCKED_NOTE,
+    apply_first_wave_policy_to_parameters,
+    is_first_wave_blocked_source,
+)
 
 
 async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
@@ -89,6 +94,27 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
         except Exception as exc:
             await _fail_task(db, task, str(exc))
         await db.flush()
+        await db.refresh(task)
+        return task
+
+    if is_first_wave_blocked_source(task.source):
+        task.parameters = attach_source_profile_snapshot(
+            task.source,
+            task.action_type,
+            apply_first_wave_policy_to_parameters(task.source, task.parameters),
+            adapter_code="FirstWaveBlockedSource",
+            supported_actions={SourceActionType.CHECK_SOURCE_HEALTH},
+            force=True,
+        )
+        task.result_summary = {
+            "blocked_by_first_wave_policy": True,
+            "parserStatus": "BLOCKED",
+            "updateMode": "disabled",
+            "writeMode": "preview_only",
+            "trustLevel": "BLOCKED",
+            "message": FIRST_WAVE_BLOCKED_NOTE,
+        }
+        await _fail_task(db, task, FIRST_WAVE_BLOCKED_NOTE)
         await db.refresh(task)
         return task
 
@@ -510,7 +536,10 @@ async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) ->
             entity_type="MaterialDocument",
             entity_id=material_document.id,
             status=material_document.status.value,
-            new_value=_document_snapshot(material_document),
+            new_value={
+                **_document_snapshot(material_document),
+                "source_document_ref": _source_document_preview(document),
+            },
         )
 
     task.result_summary = {
@@ -598,10 +627,12 @@ async def _upsert_material_document(
     default_manufacturer_id: UUID | None,
 ) -> tuple[MaterialDocument, TaskResultType]:
     document_type = DocumentType(document.document_type)
+    document_url = document.file_url or document.source_url
+    if not document_url:
+        raise ValueError("Document candidate requires file_url or source_url")
     result = await db.execute(
         select(MaterialDocument).where(
-            MaterialDocument.source_id == task.source_id,
-            MaterialDocument.file_url == document.file_url,
+            MaterialDocument.file_url == document_url,
         )
     )
     existing = result.scalar_one_or_none()
@@ -614,9 +645,9 @@ async def _upsert_material_document(
         source_id=task.source_id,
         document_type=document_type,
         title=document.title,
-        file_url=document.file_url,
+        file_url=document_url,
         source_url=document.source_url,
-        status=DocumentStatus.ACTIVE,
+        status=DocumentStatus.NEEDS_REVIEW,
     )
     db.add(material_document)
     await db.flush()
@@ -1020,6 +1051,20 @@ def _source_document_preview(document: SourceDocument) -> dict:
         "source_url": document.source_url,
         "material_id": str(document.material_id) if document.material_id else None,
         "manufacturer_id": str(document.manufacturer_id) if document.manufacturer_id else None,
+        "file_type": getattr(document.file_type, "value", document.file_type),
+        "mime_type": document.mime_type,
+        "origin": getattr(document.origin, "value", document.origin),
+        "extractionSuitability": getattr(document.extraction_suitability, "value", document.extraction_suitability),
+        "parse_status": getattr(document.parse_status, "value", document.parse_status),
+        "sourceCode": document.source_code,
+        "linkedCatalogProductId": str(document.linked_catalog_product_id) if document.linked_catalog_product_id else None,
+        "applicableCategoryIds": [str(item) for item in (document.applicable_category_ids or [])],
+        "checksum": document.checksum,
+        "fetchedAt": document.fetched_at.isoformat() if document.fetched_at else None,
+        "needsReview": document.needs_review,
+        "reviewReason": document.review_reason,
+        "dedupeKey": document.dedupe_key,
+        "metadata": document.metadata or {},
     }
 
 

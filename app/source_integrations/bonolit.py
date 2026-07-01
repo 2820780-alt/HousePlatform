@@ -10,6 +10,12 @@ from xml.etree import ElementTree as ET
 from app.models.enums import DocumentType, SourceActionType
 from app.models.source import Source
 from app.source_integrations.base import HealthCheckResult, SourceDocument, SourceIntegration, SourceProduct
+from app.services.source_document_refs import (
+    document_dedupe_key,
+    infer_extraction_suitability,
+    infer_file_type,
+    infer_mime_type,
+)
 
 
 PRODUCT_SITEMAP_URL = "https://bonolit.ru/sitemap-iblock-2.xml"
@@ -185,11 +191,20 @@ class BonolitIntegration(SourceIntegration):
                     if not _should_keep_document(title, document_type, absolute_url):
                         continue
                     seen.add(absolute_url)
+                    file_type = infer_file_type(absolute_url)
                     documents.append(SourceDocument(
                         title=title or _filename_from_url(absolute_url),
                         document_type=document_type,
                         file_url=absolute_url,
                         source_url=page_url,
+                        file_type=file_type,
+                        mime_type=infer_mime_type(file_type),
+                        extraction_suitability=infer_extraction_suitability(file_type),
+                        parse_status="not_processed",
+                        source_code="bonolit",
+                        needs_review=True,
+                        review_reason="Document candidate from Bonolit source adapter requires moderation/deduplication.",
+                        dedupe_key=document_dedupe_key(title, absolute_url, document_type),
                     ))
                     if document_limit is not None and len(documents) >= document_limit:
                         return documents

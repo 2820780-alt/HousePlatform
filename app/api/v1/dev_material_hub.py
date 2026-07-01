@@ -48,6 +48,10 @@ from app.services.rule_memory import build_rule_patterns, remember_material_rule
 from app.services.audit_service import log_event
 from app.services.material_pipeline_guard import create_material_from_moderated_candidate
 from app.services.source_profiles import attach_source_profile_snapshot
+from app.services.material_hub_first_wave import (
+    first_wave_safe_source_status,
+    is_first_wave_blocked_source,
+)
 from app.processing.file_parser import parse_file
 from app.processing.file_validator import validate_file
 from app.services.upload_storage import save_uploaded_file
@@ -273,8 +277,13 @@ async def create_dev_default_sources(db: DBSession):
                 source_type=source_data["source_type"],
                 url=source_data["url"],
                 priority=source_data["priority"],
-                status=SourceStatus.ACTIVE,
+                status=first_wave_safe_source_status(source_data["name"]),
             )
+            db.add(source)
+            await db.flush()
+            await db.refresh(source)
+        elif is_first_wave_blocked_source(source) and source.status == SourceStatus.ACTIVE:
+            source.status = SourceStatus.PAUSED
             db.add(source)
             await db.flush()
             await db.refresh(source)
@@ -319,6 +328,11 @@ async def set_dev_source_status(source_id: UUID, status: SourceStatus, db: DBSes
     source = result.scalar_one_or_none()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
+    if status == SourceStatus.ACTIVE and is_first_wave_blocked_source(source):
+        raise HTTPException(
+            status_code=409,
+            detail="Source is excluded from the first wave and remains paused/preview-only.",
+        )
     source.status = status
     db.add(source)
     await db.flush()
@@ -1055,7 +1069,7 @@ async def _get_or_create_source(db: DBSession, data: DevRunTaskRequest) -> Sourc
                 source_type=source_data["source_type"],
                 url=source_data["url"],
                 priority=source_data["priority"],
-                status=SourceStatus.ACTIVE,
+                status=first_wave_safe_source_status(source_data["name"]),
             )
             db.add(source)
             await db.flush()
@@ -1073,7 +1087,7 @@ async def _resolve_batch_sources(db: DBSession, data: DevRunBatchTaskRequest) ->
             .where(Source.status == SourceStatus.ACTIVE)
             .order_by(Source.priority.asc(), Source.name.asc())
         )
-        return list(result.scalars().all())
+        return [source for source in result.scalars().all() if not is_first_wave_blocked_source(source)]
 
     names = [name for name in (data.source_names or []) if name]
     if not names:
@@ -1088,7 +1102,7 @@ async def _resolve_batch_sources(db: DBSession, data: DevRunBatchTaskRequest) ->
     missing = [name for name in names if name not in found_names]
     if missing:
         raise HTTPException(status_code=404, detail=f"Sources not found: {', '.join(missing)}")
-    return found
+    return [source for source in found if not is_first_wave_blocked_source(source)]
 
 
 async def _get_or_create_manual_price_source(db: DBSession, source_name: str) -> Source:
