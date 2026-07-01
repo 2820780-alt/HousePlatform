@@ -449,6 +449,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
     recent_history = await _load_recent_access_history(db, workspace_ids=_workspace_uuid_scope(admin_scope))
     recent_history = _filter_history_for_admin_scope(recent_history, admin_scope)
     pending_items = [] if admin_scope["isCompanyAdminMode"] else pending_access_distribution_items()
+    access_distribution_panel = access_distribution_panel_summary(pending_items)
     summary = _overview_summary(users, workspaces, recent_history, pending_items=pending_items)
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
@@ -459,6 +460,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "companies": [company_summary(workspace) for workspace in workspaces if _is_company_workspace(workspace)],
         "companyEmployees": company_employee_summaries(workspaces),
         "groups": access_group_summaries(roles),
+        "workspacePanel": workspace_panel_summary(workspaces, recent_history=recent_history),
         "roleGroupPanel": role_group_panel_summary(
             roles,
             users=users,
@@ -468,7 +470,10 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         ),
         "summary": summary,
         "pendingAccessDistributionItems": pending_items,
+        "accessDistributionPanel": access_distribution_panel,
         "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
+        "auditPanel": audit_panel_summary(recent_history),
+        "settingsPanel": settings_panel_summary(admin_scope),
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
     }
 
@@ -522,6 +527,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         "companies": [company_summary(workspace) for workspace in workspaces if _is_company_workspace(workspace)],
         "companyEmployees": company_employee_summaries(workspaces),
         "groups": access_group_summaries(roles),
+        "workspacePanel": workspace_panel_summary(workspaces, recent_history=history),
         "roleGroupPanel": role_group_panel_summary(
             roles,
             users=[user],
@@ -552,6 +558,8 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
         "history": [audit_log_summary(item) for item in history],
         "changeHistory": change_history_for_admin_panel(history, user_data),
+        "auditPanel": audit_panel_summary(history),
+        "settingsPanel": settings_panel_summary(admin_scope),
         "canDisable": can_disable_user(actor, user),
         "disableConfirmation": DISABLE_CONFIRMATION,
     }
@@ -1078,6 +1086,78 @@ def company_employee_summaries(workspaces: list[Workspace]) -> list[dict[str, An
                 }
             )
     return sorted(employees, key=lambda item: (item["companyTitle"], item["userName"]))
+
+
+def workspace_panel_summary(workspaces: list[Workspace], *, recent_history: list[AuditLog]) -> dict[str, Any]:
+    cards = [_workspace_card_summary(workspace, recent_history=recent_history) for workspace in workspaces]
+    selected = next((card for card in cards if card["isCompany"]), cards[0] if cards else None)
+    active_count = len([card for card in cards if card["isActive"]])
+    company_count = len([card for card in cards if card["isCompany"]])
+    user_count = sum(card["memberCount"] for card in cards)
+    return {
+        "workspaces": cards,
+        "selectedWorkspace": selected,
+        "summary": {
+            "total": len(cards),
+            "active": active_count,
+            "blocked": len(cards) - active_count,
+            "companies": company_count,
+            "linkedUsers": user_count,
+        },
+        "notes": {
+            "dashboardLayoutEditor": False,
+            "technicalDashboardPresetsHidden": True,
+            "description": "Рабочие области показывают связь пользователей и компаний. Dashboard layout здесь не редактируется.",
+        },
+    }
+
+
+def _workspace_card_summary(workspace: Workspace, *, recent_history: list[AuditLog]) -> dict[str, Any]:
+    members = list(_safe_iterable(workspace.members))
+    companies = [workspace] if _is_company_workspace(workspace) else []
+    admins = [member for member in members if is_company_admin_role(member.roleCode)]
+    history = [
+        audit_log_summary(item)
+        for item in recent_history
+        if str(_get_value(item, "workspace_id") or "") == str(workspace.id)
+        or str((item.details or {}).get("workspaceId") or "") == str(workspace.id)
+    ][:4]
+    return {
+        "id": str(workspace.id),
+        "title": workspace.title,
+        "type": workspace.type,
+        "status": workspace.status,
+        "isActive": workspace.isActive,
+        "isCompany": _is_company_workspace(workspace),
+        "memberCount": len(members),
+        "companyCount": len(companies),
+        "adminTitle": _company_admin_title(admins) if companies else "не требуется",
+        "linkedUsers": [_workspace_member_preview(member) for member in members[:6]],
+        "linkedCompanies": [
+            {
+                "id": str(company.id),
+                "title": company.title,
+                "type": company.type,
+                "status": company.status,
+            }
+            for company in companies
+        ],
+        "history": history,
+        "moduleAccessState": "открыто в пределах платформы" if workspace.isActive else "закрыто: workspace заблокирован",
+        "widgetAccessState": "следует доступу workspace к модулям" if workspace.isActive else "закрыто вместе с workspace",
+    }
+
+
+def _workspace_member_preview(member: WorkspaceMember) -> dict[str, Any]:
+    user = member.user
+    return {
+        "id": str(member.id),
+        "userId": str(member.user_id),
+        "name": _get_value(user, "name") or _get_value(user, "email") or str(member.user_id),
+        "email": _get_value(user, "email"),
+        "roleTitle": role_label(member.roleCode),
+        "status": member.status,
+    }
 
 
 def access_group_summaries(roles: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -2064,6 +2144,135 @@ def change_history_for_admin_panel(history: list[AuditLog], user_data: dict[str,
     }
 
 
+def audit_panel_summary(history: list[AuditLog]) -> dict[str, Any]:
+    rows = [audit_log_summary(item) for item in history]
+    selected = rows[0] if rows else None
+    return {
+        "rows": rows,
+        "selectedRecord": selected,
+        "filters": {
+            "authors": _unique_sorted(row["actor"] for row in rows),
+            "dates": _unique_sorted(_date_filter_value(row["createdAt"]) for row in rows),
+            "actions": _unique_sorted(row["actionType"] for row in rows),
+            "objectTypes": _unique_sorted(row["objectType"] for row in rows),
+            "modules": _unique_sorted(row["moduleCode"] for row in rows if row.get("moduleCode")),
+            "widgets": _unique_sorted(row["widgetCode"] for row in rows if row.get("widgetCode")),
+            "subjects": _unique_sorted(row["subjectLabel"] for row in rows if row.get("subjectLabel")),
+        },
+        "summary": {
+            "total": len(rows),
+            "success": len([row for row in rows if str(row.get("result")).upper() == "SUCCESS"]),
+            "failed": len([row for row in rows if str(row.get("result")).upper() not in {"", "SUCCESS"}]),
+            "withReason": len([row for row in rows if row.get("reason")]),
+        },
+        "byAction": _history_bucket_counts(rows, "actionType"),
+        "bySubject": _history_bucket_counts(rows, "objectType"),
+        "notes": {
+            "oldNewValuesVisible": True,
+            "actorVisible": True,
+            "targetVisible": True,
+            "businessPayloadLogged": False,
+        },
+    }
+
+
+def settings_panel_summary(admin_scope: dict[str, Any]) -> dict[str, Any]:
+    actor_roles = set(admin_scope.get("actorRoleCodes") or [])
+    is_super_admin = "SUPER_ADMIN" in actor_roles
+    return {
+        "normalSettings": [
+            {
+                "title": "Правила рабочего меню",
+                "description": "Обычный администратор видит только рабочие разделы Module №3: пользователей, роли, рабочие области и журнал изменений.",
+                "target": "#users",
+            },
+            {
+                "title": "Регистрация пользователей",
+                "description": "Ручное создание пользователя отключено. Пользователь появляется только через стандартную регистрацию.",
+                "target": "#users",
+            },
+            {
+                "title": "Причины ограничений",
+                "description": "Ручные запреты, тарифные ограничения и системные блокировки показываются раздельно в карточках пользователя, компании и сотрудника.",
+                "target": "#access-matrix",
+            },
+            {
+                "title": "Журнал изменений",
+                "description": "История доступа остается главным способом проверить, кто и почему открыл или закрыл доступ.",
+                "target": "#audit-log",
+            },
+        ],
+        "superAdminMode": {
+            "enabled": is_super_admin,
+            "title": "Super Admin mode",
+            "description": (
+                "Системные и developer-only инструменты доступны только Super Admin."
+                if is_super_admin
+                else "Системные и developer-only инструменты скрыты от обычного администратора."
+            ),
+        },
+        "developerDiagnostics": [
+            {
+                "title": "Registry diagnostics",
+                "description": "Диагностика PlatformModuleRegistry, canonical mapping и legacy aliases.",
+                "target": "/api/v1/admin/module-registry/view",
+            },
+            {
+                "title": "Widget diagnostics",
+                "description": "Диагностика WidgetRegistry, Widget Permission и связи с UserDashboardLayout.",
+                "target": "#widget-access",
+            },
+            {
+                "title": "Legacy aliases",
+                "description": "Проверка legacy/merged moduleCode и redirect/canonical mapping.",
+                "target": "#settings",
+            },
+            {
+                "title": "UI states",
+                "description": "Справочник empty/loading/error/no permission/future/archived states.",
+                "target": "#settings",
+            },
+            {
+                "title": "Module lifecycle diagnostics",
+                "description": "Проверка PLANNED / DRAFT / ACTIVE / DISABLED / DEPRECATED / ARCHIVED / MERGED.",
+                "target": "#settings",
+            },
+            {
+                "title": "Widget lifecycle diagnostics",
+                "description": "Проверка статусов виджетов и причин недоступности.",
+                "target": "#widget-access",
+            },
+            {
+                "title": "Dashboard layout presets",
+                "description": "Технические presets и UserDashboardLayout без редактирования главного Dashboard.",
+                "target": "#dashboard-layouts",
+            },
+        ],
+        "dangerZone": {
+            "title": "Danger zone",
+            "requiresConfirmation": True,
+            "confirmationText": DISABLE_CONFIRMATION,
+            "warning": "Опасные действия требуют явного подтверждения и записи в AuditLog.",
+            "actions": [
+                "Отключить пользователя",
+                "Архивировать компанию",
+                "Изменить системно-критичный модуль",
+                "Массово открыть или закрыть доступ",
+                "Назначить Super Admin",
+            ],
+        },
+        "notes": {
+            "registryDiagnosticsHiddenForRegularAdmin": True,
+            "widgetDiagnosticsHiddenForRegularAdmin": True,
+            "legacyAliasesHiddenForRegularAdmin": True,
+            "uiStatesHiddenForRegularAdmin": True,
+            "moduleLifecycleDiagnosticsHiddenForRegularAdmin": True,
+            "widgetLifecycleDiagnosticsHiddenForRegularAdmin": True,
+            "ordinaryAdminKeepsWorkingSettings": True,
+        },
+    }
+
+
 def _details_value(details: dict[str, Any], key: str) -> Any:
     value = details.get(key)
     if value is not None:
@@ -2287,6 +2496,26 @@ def pending_access_distribution_items(
         distributedModuleCodes=distributed_module_codes,
         distributedWidgetCodes=distributed_widget_codes,
     )
+
+
+def access_distribution_panel_summary(items: list[dict[str, Any]]) -> dict[str, Any]:
+    module_items = [item for item in items if item.get("itemKind") == "module"]
+    widget_items = [item for item in items if item.get("itemKind") == "widget"]
+    return {
+        "items": items,
+        "summary": {
+            "total": len(items),
+            "modules": len(module_items),
+            "widgets": len(widget_items),
+        },
+        "hasPendingItems": bool(items),
+        "actionTarget": "#access-matrix",
+        "actionLabel": "Распределить доступ",
+        "emptyState": "Новых модулей и виджетов для распределения нет.",
+        "description": "Новые ACTIVE модули и dashboard-eligible ACTIVE виджеты появляются здесь автоматически.",
+        "dashboardRewriteRequired": False,
+        "dashboardNote": "Dashboard не переписывается при добавлении нового модуля или виджета.",
+    }
 
 
 def role_label(role_code: str | None) -> str:

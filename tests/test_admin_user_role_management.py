@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 import pytest
+from jinja2 import Environment, FileSystemLoader
 
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
@@ -15,10 +16,12 @@ from app.services.admin_user_role_management import (
     COMPANY_ADMIN_ROLE_CODE,
     DISABLE_CONFIRMATION,
     MONETIZATION_READY_FIELDS,
+    access_distribution_panel_summary,
     access_matrix_for_subject,
     admin_scope_for_actor,
     active_permissions_for_user,
     active_role_codes_for_user,
+    audit_panel_summary,
     audit_log_summary,
     can_assign_company_admin,
     can_assign_role_code,
@@ -35,7 +38,9 @@ from app.services.admin_user_role_management import (
     require_can_disable_user,
     quick_action_rows_for_user,
     role_group_panel_summary,
+    settings_panel_summary,
     widget_access_rows_for_user,
+    workspace_panel_summary,
 )
 from app.services.access_distribution_registry import (
     build_pending_access_distribution_items,
@@ -330,6 +335,93 @@ def test_active_module_and_widget_registration_requires_access_distribution():
     assert items[1]["sourceModuleCode"] == "MODULE_TEST_AUTO_ACCESS"
     assert items[1]["allowedDashboardZones"] == ["TOP"]
 
+    panel = access_distribution_panel_summary(items)
+    assert panel["summary"] == {"total": 2, "modules": 1, "widgets": 1}
+    assert panel["hasPendingItems"] is True
+    assert panel["actionTarget"] == "#access-matrix"
+    assert panel["emptyState"] == "Новых модулей и виджетов для распределения нет."
+    assert panel["dashboardRewriteRequired"] is False
+    assert "Dashboard не переписывается" in panel["dashboardNote"]
+
+
+def test_admin_users_roles_template_renders_access_distribution_panel_items():
+    template = Environment(loader=FileSystemLoader("templates")).get_template("admin_users_roles.html")
+    overview = {
+        "adminScope": {"isCompanyAdminMode": False},
+        "summary": {
+            "usersTotal": 0,
+            "companiesTotal": 0,
+            "blockedUsersTotal": 0,
+            "blockedCompaniesTotal": 0,
+            "pendingAccessDistributionTotal": 1,
+            "historyTotal": 0,
+        },
+        "accessDistributionPanel": {
+            "description": "Новые ACTIVE элементы появляются автоматически.",
+            "summary": {"total": 1, "modules": 1, "widgets": 0},
+            "items": [
+                {
+                    "itemKind": "module",
+                    "title": "Auto Access Module",
+                    "statusLabel": "новое",
+                    "type": "модуль",
+                    "status": "ACTIVE",
+                    "registeredAt": "2026-06-30",
+                    "reason": "Новый ACTIVE модуль требует распределения доступа.",
+                    "moduleCode": "MODULE_TEST_AUTO_ACCESS",
+                    "widgetCode": None,
+                    "sourceModuleCode": None,
+                    "canonicalModuleCode": "MODULE_TEST_AUTO_ACCESS",
+                    "featureCode": None,
+                    "actionTarget": "#access-matrix",
+                    "isSystemCritical": False,
+                    "isBillingEligible": False,
+                    "allowedDashboardZones": [],
+                    "moduleOwnedWidgets": [],
+                }
+            ],
+            "emptyState": "Новых модулей и виджетов для распределения нет.",
+        },
+        "recentAccessHistory": [],
+        "users": [],
+        "companies": [],
+        "roles": [],
+        "groups": [],
+        "companyEmployees": [],
+        "roleGroupPanel": {"roles": [], "groups": [], "selectedRole": None, "selectedGroup": None},
+        "workspacePanel": {
+            "summary": {"total": 0, "active": 0, "companies": 0, "linkedUsers": 0},
+            "workspaces": [],
+            "selectedWorkspace": None,
+        },
+        "auditPanel": {
+            "summary": {"total": 0, "success": 0, "failed": 0},
+            "filters": {"authors": [], "dates": [], "actions": [], "objectTypes": [], "modules": []},
+            "rows": [],
+            "selectedRecord": None,
+        },
+        "settingsPanel": {
+            "normalSettings": [],
+            "superAdminMode": {"enabled": False, "description": "Системные инструменты скрыты."},
+            "developerDiagnostics": [],
+            "dangerZone": {"warning": "Опасные действия требуют подтверждения.", "actions": [], "confirmationText": "DISABLE_USER"},
+        },
+        "actorRoleCodes": ["SUPER_ADMIN"],
+    }
+
+    html = template.render(
+        mode="list",
+        overview=overview,
+        detail=None,
+        disable_confirmation="DISABLE_USER",
+        atom_topbar_current_block="Пользователи и роли",
+        atom_topbar_profile_name="Администратор",
+    )
+
+    assert "Auto Access Module" in html
+    assert 'class="btn distribution-action"' in html
+    assert 'href="#access-matrix"' in html
+
 
 def test_pending_distribution_hides_inactive_or_already_distributed_items():
     planned_module = register_module_for_access_system(
@@ -406,6 +498,18 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     assert history["notes"]["reasonOptional"] is True
     assert history["notes"]["businessPayloadLogged"] is False
 
+    panel = audit_panel_summary([audit])
+    assert panel["summary"]["total"] == 1
+    assert panel["summary"]["success"] == 1
+    assert panel["filters"]["actions"] == ["permission_changed"]
+    assert panel["filters"]["modules"] == ["MODULE_11_ANALYTICS"]
+    assert panel["filters"]["widgets"] == ["price-dynamics"]
+    assert panel["selectedRecord"]["oldValue"] == {"accessLevel": "VIEW"}
+    assert panel["selectedRecord"]["newValue"] == {"accessLevel": "NO_ACCESS"}
+    assert panel["selectedRecord"]["subjectLabel"] == "price-dynamics"
+    assert panel["notes"]["oldNewValuesVisible"] is True
+    assert panel["notes"]["businessPayloadLogged"] is False
+
 
 def test_active_permissions_are_role_matrix_based_and_code_first():
     actor = _user(UserRole.ADMIN)
@@ -449,6 +553,52 @@ def test_role_group_panel_summary_exposes_cards_without_becoming_registry_debug(
     assert "technicalDetails" in role
     assert panel["technicalDetailsVisible"] is False
     assert panel["groups"][0]["title"] == "Системные роли"
+
+
+def test_workspace_panel_summary_exposes_workspace_cards_without_dashboard_layout_editor():
+    user = _user_with_assignment("SUPPLIER")
+    company = _company_workspace()
+    member = _workspace_member(user, company, "SUPPLIER")
+    user.workspace_members = [member]
+    company.members = [member]
+
+    panel = workspace_panel_summary([company], recent_history=[])
+
+    workspace = panel["selectedWorkspace"]
+    assert panel["summary"]["total"] == 1
+    assert panel["summary"]["companies"] == 1
+    assert workspace["title"] == company.title
+    assert workspace["linkedUsers"][0]["email"] == user.email
+    assert workspace["linkedCompanies"][0]["title"] == company.title
+    assert panel["notes"]["dashboardLayoutEditor"] is False
+    assert panel["notes"]["technicalDashboardPresetsHidden"] is True
+
+
+def test_settings_panel_separates_regular_settings_from_debug_zones():
+    regular = settings_panel_summary({"actorRoleCodes": ["PLATFORM_ADMIN"]})
+    super_admin = settings_panel_summary({"actorRoleCodes": ["SUPER_ADMIN"]})
+
+    assert regular["superAdminMode"]["enabled"] is False
+    assert super_admin["superAdminMode"]["enabled"] is True
+    assert regular["normalSettings"]
+    assert regular["dangerZone"]["requiresConfirmation"] is True
+    assert regular["dangerZone"]["confirmationText"] == "DISABLE_USER"
+    assert regular["notes"]["registryDiagnosticsHiddenForRegularAdmin"] is True
+    assert regular["notes"]["widgetDiagnosticsHiddenForRegularAdmin"] is True
+    assert regular["notes"]["legacyAliasesHiddenForRegularAdmin"] is True
+    assert regular["notes"]["uiStatesHiddenForRegularAdmin"] is True
+    assert regular["notes"]["moduleLifecycleDiagnosticsHiddenForRegularAdmin"] is True
+    assert regular["notes"]["widgetLifecycleDiagnosticsHiddenForRegularAdmin"] is True
+
+    diagnostic_titles = {item["title"] for item in super_admin["developerDiagnostics"]}
+    assert {
+        "Registry diagnostics",
+        "Widget diagnostics",
+        "Legacy aliases",
+        "UI states",
+        "Module lifecycle diagnostics",
+        "Widget lifecycle diagnostics",
+    }.issubset(diagnostic_titles)
 
 
 def test_admin_users_roles_view_route_is_registered():
@@ -540,7 +690,25 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Технические детали" in template
     assert "Коды доступны в tooltip" in template
     assert "Рабочие области" in nav
+    assert 'id="workspaces"' in template
+    assert "Список рабочих областей" in template
+    assert "Карточка workspace" in template
+    assert "Связанные пользователи" in template
+    assert "Связанные компании" in template
+    assert "История изменений workspace" in template
+    assert "Dashboard layout здесь не редактируется" in template
+    assert "Технические Dashboard presets и layout registry скрыты" in template
     assert "Журнал изменений" in nav
+    assert 'id="audit-log"' in template
+    assert "Таблица изменений" in template
+    assert "Фильтры журнала изменений" in template
+    assert "Поиск по пользователю, компании, модулю или действию" in template
+    assert "Detail drawer записи" in template
+    assert "Старое значение" in template
+    assert "Новое значение" in template
+    assert "Кто изменил" in template
+    assert "Когда изменил" in template
+    assert "Для кого изменил" in template
     assert "Настройки" in nav
     assert "Реестр модулей" not in nav
     assert "Виджеты и доступ" not in nav
@@ -550,6 +718,17 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Предпросмотр роли" not in nav
     assert "Системные разделы" in template
     assert "Registry / developer-only" in template
+    assert "Обычные настройки Module №3" in template
+    assert "Super Admin mode" in template
+    assert "developer-only diagnostics" in template
+    assert "Danger zone" in template
+    assert "подтверждение опасных действий" in template
+    assert "Registry diagnostics" in template
+    assert "Widget diagnostics" in template
+    assert "Legacy aliases" in template
+    assert "UI states" in template
+    assert "Module lifecycle diagnostics" in template
+    assert "Widget lifecycle diagnostics" in template
     assert "Главный центр управления физлицами, компаниями, сотрудниками компаний, группами, доступами и историей" in users_section
     assert "Ручное создание пользователя здесь не предусмотрено" in users_section
     assert "Физические лица" in users_section
@@ -626,6 +805,50 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Виджет недоступен: нет прав на данные модуля" in state_text
     assert "Это действие запланировано, но еще не активно" in state_text
     assert "Модуль объединен с другим модулем" in state_text
+
+
+def test_module3_final_visual_unification_contract():
+    template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+    nav = template.split('<nav class="module3-nav"', 1)[1].split("</nav>", 1)[0]
+    overview = template.split('<section class="command-hero" id="overview">', 1)[1].split(
+        '<section class="panel" id="settings"',
+        1,
+    )[0]
+
+    assert template.count('<nav class="module3-nav"') == 1
+    assert "module3-shell" in template
+    assert "control-shell" in template
+    assert "control-main" in template
+    assert ".system-card" in template
+    assert ".bridge-card" in template
+    assert ".role-card" in template
+    assert ".mini-card" in template
+    assert ".entity-table tbody tr:hover" in template
+    assert ".access-matrix-table tbody tr:hover" in template
+    assert ".empty" in template
+
+    for forbidden in (
+        "Workspace:",
+        "Регион:",
+        "SUPER_ADMIN",
+        "AuditLog ·",
+        "QuickAction Permission",
+        "Состояния и причины недоступности",
+        "Кабинеты и контекст",
+        "Виджеты и доступ",
+        "Быстрые действия",
+        "Макеты Dashboard",
+        "Предпросмотр роли",
+    ):
+        assert forbidden not in nav
+        assert forbidden not in overview
+
+    assert "наследуется" not in template.lower()
+    assert "атомная карта" not in template.lower()
+    assert "орбита" not in template.lower()
+    assert "Dashboard-клон" not in template
+    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' in template
+    assert 'hidden data-system-section="module8-context-diagnostics"' in template
 
 
 def test_module8_cabinet_admin_preview_exposes_context_placeholders():
