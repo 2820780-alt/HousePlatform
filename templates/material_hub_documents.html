@@ -24,8 +24,11 @@
     th { color:var(--muted); font-weight:600; white-space:nowrap; }
     th button { width:auto; min-height:0; padding:0; border:0; color:inherit; background:transparent; font:inherit; font-weight:600; cursor:pointer; }
     .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 7px; background:rgba(7,13,33,.72); white-space:nowrap; margin:0 3px 3px 0; }
+    .document-card { margin-top:8px; display:grid; grid-template-columns:repeat(2, minmax(180px, 1fr)); gap:6px; color:var(--muted); font-size:12px; }
+    .document-card div { border:1px solid rgba(125,156,255,.18); border-radius:5px; padding:6px; background:rgba(7,13,33,.38); }
+    .document-card strong { color:var(--text); display:block; margin-bottom:2px; }
     .empty { color:var(--muted); padding:10px 0; }
-    @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:760px; } }
+    @media (max-width:820px) { main, header { padding-left:14px; padding-right:14px; } table { min-width:760px; } .document-card { grid-template-columns:1fr; } }
   </style>
   {% include "_atom_ui_standards.html" %}
 </head>
@@ -34,12 +37,13 @@
   {% include "_atom_platform_topbar.html" %}
   <header>
     <h1>Документы</h1>
-    <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · храним ссылки на файлы и страницы источников, сами PDF пока не архивируем.</div>
+    <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · карточки документов, файлы и внешние ссылки. Страница сайта сама по себе не считается документом.</div>
   </header>
 
   <main>
     <section>
       <h2>Фильтры</h2>
+      <div class="muted" style="margin-bottom:10px">Одинаковые документы от разных поставщиков требуют проверки связи перед созданием новых карточек. OCR пока не выполняется: фиксируется только пригодность к извлечению текста.</div>
       {% if documents %}
       <div class="form-grid">
         <div>
@@ -114,7 +118,20 @@
           <tr class="document-row" data-document-type="{{ document.document_type.value }}" data-document-links="{{ document_filter_keys(document)|join(' ') }}">
             <td>{{ enum_label(document.document_type) }}</td>
             <td>{{ dt(document.created_at) }}</td>
-            <td>{% if document.file_url %}<a href="{{ document.file_url }}" target="_blank">{{ document.title }}</a>{% else %}{{ document.title }}{% endif %}</td>
+            <td>
+              {% if document.file_url %}<a href="{{ document.file_url }}" target="_blank">{{ document.title }}</a>{% else %}{{ document.title }}{% endif %}
+              <div class="document-card">
+                <div><strong>Файл</strong>{{ document_file_name(document) or "не указан" }} · {{ document_file_type(document) }}</div>
+                <div><strong>MIME</strong>{{ document_mime_type(document) }}</div>
+                <div><strong>Происхождение</strong>{{ document_origin(document) }}</div>
+                <div><strong>Извлечение текста</strong>{{ document_text_suitability(document) }}</div>
+                <div><strong>Parse status</strong>{{ document_parse_status(document) }}</div>
+                <div><strong>Checksum / размер / страниц</strong>не указано</div>
+                <div><strong>Язык / summary</strong>ru · {{ document_summary(document) }}</div>
+                <div><strong>Региональность</strong>{{ document_region_status(document) }}</div>
+                <div><strong>Действие / история</strong>{% if document.expiry_date %}действует до {{ dt(document.expiry_date) }} · {% endif %}{{ document_change_history_label(document) }}</div>
+              </div>
+            </td>
             <td>{{ source_display_name(document.source) }}</td>
             <td>{{ document.material.canonical_name if document.material else document.manufacturer.name if document.manufacturer else "" }}</td>
             <td>

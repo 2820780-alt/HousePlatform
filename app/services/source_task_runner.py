@@ -12,7 +12,7 @@ from app.models.enums import (
     CatalogProductStatus,
     DocumentStatus,
     DocumentType,
-    MaterialStatus,
+    MatchCandidateStatus,
     SourceActionType,
     SourceStatus,
     UploadFileType,
@@ -48,6 +48,7 @@ from app.services.material_taxonomy import (
     sync_extracted_specifications,
 )
 from app.services.rule_memory import find_rule_for_product
+from app.services.source_profiles import attach_source_profile_snapshot
 
 
 async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
@@ -63,13 +64,24 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
         raise ValueError("SourceTask has no source")
 
     if task.action_type == SourceActionType.UPLOAD_SUPPLIER_FILE:
+        task.parameters = attach_source_profile_snapshot(
+            task.source,
+            task.action_type,
+            task.parameters,
+            adapter_code="FileUploadAdapter",
+            supported_actions={SourceActionType.UPLOAD_SUPPLIER_FILE},
+            force=True,
+        )
         task.status = TaskStatus.RUNNING
         task.started_at = datetime.utcnow()
         task.error_message = None
         db.add(task)
         await _log(db, task, TaskLogLevel.INFO, "Started supplier file upload processing")
         try:
-            await _run_supplier_upload(db, task)
+            if _is_preview_mode(task):
+                await _run_supplier_upload_preview(db, task)
+            else:
+                await _run_supplier_upload(db, task)
             task.status = TaskStatus.COMPLETED
             task.finished_at = datetime.utcnow()
             db.add(task)
@@ -89,6 +101,14 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
         await _fail_task(db, task, f"Action {task.action_type.value} is not supported by this source")
         return task
 
+    task.parameters = attach_source_profile_snapshot(
+        task.source,
+        task.action_type,
+        task.parameters,
+        adapter_code=integration.__class__.__name__,
+        supported_actions=integration.supported_actions,
+        force=True,
+    )
     task.status = TaskStatus.RUNNING
     task.started_at = datetime.utcnow()
     task.error_message = None
@@ -96,7 +116,9 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
     await _log(db, task, TaskLogLevel.INFO, f"Started {task.action_type.value}")
 
     try:
-        if task.action_type == SourceActionType.CHECK_SOURCE_HEALTH:
+        if _is_preview_mode(task):
+            await _run_preview_task(db, task, integration)
+        elif task.action_type == SourceActionType.CHECK_SOURCE_HEALTH:
             await _run_health_check(db, task, integration)
         elif task.action_type in {
             SourceActionType.INITIAL_MATERIAL_SCAN,
@@ -124,6 +146,70 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
     await db.flush()
     await db.refresh(task)
     return task
+
+
+def _is_preview_mode(task: SourceTask) -> bool:
+    payload = {}
+    if task.parameters:
+        payload.update(task.parameters)
+    if task.result_summary:
+        payload.update(task.result_summary)
+    return str(payload.get("write_mode") or payload.get("result_write_mode") or "").upper() == "PREVIEW"
+
+
+async def _run_preview_task(db: AsyncSession, task: SourceTask, integration) -> None:
+    if task.action_type == SourceActionType.CHECK_SOURCE_HEALTH:
+        health = await integration.check_health()
+        task.result_summary = {
+            "preview": True,
+            "write_mode": "PREVIEW",
+            "ok": health.ok,
+            "status_code": health.status_code,
+            "message": health.message,
+        }
+        db.add(task)
+        await _log(db, task, TaskLogLevel.INFO, "Preview completed without domain writes")
+        return
+
+    if task.action_type in {
+        SourceActionType.INITIAL_MATERIAL_SCAN,
+        SourceActionType.UPDATE_PRICES,
+        SourceActionType.FIND_NEW_PRODUCTS,
+        SourceActionType.UPDATE_SPECIFICATIONS,
+    }:
+        products = await integration.fetch_products(task.action_type, task.parameters)
+        task.result_summary = {
+            "preview": True,
+            "write_mode": "PREVIEW",
+            "fetched": len(products),
+            "sample": [_source_product_preview(product) for product in products[:10]],
+        }
+        db.add(task)
+        await _log(db, task, TaskLogLevel.INFO, f"Preview fetched products: {len(products)}")
+        return
+
+    if task.action_type in {
+        SourceActionType.UPDATE_CERTIFICATES,
+        SourceActionType.UPDATE_TECH_DOCUMENTS,
+    }:
+        documents = await integration.fetch_documents(task.action_type, task.parameters)
+        task.result_summary = {
+            "preview": True,
+            "write_mode": "PREVIEW",
+            "fetched": len(documents),
+            "sample": [_source_document_preview(document) for document in documents[:10]],
+        }
+        db.add(task)
+        await _log(db, task, TaskLogLevel.INFO, f"Preview fetched documents: {len(documents)}")
+        return
+
+    task.result_summary = {
+        "preview": True,
+        "write_mode": "PREVIEW",
+        "note": f"Preview is not implemented for action {task.action_type.value}",
+    }
+    db.add(task)
+    await _log(db, task, TaskLogLevel.WARNING, task.result_summary["note"])
 
 
 async def _run_health_check(db: AsyncSession, task: SourceTask, integration) -> None:
@@ -359,6 +445,49 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
     )
 
 
+async def _run_supplier_upload_preview(db: AsyncSession, task: SourceTask) -> None:
+    payload = {}
+    if task.parameters:
+        payload.update(task.parameters)
+    if task.result_summary:
+        payload.update(task.result_summary)
+
+    upload_id = payload.get("supplier_upload_id")
+    if not upload_id:
+        raise ValueError("Supplier upload id is missing")
+
+    result = await db.execute(select(SupplierUpload).where(SupplierUpload.id == UUID(str(upload_id))))
+    upload = result.scalar_one_or_none()
+    if not upload:
+        raise ValueError(f"SupplierUpload not found: {upload_id}")
+    if not upload.file_url:
+        raise ValueError("SupplierUpload has no saved file path")
+
+    file_path = Path(upload.file_url)
+    if not file_path.exists():
+        raise ValueError(f"Uploaded file is not available: {upload.file_url}")
+
+    parsed = parse_file(file_path.read_bytes(), _parser_file_type(upload.file_type))
+    task.result_summary = {
+        **payload,
+        "preview": True,
+        "write_mode": "PREVIEW",
+        "supplier_upload_id": str(upload.id),
+        "rows_total": parsed.total_rows_found,
+        "rows_previewed": len(parsed.rows),
+        "parse_errors": parsed.errors[:10],
+        "sample": [_parsed_row_preview(row) for row in parsed.rows[:10]],
+    }
+    db.add(task)
+    await _log(
+        db,
+        task,
+        TaskLogLevel.INFO,
+        f"Preview parsed supplier file rows: {parsed.total_rows_found}",
+        {"errors": parsed.errors[:10]},
+    )
+
+
 async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) -> None:
     documents = await integration.fetch_documents(task.action_type, task.parameters)
     await _log(db, task, TaskLogLevel.INFO, f"Fetched documents: {len(documents)}")
@@ -584,6 +713,13 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
         catalog_product.status = CatalogProductStatus.NEEDS_REVIEW
         db.add(catalog_product)
         await db.flush()
+        await _ensure_match_candidate(
+            db,
+            catalog_product,
+            Decimal(str(classification.confidence)),
+            quality.reason,
+            classification.canonical_name,
+        )
         return "needs_review"
 
     alias_result = await db.execute(
@@ -620,41 +756,55 @@ async def _match_or_create_material(db: AsyncSession, catalog_product: CatalogPr
         await db.flush()
         return "matched"
 
-    material = Material(
-        canonical_name=classification.canonical_name,
-        category_id=category.id if category else None,
-        subcategory_id=subcategory.id if subcategory else None,
-        brand=classification.brand,
-        manufacturer=classification.manufacturer,
-        status=MaterialStatus.AUTO_CREATED,
-    )
-    db.add(material)
-    await db.flush()
-    await db.refresh(material)
-
-    alias = MaterialAlias(
-        material_id=material.id,
-        original_name=catalog_product.raw_name,
-        normalized_name=normalized,
-        confidence_score=Decimal("0.75"),
-    )
-    db.add(alias)
-
-    catalog_product.material_id = material.id
-    catalog_product.match_confidence = Decimal("1.0")
-    catalog_product.status = CatalogProductStatus.ACTIVE
+    catalog_product.material_id = None
+    catalog_product.match_confidence = Decimal(str(classification.confidence))
+    catalog_product.status = CatalogProductStatus.NEEDS_REVIEW
     db.add(catalog_product)
-    await sync_extracted_specifications(
-        db,
-        material,
-        catalog_product.source_id,
-        specification_category,
-        taxonomy_path,
-        catalog_product.raw_name,
-        catalog_product.raw_category,
-    )
     await db.flush()
-    return "created"
+    await _ensure_match_candidate(
+        db,
+        catalog_product,
+        Decimal(str(classification.confidence)),
+        "Кандидат подготовлен без прямого создания Material",
+        classification.canonical_name,
+    )
+    return "candidate"
+
+
+async def _ensure_match_candidate(
+    db: AsyncSession,
+    catalog_product: CatalogProduct,
+    match_score: Decimal,
+    match_reason: str,
+    canonical_suggestion: str | None,
+) -> MaterialMatchCandidate:
+    result = await db.execute(
+        select(MaterialMatchCandidate)
+        .where(MaterialMatchCandidate.catalog_product_id == catalog_product.id)
+        .where(MaterialMatchCandidate.status.in_([
+            MatchCandidateStatus.OPEN,
+            MatchCandidateStatus.NEEDS_REVIEW,
+        ]))
+        .limit(1)
+    )
+    candidate = result.scalar_one_or_none()
+    suggestion = canonical_suggestion or catalog_product.normalized_name or catalog_product.raw_name
+    if not candidate:
+        candidate = MaterialMatchCandidate(
+            catalog_product_id=catalog_product.id,
+            match_score=match_score,
+            match_reason=match_reason,
+            ai_suggestion=suggestion,
+            status=MatchCandidateStatus.NEEDS_REVIEW,
+        )
+    else:
+        candidate.match_score = match_score
+        candidate.match_reason = match_reason
+        candidate.ai_suggestion = suggestion
+        candidate.status = MatchCandidateStatus.NEEDS_REVIEW
+    db.add(candidate)
+    await db.flush()
+    return candidate
 
 
 async def _write_price_history(db: AsyncSession, catalog_product: CatalogProduct, price) -> None:
@@ -841,6 +991,48 @@ def _product_snapshot(product: CatalogProduct) -> dict:
         "availability": product.availability,
         "region": product.region,
         "material_id": str(product.material_id) if product.material_id else None,
+    }
+
+
+def _source_product_preview(product: SourceProduct) -> dict:
+    return {
+        "external_id": product.external_id,
+        "external_url": product.external_url,
+        "raw_name": product.raw_name,
+        "normalized_name": product.normalized_name,
+        "raw_category": product.raw_category,
+        "raw_brand": product.raw_brand,
+        "raw_manufacturer": product.raw_manufacturer,
+        "price": str(product.price) if product.price is not None else None,
+        "currency": product.currency,
+        "unit": product.unit,
+        "availability": product.availability,
+        "region": product.region,
+        "region_status": "ACTIVE" if product.region else "needs_review",
+    }
+
+
+def _source_document_preview(document: SourceDocument) -> dict:
+    return {
+        "title": document.title,
+        "document_type": document.document_type,
+        "file_url": document.file_url,
+        "source_url": document.source_url,
+        "material_id": str(document.material_id) if document.material_id else None,
+        "manufacturer_id": str(document.manufacturer_id) if document.manufacturer_id else None,
+    }
+
+
+def _parsed_row_preview(row) -> dict:
+    return {
+        "row_number": row.row_number,
+        "raw_name": row.original_name,
+        "raw_price": str(row.original_price) if row.original_price is not None else None,
+        "raw_unit": row.original_unit,
+        "raw_quantity": str(row.quantity) if row.quantity is not None else None,
+        "raw_article": row.sku,
+        "raw_brand": row.brand,
+        "raw_manufacturer": row.manufacturer,
     }
 
 

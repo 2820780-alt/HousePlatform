@@ -46,6 +46,8 @@ from app.services.material_taxonomy import (
 )
 from app.services.rule_memory import build_rule_patterns, remember_material_rule
 from app.services.audit_service import log_event
+from app.services.source_profiles import attach_source_profile_snapshot
+from app.processing.file_parser import parse_file
 from app.processing.file_validator import validate_file
 from app.services.upload_storage import save_uploaded_file
 
@@ -147,8 +149,8 @@ class DevRunBatchTaskResponse(BaseModel):
 
 
 class DevUploadSupplierFileResponse(BaseModel):
-    upload_id: UUID
-    source_id: UUID
+    upload_id: UUID | None = None
+    source_id: UUID | None = None
     task: SourceTaskRead
 
 
@@ -357,11 +359,66 @@ async def upload_dev_supplier_file(
     region: str | None = Form(None),
     price_date: str | None = Form(None),
     process_now: bool = Form(True),
+    data_source_kind: str | None = Form(None),
+    collection_object: str | None = Form(None),
+    processing_scenario: str | None = Form(None),
+    write_mode: str | None = Form(None),
+    activeRegionCode: str | None = Form(None),
+    source_region_id: str | None = Form(None),
+    source_city_id: str | None = Form(None),
+    delivery_zone_id: str | None = Form(None),
+    region_status: str | None = Form(None),
 ):
     content = await file.read()
     validation = validate_file(file.filename or "", file.content_type, len(content))
     if not validation.valid:
         raise HTTPException(status_code=422, detail=validation.error)
+
+    if str(write_mode or "").upper() == "PREVIEW":
+        parsed = parse_file(content, validation.file_type)
+        now = datetime.utcnow()
+        parameters = attach_source_profile_snapshot(
+            None,
+            SourceActionType.UPLOAD_SUPPLIER_FILE,
+            {
+                "filename": file.filename,
+                "file_type": validation.file_type.value,
+                "size_bytes": len(content),
+                "city": city,
+                "region": region,
+                "price_date": price_date,
+                "data_source_kind": data_source_kind or "FILE",
+                "collection_object": collection_object,
+                "processing_scenario": processing_scenario,
+                "write_mode": "PREVIEW",
+                "activeRegionCode": activeRegionCode,
+                "source_region_id": source_region_id,
+                "source_city_id": source_city_id,
+                "delivery_zone_id": delivery_zone_id,
+                "region_status": region_status or ("ACTIVE" if activeRegionCode else "needs_review"),
+            },
+            adapter_code="FileUploadAdapter",
+            supported_actions={SourceActionType.UPLOAD_SUPPLIER_FILE},
+        )
+        task = SourceTask(
+            source_id=None,
+            action_type=SourceActionType.UPLOAD_SUPPLIER_FILE,
+            status=TaskStatus.COMPLETED,
+            started_at=now,
+            finished_at=now,
+            parameters=parameters,
+            result_summary={
+                "preview": True,
+                "write_mode": "PREVIEW",
+                "rows_total": parsed.total_rows_found,
+                "rows_previewed": len(parsed.rows),
+                "parse_errors": parsed.errors[:10],
+            },
+        )
+        db.add(task)
+        await db.flush()
+        await db.refresh(task)
+        return DevUploadSupplierFileResponse(task=task)
 
     supplier = await _get_or_create_dev_supplier(db, supplier_name, city, region)
     source = await _get_or_create_admin_upload_source(db, supplier.name)
@@ -383,7 +440,7 @@ async def upload_dev_supplier_file(
         source_id=source.id,
         action_type=SourceActionType.UPLOAD_SUPPLIER_FILE,
         status=TaskStatus.PENDING,
-        parameters={
+        parameters=attach_source_profile_snapshot(source, SourceActionType.UPLOAD_SUPPLIER_FILE, {
             "supplier_upload_id": str(upload.id),
             "supplier_id": str(supplier.id),
             "filename": upload.file_name,
@@ -393,7 +450,16 @@ async def upload_dev_supplier_file(
             "city": city,
             "region": region,
             "price_date": price_date,
-        },
+            "data_source_kind": data_source_kind or "FILE",
+            "collection_object": collection_object,
+            "processing_scenario": processing_scenario,
+            "write_mode": write_mode or "CREATE_CANDIDATES",
+            "activeRegionCode": activeRegionCode,
+            "source_region_id": source_region_id,
+            "source_city_id": source_city_id,
+            "delivery_zone_id": delivery_zone_id,
+            "region_status": region_status or ("ACTIVE" if activeRegionCode else "needs_review"),
+        }, adapter_code="FileUploadAdapter", supported_actions={SourceActionType.UPLOAD_SUPPLIER_FILE}),
     )
     db.add(task)
     await db.flush()
@@ -1213,6 +1279,7 @@ async def _create_and_run_task(
     action_type: SourceActionType,
     parameters: dict,
 ) -> SourceTask:
+    parameters = attach_source_profile_snapshot(source, action_type, parameters)
     task = SourceTask(
         source_id=source.id,
         action_type=action_type,

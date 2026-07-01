@@ -22,6 +22,7 @@ from app.processing.file_validator import validate_file
 from app.schemas.common import PaginatedResponse
 from app.schemas.material_hub import SupplierUploadRead
 from app.services.audit_service import log_event
+from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.upload_storage import save_uploaded_file
 
 router = APIRouter(prefix="/supplier", tags=["supplier-upload"])
@@ -69,6 +70,15 @@ async def upload_document(
     city: str | None = Form(None),
     region: str | None = Form(None),
     price_date: date | None = Form(None),
+    data_source_kind: str | None = Form(None),
+    collection_object: str | None = Form(None),
+    processing_scenario: str | None = Form(None),
+    write_mode: str | None = Form(None),
+    activeRegionCode: str | None = Form(None),
+    source_region_id: str | None = Form(None),
+    source_city_id: str | None = Form(None),
+    delivery_zone_id: str | None = Form(None),
+    region_status: str | None = Form(None),
 ):
     supplier_id = await _get_my_supplier_id(db, user)
     content = await file.read()
@@ -103,6 +113,23 @@ async def upload_document(
         action_type=SourceActionType.UPLOAD_SUPPLIER_FILE,
         status=TaskStatus.PENDING,
         created_by=user.id,
+        parameters=attach_source_profile_snapshot(
+            source,
+            SourceActionType.UPLOAD_SUPPLIER_FILE,
+            {
+                "data_source_kind": data_source_kind or "FILE",
+                "collection_object": collection_object,
+                "processing_scenario": processing_scenario,
+                "write_mode": write_mode or "CREATE_CANDIDATES",
+                "activeRegionCode": activeRegionCode,
+                "source_region_id": source_region_id,
+                "source_city_id": source_city_id,
+                "delivery_zone_id": delivery_zone_id,
+                "region_status": region_status or ("ACTIVE" if activeRegionCode else "needs_review"),
+            },
+            adapter_code="FileUploadAdapter",
+            supported_actions={SourceActionType.UPLOAD_SUPPLIER_FILE},
+        ),
         result_summary={
             "supplier_upload_id": str(upload.id),
             "supplier_id": str(supplier_id),
@@ -113,6 +140,15 @@ async def upload_document(
             "city": city,
             "region": region,
             "price_date": price_date.isoformat() if price_date else None,
+            "data_source_kind": data_source_kind or "FILE",
+            "collection_object": collection_object,
+            "processing_scenario": processing_scenario,
+            "write_mode": write_mode or "CREATE_CANDIDATES",
+            "activeRegionCode": activeRegionCode,
+            "source_region_id": source_region_id,
+            "source_city_id": source_city_id,
+            "delivery_zone_id": delivery_zone_id,
+            "region_status": region_status or ("ACTIVE" if activeRegionCode else "needs_review"),
         },
     )
     db.add(task)

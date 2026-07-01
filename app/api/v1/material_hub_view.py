@@ -40,12 +40,12 @@ ACTION_LABELS = {
     SourceActionType.UPDATE_PRICES.value: "Обновить цены",
     SourceActionType.FIND_NEW_PRODUCTS.value: "Найти новые товары",
     SourceActionType.UPDATE_SPECIFICATIONS.value: "Обновить характеристики",
-    SourceActionType.UPDATE_CERTIFICATES.value: "Обновить сертификаты",
-    SourceActionType.UPDATE_TECH_DOCUMENTS.value: "Обновить технические документы",
+    SourceActionType.UPDATE_CERTIFICATES.value: "Документы: сертификаты и декларации",
+    SourceActionType.UPDATE_TECH_DOCUMENTS.value: "Документы: технические документы",
     SourceActionType.SCAN_TECHNOLOGIES.value: "Изучить технологии",
-    SourceActionType.FULL_INITIAL_SCAN.value: "Полная первичная загрузка",
+    SourceActionType.FULL_INITIAL_SCAN.value: "Первичное наполнение: полный сбор",
     SourceActionType.CHECK_SOURCE_HEALTH.value: "Проверить доступность источника",
-    SourceActionType.UPLOAD_SUPPLIER_FILE.value: "Загрузить файл поставщика",
+    SourceActionType.UPLOAD_SUPPLIER_FILE.value: "Файл CSV/XLSX",
 }
 
 ENUM_LABELS = {
@@ -114,6 +114,51 @@ SCAN_MODE_LABELS = {
     "FULL": "Полный сбор",
 }
 
+DATA_SOURCE_KIND_LABELS = {
+    "SUPPLIER_SITE": "Сайт поставщика",
+    "API": "API",
+    "FILE": "Файл CSV/XLSX",
+    "OPEN_SOURCE": "Открытый источник",
+    "PLATFORM_INTERNAL": "Внутренний источник платформы",
+}
+
+COLLECTION_OBJECT_LABELS = {
+    "MATERIALS": "Материалы",
+    "PRICES": "Цены",
+    "CHARACTERISTICS": "Характеристики",
+    "DOCUMENTS": "Документы",
+    "WORK_RATES": "Работы и расценки",
+    "SOURCE_HEALTH": "Доступность источника",
+}
+
+PROCESSING_SCENARIO_LABELS = {
+    "INITIAL_FILL": "Первичное наполнение",
+    "UPDATE_EXISTING": "Обновление существующих данных",
+    "FIND_NEW_RECORDS": "Поиск новых записей",
+    "CHECK_SOURCE": "Проверка источника",
+    "EXTRACT_TECH_DATA": "Извлечение технологических данных",
+}
+
+WRITE_MODE_LABELS = {
+    "PREVIEW": "Предпросмотр",
+    "CREATE_CANDIDATES": "Создать кандидатов",
+    "WRITE_CONFIRMED": "Записать подтвержденное",
+}
+
+DOCUMENT_TYPE_OPTIONS = {
+    "ALL": "Все типы документов",
+    "CERTIFICATES": "Сертификаты и декларации",
+    "TECH_DOCUMENTS": "Технические документы",
+}
+
+ACTIVE_COLLECTION_REGION = {
+    "label": "Краснодарский край",
+    "activeRegionCode": "RU-KDA",
+    "source_region_id": None,
+    "source_city_id": None,
+    "delivery_zone_id": None,
+}
+
 DOCUMENT_GROUP_LABELS = {
     "CERTIFICATE": "Сертификаты",
     "DECLARATION": "Декларации",
@@ -147,10 +192,6 @@ async def material_hub_view(
             "sources": sources,
             "source_groups": _group_sources_by_direction(sources),
             "pending_candidates_total": await _count_pending_candidates(db),
-            "actions": [
-                {"value": action.value, "label": ACTION_LABELS.get(action.value, action.value)}
-                for action in SourceActionType
-            ],
             "action_labels": ACTION_LABELS,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
@@ -159,6 +200,27 @@ async def material_hub_view(
                 {"value": value, "label": label}
                 for value, label in SCAN_MODE_LABELS.items()
             ],
+            "data_source_kinds": [
+                {"value": value, "label": label}
+                for value, label in DATA_SOURCE_KIND_LABELS.items()
+            ],
+            "collection_objects": [
+                {"value": value, "label": label}
+                for value, label in COLLECTION_OBJECT_LABELS.items()
+            ],
+            "processing_scenarios": [
+                {"value": value, "label": label}
+                for value, label in PROCESSING_SCENARIO_LABELS.items()
+            ],
+            "write_modes": [
+                {"value": value, "label": label}
+                for value, label in WRITE_MODE_LABELS.items()
+            ],
+            "document_type_options": [
+                {"value": value, "label": label}
+                for value, label in DOCUMENT_TYPE_OPTIONS.items()
+            ],
+            "active_collection_region": ACTIVE_COLLECTION_REGION,
             "in_stock_only": in_stock_only,
         },
     )
@@ -192,6 +254,15 @@ async def material_hub_documents(request: Request, db: DBSession):
             "document_filter_options": _document_filter_options(documents),
             "document_filter_keys": _document_filter_keys,
             "document_tags": _document_tags,
+            "document_file_type": _document_file_type,
+            "document_mime_type": _document_mime_type,
+            "document_origin": _document_origin,
+            "document_text_suitability": _document_text_suitability,
+            "document_parse_status": _document_parse_status,
+            "document_file_name": _document_file_name,
+            "document_summary": _document_summary,
+            "document_change_history_label": _document_change_history_label,
+            "document_region_status": _document_region_status,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
             "dt": _format_datetime,
@@ -275,6 +346,10 @@ async def _render_data_page(
             "action_labels": ACTION_LABELS,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
+            "characteristic_label": _characteristic_label,
+            "is_consumption_characteristic": _is_consumption_characteristic,
+            "characteristic_verified_by_moderator": _characteristic_verified_by_moderator,
+            "characteristic_history_label": _characteristic_history_label,
             "dt": _format_datetime,
             "in_stock_only": in_stock_only,
             "price_recommendations": await _load_price_recommendations(db, in_stock_only),
@@ -341,6 +416,41 @@ def _format_datetime(value) -> str:
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d %H:%M")
     return str(value)
+
+
+def _characteristic_label(specification: MaterialSpecification) -> str:
+    template = getattr(specification, "template", None)
+    if template and getattr(template, "name", None):
+        return template.name
+    if template and getattr(template, "field_key", None):
+        return template.field_key
+    return "Характеристика"
+
+
+def _is_consumption_characteristic(specification: MaterialSpecification) -> bool:
+    template = getattr(specification, "template", None)
+    text = " ".join([
+        str(getattr(template, "name", "") or ""),
+        str(getattr(template, "field_key", "") or ""),
+        str(getattr(specification, "value", "") or ""),
+        str(getattr(specification, "unit", "") or ""),
+    ]).lower()
+    return any(marker in text for marker in ("расход", "consumption", "rashod"))
+
+
+def _characteristic_verified_by_moderator(specification: MaterialSpecification) -> bool:
+    raw_status = getattr(getattr(specification, "verified_status", None), "value", None)
+    return raw_status == "VERIFIED"
+
+
+def _characteristic_history_label(specification: MaterialSpecification) -> str:
+    updated_at = _format_datetime(getattr(specification, "updated_at", None))
+    created_at = _format_datetime(getattr(specification, "created_at", None))
+    if updated_at:
+        return f"обновлено {updated_at}"
+    if created_at:
+        return f"создано {created_at}"
+    return "история пока не зафиксирована"
 
 
 def _group_sources_by_direction(sources: list[Source]) -> list[dict]:
@@ -549,10 +659,12 @@ async def _load_materials(db: DBSession) -> list[Material]:
             selectinload(Material.category),
             selectinload(Material.subcategory),
             selectinload(Material.documents),
+            selectinload(Material.specifications).selectinload(MaterialSpecification.template),
+            selectinload(Material.specifications).selectinload(MaterialSpecification.source),
         )
         .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
         .order_by(Material.created_at.desc())
-        .limit(2000)
+        .limit(500)
     )
     return list(result.scalars().all())
 
@@ -564,6 +676,8 @@ async def _load_unclassified_materials(db: DBSession) -> list[Material]:
             selectinload(Material.category),
             selectinload(Material.subcategory),
             selectinload(Material.documents),
+            selectinload(Material.specifications).selectinload(MaterialSpecification.template),
+            selectinload(Material.specifications).selectinload(MaterialSpecification.source),
         )
         .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
         .where(Material.category_id.is_(None))
@@ -907,6 +1021,109 @@ def _document_tags(document: MaterialDocument) -> list[str]:
     tags = [DOCUMENT_GROUP_LABELS.get(document.document_type.value, document.document_type.value)]
     tags.extend(label for _key, label in _document_filter_pairs(document))
     return tags
+
+
+def _document_file_name(document: MaterialDocument) -> str:
+    url = document.file_url or document.source_url or ""
+    clean = url.split("?", 1)[0].rstrip("/")
+    if not clean:
+        return ""
+    return clean.rsplit("/", 1)[-1] or clean
+
+
+def _document_extension(document: MaterialDocument) -> str:
+    name = _document_file_name(document).lower()
+    if "." not in name:
+        return ""
+    return name.rsplit(".", 1)[-1]
+
+
+def _document_file_type(document: MaterialDocument) -> str:
+    extension = _document_extension(document)
+    if extension in {"jpg", "jpeg", "png"}:
+        return extension.upper()
+    if extension in {"pdf", "csv", "xlsx", "doc", "docx", "html"}:
+        return extension.upper()
+    if document.file_url:
+        return "другой"
+    return "не указан"
+
+
+def _document_mime_type(document: MaterialDocument) -> str:
+    extension = _document_extension(document)
+    return {
+        "pdf": "application/pdf",
+        "csv": "text/csv",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "doc": "application/msword",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "html": "text/html",
+    }.get(extension, "не определен")
+
+
+def _document_origin(document: MaterialDocument) -> str:
+    extension = _document_extension(document)
+    if extension == "pdf":
+        return "native_pdf"
+    if extension in {"jpg", "jpeg", "png"}:
+        return "photo"
+    if extension == "html" and document.file_url:
+        return "html_page"
+    if document.file_url:
+        return "uploaded_file" if "uploads" in document.file_url.lower() else "external_link"
+    if document.source_url:
+        return "external_link"
+    return "external_link"
+
+
+def _document_text_suitability(document: MaterialDocument) -> str:
+    extension = _document_extension(document)
+    if extension == "pdf":
+        return "текстовый слой есть или требуется проверка"
+    if extension in {"jpg", "jpeg", "png"}:
+        return "нужен OCR"
+    if extension in {"csv", "xlsx", "doc", "docx", "html"}:
+        return "текстовый слой есть"
+    if document.file_url or document.source_url:
+        return "неизвестно"
+    return "не поддерживается"
+
+
+def _document_parse_status(document: MaterialDocument) -> str:
+    if document.status == DocumentStatus.REJECTED:
+        return "пропущен"
+    if document.status == DocumentStatus.NEEDS_REVIEW:
+        return "требует ручной проверки"
+    return "не обработан"
+
+
+def _document_summary(document: MaterialDocument) -> str:
+    linked_to = []
+    if document.material:
+        linked_to.append(document.material.canonical_name)
+    if document.manufacturer:
+        linked_to.append(f"производитель: {document.manufacturer.name}")
+    if document.source:
+        linked_to.append(f"источник: {_source_display_name(document.source)}")
+    base = ", ".join(linked_to) if linked_to else "связи пока не указаны"
+    return f"{DOCUMENT_GROUP_LABELS.get(document.document_type.value, document.document_type.value)}; {base}"
+
+
+def _document_change_history_label(document: MaterialDocument) -> str:
+    updated_at = _format_datetime(document.updated_at)
+    created_at = _format_datetime(document.created_at)
+    if updated_at:
+        return f"обновлено {updated_at}"
+    if created_at:
+        return f"получено {created_at}"
+    return "история пока не зафиксирована"
+
+
+def _document_region_status(_document: MaterialDocument) -> str:
+    return "не региональный документ"
 
 
 def _document_filter_pairs(document: MaterialDocument) -> list[tuple[str, str]]:

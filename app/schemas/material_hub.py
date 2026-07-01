@@ -135,6 +135,9 @@ class MaterialSpecificationRead(BaseModel):
     source_id: UUID | None = None
     confidence: Decimal | None = None
     verified_status: VerificationStatus
+    verified_by_moderator: bool | None = None
+    is_consumption_norm: bool | None = None
+    update_history: list[dict] | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -150,6 +153,24 @@ class MaterialDocumentRead(BaseModel):
     title: str
     file_url: str | None = None
     source_url: str | None = None
+    file_type: str | None = None
+    mime_type: str | None = None
+    origin: str | None = None
+    text_extraction_suitability: str | None = None
+    parse_status: str | None = None
+    supplier_id: UUID | None = None
+    linked_material_ids: list[UUID] | None = None
+    linked_category_ids: list[UUID] | None = None
+    linked_technology_refs: list[str] | None = None
+    applicable_region_ids: list[UUID] | None = None
+    regional_restrictions: str | None = None
+    region_status: str | None = None
+    checksum: str | None = None
+    file_size_bytes: int | None = None
+    page_count: int | None = None
+    language: str | None = None
+    summary: str | None = None
+    change_history: list[dict] | None = None
     issue_date: date | None = None
     expiry_date: date | None = None
     status: DocumentStatus

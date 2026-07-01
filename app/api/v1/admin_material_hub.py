@@ -24,6 +24,7 @@ from app.schemas.material_hub import (
     SourceUpdate,
 )
 from app.services.audit_service import log_event
+from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.source_task_runner import run_source_task
 
 router = APIRouter(prefix="/admin/material-hub", tags=["admin-material-hub"])
@@ -159,22 +160,24 @@ async def _set_source_status(source_id: UUID, status: SourceStatus, db: DBSessio
 async def create_source_tasks(data: SourceTaskCreate, db: DBSession, user: CurrentUser):
     _check_admin(user)
     if data.all_sources:
-        result = await db.execute(select(Source.id).where(Source.status == SourceStatus.ACTIVE))
-        source_ids = list(result.scalars().all())
+        result = await db.execute(select(Source).where(Source.status == SourceStatus.ACTIVE))
+        sources = list(result.scalars().all())
     else:
         source_ids = data.source_ids or []
+        result = await db.execute(select(Source).where(Source.id.in_(source_ids))) if source_ids else None
+        sources = list(result.scalars().all()) if result else []
 
-    if not source_ids:
+    if not sources:
         raise ValidationError("Select at least one source or set all_sources=true")
 
     tasks: list[SourceTask] = []
-    for source_id in source_ids:
+    for source in sources:
         task = SourceTask(
-            source_id=source_id,
+            source_id=source.id,
             action_type=data.action_type,
             status=TaskStatus.PENDING,
             created_by=user.id,
-            parameters=data.parameters,
+            parameters=attach_source_profile_snapshot(source, data.action_type, data.parameters),
         )
         db.add(task)
         tasks.append(task)

@@ -145,9 +145,16 @@
     }
     .form-grid {
       display: grid;
-      grid-template-columns: 1.05fr 1.25fr 1fr 1fr auto;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
       gap: 10px;
       align-items: end;
+    }
+    .run-action-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 10px;
     }
     .run-card {
       position: relative;
@@ -215,6 +222,24 @@
       color: var(--muted);
       line-height: 1.4;
     }
+    .collection-region {
+      margin-bottom: 12px;
+      padding: 9px 10px;
+      border: 1px solid rgba(16, 215, 232, 0.28);
+      border-radius: 5px;
+      background: rgba(16, 215, 232, 0.08);
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .collection-region strong { color: var(--text); }
+    .file-source-fields {
+      display: none;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: end;
+    }
+    .file-source-fields.open { display: grid; }
     .upload-grid {
       display: grid;
       grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
@@ -323,12 +348,15 @@
     }
     @media (max-width: 1180px) {
       .form-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .run-action-row { grid-template-columns: 1fr; }
+      .file-source-fields { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .run-button { min-width: 0; }
     }
     @media (max-width: 820px) {
       main, header { padding-left: 14px; padding-right: 14px; }
       table { min-width: 680px; }
       .form-grid { grid-template-columns: 1fr; }
+      .file-source-fields { grid-template-columns: 1fr; }
       .run-head { display: block; }
       .run-button { min-width: 0; }
       .module-header-grid { grid-template-columns: 1fr; }
@@ -409,11 +437,52 @@
       <div class="run-head">
         <div>
           <h2>Запуск анализа</h2>
-          <div class="run-hint">Выберите источник, раздел внутри источника и действие. Технические лимиты спрятаны в расширенных настройках.</div>
+          <div class="run-hint">Выберите источник данных, объект сбора, сценарий обработки и режим запуска. Файл CSV/XLSX — это один из источников данных, а не отдельный сценарий.</div>
         </div>
+      </div>
+      <div class="collection-region">
+        Активный регион сбора данных: <strong>{{ active_collection_region.label }}</strong>
+        <input id="active-region-code" type="hidden" value="{{ active_collection_region.activeRegionCode or '' }}">
+        <input id="source-region-id" type="hidden" value="{{ active_collection_region.source_region_id or '' }}">
+        <input id="source-city-id" type="hidden" value="{{ active_collection_region.source_city_id or '' }}">
+        <input id="delivery-zone-id" type="hidden" value="{{ active_collection_region.delivery_zone_id or '' }}">
       </div>
       <div class="form-grid">
         <div class="run-step step-1">
+          <label for="data-source-kind">Источник данных</label>
+          <select id="data-source-kind" onchange="onDataSourceKindChange()">
+            {% for item in data_source_kinds %}
+              <option value="{{ item.value }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="run-step step-2">
+          <label for="collection-object">Объект сбора</label>
+          <select id="collection-object" onchange="onCollectionObjectChange()">
+            {% for item in collection_objects %}
+              <option value="{{ item.value }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="run-step step-3">
+          <label for="processing-scenario">Сценарий обработки</label>
+          <select id="processing-scenario" onchange="onProcessingScenarioChange()">
+            {% for item in processing_scenarios %}
+              <option value="{{ item.value }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="run-step step-4">
+          <label for="scan-mode">Режим запуска</label>
+          <select id="scan-mode" onchange="updateScenarioPreview()">
+            {% for mode in scan_modes %}
+              <option value="{{ mode.value }}">{{ mode.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:10px">
+        <div>
           <label for="source-direction">Направление источника</label>
           <select id="source-direction" onchange="onSourceDirectionChange()">
             <option value="">Все категории</option>
@@ -422,7 +491,7 @@
             {% endfor %}
           </select>
         </div>
-        <div class="run-step step-2">
+        <div>
           <label>Источник</label>
           <div class="source-picker" id="source-picker">
             <div class="source-picker-button" onclick="toggleSourceDropdown()">
@@ -453,17 +522,45 @@
             </div>
           </div>
         </div>
-        <div class="run-step step-3">
+        <div>
           <label for="source-category-filter">Раздел сайта</label>
           <select id="source-category-filter" onchange="updateScenarioPreview()">
             <option value="">Все категории источника</option>
           </select>
         </div>
-        <div class="run-step step-4">
-          <label for="action-type">Что собираем</label>
-          <select id="action-type" onchange="updateScenarioPreview()">
-            {% for action in actions %}
-            <option value="{{ action.value }}">{{ action.label }}</option>
+        <div id="document-type-field">
+          <label for="document-type-group">Тип документа</label>
+          <select id="document-type-group" onchange="updateScenarioPreview()">
+            {% for item in document_type_options %}
+              <option value="{{ item.value }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="file-source-fields" id="file-source-fields">
+        <div>
+          <label for="supplier-file">Файл CSV/XLSX</label>
+          <input id="supplier-file" type="file" onchange="updateScenarioPreview()" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        </div>
+        <div>
+          <label for="supplier-name">Поставщик</label>
+          <input id="supplier-name" placeholder="Например: локальный поставщик">
+        </div>
+        <div>
+          <label for="supplier-region">Регион файла</label>
+          <input id="supplier-region" placeholder="{{ active_collection_region.label }}">
+        </div>
+        <div>
+          <label for="supplier-city">Город</label>
+          <input id="supplier-city" placeholder="Например: Краснодар">
+        </div>
+      </div>
+      <div class="run-action-row">
+        <div>
+          <label for="write-mode">Режим записи результата</label>
+          <select id="write-mode" onchange="updateScenarioPreview()">
+            {% for item in write_modes %}
+              <option value="{{ item.value }}" {% if item.value == "CREATE_CANDIDATES" %}selected{% endif %}>{{ item.label }}</option>
             {% endfor %}
           </select>
         </div>
@@ -496,14 +593,6 @@
         <summary>Расширенные настройки</summary>
         <div class="advanced-grid">
           <div>
-            <label for="scan-mode">Режим запуска</label>
-            <select id="scan-mode" onchange="updateScenarioPreview()">
-              {% for mode in scan_modes %}
-              <option value="{{ mode.value }}">{{ mode.label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div>
             <label for="max-pages">Максимум товаров</label>
             <input id="max-pages" type="number" value="5" min="1" max="150">
           </div>
@@ -518,52 +607,6 @@
         </div>
       </details>
       <div id="run-status"></div>
-    </section>
-
-    <section>
-      <h2>Ручная загрузка прайса</h2>
-      <div class="upload-grid">
-        <div>
-          <label for="supplier-file">Файл CSV/XLSX</label>
-          <input id="supplier-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-        </div>
-        <div>
-          <label for="supplier-name">Поставщик</label>
-          <input id="supplier-name" placeholder="Например: локальный поставщик">
-        </div>
-        <div>
-          <label for="supplier-region">Регион</label>
-          <input id="supplier-region" placeholder="Например: Краснодарский край">
-        </div>
-        <div>
-          <label for="supplier-city">Город</label>
-          <input id="supplier-city" placeholder="Например: Краснодар">
-        </div>
-        <div class="atom-action-with-menu">
-          <button
-            id="quick-action-upload-supplier-price"
-            type="button"
-            onclick="uploadSupplierFile()"
-            data-quick-action-candidate
-            data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
-            data-quick-action-feature-code="SUPPLIER_PRICE_UPLOAD"
-            data-quick-action-key="UPLOAD_SUPPLIER_PRICE"
-            data-quick-action-title="Загрузить прайс"
-            data-quick-action-route="/api/v1/admin/material-hub/view"
-            data-quick-action-config-provider="materialHubSupplierUploadQuickActionConfig"
-            data-quick-action-atom-card-accent="blue"
-          >Загрузить</button>
-          <button
-            class="atom-quick-action-menu-button"
-            type="button"
-            data-quick-action-menu-for="quick-action-upload-supplier-price"
-            title="Быстрые действия"
-            aria-label="Быстрые действия: загрузка прайса"
-          ></button>
-        </div>
-      </div>
-      <div class="upload-note">Файл сохраняется, строки извлекаются, цены сопоставляются только с существующими материалами. Несопоставленные строки уйдут на проверку.</div>
-      <div id="upload-status"></div>
     </section>
 
     <div class="dashboard">
@@ -635,16 +678,40 @@
       CANCELLED: "отменена",
       NEEDS_REVIEW: "требует проверки"
     };
+    const COLLECTION_OBJECT_LABELS = {
+      MATERIALS: "материалы",
+      PRICES: "цены",
+      CHARACTERISTICS: "характеристики",
+      DOCUMENTS: "документы",
+      WORK_RATES: "работы и расценки",
+      SOURCE_HEALTH: "доступность источника"
+    };
+    const WRITE_MODE_LABELS = {
+      PREVIEW: "предпросмотр без записи",
+      CREATE_CANDIDATES: "создать сырые записи и кандидатов",
+      WRITE_CONFIRMED: "записать только подтвержденное"
+    };
 
     async function runAnalysis() {
       const status = document.getElementById("run-status");
-      const action = document.getElementById("action-type").value;
+      const action = resolveSourceActionType();
+      const dataSourceKind = document.getElementById("data-source-kind").value;
+      const collectionObject = document.getElementById("collection-object").value;
+      if (dataSourceKind === "FILE") {
+        await uploadSupplierFile();
+        return;
+      }
+      if (collectionObject === "WORK_RATES") {
+        status.style.display = "block";
+        status.textContent = "Работы и расценки подготовлены как контракт наблюдения. Module №1 не создает WorkRate напрямую.";
+        return;
+      }
       const scanMode = document.getElementById("scan-mode").value;
       const maxPages = Number(document.getElementById("max-pages").value || 5);
       const maxDocuments = Number(document.getElementById("max-documents").value || 10);
       const categoryFilter = document.getElementById("category-filter").value.trim();
       const sourceCategory = selectedSourceCategory();
-      const parameters = { scan_mode: scanMode };
+      const parameters = buildRunParameters();
 
       if (["UPDATE_CERTIFICATES", "UPDATE_TECH_DOCUMENTS"].includes(action)) {
         parameters.max_documents = maxDocuments;
@@ -698,7 +765,7 @@
       setTimeout(() => window.location.reload(), 900);
     }
 
-    function materialHubSourceAnalysisQuickActionConfig() {
+    function buildRunParameters() {
       const sourceCategory = selectedSourceCategory();
       const categoryFilter = document.getElementById("category-filter").value.trim();
       const categoryFilters = [];
@@ -708,20 +775,55 @@
       if (categoryFilter) {
         categoryFilters.push(categoryFilter);
       }
+      const activeRegionCode = document.getElementById("active-region-code").value || null;
+      const parameters = {
+        scan_mode: document.getElementById("scan-mode").value,
+        data_source_kind: document.getElementById("data-source-kind").value,
+        collection_object: document.getElementById("collection-object").value,
+        processing_scenario: document.getElementById("processing-scenario").value,
+        document_type_group: document.getElementById("document-type-group").value,
+        write_mode: document.getElementById("write-mode").value,
+        activeRegionCode,
+        source_region_id: document.getElementById("source-region-id").value || null,
+        source_city_id: document.getElementById("source-city-id").value || null,
+        delivery_zone_id: document.getElementById("delivery-zone-id").value || null,
+        region_status: activeRegionCode ? "ACTIVE" : "needs_review"
+      };
+      if (sourceCategory) {
+        parameters.source_category_label = sourceCategory.label;
+        parameters.source_category_source = sourceCategory.source;
+      }
+      if (categoryFilters.length > 0) {
+        parameters.category_url_contains = categoryFilters;
+      }
+      return parameters;
+    }
+
+    function materialHubSourceAnalysisQuickActionConfig() {
+      const sourceCategory = selectedSourceCategory();
+      const parameters = buildRunParameters();
       return {
+        dataSourceKind: parameters.data_source_kind,
+        collectionObject: parameters.collection_object,
+        processingScenario: parameters.processing_scenario,
+        writeMode: parameters.write_mode,
         sourceMode: document.getElementById("all-sources").checked ? "ALL_ACTIVE" : "SELECTED",
         selectedSources: selectedSourceNames(),
-        actionType: document.getElementById("action-type").value,
-        scanMode: document.getElementById("scan-mode").value,
+        actionType: resolveSourceActionType(),
+        scanMode: parameters.scan_mode,
         sourceCategoryLabel: sourceCategory ? sourceCategory.label : null,
-        categoryUrlContains: categoryFilters,
+        categoryUrlContains: parameters.category_url_contains || [],
+        activeRegionCode: parameters.activeRegionCode,
+        sourceRegionId: parameters.source_region_id,
+        sourceCityId: parameters.source_city_id,
+        deliveryZoneId: parameters.delivery_zone_id,
         maxPages: Number(document.getElementById("max-pages").value || 5),
         maxDocuments: Number(document.getElementById("max-documents").value || 10)
       };
     }
 
     async function uploadSupplierFile() {
-      const status = document.getElementById("upload-status");
+      const status = document.getElementById("run-status");
       const fileInput = document.getElementById("supplier-file");
       const file = fileInput.files && fileInput.files[0];
       if (!file) {
@@ -731,11 +833,21 @@
       }
 
       const form = new FormData();
+      const parameters = buildRunParameters();
       form.append("file", file);
       form.append("supplier_name", document.getElementById("supplier-name").value.trim() || "Ручная загрузка администратора");
       form.append("region", document.getElementById("supplier-region").value.trim());
       form.append("city", document.getElementById("supplier-city").value.trim());
       form.append("process_now", "true");
+      form.append("data_source_kind", parameters.data_source_kind);
+      form.append("collection_object", parameters.collection_object);
+      form.append("processing_scenario", parameters.processing_scenario);
+      form.append("write_mode", parameters.write_mode);
+      form.append("activeRegionCode", parameters.activeRegionCode || "");
+      form.append("source_region_id", parameters.source_region_id || "");
+      form.append("source_city_id", parameters.source_city_id || "");
+      form.append("delivery_zone_id", parameters.delivery_zone_id || "");
+      form.append("region_status", parameters.region_status || "needs_review");
 
       status.style.display = "block";
       status.textContent = "Загружаю и обрабатываю файл...";
@@ -749,7 +861,11 @@
       }
       const data = await response.json();
       const summary = data.task && data.task.result_summary ? data.task.result_summary : {};
-      status.textContent = "Готово. Строк: " + (summary.rows_processed || 0) + ", сопоставлено: " + (summary.rows_matched || 0) + ", на проверку: " + (summary.rows_needs_review || 0) + ".";
+      if (parameters.write_mode === "PREVIEW") {
+        status.textContent = "Предпросмотр готов. Найдено строк: " + (summary.rows_previewed || summary.rows_total || 0) + ". Запись не выполнялась.";
+      } else {
+        status.textContent = "Готово. Строк: " + (summary.rows_processed || 0) + ", сопоставлено: " + (summary.rows_matched || 0) + ", на проверку: " + (summary.rows_needs_review || 0) + ".";
+      }
       setTimeout(() => window.location.reload(), 1200);
     }
 
@@ -769,6 +885,63 @@
       });
       updateSourcePickerLabel();
       updateSourceCategoryOptions();
+    }
+
+    function resolveSourceActionType() {
+      const object = document.getElementById("collection-object").value;
+      const scenario = document.getElementById("processing-scenario").value;
+      const documentType = document.getElementById("document-type-group").value;
+      if (object === "SOURCE_HEALTH" || scenario === "CHECK_SOURCE") {
+        return "CHECK_SOURCE_HEALTH";
+      }
+      if (object === "DOCUMENTS") {
+        return documentType === "TECH_DOCUMENTS" || scenario === "EXTRACT_TECH_DATA"
+          ? "UPDATE_TECH_DOCUMENTS"
+          : "UPDATE_CERTIFICATES";
+      }
+      if (object === "PRICES") {
+        return "UPDATE_PRICES";
+      }
+      if (object === "CHARACTERISTICS") {
+        return "UPDATE_SPECIFICATIONS";
+      }
+      if (scenario === "FIND_NEW_RECORDS") {
+        return "FIND_NEW_PRODUCTS";
+      }
+      if (scenario === "EXTRACT_TECH_DATA") {
+        return "UPDATE_SPECIFICATIONS";
+      }
+      return "INITIAL_MATERIAL_SCAN";
+    }
+
+    function onDataSourceKindChange() {
+      const isFile = document.getElementById("data-source-kind").value === "FILE";
+      document.getElementById("file-source-fields").classList.toggle("open", isFile);
+      document.getElementById("source-direction").disabled = isFile;
+      document.getElementById("source-category-filter").disabled = isFile;
+      document.querySelectorAll(".source-checkbox").forEach((input) => {
+        input.disabled = isFile || document.getElementById("all-sources").checked;
+      });
+      if (isFile) {
+        document.getElementById("all-sources").checked = false;
+      }
+      updateSourcePickerLabel();
+      updateScenarioPreview();
+    }
+
+    function onCollectionObjectChange() {
+      const object = document.getElementById("collection-object").value;
+      const documentField = document.getElementById("document-type-field");
+      documentField.style.display = object === "DOCUMENTS" ? "block" : "none";
+      updateScenarioPreview();
+    }
+
+    function onProcessingScenarioChange() {
+      const scenario = document.getElementById("processing-scenario").value;
+      if (scenario === "CHECK_SOURCE") {
+        document.getElementById("collection-object").value = "SOURCE_HEALTH";
+      }
+      onCollectionObjectChange();
     }
 
     function selectVisibleSources() {
@@ -804,6 +977,11 @@
 
     function updateSourcePickerLabel() {
       const label = document.getElementById("source-picker-label");
+      if (document.getElementById("data-source-kind").value === "FILE") {
+        label.textContent = "Файл выбран как источник";
+        updateSourceCategoryOptions();
+        return;
+      }
       const allSources = document.getElementById("all-sources").checked;
       const selected = selectedSourceNames();
       const selectedDisplay = selectedSourceDisplayNames();
@@ -839,6 +1017,16 @@
 
     function updateSourceCategoryOptions() {
       const select = document.getElementById("source-category-filter");
+      if (document.getElementById("data-source-kind").value === "FILE") {
+        select.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Для файла раздел сайта не используется";
+        select.appendChild(option);
+        select.disabled = true;
+        updateScenarioPreview();
+        return;
+      }
       const allSources = document.getElementById("all-sources").checked;
       const selected = allSources ? Object.keys(SOURCE_CATEGORY_FILTERS) : selectedSourceNames();
       const previous = select.value;
@@ -889,22 +1077,32 @@
       const preview = document.getElementById("scenario-preview");
       if (!preview) return;
 
-      const actionSelect = document.getElementById("action-type");
       const modeSelect = document.getElementById("scan-mode");
+      const dataSourceSelect = document.getElementById("data-source-kind");
+      const objectSelect = document.getElementById("collection-object");
+      const scenarioSelect = document.getElementById("processing-scenario");
+      const writeModeSelect = document.getElementById("write-mode");
       const allSources = document.getElementById("all-sources").checked;
       const selected = selectedSourceNames();
       const selectedDisplay = selectedSourceDisplayNames();
       const sourceCategory = selectedSourceCategory();
-      const sourceText = allSources
+      const isFile = dataSourceSelect.value === "FILE";
+      const sourceText = isFile
+        ? (document.getElementById("supplier-file").files?.[0]?.name || "файл не выбран")
+        : allSources
         ? "все активные источники"
         : selectedDisplay.length
           ? selectedDisplay.join(", ")
           : "источник не выбран";
       const categoryText = sourceCategory ? sourceCategory.label : "все разделы сайта";
-      const actionText = actionSelect.options[actionSelect.selectedIndex]?.text || "действие не выбрано";
+      const dataSourceText = dataSourceSelect.options[dataSourceSelect.selectedIndex]?.text || "источник данных";
+      const objectText = objectSelect.options[objectSelect.selectedIndex]?.text || "объект сбора";
+      const scenarioText = scenarioSelect.options[scenarioSelect.selectedIndex]?.text || "сценарий";
       const modeText = modeSelect.options[modeSelect.selectedIndex]?.text || "стандартный режим";
+      const writeText = writeModeSelect.options[writeModeSelect.selectedIndex]?.text || "режим записи";
+      const regionText = document.getElementById("active-region-code").value || "region_status=needs_review";
 
-      preview.textContent = "Сценарий: " + actionText + " · " + sourceText + " · " + categoryText + " · " + modeText + ".";
+      preview.textContent = "Сценарий: " + dataSourceText + " · " + sourceText + " · " + objectText + " · " + scenarioText + " · " + categoryText + " · " + modeText + " · " + writeText + " · " + regionText + ".";
     }
 
     function isSourceVisible(input) {
@@ -921,6 +1119,8 @@
 
     updateSourcePickerLabel();
     onSourceDirectionChange();
+    onDataSourceKindChange();
+    onCollectionObjectChange();
     updateSourceCategoryOptions();
     updateScenarioPreview();
   </script>

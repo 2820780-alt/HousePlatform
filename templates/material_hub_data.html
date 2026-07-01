@@ -400,8 +400,8 @@
     </section>
     {% endif %}
 
-    {% if view_mode == "all" %}
-    <section id="materials" style="display:none">
+    {% if view_mode in ["all", "materials"] %}
+    <section id="materials" {% if view_mode == "all" %}style="display:none"{% endif %}>
       <h2>Каноническая база материалов</h2>
       <div class="filters">
         <div>
@@ -506,7 +506,36 @@
             data-price="{{ price_info.price if price_info else '' }}"
           >
             <td>{{ dt(material.created_at) }}</td>
-            <td>{{ material.canonical_name }}</td>
+            <td>
+              <strong>{{ material.canonical_name }}</strong>
+              <details style="margin-top:8px">
+                <summary class="muted">Характеристики: {{ material.specifications|length if material.specifications else 0 }}</summary>
+                {% if material.specifications %}
+                  <div style="display:grid; gap:6px; margin-top:8px">
+                    {% for specification in material.specifications %}
+                      <div style="border:1px solid rgba(125,156,255,.22); border-radius:5px; padding:7px; background:rgba(7,13,33,.42)">
+                        <div>
+                          <strong>{{ characteristic_label(specification) }}</strong>:
+                          {{ specification.value }}{% if specification.unit %} {{ specification.unit }}{% endif %}
+                          {% if is_consumption_characteristic(specification) %}
+                            <span class="pill">норма расхода</span>
+                          {% endif %}
+                        </div>
+                        <div class="muted">
+                          Источник: {{ source_display_name(specification.source) if specification.source else "не указан" }}
+                          · confidence: {{ specification.confidence if specification.confidence is not none else "не указано" }}
+                          · статус: {{ enum_label(specification.verified_status) }}
+                          · verified_by_moderator: {{ "да" if characteristic_verified_by_moderator(specification) else "нет" }}
+                          · {{ characteristic_history_label(specification) }}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="muted" style="margin-top:6px">Характеристики пока не указаны. Нормы расхода не создаются, если они не применимы или данных недостаточно.</div>
+                {% endif %}
+              </details>
+            </td>
             <td>{{ material.category.name if material.category else "" }}</td>
             <td>{{ material.subcategory.name if material.subcategory else "" }}</td>
             <td>{{ material.brand or "" }}</td>
