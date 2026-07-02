@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -38,7 +39,21 @@ async def remember_material_rule(
     patterns: list[str],
     source: str = "admin_edit",
     attributes: dict | None = None,
+    confidence_boost: Decimal | None = None,
+    source_supplier_id: UUID | None = None,
+    rule_scope: dict | None = None,
+    confirmed_by: str | UUID | None = None,
+    review_required_at: str | datetime | None = None,
 ) -> None:
+    attributes_payload = build_rule_memory_attributes(
+        attributes=attributes,
+        material=material,
+        source=source,
+        confidence_boost=confidence_boost,
+        rule_scope=rule_scope,
+        confirmed_by=confirmed_by,
+        review_required_at=review_required_at,
+    )
     for pattern in patterns:
         normalized = normalize_rule_pattern(pattern)
         if len(normalized) < 3:
@@ -52,9 +67,11 @@ async def remember_material_rule(
         rule = result.scalar_one_or_none()
         if rule:
             rule.category_id = material.subcategory_id or material.category_id
-            rule.attributes_json = json.dumps(attributes or {}, ensure_ascii=False)
+            rule.attributes_json = json.dumps(attributes_payload, ensure_ascii=False, default=str)
             rule.confirmed_count += 1
-            rule.confidence_boost = rule.get_confidence_boost()
+            rule.confidence_boost = confidence_boost or rule.get_confidence_boost()
+            if source_supplier_id:
+                rule.source_supplier_id = source_supplier_id
             db.add(rule)
             continue
         db.add(
@@ -62,13 +79,57 @@ async def remember_material_rule(
                 normalized_pattern=normalized,
                 material_id=material.id,
                 category_id=material.subcategory_id or material.category_id,
-                attributes_json=json.dumps(attributes or {}, ensure_ascii=False),
-                confidence_boost=Decimal("0.10"),
+                attributes_json=json.dumps(attributes_payload, ensure_ascii=False, default=str),
+                confidence_boost=confidence_boost or Decimal("0.10"),
                 confirmed_count=1,
                 source=source,
+                source_supplier_id=source_supplier_id,
             )
         )
     await db.flush()
+
+
+def build_rule_memory_attributes(
+    *,
+    attributes: dict | None,
+    material: Material | None = None,
+    source: str = "admin_edit",
+    confidence_boost: Decimal | None = None,
+    rule_scope: dict | None = None,
+    confirmed_by: str | UUID | None = None,
+    review_required_at: str | datetime | None = None,
+) -> dict:
+    payload = dict(attributes or {})
+    payload.setdefault("ruleSource", source)
+    if material is not None:
+        payload.setdefault("target", {})
+        payload["target"].setdefault("materialId", str(material.id))
+        payload["target"].setdefault("canonicalName", material.canonical_name)
+        category_id = getattr(material, "subcategory_id", None) or getattr(material, "category_id", None)
+        payload.setdefault("atomCategoryId", str(category_id or ""))
+    if confidence_boost is not None:
+        payload["confidenceBoost"] = str(confidence_boost)
+    if rule_scope:
+        payload["ruleScope"] = rule_scope
+        payload.setdefault("sourceCode", rule_scope.get("sourceCode"))
+        payload.setdefault("atomCategoryPath", rule_scope.get("atomCategoryPath"))
+        payload.setdefault("materialType", rule_scope.get("materialType"))
+    if confirmed_by is not None:
+        payload["confirmedBy"] = str(confirmed_by)
+    payload.setdefault("confirmedAt", datetime.now(UTC).isoformat())
+    if review_required_at is not None:
+        payload["reviewRequiredAt"] = (
+            review_required_at.isoformat() if isinstance(review_required_at, datetime) else str(review_required_at)
+        )
+    payload.setdefault(
+        "guardrails",
+        [
+            "RuleMemory is scoped; it must not become a global rule without review.",
+            "RuleMemory may explain future auto-link decisions, but it must remain visible to moderators.",
+            "RuleMemory does not create ACTIVE Material.",
+        ],
+    )
+    return payload
 
 
 async def find_rule_for_product(

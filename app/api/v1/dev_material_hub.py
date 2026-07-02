@@ -49,6 +49,7 @@ from app.services.audit_service import log_event
 from app.services.material_pipeline_guard import create_material_from_moderated_candidate
 from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.material_hub_first_wave import (
+    first_wave_yufo_source_create_payloads,
     first_wave_safe_source_status,
     is_first_wave_blocked_source,
 )
@@ -269,7 +270,7 @@ async def create_dev_default_sources(db: DBSession):
     _ensure_development()
     sources: list[Source] = []
 
-    for source_data in DEFAULT_SOURCES:
+    for source_data in [*DEFAULT_SOURCES, *first_wave_yufo_source_create_payloads()]:
         result = await db.execute(select(Source).where(Source.name == source_data["name"]))
         source = result.scalar_one_or_none()
         if not source:

@@ -98,6 +98,7 @@ class ExtendedDocumentKind(str, Enum):
 
 class SourceAdapterStatus(str, Enum):
     PLANNED = "PLANNED"
+    TEST = "TEST"
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
     BLOCKED = "BLOCKED"
@@ -106,6 +107,7 @@ class SourceAdapterStatus(str, Enum):
 
 
 class SourceProfileStatus(str, Enum):
+    TEST = "TEST"
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
     BLOCKED = "BLOCKED"
@@ -206,6 +208,16 @@ class ModeratorDecisionAction(str, Enum):
     REQUEST_CHANGES = "REQUEST_CHANGES"
     REJECT = "REJECT"
     ARCHIVE = "ARCHIVE"
+
+
+class BatchModerationAction(str, Enum):
+    CONFIRM_GROUP = "CONFIRM_GROUP"
+    REJECT_GROUP = "REJECT_GROUP"
+    SPLIT_GROUP = "SPLIT_GROUP"
+    CONFIRM_SELECTED = "CONFIRM_SELECTED"
+    CREATE_RULE = "CREATE_RULE"
+    SEND_TO_MANUAL_REVIEW = "SEND_TO_MANUAL_REVIEW"
+    ROLLBACK_TO_REVIEW = "ROLLBACK_TO_REVIEW"
 
 
 class ConstructionUsageStatus(str, Enum):
@@ -806,13 +818,40 @@ class SourceModerationRule(BaseModel):
 
 class SourceQualityReport(BaseModel):
     source_code: str | None = None
+    source_name: str | None = None
+    source_url: str | None = None
+    region: str | None = None
+    city: str | None = None
+    source_type: SourceType | DataSourceKind | str | None = None
     generated_at: datetime | None = None
     parser_status: SourceProfileStatus | SourceAdapterStatus | str | None = None
     trust_level: SourceTrustLevel = SourceTrustLevel.NORMAL
     products_checked: int = 0
+    detected_categories: list[str] = Field(default_factory=list)
+    mapped_atom_categories: list[str] = Field(default_factory=list)
+    products_scanned: int = 0
+    products_parsed: int = 0
+    products_classified_high_confidence: int = 0
+    products_need_review: int = 0
+    products_ignored: int = 0
+    prices_detected: int = 0
+    availability_detected: int = 0
     documents_checked: int = 0
+    documents_detected: int = 0
+    certificates_detected: int = 0
     document_candidates_found: int = 0
     document_duplicates_skipped: int = 0
+    common_units: dict[str, int] = Field(default_factory=dict)
+    parser_problems: list[str] = Field(default_factory=list)
+    recommended_next_action: Literal[
+        "enable_create_candidates",
+        "keep_preview_only",
+        "improve_category_mapping",
+        "add_unit_converter",
+        "add_source_aliases",
+        "pause_source",
+        "mark_blocked",
+    ] = "keep_preview_only"
     issues: list[dict[str, Any]] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
 
@@ -1024,6 +1063,81 @@ class ModeratorDecision(Module01Contract):
     new_value: dict[str, Any] | None = None
     reason: str | None = None
     decided_at: datetime | None = None
+
+
+class BatchRuleSuggestion(Module01Contract):
+    model_config = {"populate_by_name": True, "use_enum_values": False}
+
+    suggestion_id: str
+    group_id: str
+    suggested_rule_key: str
+    source_code: str | None = Field(default=None, alias="sourceCode")
+    atom_category_path: str | None = Field(default=None, alias="atomCategoryPath")
+    material_type: str | None = Field(default=None, alias="materialType")
+    target_material_id: UUID | None = Field(default=None, alias="targetMaterialId")
+    normalization_rule: str | None = Field(default=None, alias="normalizationRule")
+    confidence_boost: Decimal = Field(default=Decimal("0.10"), alias="confidenceBoost")
+    allowed_scope: dict[str, Any] = Field(default_factory=dict, alias="allowedScope")
+    review_required_at: datetime | None = Field(default=None, alias="reviewRequiredAt")
+    reasons: list[str] = Field(default_factory=list)
+    rule_memory_payload: dict[str, Any] = Field(default_factory=dict, alias="ruleMemoryPayload")
+
+
+class CandidateGroup(Module01Contract):
+    model_config = {"populate_by_name": True, "use_enum_values": False}
+
+    group_id: str
+    group_key: dict[str, Any] = Field(default_factory=dict)
+    candidate_ids: list[UUID] = Field(default_factory=list)
+    source_code: str | None = Field(default=None, alias="sourceCode")
+    atom_category_path: str | None = Field(default=None, alias="atomCategoryPath")
+    matched_material_id: UUID | None = Field(default=None, alias="matchedMaterialId")
+    brand: str | None = None
+    manufacturer: str | None = None
+    dimensions: str | None = None
+    unit: str | None = None
+    normalization_rule: str | None = Field(default=None, alias="normalizationRule")
+    review_reason: str | None = Field(default=None, alias="reviewReason")
+    candidate_count: int = Field(default=0, alias="candidateCount")
+    confidence_min: Decimal | None = Field(default=None, alias="confidenceMin")
+    confidence_max: Decimal | None = Field(default=None, alias="confidenceMax")
+    confidence_avg: Decimal | None = Field(default=None, alias="confidenceAvg")
+    grouping_reasons: list[str] = Field(default_factory=list, alias="groupingReasons")
+    can_confirm_safely: bool = Field(default=False, alias="canConfirmSafely")
+    active_material_creation_allowed: bool = Field(default=False, alias="activeMaterialCreationAllowed")
+    rule_suggestion: BatchRuleSuggestion | None = Field(default=None, alias="ruleSuggestion")
+
+
+class BatchModerationQueue(Module01Contract):
+    model_config = {"populate_by_name": True, "use_enum_values": False}
+
+    queue_id: str
+    groups: list[CandidateGroup] = Field(default_factory=list)
+    manual_review_candidate_ids: list[UUID] = Field(default_factory=list, alias="manualReviewCandidateIds")
+    total_candidates: int = Field(default=0, alias="totalCandidates")
+    group_by_fields: list[str] = Field(default_factory=list, alias="groupByFields")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    notes: list[str] = Field(default_factory=list)
+
+
+class BatchModerationDecision(Module01Contract):
+    model_config = {"populate_by_name": True, "use_enum_values": False}
+
+    decision_id: str
+    action: BatchModerationAction
+    group_id: str | None = None
+    candidate_ids: list[UUID] = Field(default_factory=list)
+    selected_candidate_ids: list[UUID] = Field(default_factory=list, alias="selectedCandidateIds")
+    target_material_id: UUID | None = Field(default=None, alias="targetMaterialId")
+    rule_suggestion: BatchRuleSuggestion | None = Field(default=None, alias="ruleSuggestion")
+    old_value: dict[str, Any] | None = None
+    new_value: dict[str, Any] | None = None
+    reason: str | None = None
+    moderator_id: UUID | None = Field(default=None, alias="moderatorId")
+    decided_at: datetime | None = Field(default=None, alias="decidedAt")
+    rollback_available: bool = Field(default=True, alias="rollbackAvailable")
+    creates_active_material: bool = Field(default=False, alias="createsActiveMaterial")
+    rule_memory_written: bool = Field(default=False, alias="ruleMemoryWritten")
 
 
 # Backward-compatible names for sprint prompts that use short type names.

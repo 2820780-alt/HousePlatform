@@ -24,6 +24,7 @@ from app.schemas.material_hub import (
     SourceUpdate,
 )
 from app.services.audit_service import log_event
+from app.services.material_hub_first_wave import first_wave_yufo_source_create_payloads
 from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.source_task_runner import run_source_task
 
@@ -84,6 +85,7 @@ async def create_default_sources(db: DBSession, user: CurrentUser):
             url="https://www.tn.ru/",
             priority=30,
         ),
+        *[SourceCreate(**payload) for payload in first_wave_yufo_source_create_payloads()],
     ]
     sources: list[Source] = []
     for source_data in defaults:

@@ -4,9 +4,13 @@ from app.models.enums import SourceActionType, SourceStatus, SourceType
 from app.models.source import Source
 from app.schemas.material_hub_contracts import ResultWriteMode
 from app.services.material_hub_first_wave import (
+    FIRST_WAVE_YUFO_SOURCES,
     apply_first_wave_policy_to_parameters,
+    first_wave_yufo_source_create_payloads,
+    first_wave_yufo_source_policy,
     first_wave_safe_source_status,
     first_wave_source_policy,
+    is_first_wave_yufo_source,
     is_first_wave_blocked_source,
 )
 from app.services.source_profiles import attach_source_profile_snapshot
@@ -66,6 +70,61 @@ def test_apply_first_wave_policy_keeps_non_blocked_parameters_unchanged():
     payload = apply_first_wave_policy_to_parameters("Bonolit", {"write_mode": "CREATE_CANDIDATES"})
 
     assert payload == {"write_mode": "CREATE_CANDIDATES"}
+
+
+def test_first_wave_yufo_registry_is_preview_only_seed_config():
+    assert len(FIRST_WAVE_YUFO_SOURCES) == 15
+    assert is_first_wave_yufo_source("ЮгКабель") is True
+    assert first_wave_safe_source_status("ЮгКабель") == SourceStatus.PAUSED
+
+    policy = first_wave_yufo_source_policy("ЮгКабель")
+
+    assert policy["sourceCode"] == "YUFO_YUGKABEL"
+    assert policy["displayName"] == "ЮгКабель"
+    assert policy["baseUrl"] == "https://yugkabel.ru/"
+    assert policy["parserStatus"] == "TEST"
+    assert policy["writeMode"] == "preview_only"
+    assert policy["write_mode"] == "PREVIEW"
+    assert policy["trustLevel"] == "TEST"
+    assert policy["first_wave_yufo"] is True
+    assert policy["hasPrices"] is True
+    assert policy["hasDocuments"] is True
+
+
+def test_first_wave_yufo_seed_sources_are_paused_for_default_creation():
+    payloads = first_wave_yufo_source_create_payloads()
+
+    assert len(payloads) == 15
+    assert all(payload["status"] == SourceStatus.PAUSED for payload in payloads)
+    assert {payload["name"] for payload in payloads} >= {"Строй-С", "ЮгКабель", "Экватор"}
+
+
+def test_first_wave_source_profile_snapshot_is_test_preview_only():
+    source = Source(
+        name="ЮгКабель",
+        source_type=SourceType.SUPPLIER,
+        url="https://yugkabel.ru/",
+        status=SourceStatus.PAUSED,
+    )
+
+    payload = attach_source_profile_snapshot(
+        source,
+        SourceActionType.INITIAL_MATERIAL_SCAN,
+        {"write_mode": "CREATE_CANDIDATES"},
+        adapter_code=None,
+        supported_actions={SourceActionType.INITIAL_MATERIAL_SCAN},
+        force=True,
+    )
+
+    profile = payload["source_profile_snapshot"]["source_profile"]
+    quality = profile["quality_report"]
+    assert payload["write_mode"] == "PREVIEW"
+    assert profile["source_code"] == "YUFO_YUGKABEL"
+    assert profile["parser_status"] == "TEST"
+    assert profile["write_mode"] == "preview_only"
+    assert profile["trust_level"] == "TEST"
+    assert profile["has_documents"] is True
+    assert quality["recommended_next_action"] == "keep_preview_only"
 
 
 @pytest.mark.asyncio

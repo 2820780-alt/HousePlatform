@@ -50,6 +50,7 @@ from app.services.material_taxonomy import (
 )
 from app.services.rule_memory import find_rule_for_product
 from app.services.source_profiles import attach_source_profile_snapshot
+from app.services.source_quality_report import build_source_quality_report, source_quality_report_dict
 from app.services.material_hub_first_wave import (
     FIRST_WAVE_BLOCKED_NOTE,
     apply_first_wave_policy_to_parameters,
@@ -116,6 +117,14 @@ async def run_source_task(db: AsyncSession, task_id: UUID) -> SourceTask:
             "trustLevel": "BLOCKED",
             "message": FIRST_WAVE_BLOCKED_NOTE,
         }
+        task.result_summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(
+                source=task.source,
+                parameters=task.parameters,
+                summary=task.result_summary,
+                parser_problems=[FIRST_WAVE_BLOCKED_NOTE],
+            )
+        )
         await _fail_task(db, task, FIRST_WAVE_BLOCKED_NOTE)
         await db.refresh(task)
         return task
@@ -188,12 +197,23 @@ def _is_preview_mode(task: SourceTask) -> bool:
 async def _run_preview_task(db: AsyncSession, task: SourceTask, integration) -> None:
     if task.action_type == SourceActionType.CHECK_SOURCE_HEALTH:
         health = await integration.check_health()
-        task.result_summary = {
+        summary = {
             "preview": True,
             "write_mode": "PREVIEW",
             "ok": health.ok,
             "status_code": health.status_code,
             "message": health.message,
+        }
+        summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(
+                source=task.source,
+                parameters=task.parameters,
+                summary=summary,
+                parser_problems=[] if health.ok else [health.message or "health check failed"],
+            )
+        )
+        task.result_summary = {
+            **summary,
         }
         db.add(task)
         await _log(db, task, TaskLogLevel.INFO, "Preview completed without domain writes")
@@ -206,12 +226,16 @@ async def _run_preview_task(db: AsyncSession, task: SourceTask, integration) -> 
         SourceActionType.UPDATE_SPECIFICATIONS,
     }:
         products = await integration.fetch_products(task.action_type, task.parameters)
-        task.result_summary = {
+        summary = {
             "preview": True,
             "write_mode": "PREVIEW",
             "fetched": len(products),
             "sample": [_source_product_preview(product) for product in products[:10]],
         }
+        summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(source=task.source, parameters=task.parameters, products=products, summary=summary)
+        )
+        task.result_summary = summary
         db.add(task)
         await _log(db, task, TaskLogLevel.INFO, f"Preview fetched products: {len(products)}")
         return
@@ -221,12 +245,16 @@ async def _run_preview_task(db: AsyncSession, task: SourceTask, integration) -> 
         SourceActionType.UPDATE_TECH_DOCUMENTS,
     }:
         documents = await integration.fetch_documents(task.action_type, task.parameters)
-        task.result_summary = {
+        summary = {
             "preview": True,
             "write_mode": "PREVIEW",
             "fetched": len(documents),
             "sample": [_source_document_preview(document) for document in documents[:10]],
         }
+        summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(source=task.source, parameters=task.parameters, documents=documents, summary=summary)
+        )
+        task.result_summary = summary
         db.add(task)
         await _log(db, task, TaskLogLevel.INFO, f"Preview fetched documents: {len(documents)}")
         return
@@ -297,7 +325,7 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
             new_value=_product_snapshot(catalog_product),
         )
 
-    task.result_summary = {
+    summary = {
         "fetched": len(products),
         "created": created,
         "updated": updated,
@@ -305,6 +333,10 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
         "price_changes": price_changes,
         "match_candidates": candidates,
     }
+    summary["quality_report"] = source_quality_report_dict(
+        build_source_quality_report(source=task.source, parameters=task.parameters, products=products, summary=summary)
+    )
+    task.result_summary = summary
     _mark_source_timestamp(task)
     db.add(task.source)
 
@@ -373,6 +405,15 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
             "mapping_preview": parsed.mapping_preview,
             "validation_error": validation_error,
         }
+        task.result_summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(
+                source=task.source,
+                parameters=task.parameters,
+                parsed_rows=parsed.rows,
+                summary=task.result_summary,
+                parser_problems=[validation_error],
+            )
+        )
         await _result(
             db,
             task,
@@ -525,7 +566,7 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
         else UploadStatus.FAILED
     )
     db.add(upload)
-    task.result_summary = {
+    summary = {
         "supplier_upload_id": str(upload.id),
         "rows_total": upload.rows_total,
         "rows_processed": upload.rows_processed,
@@ -537,6 +578,16 @@ async def _run_supplier_upload(db: AsyncSession, task: SourceTask) -> None:
         "unknown_columns": parsed.unknown_columns,
         "mapping_preview": parsed.mapping_preview,
     }
+    summary["quality_report"] = source_quality_report_dict(
+        build_source_quality_report(
+            source=task.source,
+            parameters=task.parameters,
+            parsed_rows=parsed.rows,
+            summary=summary,
+            parser_problems=parsed.errors,
+        )
+    )
+    task.result_summary = summary
     await _result(
         db,
         task,
@@ -585,10 +636,19 @@ async def _run_supplier_upload_preview(db: AsyncSession, task: SourceTask) -> No
             "mapping_preview": parsed.mapping_preview,
             "validation_error": validation_error,
         }
+        task.result_summary["quality_report"] = source_quality_report_dict(
+            build_source_quality_report(
+                source=task.source,
+                parameters=task.parameters,
+                parsed_rows=parsed.rows,
+                summary=task.result_summary,
+                parser_problems=[validation_error],
+            )
+        )
         db.add(task)
         await _log(db, task, TaskLogLevel.ERROR, validation_error)
         return
-    task.result_summary = {
+    summary = {
         **payload,
         "preview": True,
         "write_mode": "PREVIEW",
@@ -601,6 +661,16 @@ async def _run_supplier_upload_preview(db: AsyncSession, task: SourceTask) -> No
         "mapping_preview": parsed.mapping_preview,
         "sample": [_parsed_row_preview(row) for row in parsed.rows[:10]],
     }
+    summary["quality_report"] = source_quality_report_dict(
+        build_source_quality_report(
+            source=task.source,
+            parameters=task.parameters,
+            parsed_rows=parsed.rows,
+            summary=summary,
+            parser_problems=parsed.errors,
+        )
+    )
+    task.result_summary = summary
     db.add(task)
     await _log(
         db,
@@ -639,11 +709,15 @@ async def _run_document_scan(db: AsyncSession, task: SourceTask, integration) ->
             },
         )
 
-    task.result_summary = {
+    summary = {
         "fetched": len(documents),
         "created": created,
         "unchanged": unchanged,
     }
+    summary["quality_report"] = source_quality_report_dict(
+        build_source_quality_report(source=task.source, parameters=task.parameters, documents=documents, summary=summary)
+    )
+    task.result_summary = summary
     _mark_source_timestamp(task)
     db.add(task.source)
 
@@ -1288,6 +1362,18 @@ async def _fail_task(db: AsyncSession, task: SourceTask, message: str) -> None:
     task.status = TaskStatus.FAILED
     task.finished_at = datetime.utcnow()
     task.error_message = message
+    if not (task.result_summary or {}).get("quality_report"):
+        task.result_summary = {
+            **(task.result_summary or {}),
+            "quality_report": source_quality_report_dict(
+                build_source_quality_report(
+                    source=task.source,
+                    parameters=task.parameters,
+                    summary=task.result_summary or {},
+                    parser_problems=[message],
+                )
+            ),
+        }
     db.add(task)
     await _log(db, task, TaskLogLevel.ERROR, message)
     await db.flush()

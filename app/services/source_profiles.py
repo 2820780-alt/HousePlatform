@@ -28,12 +28,14 @@ from app.schemas.material_hub_contracts import (
 from app.services.material_hub_first_wave import (
     apply_first_wave_policy_to_parameters,
     first_wave_source_policy,
+    first_wave_yufo_source_policy,
 )
 from app.services.material_normalization_rules import (
     get_normalization_profile_snapshot,
     get_source_normalization_rule_specs,
 )
 from app.services.source_document_refs import source_documents_from_parameters
+from app.services.source_quality_report import build_source_quality_report
 
 
 SOURCE_PROFILE_SNAPSHOT_VERSION = "MODULE_01_SOURCE_PROFILE_SNAPSHOT_V1"
@@ -144,6 +146,8 @@ def _build_source_profile(
     source_type = getattr(source, "source_type", None) or SourceType.MANUAL_UPLOAD
     region_refs = _region_refs(parameters)
     first_wave_policy = first_wave_source_policy(source or source_name)
+    yufo_policy = first_wave_yufo_source_policy(source or source_name)
+    profile_policy = {**yufo_policy, **first_wave_policy}
     adapter_config = _build_adapter_config(
         source,
         data_source_kind,
@@ -151,28 +155,28 @@ def _build_source_profile(
         adapter_code=adapter_code,
         supported_actions=supported_actions,
     )
-    quality_report = _build_quality_report(source_name, parameters)
+    quality_report = _build_quality_report(source_name, parameters, source=source)
     return SourceProfile(
         source_id=getattr(source, "id", None),
         name=str(source_name),
-        source_code=parameters.get("sourceCode") or parameters.get("source_code") or _profile_code(source_name),
-        display_name=str(source_name),
+        source_code=profile_policy.get("sourceCode") or parameters.get("sourceCode") or parameters.get("source_code") or _profile_code(source_name),
+        display_name=profile_policy.get("displayName") or str(source_name),
         profile_code=_profile_code(source_name, parameters.get("source_section_code")),
         section_code=parameters.get("source_section_code"),
         source_type=source_type,
         data_source_kind=data_source_kind,
-        url=getattr(source, "url", None),
-        base_url=getattr(source, "url", None),
-        priority=getattr(source, "priority", None) or 100,
-        trust_level=first_wave_policy.get("trustLevel") or parameters.get("trustLevel") or "NORMAL",
-        parser_status=first_wave_policy.get("parserStatus") or parameters.get("parserStatus"),
-        update_mode=first_wave_policy.get("updateMode") or parameters.get("updateMode"),
-        write_mode=first_wave_policy.get("writeMode") or parameters.get("writeMode") or parameters.get("write_mode"),
-        has_prices=CollectionObject.PRICES in collectable_objects,
-        has_availability=CollectionObject.PRICES in collectable_objects,
-        has_documents=CollectionObject.DOCUMENTS in collectable_objects,
-        has_certificates=CollectionObject.DOCUMENTS in collectable_objects,
-        has_characteristics=CollectionObject.CHARACTERISTICS in collectable_objects,
+        url=profile_policy.get("baseUrl") or getattr(source, "url", None),
+        base_url=profile_policy.get("baseUrl") or getattr(source, "url", None),
+        priority=profile_policy.get("priority") or getattr(source, "priority", None) or 100,
+        trust_level=profile_policy.get("trustLevel") or parameters.get("trustLevel") or "NORMAL",
+        parser_status=profile_policy.get("parserStatus") or parameters.get("parserStatus"),
+        update_mode=profile_policy.get("updateMode") or parameters.get("updateMode"),
+        write_mode=profile_policy.get("writeMode") or parameters.get("writeMode") or parameters.get("write_mode"),
+        has_prices=bool(profile_policy.get("hasPrices", CollectionObject.PRICES in collectable_objects)),
+        has_availability=bool(profile_policy.get("hasAvailability", CollectionObject.PRICES in collectable_objects)),
+        has_documents=bool(profile_policy.get("hasDocuments", CollectionObject.DOCUMENTS in collectable_objects)),
+        has_certificates=bool(profile_policy.get("hasCertificates", CollectionObject.DOCUMENTS in collectable_objects)),
+        has_characteristics=bool(profile_policy.get("hasCharacteristics", CollectionObject.CHARACTERISTICS in collectable_objects)),
         has_region_selector=bool(parameters.get("activeRegionCode") or parameters.get("source_region_id")),
         adapter_config=adapter_config,
         source_category_mappings=mapping_profile.source_category_mappings,
@@ -201,7 +205,7 @@ def _build_source_profile(
         default_region_id=region_refs["source_region_id"],
         default_city_id=region_refs["source_city_id"],
         region_detection_rules=parsing_rules.region_detection_rules,
-        notes=first_wave_policy.get("notes") or parameters.get("notes"),
+        notes=profile_policy.get("notes") or parameters.get("notes"),
     )
 
 
@@ -246,7 +250,12 @@ def _build_extraction_profile(
         normalization_rules=mapping_profile.source_normalization_rules,
         moderation_rules=mapping_profile.source_moderation_rules,
         document_candidates=document_candidates,
-        quality_report=_build_quality_report(source_name, parameters, document_candidates_found=len(document_candidates)),
+        quality_report=_build_quality_report(
+            source_name,
+            parameters,
+            source=source,
+            document_candidates_found=len(document_candidates),
+        ),
         region_coverage=_uuid_list(parameters.get("region_coverage") or parameters.get("source_region_id")),
         city_coverage=_uuid_list(parameters.get("city_coverage") or parameters.get("source_city_id")),
         delivery_zone_coverage=_uuid_list(
@@ -406,6 +415,8 @@ def _build_adapter_config(
 ) -> SourceAdapterConfig:
     source_name = getattr(source, "name", None) or parameters.get("source_name") or "manual-upload"
     first_wave_policy = first_wave_source_policy(source or source_name)
+    yufo_policy = first_wave_yufo_source_policy(source or source_name)
+    profile_policy = {**yufo_policy, **first_wave_policy}
     return SourceAdapterConfig(
         adapter_code=adapter_code or parameters.get("adapter_code") or "pending_source_adapter",
         adapter_version=parameters.get("adapter_version") or "compat-v1",
@@ -413,10 +424,10 @@ def _build_adapter_config(
         source_type=data_source_kind,
         supported_actions=sorted(action.value for action in (supported_actions or set())),
         enabled=not bool(first_wave_policy),
-        parser_status=first_wave_policy.get("parserStatus") or parameters.get("parserStatus") or "ACTIVE",
-        update_mode=first_wave_policy.get("updateMode") or parameters.get("updateMode") or "manual_or_scheduled",
-        write_mode=first_wave_policy.get("writeMode") or parameters.get("writeMode") or parameters.get("write_mode"),
-        trust_level=first_wave_policy.get("trustLevel") or parameters.get("trustLevel") or "NORMAL",
+        parser_status=profile_policy.get("parserStatus") or parameters.get("parserStatus") or "ACTIVE",
+        update_mode=profile_policy.get("updateMode") or parameters.get("updateMode") or "manual_or_scheduled",
+        write_mode=profile_policy.get("writeMode") or parameters.get("writeMode") or parameters.get("write_mode"),
+        trust_level=profile_policy.get("trustLevel") or parameters.get("trustLevel") or "NORMAL",
         rate_limit_policy=parameters.get("rateLimitPolicy")
         or parameters.get("rate_limit_policy")
         or {"max_requests_per_minute": 30, "respect_robots": True},
@@ -424,7 +435,7 @@ def _build_adapter_config(
         or parameters.get("robots_policy_note")
         or "Do not bypass source protection, captcha or robots restrictions.",
         config=parameters.get("adapter_config") or {},
-        notes=first_wave_policy.get("notes") or parameters.get("notes"),
+        notes=profile_policy.get("notes") or parameters.get("notes"),
     )
 
 
@@ -432,19 +443,23 @@ def _build_quality_report(
     source_name: str,
     parameters: dict,
     *,
+    source: Source | None = None,
     document_candidates_found: int = 0,
 ) -> SourceQualityReport:
-    return SourceQualityReport(
-        source_code=parameters.get("sourceCode") or parameters.get("source_code") or _profile_code(source_name),
-        generated_at=None,
-        parser_status=parameters.get("parserStatus") or "ACTIVE",
-        trust_level=parameters.get("trustLevel") or "NORMAL",
-        document_candidates_found=document_candidates_found,
-        recommendations=[
-            "Use SourceProfile and ExtractionProfile as the required adapter configuration layer.",
-            "Keep site pages and product cards out of DocumentRecord unless document markers are explicit.",
-        ],
+    report = build_source_quality_report(
+        source=source,
+        parameters={
+            "sourceCode": parameters.get("sourceCode") or parameters.get("source_code") or _profile_code(source_name),
+            "source_name": source_name,
+            **parameters,
+        },
+        summary={"document_candidates_found": document_candidates_found},
     )
+    report.recommendations.extend([
+        "Use SourceProfile and ExtractionProfile as the required adapter configuration layer.",
+        "Keep site pages and product cards out of DocumentRecord unless document markers are explicit.",
+    ])
+    return report
 
 
 def _resolve_data_source_kind(
