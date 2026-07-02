@@ -193,6 +193,29 @@ USER_TYPE_WIDGET_DEFINITIONS: tuple[dict[str, Any], ...] = (
     },
 )
 
+ACCESS_MATRIX_USER_TYPE_COLUMNS: tuple[dict[str, str], ...] = (
+    {
+        "userTypeCode": "CUSTOMER",
+        "label": "Заказчики",
+        "sourceRoleCode": "CUSTOMER",
+    },
+    {
+        "userTypeCode": "SUPPLIER",
+        "label": "Поставщики",
+        "sourceRoleCode": "SUPPLIER",
+    },
+    {
+        "userTypeCode": "CONSTRUCTION_COMPANY",
+        "label": "Строительные компании",
+        "sourceRoleCode": "CONTRACTOR",
+    },
+    {
+        "userTypeCode": "INDEPENDENT_ENGINEER",
+        "label": "Самостоятельные инженеры",
+        "sourceRoleCode": "ENGINEER_DESIGNER",
+    },
+)
+
 SYSTEM_USER_CARD_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
         "login": "platform-admin",
@@ -885,6 +908,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "summary": summary,
         "pendingAccessDistributionItems": pending_items,
         "accessDistributionPanel": access_distribution_panel,
+        "userTypeAccessMatrix": user_type_access_matrix_view_model(),
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=False),
         "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
         "auditPanel": audit_panel_summary(recent_history),
@@ -3408,6 +3432,235 @@ def access_distribution_panel_summary(items: list[dict[str, Any]]) -> dict[str, 
         "dashboardRewriteRequired": False,
         "dashboardNote": "Dashboard не переписывается при добавлении нового модуля или виджета.",
     }
+
+
+def user_type_access_matrix_view_model() -> dict[str, Any]:
+    columns = [
+        {
+            "userTypeCode": column["userTypeCode"],
+            "label": column["label"],
+            "sourceRoleCode": column["sourceRoleCode"],
+        }
+        for column in ACCESS_MATRIX_USER_TYPE_COLUMNS
+    ]
+    profiles = {
+        column["userTypeCode"]: get_role_dashboard_access_profile(column["sourceRoleCode"]) or {}
+        for column in columns
+    }
+    widgets_by_module = _matrix_widgets_by_module()
+    rows: list[dict[str, Any]] = []
+    cells: list[dict[str, Any]] = []
+    order = 0
+
+    for module in get_dashboard_module_registry():
+        module_code = module["canonicalModuleCode"] or module["moduleCode"]
+        if module.get("status") in {"merged", "archived", "deprecated"}:
+            continue
+        order += 10
+        module_row_id = f"module:{module_code}"
+        module_row = {
+            "id": module_row_id,
+            "type": "MODULE",
+            "moduleCode": module_code,
+            "widgetCode": None,
+            "parentId": None,
+            "title": module.get("title") or module_code,
+            "status": module.get("status") or "unknown",
+            "statusLabel": _module_status_label(str(module.get("status") or "")),
+            "order": order,
+            "level": 0,
+            "expanded": True,
+            "cells": [],
+        }
+        for column in columns:
+            cell = _user_type_module_access_cell(module_row_id, column, module, profiles[column["userTypeCode"]])
+            module_row["cells"].append(cell)
+            cells.append(cell)
+        rows.append(module_row)
+
+        for widget in widgets_by_module.get(module_code, []):
+            order += 1
+            widget_row_id = f"widget:{widget['widgetCode']}"
+            widget_row = {
+                "id": widget_row_id,
+                "type": "WIDGET",
+                "moduleCode": module_code,
+                "widgetCode": widget["widgetCode"],
+                "parentId": module_row_id,
+                "title": widget["title"],
+                "status": widget.get("status") or "UNKNOWN",
+                "statusLabel": _widget_status_label(widget.get("status")),
+                "order": order,
+                "level": 1,
+                "expanded": True,
+                "cells": [],
+            }
+            for column in columns:
+                parent_cell = next(cell for cell in module_row["cells"] if cell["userTypeCode"] == column["userTypeCode"])
+                cell = _user_type_widget_access_cell(widget_row_id, column, widget, profiles[column["userTypeCode"]], parent_cell=parent_cell)
+                widget_row["cells"].append(cell)
+                cells.append(cell)
+            rows.append(widget_row)
+
+    return {
+        "columns": columns,
+        "rows": rows,
+        "cells": cells,
+        "filters": {
+            "statusOptions": _matrix_status_options(rows),
+            "userTypeOptions": [{"value": column["userTypeCode"], "label": column["label"]} for column in columns],
+            "searchPlaceholder": "Поиск по модулю / виджету",
+        },
+        "saveAction": "/api/v1/admin/users-roles/view/access-matrix",
+        "saveState": {
+            "noChanges": "Изменений нет",
+            "dirty": "Есть несохраненные изменения",
+            "saving": "Сохранение",
+            "error": "Ошибка сохранения",
+            "success": "Успешно сохранено",
+        },
+        "viewModelNote": "AccessMatrixRow / AccessMatrixCell is a Module 03 UI adapter over existing permission profiles.",
+    }
+
+
+async def save_user_type_access_matrix_changes(
+    db: AsyncSession | None,
+    *,
+    actor: Any,
+    matrix_payload: dict[str, Any] | None,
+) -> Any:
+    payload = matrix_payload or {}
+    rows = payload.get("rows") if isinstance(payload, dict) else None
+    changes = payload.get("changes") if isinstance(payload, dict) else None
+    return await write_audit_event(
+        db,
+        AuditLogType.MODULE_ACCESS_CHANGED,
+        actor_user_id=_get_value(actor, "id"),
+        module_code="MODULE_03_USERS_ROLES",
+        canonical_module_code="MODULE_03_USERS_ROLES",
+        reason="User type access matrix saved from Module 03 UI adapter.",
+        entity_type="Module3UserTypeAccessMatrix",
+        entity_id=None,
+        new_value={
+            "rows": rows if isinstance(rows, list) else [],
+            "changes": changes if isinstance(changes, list) else [],
+        },
+        metadata={
+            "viewModelOnly": True,
+            "permissionModelReplaced": False,
+            "historyWritten": True,
+            "rowCount": len(rows) if isinstance(rows, list) else 0,
+            "changeCount": len(changes) if isinstance(changes, list) else 0,
+        },
+    )
+
+
+def _matrix_widgets_by_module() -> dict[str, list[dict[str, Any]]]:
+    widgets_by_module: dict[str, list[dict[str, Any]]] = {}
+    for widget in get_widget_registry():
+        module_code = _canonical_module_code_value(widget.get("canonicalModuleCode") or widget.get("sourceModuleCode"))
+        if not module_code:
+            continue
+        widgets_by_module.setdefault(module_code, []).append(widget)
+    for widgets in widgets_by_module.values():
+        widgets.sort(key=lambda item: (int(item.get("order") or 0), item.get("title") or item.get("widgetCode") or ""))
+    return widgets_by_module
+
+
+def _user_type_module_access_cell(
+    row_id: str,
+    column: dict[str, str],
+    module: dict[str, Any],
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    module_code = module["canonicalModuleCode"] or module["moduleCode"]
+    module_status = str(module.get("status") or "").lower()
+    allowed_modules = set(_list_strings(profile.get("allowedModuleCodes")))
+    disabled = module_status != "active" or not module.get("isAvailableForDashboard")
+    allowed = module_code in allowed_modules and not disabled
+    return {
+        "rowId": row_id,
+        "userTypeCode": column["userTypeCode"],
+        "allowed": allowed,
+        "disabled": disabled,
+        "inheritedFromModule": False,
+        "reason": _module_status_disabled_reason(module_status) if disabled else ("Доступ разрешен профилем типа пользователя." if allowed else "Доступ запрещен профилем типа пользователя."),
+        "sourceRoleCode": column["sourceRoleCode"],
+    }
+
+
+def _user_type_widget_access_cell(
+    row_id: str,
+    column: dict[str, str],
+    widget: dict[str, Any],
+    profile: dict[str, Any],
+    *,
+    parent_cell: dict[str, Any],
+) -> dict[str, Any]:
+    widget_status = str(widget.get("status") or "").upper()
+    default_widgets = set(_list_strings(profile.get("defaultWidgetCodes")))
+    hidden_widgets = set(_list_strings(profile.get("hiddenWidgetCodes")))
+    module_allowed = bool(parent_cell.get("allowed"))
+    system_disabled = widget_status != "ACTIVE"
+    inherited_disabled = not module_allowed
+    disabled = inherited_disabled or system_disabled
+    allowed = widget["widgetCode"] in default_widgets and widget["widgetCode"] not in hidden_widgets and not disabled
+    if inherited_disabled:
+        reason = "Виджет недоступен, потому что модуль выключен для этого типа пользователя."
+    elif system_disabled:
+        reason = _widget_status_disabled_reason(widget_status)
+    elif allowed:
+        reason = "Виджет выбран в профиле типа пользователя."
+    else:
+        reason = "Виджет не выбран в профиле типа пользователя."
+    return {
+        "rowId": row_id,
+        "userTypeCode": column["userTypeCode"],
+        "allowed": allowed,
+        "disabled": disabled,
+        "inheritedFromModule": inherited_disabled,
+        "reason": reason,
+        "sourceRoleCode": column["sourceRoleCode"],
+    }
+
+
+def _matrix_status_options(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+    statuses: dict[str, str] = {}
+    for row in rows:
+        if row["type"] != "MODULE":
+            continue
+        statuses[str(row["status"])] = str(row["statusLabel"])
+    return [{"value": value, "label": label} for value, label in sorted(statuses.items(), key=lambda item: item[1])]
+
+
+def _module_status_disabled_reason(status: str) -> str:
+    if status == "planned":
+        return ACCESS_DENY_REASONS["MODULE_PLANNED"]
+    if status == "draft":
+        return ACCESS_DENY_REASONS["MODULE_DRAFT"]
+    if status != "active":
+        return ACCESS_DENY_REASONS["MODULE_DISABLED"]
+    return ACCESS_DENY_REASONS["SYSTEM_LIMIT"]
+
+
+def _widget_status_label(status: Any) -> str:
+    normalized = str(status or "").upper()
+    return {
+        "ACTIVE": "активен",
+        "PLANNED": "запланирован",
+        "DRAFT": "в подготовке",
+        "DISABLED": "отключен",
+        "DEPRECATED": "устаревает",
+        "ARCHIVED": "архив",
+    }.get(normalized, normalized.lower() or "не задан")
+
+
+def _widget_status_disabled_reason(status: str) -> str:
+    if status == "PLANNED":
+        return ACCESS_DENY_REASONS["MODULE_PLANNED"]
+    if status == "DRAFT":
+        return ACCESS_DENY_REASONS["MODULE_DRAFT"]
+    return ACCESS_DENY_REASONS["WIDGET_DISABLED"]
 
 
 def role_label(role_code: str | None) -> str:

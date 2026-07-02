@@ -8,6 +8,7 @@ from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.models import AuditLog, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole, UserStatus
+from app.services.audit_log_service import AuditLogType, MOCK_AUDIT_EVENTS, clear_mock_audit_events
 from app.services.admin_user_role_management import (
     ACCESS_DENY_REASONS,
     ACCESS_REASON_CATEGORIES,
@@ -41,8 +42,10 @@ from app.services.admin_user_role_management import (
     require_can_disable_user,
     quick_action_rows_for_user,
     role_group_panel_summary,
+    save_user_type_access_matrix_changes,
     settings_panel_summary,
     system_user_cards,
+    user_type_access_matrix_view_model,
     user_directory_filter_options,
     user_directory_rows,
     user_directory_summary_chips,
@@ -355,6 +358,56 @@ def test_active_module_and_widget_registration_requires_access_distribution():
     assert "Dashboard не переписывается" in panel["dashboardNote"]
 
 
+def test_user_type_access_matrix_view_model_has_hierarchical_rows_and_dependency_cells():
+    matrix = user_type_access_matrix_view_model()
+
+    assert [column["label"] for column in matrix["columns"]] == [
+        "Заказчики",
+        "Поставщики",
+        "Строительные компании",
+        "Самостоятельные инженеры",
+    ]
+    assert matrix["saveAction"] == "/api/v1/admin/users-roles/view/access-matrix"
+    assert matrix["saveState"]["dirty"] == "Есть несохраненные изменения"
+    assert "AccessMatrixRow / AccessMatrixCell" in matrix["viewModelNote"]
+
+    module_row = next(row for row in matrix["rows"] if row["type"] == "MODULE" and row["moduleCode"] == "MODULE_01_MATERIAL_HUB")
+    widget_row = next(row for row in matrix["rows"] if row["type"] == "WIDGET" and row["parentId"] == module_row["id"])
+    supplier_module_cell = next(cell for cell in module_row["cells"] if cell["userTypeCode"] == "SUPPLIER")
+    customer_module_cell = next(cell for cell in module_row["cells"] if cell["userTypeCode"] == "CUSTOMER")
+    customer_widget_cell = next(cell for cell in widget_row["cells"] if cell["userTypeCode"] == "CUSTOMER")
+
+    assert module_row["id"] == "module:MODULE_01_MATERIAL_HUB"
+    assert widget_row["parentId"] == module_row["id"]
+    assert supplier_module_cell["allowed"] is True
+    assert customer_module_cell["allowed"] is False
+    assert customer_widget_cell["allowed"] is False
+    assert customer_widget_cell["disabled"] is True
+    assert customer_widget_cell["inheritedFromModule"] is True
+    assert customer_widget_cell["reason"] == "Виджет недоступен, потому что модуль выключен для этого типа пользователя."
+
+
+@pytest.mark.asyncio
+async def test_saving_user_type_access_matrix_writes_history_without_replacing_permissions():
+    clear_mock_audit_events()
+
+    await save_user_type_access_matrix_changes(
+        None,
+        actor={"id": uuid.uuid4()},
+        matrix_payload={
+            "rows": [{"id": "module:MODULE_01_MATERIAL_HUB", "type": "MODULE"}],
+            "changes": [{"rowId": "module:MODULE_01_MATERIAL_HUB", "userTypeCode": "SUPPLIER", "allowed": False}],
+        },
+    )
+
+    assert MOCK_AUDIT_EVENTS[-1]["eventType"] == AuditLogType.MODULE_ACCESS_CHANGED
+    assert MOCK_AUDIT_EVENTS[-1]["moduleCode"] == "MODULE_03_USERS_ROLES"
+    assert MOCK_AUDIT_EVENTS[-1]["metadata"]["viewModelOnly"] is True
+    assert MOCK_AUDIT_EVENTS[-1]["metadata"]["permissionModelReplaced"] is False
+    assert MOCK_AUDIT_EVENTS[-1]["metadata"]["historyWritten"] is True
+    assert MOCK_AUDIT_EVENTS[-1]["metadata"]["changeCount"] == 1
+
+
 def test_admin_users_roles_template_renders_module_overview_widgets():
     template = Environment(loader=FileSystemLoader("templates")).get_template("admin_users_roles.html")
     overview = {
@@ -478,6 +531,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
             ],
             "emptyState": "Новых модулей и виджетов для распределения нет.",
         },
+        "userTypeAccessMatrix": user_type_access_matrix_view_model(),
         "recentAccessHistory": [
             {
                 "createdAt": "2026-06-30 14:35",
@@ -553,6 +607,13 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Наименование / ФИО" in html
     assert 'href="/api/v1/admin/users-roles/view/users/user-1"' in html
     assert "data-user-page-summary" in html
+    assert 'data-access-type-matrix' in html
+    assert "Строительные компании" in html
+    assert "Самостоятельные инженеры" in html
+    assert "Развернуть все" in html
+    assert "Свернуть все" in html
+    assert "Сохранить изменения" in html
+    assert "Сбросить" in html
 
 
 def test_pending_distribution_hides_inactive_or_already_distributed_items():
@@ -948,6 +1009,7 @@ def test_admin_users_roles_view_route_is_registered():
 
     assert "/admin/users-roles/view" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
+    assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin/revoke" in paths
 
@@ -1114,8 +1176,26 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "data-user-page-summary" in users_section
     assert "data-user-page-prev" in users_section
     assert "data-user-page-next" in users_section
-    assert "Матрица доступа открывается в карточке выбранного пользователя" in users_section
-    assert "Если модуль закрыт компании, связанные виджеты закрываются для сотрудников автоматически" in users_section
+    assert "Если модуль не выбран, связанные виджеты выбрать нельзя" in users_section
+    assert "Рабочая матрица доступа: строки — модули и вложенные виджеты" in users_section
+    assert "Заказчики" in users_section
+    assert "Поставщики" in users_section
+    assert "Строительные компании" in users_section
+    assert "Самостоятельные инженеры" in users_section
+    assert "Поиск по модулю / виджету" in users_section
+    assert "Статус модуля" in users_section
+    assert "Тип пользователя" in users_section
+    assert "Развернуть все" in users_section
+    assert "Свернуть все" in users_section
+    assert "Сохранить изменения" in users_section
+    assert "Сбросить" in users_section
+    assert "нет изменений; есть несохраненные изменения; сохранение; ошибка сохранения; успешно сохранено" in users_section
+    assert 'data-access-matrix-checkbox' in template
+    assert 'data-access-matrix-payload' in template
+    assert 'data-system-disabled' in template
+    assert "Виджет недоступен, потому что модуль выключен" in template
+    assert "if (!moduleCheckbox.checked)" in template
+    assert "JSON.stringify(buildPayload())" in template
     assert "Доступы к модулям и виджетам" in template
     assert "Пользователь" in template
     assert "Компания" in template

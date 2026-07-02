@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from uuid import UUID
 
 from fastapi import APIRouter, Form, Request
@@ -18,6 +19,7 @@ from app.services.admin_user_role_management import (
     get_user_role_admin_detail,
     get_user_role_admin_overview,
     revoke_company_admin,
+    save_user_type_access_matrix_changes,
     set_company_employee_module_access,
     set_company_employee_widget_access,
 )
@@ -209,6 +211,27 @@ async def admin_set_user_widget_access(
     await db.commit()
     return RedirectResponse(
         f"/api/v1/admin/users-roles/view/users/{user_id}#access-matrix-detail",
+        status_code=303,
+    )
+
+
+@router.post("/access-matrix")
+async def admin_save_user_type_access_matrix(
+    db: DBSession,
+    matrix_payload: str = Form("{}"),
+):
+    try:
+        payload = json.loads(matrix_payload or "{}")
+    except json.JSONDecodeError as exc:
+        raise ValidationError("Invalid access matrix payload.") from exc
+    await save_user_type_access_matrix_changes(
+        db,
+        actor=_dev_actor(),
+        matrix_payload=payload,
+    )
+    await db.commit()
+    return RedirectResponse(
+        "/api/v1/admin/users-roles/view#access-matrix",
         status_code=303,
     )
 

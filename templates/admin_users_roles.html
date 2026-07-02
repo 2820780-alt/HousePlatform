@@ -525,6 +525,11 @@
     .access-matrix-table tbody tr:hover {
       background: rgba(24, 215, 242, 0.045);
     }
+    .access-type-matrix {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
     .entity-table a {
       color: var(--text);
       font-weight: 700;
@@ -579,6 +584,61 @@
       display: block;
       margin-top: 4px;
       color: var(--muted);
+    }
+    .matrix-module-row td:first-child {
+      background: rgba(24, 215, 242, 0.06);
+    }
+    .matrix-widget-row td:first-child {
+      padding-left: 22px;
+    }
+    .nested-widget strong {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .matrix-row-toggle,
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: rgba(8, 18, 41, 0.8);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .matrix-tree-line {
+      width: 28px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+    }
+    .matrix-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 120px;
+      color: var(--text);
+    }
+    .matrix-check input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+    .matrix-check input:disabled + span,
+    .matrix-check input:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+    .matrix-savebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: rgba(8, 18, 41, 0.74);
     }
     .access-matrix-table tr.new-module td {
       background: rgba(24, 215, 242, 0.045);
@@ -1955,7 +2015,112 @@
 
         <div class="subject-section" id="access-matrix">
           <h3>Доступы</h3>
-          <div class="empty">Матрица доступа открывается в карточке выбранного пользователя: строки — модули, область применения — пользователь / компания / сотрудник компании / группа / роль, ячейка — открыть или закрыть. Если модуль закрыт компании, связанные виджеты закрываются для сотрудников автоматически.</div>
+          <div class="muted">Рабочая матрица доступа: строки — модули и вложенные виджеты, столбцы — типы пользователей, ячейка — доступ разрешен или запрещен. Если модуль не выбран, связанные виджеты выбрать нельзя.</div>
+          <form class="access-type-matrix" method="post" action="{{ overview.userTypeAccessMatrix.saveAction }}" data-access-type-matrix aria-label="Столбцы матрицы доступа: Заказчики, Поставщики, Строительные компании, Самостоятельные инженеры">
+            <input type="hidden" name="matrix_payload" data-access-matrix-payload value="{}">
+            <div class="directory-toolbar" aria-label="Фильтры матрицы доступа">
+              <div class="filter-row">
+                <label>
+                  <span>Поиск по модулю / виджету</span>
+                  <input type="search" placeholder="{{ overview.userTypeAccessMatrix.filters.searchPlaceholder }}" data-access-matrix-search>
+                </label>
+                <label>
+                  <span>Статус модуля</span>
+                  <select data-access-matrix-status>
+                    <option value="">Все статусы</option>
+                    {% for option in overview.userTypeAccessMatrix.filters.statusOptions %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  <span>Тип пользователя</span>
+                  <select data-access-matrix-user-type>
+                    <option value="">Все типы</option>
+                    {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <button class="btn" type="button" data-access-expand-all>Развернуть все</button>
+                <button class="btn" type="button" data-access-collapse-all>Свернуть все</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
+                <thead>
+                  <tr>
+                    <th>Модули / виджеты</th>
+                    {% for column in overview.userTypeAccessMatrix.columns %}
+                    <th data-access-user-type-header="{{ column.userTypeCode }}" title="{{ column.sourceRoleCode }}">{{ column.label }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in overview.userTypeAccessMatrix.rows %}
+                  <tr
+                    class="{% if row.type == 'MODULE' %}matrix-module-row{% else %}matrix-widget-row{% endif %}"
+                    data-access-row
+                    data-row-id="{{ row.id }}"
+                    data-row-type="{{ row.type }}"
+                    data-module-code="{{ row.moduleCode }}"
+                    data-widget-code="{{ row.widgetCode or '' }}"
+                    data-parent-id="{{ row.parentId or '' }}"
+                    data-module-status="{{ row.status }}"
+                    data-search-text="{{ row.title|lower }} {{ row.moduleCode|lower }} {{ row.widgetCode|lower if row.widgetCode else '' }}"
+                  >
+                    <td>
+                      <div class="access-module-title {% if row.type == 'WIDGET' %}nested-widget{% endif %}">
+                        {% if row.type == 'MODULE' %}
+                        <button class="icon-btn matrix-row-toggle" type="button" data-row-toggle="{{ row.id }}" aria-label="Свернуть или развернуть виджеты модуля">⌄</button>
+                        {% else %}
+                        <span class="matrix-tree-line">└</span>
+                        {% endif %}
+                        <div>
+                          <strong>{% if row.type == 'WIDGET' %}Виджет: {% endif %}{{ row.title }}</strong>
+                          <small title="{{ row.moduleCode }}{% if row.widgetCode %} · {{ row.widgetCode }}{% endif %}">{{ row.statusLabel }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    {% for cell in row.cells %}
+                    <td data-access-user-type-cell="{{ cell.userTypeCode }}">
+                      <label class="matrix-check" title="{{ cell.reason }}">
+                        <input
+                          type="checkbox"
+                          data-access-matrix-checkbox
+                          data-row-id="{{ row.id }}"
+                          data-row-type="{{ row.type }}"
+                          data-module-code="{{ row.moduleCode }}"
+                          data-widget-code="{{ row.widgetCode or '' }}"
+                          data-parent-id="{{ row.parentId or '' }}"
+                          data-user-type-code="{{ cell.userTypeCode }}"
+                          data-original="{{ 'true' if cell.allowed else 'false' }}"
+                          data-system-disabled="{{ 'true' if cell.disabled and not cell.inheritedFromModule else 'false' }}"
+                          {% if cell.allowed %}checked{% endif %}
+                          {% if cell.disabled %}disabled{% endif %}
+                        >
+                        <span>{% if cell.allowed %}разрешен{% else %}запрещен{% endif %}</span>
+                      </label>
+                      {% if cell.inheritedFromModule %}
+                      <small class="muted">зависит от модуля</small>
+                      {% elif cell.disabled %}
+                      <small class="muted">недоступно</small>
+                      {% endif %}
+                    </td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="matrix-savebar" aria-label="Состояния сохранения: нет изменений; есть несохраненные изменения; сохранение; ошибка сохранения; успешно сохранено">
+              <div class="muted" data-access-save-status>{{ overview.userTypeAccessMatrix.saveState.noChanges }}</div>
+              <div class="toolbar">
+                <button class="btn" type="submit" data-access-save disabled>Сохранить изменения</button>
+                <button class="btn" type="button" data-access-reset disabled>Сбросить</button>
+              </div>
+            </div>
+          </form>
         </div>
 
         <div class="subject-section" id="users-history">
@@ -3052,6 +3217,174 @@
       });
 
       render();
+    })();
+    (() => {
+      const matrix = document.querySelector("[data-access-type-matrix]");
+      if (!matrix) return;
+
+      const rows = Array.from(matrix.querySelectorAll("[data-access-row]"));
+      const checks = Array.from(matrix.querySelectorAll("[data-access-matrix-checkbox]"));
+      const search = matrix.querySelector("[data-access-matrix-search]");
+      const statusFilter = matrix.querySelector("[data-access-matrix-status]");
+      const userTypeFilter = matrix.querySelector("[data-access-matrix-user-type]");
+      const expandAll = matrix.querySelector("[data-access-expand-all]");
+      const collapseAll = matrix.querySelector("[data-access-collapse-all]");
+      const saveButton = matrix.querySelector("[data-access-save]");
+      const resetButton = matrix.querySelector("[data-access-reset]");
+      const statusText = matrix.querySelector("[data-access-save-status]");
+      const payload = matrix.querySelector("[data-access-matrix-payload]");
+      const collapsed = new Set();
+
+      const originalValue = (checkbox) => checkbox.dataset.original === "true";
+      const isDirty = () => checks.some((checkbox) => checkbox.checked !== originalValue(checkbox));
+      const setStatus = (state) => {
+        if (!statusText) return;
+        statusText.dataset.state = state;
+        statusText.textContent = {
+          clean: "Изменений нет",
+          dirty: "Есть несохраненные изменения",
+          saving: "Сохранение",
+          error: "Ошибка сохранения",
+          success: "Успешно сохранено",
+        }[state] || "Изменений нет";
+      };
+
+      const matchingModuleCheckbox = (rowId, userTypeCode) => checks.find((checkbox) => (
+        checkbox.dataset.rowType === "MODULE" &&
+        checkbox.dataset.rowId === rowId &&
+        checkbox.dataset.userTypeCode === userTypeCode
+      ));
+
+      const applyModuleDependency = (moduleCheckbox) => {
+        const moduleRowId = moduleCheckbox.dataset.rowId;
+        const userTypeCode = moduleCheckbox.dataset.userTypeCode;
+        checks
+          .filter((checkbox) => checkbox.dataset.rowType === "WIDGET" && checkbox.dataset.parentId === moduleRowId && checkbox.dataset.userTypeCode === userTypeCode)
+          .forEach((widgetCheckbox) => {
+            const systemDisabled = widgetCheckbox.dataset.systemDisabled === "true";
+            widgetCheckbox.disabled = systemDisabled || !moduleCheckbox.checked;
+            if (!moduleCheckbox.checked) {
+              widgetCheckbox.checked = false;
+            }
+          });
+      };
+
+      const syncDependencies = () => {
+        checks
+          .filter((checkbox) => checkbox.dataset.rowType === "MODULE")
+          .forEach(applyModuleDependency);
+      };
+
+      const applyFilters = () => {
+        const query = (search?.value || "").trim().toLowerCase();
+        const status = statusFilter?.value || "";
+        const userType = userTypeFilter?.value || "";
+        rows.forEach((row) => {
+          const parentCollapsed = row.dataset.rowType === "WIDGET" && collapsed.has(row.dataset.parentId || "");
+          const matchesSearch = !query || (row.dataset.searchText || "").includes(query);
+          const matchesStatus = !status || row.dataset.moduleStatus === status || row.dataset.rowType === "WIDGET";
+          row.hidden = parentCollapsed || !matchesSearch || !matchesStatus;
+        });
+        matrix.querySelectorAll("[data-access-user-type-header], [data-access-user-type-cell]").forEach((cell) => {
+          const code = cell.dataset.accessUserTypeHeader || cell.dataset.accessUserTypeCell || "";
+          cell.hidden = Boolean(userType && code !== userType);
+        });
+      };
+
+      const updateDirtyState = () => {
+        const dirty = isDirty();
+        if (saveButton) saveButton.disabled = !dirty;
+        if (resetButton) resetButton.disabled = !dirty;
+        setStatus(dirty ? "dirty" : "clean");
+      };
+
+      const buildPayload = () => {
+        const changes = checks
+          .filter((checkbox) => checkbox.checked !== originalValue(checkbox))
+          .map((checkbox) => ({
+            rowId: checkbox.dataset.rowId,
+            type: checkbox.dataset.rowType,
+            moduleCode: checkbox.dataset.moduleCode,
+            widgetCode: checkbox.dataset.widgetCode || null,
+            parentId: checkbox.dataset.parentId || null,
+            userTypeCode: checkbox.dataset.userTypeCode,
+            allowed: checkbox.checked,
+            disabled: checkbox.disabled,
+          }));
+        const serializedRows = rows.map((row) => ({
+          id: row.dataset.rowId,
+          type: row.dataset.rowType,
+          moduleCode: row.dataset.moduleCode,
+          widgetCode: row.dataset.widgetCode || null,
+          parentId: row.dataset.parentId || null,
+          title: row.querySelector("strong")?.textContent?.trim() || "",
+          order: rows.indexOf(row),
+        }));
+        return { changes, rows: serializedRows };
+      };
+
+      checks.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          if (checkbox.dataset.rowType === "MODULE") {
+            applyModuleDependency(checkbox);
+          } else if (checkbox.checked) {
+            const parent = matchingModuleCheckbox(checkbox.dataset.parentId, checkbox.dataset.userTypeCode);
+            if (!parent || !parent.checked) {
+              checkbox.checked = false;
+              checkbox.disabled = true;
+            }
+          }
+          updateDirtyState();
+        });
+      });
+
+      matrix.querySelectorAll("[data-row-toggle]").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const rowId = toggle.dataset.rowToggle || "";
+          if (collapsed.has(rowId)) {
+            collapsed.delete(rowId);
+            toggle.textContent = "⌄";
+          } else {
+            collapsed.add(rowId);
+            toggle.textContent = "›";
+          }
+          applyFilters();
+        });
+      });
+
+      expandAll?.addEventListener("click", () => {
+        collapsed.clear();
+        matrix.querySelectorAll("[data-row-toggle]").forEach((toggle) => {
+          toggle.textContent = "⌄";
+        });
+        applyFilters();
+      });
+      collapseAll?.addEventListener("click", () => {
+        rows.filter((row) => row.dataset.rowType === "MODULE").forEach((row) => collapsed.add(row.dataset.rowId || ""));
+        matrix.querySelectorAll("[data-row-toggle]").forEach((toggle) => {
+          toggle.textContent = "›";
+        });
+        applyFilters();
+      });
+      [search, statusFilter, userTypeFilter].forEach((control) => {
+        control?.addEventListener("input", applyFilters);
+        control?.addEventListener("change", applyFilters);
+      });
+      resetButton?.addEventListener("click", () => {
+        checks.forEach((checkbox) => {
+          checkbox.checked = originalValue(checkbox);
+        });
+        syncDependencies();
+        updateDirtyState();
+      });
+      matrix.addEventListener("submit", () => {
+        if (payload) payload.value = JSON.stringify(buildPayload());
+        setStatus("saving");
+      });
+
+      syncDependencies();
+      applyFilters();
+      updateDirtyState();
     })();
   </script>
 </body>
