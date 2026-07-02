@@ -108,6 +108,16 @@ def test_planned_quick_actions_are_not_usable_by_ordinary_users():
     assert not can_use_quick_action(customer, "CUSTOMER_OBJECT_CREATE", context)
 
 
+def test_unavailable_module3_export_action_is_disabled_even_with_permission():
+    admin = _user(
+        roleCode="PLATFORM_ADMIN",
+        allowedActionCodes=["MODULE_03_EXPORT_USERS"],
+    )
+    context = _context(roleCode="PLATFORM_ADMIN", activeCabinetType="ADMIN")
+
+    assert not can_use_quick_action(admin, "MODULE_03_EXPORT_USERS", context)
+
+
 def test_dashboard_configure_uses_dashboard_feature_without_business_payload():
     supplier = _user(
         roleCode="SUPPLIER",

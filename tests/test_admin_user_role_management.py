@@ -858,47 +858,55 @@ def test_settings_panel_separates_regular_settings_from_debug_zones():
 
 def test_module3_quick_actions_are_configured_for_shell_navigation():
     actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=False)
-    labels = {action["label"] for action in actions}
+    labels = [action["label"] for action in actions]
 
-    assert {
-        "Добавить пользователя",
-        "Добавить компанию",
-        "Импорт пользователей",
-        "Открыть историю",
-        "Настроить доступы",
-        "Массовое назначение доступа",
-        "Экспорт списка",
-    }.issubset(labels)
+    assert labels == [
+        "Найти пользователя",
+        "Открыть заблокированных",
+        "Проверить доступ",
+        "История изменений",
+        "Пользователи без компании",
+        "Пользователи без типа",
+        "Системные пользователи",
+        "Матрица доступов",
+        "Экспортировать список пользователей",
+    ]
 
     for action in actions:
         assert action["id"]
-        assert action["quickActionCode"].startswith("MODULE3_")
+        assert action["quickActionCode"].startswith("MODULE_03_")
         assert action["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
         assert action["permissionCode"]
         assert action["featureCode"]
-        assert action["actionCode"].startswith("OPEN_")
-        assert action["maxSurface"] == "MODULE_BAR"
+        assert action["actionCode"]
+        assert action["maxSurface"] == "BOTH"
         assert action["visible"] is True
-        assert action["enabled"] is True
         assert action["actionType"] == "navigate"
         assert str(action["target"]).startswith("#")
+
+    assert len(actions) == 9
+    assert actions[-1]["id"] == "export-users"
+    assert actions[-1]["enabled"] is False
+    assert actions[-1]["disabledReason"] == "Экспорт будет доступен после подключения сервиса экспорта."
 
     detail_actions = {
         action["id"]: action
         for action in module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=True)
     }
-    assert detail_actions["configure-access"]["target"] == "#access-matrix-detail"
-    assert detail_actions["bulk-access-assignment"]["target"] == "#access-matrix-detail"
+    assert detail_actions["check-access"]["target"] == "#access-matrix-detail"
+    assert detail_actions["access-matrix"]["target"] == "#access-matrix-detail"
 
     company_actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": True}, detail_mode=False)
     company_labels = {action["label"] for action in company_actions}
-    assert "Добавить пользователя" in company_labels
-    assert "Открыть историю" in company_labels
-    assert "Настроить доступы" in company_labels
-    assert "Экспорт списка" in company_labels
-    assert "Добавить компанию" not in company_labels
-    assert "Импорт пользователей" not in company_labels
-    assert "Массовое назначение доступа" not in company_labels
+    assert "Найти пользователя" in company_labels
+    assert "Открыть заблокированных" in company_labels
+    assert "Проверить доступ" in company_labels
+    assert "История изменений" in company_labels
+    assert "Матрица доступов" in company_labels
+    assert "Экспортировать список пользователей" in company_labels
+    assert "Пользователи без компании" not in company_labels
+    assert "Пользователи без типа" not in company_labels
+    assert "Системные пользователи" not in company_labels
 
 
 def test_module3_overview_widgets_summarize_user_types_registry_and_system_users():
@@ -1205,6 +1213,13 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'data-max-surface="{{ action.maxSurface }}"' in template
     assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
     assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
+    assert 'data-without-company="{{ row.isWithoutCompany }}"' in template
+    assert 'data-without-type="{{ row.isWithoutType }}"' in template
+    assert 'data-system-user="{{ row.isSystemUser }}"' in template
+    assert 'quickActionFilter = "without_company"' in template
+    assert 'quickActionFilter = "without_type"' in template
+    assert 'params.get("focus") === "search"' in template
+    assert 'id="system-users"' in template
     assert "МОДУЛЬ №3" in nav
     assert "Обзор модуля" in nav
     assert "Пользователи" in nav

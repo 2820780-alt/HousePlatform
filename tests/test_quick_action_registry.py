@@ -41,19 +41,25 @@ def test_module3_shell_actions_are_registered_in_platform_quick_action_registry(
     codes = [action["quickActionCode"] for action in actions]
 
     assert codes == [
-        "MODULE3_USERS_OPEN",
-        "MODULE3_COMPANIES_OPEN",
-        "MODULE3_USERS_IMPORT",
-        "MODULE3_AUDIT_OPEN",
-        "MODULE3_ACCESS_CONFIGURE",
-        "MODULE3_ACCESS_BULK_ASSIGN",
-        "MODULE3_USERS_EXPORT",
+        "MODULE_03_FIND_USER",
+        "MODULE_03_BLOCKED_USERS",
+        "MODULE_03_CHECK_ACCESS",
+        "MODULE_03_AUDIT_LOG",
+        "MODULE_03_USERS_WITHOUT_COMPANY",
+        "MODULE_03_USERS_WITHOUT_TYPE",
+        "MODULE_03_SYSTEM_USERS",
+        "MODULE_03_ACCESS_MATRIX",
+        "MODULE_03_EXPORT_USERS",
     ]
     assert all(action["sourceModuleCode"] == "MODULE_03_USERS_ROLES" for action in actions)
-    assert all(action["maxSurface"] == "MODULE_BAR" for action in actions)
+    assert all(action["maxSurface"] == "BOTH" for action in actions)
     assert all(action["settings"]["shellActionId"] for action in actions)
-    assert actions[0]["targetRoute"] == "#users"
-    assert actions[4]["settings"]["detailTarget"] == "#access-matrix-detail"
+    assert actions[0]["titleRu"] == "Найти пользователя"
+    assert actions[0]["targetRoute"] == "#users?focus=search"
+    assert actions[2]["actionCode"] == "CHECK_EFFECTIVE_ACCESS"
+    assert actions[7]["settings"]["detailTarget"] == "#access-matrix-detail"
+    assert actions[8]["isAvailable"] is False
+    assert actions[8]["settings"]["disabledReason"] == "Экспорт будет доступен после подключения сервиса экспорта."
 
 
 def test_planned_future_actions_are_registry_metadata_not_available_actions():
@@ -121,4 +127,18 @@ def test_quick_action_surface_migration_is_compatible_and_registers_module3_acti
     assert "ck_quick_action_registry_max_surface" in sql
     assert "MODULE3_USERS_OPEN" in sql
     assert "MODULE3_ACCESS_CONFIGURE" in sql
+    assert "moduleNumber" not in sql
+
+
+def test_module3_quick_action_registration_migration_replaces_old_shell_actions():
+    sql = (ROOT / "database/migrations/20260702_module03_quick_actions_registration.sql").read_text(encoding="utf-8")
+
+    assert "MODULE_03_FIND_USER" in sql
+    assert "MODULE_03_BLOCKED_USERS" in sql
+    assert "MODULE_03_CHECK_ACCESS" in sql
+    assert "MODULE_03_USERS_WITHOUT_COMPANY" in sql
+    assert "MODULE_03_EXPORT_USERS" in sql
+    assert "MODULE3_USERS_OPEN" in sql
+    assert "status = 'DISABLED'" in sql
+    assert "Экспорт будет доступен после подключения сервиса экспорта." in sql
     assert "moduleNumber" not in sql

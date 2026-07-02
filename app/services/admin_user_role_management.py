@@ -72,13 +72,15 @@ COMPANY_ADMIN_VISIBLE_ROLE_CODES = {
 }
 
 MODULE3_QUICK_ACTION_CODES: tuple[str, ...] = (
-    "MODULE3_USERS_OPEN",
-    "MODULE3_COMPANIES_OPEN",
-    "MODULE3_USERS_IMPORT",
-    "MODULE3_AUDIT_OPEN",
-    "MODULE3_ACCESS_CONFIGURE",
-    "MODULE3_ACCESS_BULK_ASSIGN",
-    "MODULE3_USERS_EXPORT",
+    "MODULE_03_FIND_USER",
+    "MODULE_03_BLOCKED_USERS",
+    "MODULE_03_CHECK_ACCESS",
+    "MODULE_03_AUDIT_LOG",
+    "MODULE_03_USERS_WITHOUT_COMPANY",
+    "MODULE_03_USERS_WITHOUT_TYPE",
+    "MODULE_03_SYSTEM_USERS",
+    "MODULE_03_ACCESS_MATRIX",
+    "MODULE_03_EXPORT_USERS",
 )
 
 USER_TYPE_WIDGET_DEFINITIONS: tuple[dict[str, Any], ...] = (
@@ -557,6 +559,7 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
 
 def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> list[dict[str, Any]]:
     is_company_admin = bool(admin_scope.get("isCompanyAdminMode"))
+    actor_roles = set(admin_scope.get("actorRoleCodes") or [])
     registry_actions = {
         action["quickActionCode"]: action
         for action in get_quick_action_registry_items_for_module(
@@ -572,7 +575,10 @@ def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = Fa
         settings = action.get("settings") or {}
         if is_company_admin and not settings.get("visibleForCompanyAdmin"):
             continue
+        if actor_roles and action.get("allowedRoles") and not actor_roles.intersection(set(action["allowedRoles"])):
+            continue
         target = settings.get("detailTarget") if detail_mode and settings.get("detailTarget") else action.get("targetRoute")
+        disabled_reason = settings.get("disabledReason")
         actions.append(
             {
                 "id": settings.get("shellActionId") or action["quickActionCode"],
@@ -589,7 +595,8 @@ def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = Fa
                 "enabled": bool(action.get("isEnabledByDefault", True)) and bool(action.get("isAvailable", True)),
                 "actionType": action.get("actionType", "navigate"),
                 "target": target,
-                "description": action.get("description"),
+                "description": disabled_reason or action.get("description"),
+                "disabledReason": disabled_reason,
             }
         )
     return actions[:9]
@@ -731,6 +738,9 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "registeredAt": registered_at or "",
                 "region": _company_region_label(company),
                 "moduleAccess": "has_modules" if user_data["allowedModuleCount"] else "no_modules",
+                "isWithoutCompany": primary_workspace is None,
+                "isWithoutType": row_type["typeCode"] == "USER",
+                "isSystemUser": _is_system_user_for_directory(user),
                 "sortName": user_data["name"].lower(),
                 "sortType": row_type["typeLabel"].lower(),
                 "cardUrl": f"/api/v1/admin/users-roles/view/users/{user_data['id']}",
@@ -781,6 +791,9 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "registeredAt": registered_at or "",
                 "region": _company_region_label(company),
                 "moduleAccess": "has_modules" if company["isActive"] else "no_modules",
+                "isWithoutCompany": False,
+                "isWithoutType": False,
+                "isSystemUser": False,
                 "sortName": company["title"].lower(),
                 "sortType": row_type_label.lower(),
                 "cardUrl": _company_primary_user_card_url(primary_user) or "#companies",
@@ -3337,6 +3350,14 @@ def _find_system_user(users: list[User], role_codes: set[str], login: str) -> Us
         if normalized_login in email or normalized_login in name:
             return user
     return next((user for user in users if _user_has_any_role(user, role_codes)), None)
+
+
+def _is_system_user_for_directory(user: User) -> bool:
+    email = str(_get_value(user, "email") or "").lower()
+    name = str(_get_value(user, "name") or "").lower()
+    if any(definition["login"] in email or definition["login"] in name for definition in SYSTEM_USER_CARD_DEFINITIONS):
+        return True
+    return any(_user_has_any_role(user, set(definition["roleCodes"])) for definition in SYSTEM_USER_CARD_DEFINITIONS)
 
 
 def _system_user_status_label(status: Any) -> str:

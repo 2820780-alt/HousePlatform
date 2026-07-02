@@ -1439,7 +1439,7 @@
         </section>
         </div>
 
-        <section class="panel overview-only" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator">
+        <section class="panel overview-only" id="system-users" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator">
           <div class="panel-head">
             <div>
               <h2 id="system-users-title">Системные пользователи</h2>
@@ -2061,6 +2061,9 @@
                 data-activity="{{ row.activity }}"
                 data-region="{{ row.region }}"
                 data-module-access="{{ row.moduleAccess }}"
+                data-without-company="{{ row.isWithoutCompany }}"
+                data-without-type="{{ row.isWithoutType }}"
+                data-system-user="{{ row.isSystemUser }}"
                 data-search="{{ row.searchBlob }}"
                 data-sort-type="{{ row.sortType }}"
                 data-sort-name="{{ row.sortName }}"
@@ -3394,13 +3397,6 @@
           const linkTab = link.getAttribute("data-module3-tab-link");
           link.classList.toggle("active", linkTab === tab || (tab === "detail" && linkTab === "users"));
         });
-        document.querySelectorAll("[data-action-id]").forEach((action) => {
-          const id = action.getAttribute("data-action-id");
-          const visibleForUsers = ["add-user", "add-company", "import-users", "bulk-access-assignment", "export-users"].includes(id);
-          const visibleForDefault = ["add-user", "add-company", "import-users", "open-history", "configure-access"].includes(id);
-          const shouldShow = tab === "users" ? visibleForUsers : visibleForDefault;
-          action.hidden = !shouldShow;
-        });
       };
 
       window.addEventListener("hashchange", syncTabs);
@@ -3429,6 +3425,7 @@
       const pageSummary = document.querySelector("[data-user-page-summary]");
       const chips = Array.from(document.querySelectorAll("[data-directory-chip]"));
       let currentPage = 1;
+      let quickActionFilter = "ALL";
 
       const getValue = (element) => element ? element.value : "ALL";
       const parseDate = (value) => {
@@ -3452,7 +3449,10 @@
           (blocking === "ALL" || row.dataset.blocking === blocking) &&
           (activity === "ALL" || row.dataset.activity === activity) &&
           (region === "ALL" || row.dataset.region === region) &&
-          (moduleAccess === "ALL" || row.dataset.moduleAccess === moduleAccess)
+          (moduleAccess === "ALL" || row.dataset.moduleAccess === moduleAccess) &&
+          (quickActionFilter !== "without_company" || row.dataset.withoutCompany === "True") &&
+          (quickActionFilter !== "without_type" || row.dataset.withoutType === "True") &&
+          (quickActionFilter !== "system_user" || row.dataset.systemUser === "True")
         );
       };
 
@@ -3500,10 +3500,12 @@
 
       [search, typeFilter, statusFilter, blockingFilter, activityFilter, regionFilter, moduleFilter, sortSelect, pageSizeSelect].forEach((control) => {
         control?.addEventListener("input", () => {
+          quickActionFilter = "ALL";
           currentPage = 1;
           render();
         });
         control?.addEventListener("change", () => {
+          quickActionFilter = "ALL";
           currentPage = 1;
           render();
         });
@@ -3517,7 +3519,25 @@
         render();
       });
 
+      const applyQuickActionHash = () => {
+        const rawHash = (window.location.hash || "").replace(/^#/, "");
+        if (!rawHash.startsWith("users")) return;
+        const query = rawHash.includes("?") ? rawHash.slice(rawHash.indexOf("?") + 1) : "";
+        const params = new URLSearchParams(query);
+        quickActionFilter = "ALL";
+        if (blockingFilter && params.get("blocked") === "true") blockingFilter.value = "blocked";
+        if (params.get("companyId") === "null") quickActionFilter = "without_company";
+        if (params.get("userType") === "null") quickActionFilter = "without_type";
+        if (search && params.get("focus") === "search") {
+          window.setTimeout(() => search.focus(), 0);
+        }
+        currentPage = 1;
+        render();
+      };
+
+      window.addEventListener("hashchange", applyQuickActionHash);
       render();
+      applyQuickActionHash();
     })();
     (() => {
       const matrix = document.querySelector("[data-access-type-matrix]");
