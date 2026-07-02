@@ -21,6 +21,7 @@ from app.services.admin_user_role_management import (
     admin_scope_for_actor,
     active_permissions_for_user,
     active_role_codes_for_user,
+    apply_company_context_to_user_summary,
     audit_panel_summary,
     audit_log_summary,
     can_assign_company_admin,
@@ -45,6 +46,8 @@ from app.services.admin_user_role_management import (
     user_directory_filter_options,
     user_directory_rows,
     user_directory_summary_chips,
+    user_profile_card_summary,
+    user_summary,
     user_type_summary_widgets,
     widget_access_rows_for_user,
     widget_registry_overview_summary,
@@ -856,6 +859,90 @@ def test_user_directory_rows_expose_search_filter_sort_and_card_links():
     assert {option["value"] for option in filters["moduleAccess"]} == {"has_modules", "no_modules"}
 
 
+def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
+    company_admin = _user(UserRole.CUSTOMER)
+    company_admin.name = "Сидоров Иван"
+    company_admin.phone = "+7 861 111-22-33"
+    company = _company_workspace()
+    company.name = "ООО СтройПроект Юг"
+    company.workspace_type = "CONTRACTOR"
+    company.organization_id = "2312345678"
+    company.settings = {
+        "inn": "2312345678",
+        "kpp": "231201001",
+        "ogrn": "1232300045678",
+        "legalAddress": "Краснодар, ул. Красная, д. 123",
+        "region": "Краснодарский край",
+        "city": "Краснодар",
+        "assignedManager": "Сидоров И. И.",
+    }
+    engineer = _user(UserRole.CONTRACTOR)
+    engineer.name = "Петрова Елена"
+    buyer = _user(UserRole.SUPPLIER)
+    buyer.name = "Кузнецов Андрей"
+    admin_member = _workspace_member(company_admin, company, COMPANY_ADMIN_ROLE_CODE)
+    engineer_member = _workspace_member(engineer, company, "ENGINEER_DESIGNER")
+    buyer_member = _workspace_member(buyer, company, "PROCUREMENT_MANAGER")
+    company_admin.workspace_members = [admin_member]
+    company.members = [admin_member, engineer_member, buyer_member]
+    company.module_access = [
+        ModuleAccess(
+            workspace_id=company.id,
+            module_code="MODULE_11_ANALYTICS",
+            canonical_module_code="MODULE_11_ANALYTICS",
+            access_level="NO_ACCESS",
+            access_scope="GLOBAL",
+            status="ACTIVE",
+        )
+    ]
+
+    user_data = user_summary(company_admin, include_permissions=True)
+    apply_company_context_to_user_summary(user_data, [company])
+    matrix = access_matrix_for_subject(
+        user_data,
+        workspaces=[company],
+        roles=[],
+        permissions=active_permissions_for_user(company_admin),
+    )
+    card = user_profile_card_summary(
+        company_admin,
+        user_data=user_data,
+        workspaces=[company],
+        access_matrix=matrix,
+        history=[],
+    )
+
+    assert card["header"]["title"] == "ООО СтройПроект Юг"
+    assert card["header"]["assignedManager"] == "Сидоров И. И."
+    assert card["header"]["blockLabel"] == "Без блокировки"
+    assert [action["label"] for action in card["header"]["actions"]] == [
+        "Редактировать",
+        "Заблокировать",
+        "Назначить доступ",
+    ]
+    assert {field["label"]: field["value"] for field in card["companyInfo"]}["ИНН"] == "2312345678"
+    assert {field["label"]: field["value"] for field in card["companyInfo"]}["Юридический адрес"] == "Краснодар, ул. Красная, д. 123"
+    role_summary = {item["label"]: item["value"] for item in card["employeeRoles"]["summary"]}
+    assert role_summary["Сотрудники"] == 3
+    assert role_summary["Руководители"] == 1
+    assert role_summary["Инженеры"] == 1
+    assert role_summary["Менеджеры"] == 1
+    assert {item["roleTitle"] for item in card["employeeRoles"]["recent"]} >= {"Администратор компании", "Инженер-проектировщик"}
+
+    module_row = next(row for row in card["moduleAccessRows"] if row["moduleCode"] == "MODULE_11_ANALYTICS")
+    assert module_row["subjectType"] == "USER"
+    assert module_row["source"] in {"TYPE_TEMPLATE", "USER_OVERRIDE", "SYSTEM"}
+    assert module_row["sourceLabel"] in {"По типу пользователя", "Индивидуально переопределен", "Системный"}
+    analytics_widgets = next(group for group in card["widgetAccessGroups"] if group["moduleCode"] == "MODULE_11_ANALYTICS")
+    assert analytics_widgets["moduleAllowed"] is False
+    assert analytics_widgets["disabledReason"] == "Недоступно: виджет закрыт вместе с модулем"
+    assert card["effectiveAccess"]["sources"] == [
+        {"source": "TYPE_TEMPLATE", "label": "По типу пользователя"},
+        {"source": "USER_OVERRIDE", "label": "Индивидуально переопределен"},
+        {"source": "SYSTEM", "label": "Системный"},
+    ]
+
+
 def test_admin_users_roles_view_route_is_registered():
     paths = {route.path for route in admin_users_roles_router.routes}
 
@@ -1066,6 +1153,22 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Карточка пользователя" in template
     assert "Карточка компании" in template
     assert "Карточка сотрудника компании" in template
+    assert "Основной контакт" in template
+    assert "Назначенный менеджер" in template
+    assert 'data-profile-action="{{ action.id }}"' in template
+    assert "{{ action.label }}" in template
+    assert "Заблокировать" in template
+    assert "Разблокировать" in template
+    assert "Назначить доступ" in template
+    assert "Сотрудники и роли" in template
+    assert "Название компании" in template
+    assert "Тип компании" in template
+    assert "Юридический адрес" in template
+    assert "Индивидуальный доступ" in template
+    assert "Источник доступа: По типу пользователя, Индивидуально переопределен или Системный" in template
+    assert "Включить модуль" in template
+    assert "Выключить модуль" in template
+    assert "Если модуль не разрешен, его виджеты нельзя включить" in template
     assert "Назначить группу" in template
     assert "Отвязать от компании" in template
     assert "Назначить администратора" in template

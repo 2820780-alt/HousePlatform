@@ -1982,17 +1982,28 @@
         <article class="hero-card" id="selected-user-access-card">
           <div class="hero-top">
             <div class="card-title">
-              <strong>{{ detail.user.name }}</strong>
-              <div class="muted">{{ detail.user.email }}</div>
+              <strong>{{ detail.profileCard.header.title }}</strong>
+              <div class="muted">
+                {{ detail.profileCard.header.typeLabel }}
+                {% if detail.profileCard.header.subtitle %} · {{ detail.profileCard.header.subtitle }}{% endif %}
+              </div>
             </div>
-            <div class="toolbar">
-              <span class="chip {% if detail.user.status == 'active' %}ok{% elif detail.user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ detail.user.status }}</span>
-              {% for role in detail.user.roleCodes %}
-              <span class="chip"><strong>{{ role }}</strong></span>
+            <div class="toolbar" aria-label="Действия карточки: Редактировать; Заблокировать или Разблокировать; Назначить доступ">
+              <span class="chip {% if detail.profileCard.header.status == 'active' %}ok{% elif detail.profileCard.header.status in ['blocked', 'disabled', 'deleted'] %}danger{% else %}warn{% endif %}">{{ detail.profileCard.header.statusLabel }}</span>
+              <span class="chip {% if detail.profileCard.header.blockLabel == 'Без блокировки' %}ok{% else %}danger{% endif %}">{{ detail.profileCard.header.blockLabel }}</span>
+              {% for action in detail.profileCard.header.actions %}
+              <a class="btn {% if action.tone == 'danger' %}danger{% endif %}" href="{{ action.target }}" data-profile-action="{{ action.id }}">{{ action.label }}</a>
               {% endfor %}
             </div>
           </div>
-          <div class="muted">Карточка пользователя показывает роль, группы, компанию, статус в компании, разрешенные модули и виджеты, ограничения и историю. Реальные проверки доступа остаются на сервере через Permission Guard.</div>
+          <dl class="detail-kv">
+            <div><dt>Основной контакт</dt><dd>{{ detail.profileCard.header.primaryContact }}</dd></div>
+            <div><dt>Телефон</dt><dd>{{ detail.profileCard.header.phone }}</dd></div>
+            <div><dt>Регион</dt><dd>{{ detail.profileCard.header.region }}</dd></div>
+            <div><dt>Дата регистрации</dt><dd>{{ detail.profileCard.header.registeredAt }}</dd></div>
+            <div><dt>Назначенный менеджер</dt><dd>{{ detail.profileCard.header.assignedManager }}</dd></div>
+          </dl>
+          <div class="muted">Карточка открыта из таблицы пользователей. Доступы меняются здесь индивидуально, а сервер сохраняет проверки через Permission Guard и границы компании.</div>
         </article>
 
         <div class="detail-card-grid">
@@ -2005,20 +2016,12 @@
               <span class="chip {% if detail.user.status == 'active' %}ok{% elif detail.user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ detail.user.status }}</span>
             </div>
             <dl class="detail-kv">
-              <div><dt>Имя</dt><dd>{{ detail.user.name }}</dd></div>
-              <div><dt>Email</dt><dd>{{ detail.user.email }}</dd></div>
-              <div><dt>Телефон</dt><dd>{{ detail.user.phone or 'не задан' }}</dd></div>
+              {% for field in detail.profileCard.generalInfo %}
+              <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div>
+              {% endfor %}
               <div><dt>Роли</dt><dd>{{ detail.user.roleCodes|join(', ') or 'нет роли' }}</dd></div>
-              <div>
-                <dt>Компания</dt>
-                <dd>
-                  {% if detail.user.workspaces %}
-                  {{ detail.user.workspaces[0].workspaceTitle }} · {{ detail.user.workspaces[0].status }}
-                  {% else %}
-                  не связан с компанией
-                  {% endif %}
-                </dd>
-              </div>
+              <div><dt>Группы</dt><dd>{{ detail.user.groupTitles|join(', ') or 'не назначены' }}</dd></div>
+              <div><dt>Компания</dt><dd>{% if detail.user.workspaces %}{{ detail.user.workspaces[0].workspaceTitle }} · {{ detail.user.workspaces[0].status }}{% else %}не связан с компанией{% endif %}</dd></div>
             </dl>
             <div class="detail-card-section">
               <h4>Модули и виджеты</h4>
@@ -2074,13 +2077,31 @@
             </div>
             {% if detail.user.workspaces %}
             {% set active_company = detail.user.workspaces[0] %}
-            <dl class="detail-kv">
-              <div><dt>Компания</dt><dd>{{ active_company.workspaceTitle }}</dd></div>
-              <div><dt>Тип</dt><dd>{{ active_company.workspaceType }}</dd></div>
-              <div><dt>Администратор</dt><dd>{{ active_company.adminTitle or 'администратор не назначен' }}</dd></div>
-              <div><dt>Сотрудники</dt><dd>{{ active_company.employeeCount or 0 }}</dd></div>
+            <dl class="detail-kv" aria-label="Название компании, Тип компании, Статус, Регион, Администратор компании, ИНН, КПП, ОГРН, Юридический адрес">
+              {% for field in detail.profileCard.companyInfo %}
+              <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div>
+              {% endfor %}
               <div><dt>Связь</dt><dd>{{ active_company.status }} · {{ active_company.roleTitle }}</dd></div>
             </dl>
+            {% if detail.profileCard.employeeRoles.summary %}
+            <div class="detail-card-section">
+              <h4>Сотрудники и роли</h4>
+              <div class="code-list">
+                {% for item in detail.profileCard.employeeRoles.summary %}
+                <span class="chip">{{ item.label }}: {{ item.value }}</span>
+                {% endfor %}
+              </div>
+              {% for employee in detail.profileCard.employeeRoles.recent %}
+              <div class="permission-row">
+                <div>
+                  <strong>{{ employee.name }}</strong>
+                  <small>{{ employee.roleTitle }} · {{ employee.status }}</small>
+                </div>
+                <span class="chip">сотрудник</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
             <div class="detail-card-section">
               <h4>Модули и виджеты компании</h4>
               <div class="code-list">
@@ -2205,6 +2226,69 @@
               <span class="chip warn">компания не выбрана</span>
               {% endif %}
             </div>
+          </div>
+          <div class="grid-2">
+            <section class="mini-card" aria-labelledby="effective-access-title">
+              <h3 id="effective-access-title">Индивидуальный доступ</h3>
+              <div class="muted">Источник доступа: По типу пользователя, Индивидуально переопределен или Системный.</div>
+              <div class="permissions">
+                {% for row in detail.profileCard.moduleAccessRows[:8] %}
+                <div class="permission-row">
+                  <div>
+                    <strong>{{ row.moduleTitle }}</strong>
+                    <small title="{{ row.moduleCode }}">{{ row.accessLabel }} · {{ row.sourceLabel }}</small>
+                    <small>{{ row.reason }}</small>
+                  </div>
+                  <div class="toolbar">
+                    <span class="chip {% if row.allowed %}ok{% else %}warn{% endif %}">{{ row.accessLabel }}</span>
+                    {% if row.workspaceId %}
+                    <form class="access-control-form" method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access">
+                      <input type="hidden" name="workspace_id" value="{{ row.workspaceId }}">
+                      <input type="hidden" name="module_code" value="{{ row.moduleCode }}">
+                      <input type="hidden" name="access_level" value="VIEW">
+                      <input type="hidden" name="access_scope" value="OWN">
+                      <button class="btn" type="submit" {% if not row.canOpen %}disabled title="{{ row.disabledReason }}"{% endif %}>Включить модуль</button>
+                    </form>
+                    <form class="access-control-form" method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access">
+                      <input type="hidden" name="workspace_id" value="{{ row.workspaceId }}">
+                      <input type="hidden" name="module_code" value="{{ row.moduleCode }}">
+                      <input type="hidden" name="access_level" value="NO_ACCESS">
+                      <input type="hidden" name="access_scope" value="OWN">
+                      <button class="btn danger" type="submit" {% if not row.canClose %}disabled title="{{ row.disabledReason }}"{% endif %}>Выключить модуль</button>
+                    </form>
+                    {% else %}
+                    <small>Сначала привяжите пользователя к компании.</small>
+                    {% endif %}
+                  </div>
+                </div>
+                {% else %}
+                <div class="empty">Модули для индивидуального доступа пока не найдены.</div>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="mini-card" aria-labelledby="effective-widget-access-title">
+              <h3 id="effective-widget-access-title">Доступ к виджетам</h3>
+              <div class="muted">Виджеты сгруппированы по модулям. Если модуль не разрешен, его виджеты нельзя включить.</div>
+              <div class="permissions">
+                {% for group in detail.profileCard.widgetAccessGroups[:4] %}
+                <div class="permission-row">
+                  <div>
+                    <strong>{{ group.moduleTitle }}</strong>
+                    <small title="{{ group.moduleCode }}">{% if group.moduleAllowed %}модуль открыт{% else %}{{ group.disabledReason }}{% endif %}</small>
+                    <div class="code-list">
+                      {% for widget in group.widgets[:4] %}
+                      <span class="chip {% if widget.allowed %}ok{% elif group.moduleAllowed %}warn{% else %}danger{% endif %}" title="{{ widget.widgetCode }} · {{ widget.reason }}">{{ widget.title }} · {{ widget.sourceLabel }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <span class="chip {% if group.moduleAllowed %}ok{% else %}danger{% endif %}">{% if group.moduleAllowed %}можно настраивать{% else %}нельзя включить{% endif %}</span>
+                </div>
+                {% else %}
+                <div class="empty">Виджеты для выбранного пользователя пока не найдены.</div>
+                {% endfor %}
+              </div>
+            </section>
           </div>
           <div class="table-wrap">
             <table class="access-matrix-table" aria-label="Матрица доступа к модулям: Пользователь, Компания, Сотрудник компании, Группа, Роль">

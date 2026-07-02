@@ -224,6 +224,16 @@ ACCESS_RESOLUTION_SOURCES: tuple[str, ...] = (
     "SYSTEM_LIMIT",
 )
 
+ACCESS_SOURCE_LABELS: dict[str, str] = {
+    "SYSTEM_DEFAULT": "Системный",
+    "ROLE_DEFAULT": "По типу пользователя",
+    "COMPANY_DEFAULT": "По компании",
+    "GROUP_DEFAULT": "По группе",
+    "USER_OVERRIDE": "Индивидуально переопределен",
+    "TARIFF_LIMIT": "Ограничено тарифом",
+    "SYSTEM_LIMIT": "Системный",
+}
+
 ACCESS_DENY_REASONS: dict[str, str] = {
     "PLATFORM_ADMIN_DENY": "Закрыто администратором платформы",
     "COMPANY_ADMIN_DENY": "Закрыто администратором компании",
@@ -277,6 +287,9 @@ MONETIZATION_READY_FIELDS: tuple[str, ...] = (
 )
 
 ROLE_LABELS[COMPANY_ADMIN_ROLE_CODE] = "Администратор компании"
+ROLE_LABELS["ENGINEER_DESIGNER"] = "Инженер-проектировщик"
+ROLE_LABELS["PROCUREMENT_MANAGER"] = "Менеджер закупок"
+ROLE_LABELS["PROJECT_MANAGER"] = "Менеджер проекта"
 
 ADMIN_UI_STATE_LEGEND: tuple[dict[str, str], ...] = (
     {
@@ -900,6 +913,20 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
     )
     module8_preview_data = module8_preview.to_dict()
     permissions = active_permissions_for_user(user)
+    access_matrix = access_matrix_for_subject(
+        user_data,
+        workspaces=workspaces,
+        roles=roles,
+        permissions=permissions,
+        include_system_critical=admin_scope["canSeeSystemCriticalModules"],
+    )
+    profile_card = user_profile_card_summary(
+        user,
+        user_data=user_data,
+        workspaces=workspaces,
+        access_matrix=access_matrix,
+        history=history,
+    )
     await write_audit_event(
         db,
         AuditLogType.MODULE8_CONTEXT_ADAPTER_READ,
@@ -938,13 +965,8 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
             admin_scope=admin_scope,
         ),
         "permissions": permissions,
-        "accessMatrix": access_matrix_for_subject(
-            user_data,
-            workspaces=workspaces,
-            roles=roles,
-            permissions=permissions,
-            include_system_critical=admin_scope["canSeeSystemCriticalModules"],
-        ),
+        "accessMatrix": access_matrix,
+        "profileCard": profile_card,
         "accessContextForCabinet": access_context.to_dict(),
         "module8CabinetPreview": module8_preview_data,
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=True),
@@ -1499,6 +1521,322 @@ def company_employee_summaries(workspaces: list[Workspace]) -> list[dict[str, An
                 }
             )
     return sorted(employees, key=lambda item: (item["companyTitle"], item["userName"]))
+
+
+def user_profile_card_summary(
+    user: User,
+    *,
+    user_data: dict[str, Any],
+    workspaces: list[Workspace],
+    access_matrix: dict[str, Any],
+    history: list[AuditLog],
+) -> dict[str, Any]:
+    primary_workspace = _primary_user_workspace(user_data)
+    workspace = _find_workspace_by_id(workspaces, primary_workspace.get("workspaceId"))
+    company = company_summary(workspace) if workspace and _is_company_workspace(workspace) else None
+    company_details = _profile_company_details(workspace, company)
+    employee_block = _profile_employee_role_block(workspace)
+    subject_type = _profile_subject_type(user_data, company_details)
+    status = str(user_data.get("status") or "").lower()
+    is_blocked = status in {"blocked", "disabled", "deleted"}
+    registered_at = _get_value(user, "created_at") or user_data.get("createdAt")
+    region = company_details.get("region") or primary_workspace.get("region") or "не задан"
+
+    return {
+        "subjectType": "COMPANY" if company else "USER",
+        "header": {
+            "title": company_details.get("title") or user_data["name"],
+            "subtitle": user_data["name"] if company else user_data.get("email"),
+            "typeLabel": subject_type["typeLabel"],
+            "typeCode": subject_type["typeCode"],
+            "status": status,
+            "statusLabel": _profile_status_label(status),
+            "blockLabel": "Заблокирован" if is_blocked else "Без блокировки",
+            "primaryContact": user_data.get("email") or company_details.get("adminTitle") or "не задан",
+            "phone": user_data.get("phone") or "не задан",
+            "region": region,
+            "registeredAt": registered_at or "не задана",
+            "assignedManager": company_details.get("assignedManager") or "не назначен",
+            "actions": _profile_header_actions(is_blocked),
+        },
+        "generalInfo": _profile_general_info(user_data, subject_type, region, registered_at, is_blocked),
+        "companyInfo": company_details.get("fields") or [],
+        "employeeRoles": employee_block,
+        "moduleAccessRows": _profile_module_access_rows(user_data, access_matrix),
+        "widgetAccessGroups": _profile_widget_access_groups(access_matrix),
+        "activityRows": [audit_log_summary(item) for item in history[:6]],
+        "effectiveAccess": {
+            "subjectType": "USER",
+            "subjectId": user_data["id"],
+            "sources": [
+                {"source": "TYPE_TEMPLATE", "label": "По типу пользователя"},
+                {"source": "USER_OVERRIDE", "label": "Индивидуально переопределен"},
+                {"source": "SYSTEM", "label": "Системный"},
+            ],
+        },
+        "selectedWorkspaceId": primary_workspace.get("workspaceId"),
+    }
+
+
+def _profile_header_actions(is_blocked: bool) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": "edit-profile",
+            "label": "Редактировать",
+            "actionType": "modal",
+            "target": "#user-general-info",
+            "enabled": True,
+            "tone": "default",
+        },
+        {
+            "id": "toggle-block",
+            "label": "Разблокировать" if is_blocked else "Заблокировать",
+            "actionType": "modal",
+            "target": "#danger-zone",
+            "enabled": True,
+            "tone": "default" if is_blocked else "danger",
+        },
+        {
+            "id": "assign-access",
+            "label": "Назначить доступ",
+            "actionType": "navigate",
+            "target": "#access-matrix-detail",
+            "enabled": True,
+            "tone": "default",
+        },
+    ]
+
+
+def _profile_subject_type(user_data: dict[str, Any], company_details: dict[str, Any]) -> dict[str, str]:
+    if company_details:
+        return {
+            "typeCode": company_details.get("typeCode") or "COMPANY",
+            "typeLabel": company_details.get("companyTypeLabel") or "Компания",
+        }
+    return _directory_user_type(user_data)
+
+
+def _profile_general_info(
+    user_data: dict[str, Any],
+    subject_type: dict[str, str],
+    region: str,
+    registered_at: Any,
+    is_blocked: bool,
+) -> list[dict[str, Any]]:
+    return [
+        _profile_field("Тип", subject_type["typeLabel"]),
+        _profile_field("Email", user_data.get("email") or "не задан"),
+        _profile_field("Телефон", user_data.get("phone") or "не задан"),
+        _profile_field("Регион", region or "не задан"),
+        _profile_field("Дата регистрации", registered_at or "не задана"),
+        _profile_field("Статус", _profile_status_label(user_data.get("status"))),
+        _profile_field("Блокировка", "Заблокирован" if is_blocked else "Без блокировки"),
+    ]
+
+
+def _profile_company_details(workspace: Workspace | None, company: dict[str, Any] | None) -> dict[str, Any]:
+    if not workspace or not company:
+        return {}
+    settings = _dict_value(_get_value(workspace, "settings"))
+    company_type_label = _company_type_label(_workspace_type_value(workspace))
+    inn = _settings_first(settings, "inn", "INN", "taxId", "tax_id") or _get_value(workspace, "organization_id")
+    fields = [
+        _profile_field("Название компании", company["title"]),
+        _profile_field("Тип компании", company_type_label),
+        _profile_field("Статус", company.get("status") or "не задан"),
+        _profile_field("Регион / город", _company_region_label(company) or "не задан"),
+        _profile_field("Администратор компании", company.get("adminTitle") or "администратор не назначен"),
+        _profile_field("ИНН", inn or "не задан"),
+        _profile_field("КПП", _settings_first(settings, "kpp", "KPP") or "не задан"),
+        _profile_field("ОГРН", _settings_first(settings, "ogrn", "OGRN") or "не задан"),
+        _profile_field(
+            "Юридический адрес",
+            _settings_first(settings, "legalAddress", "legal_address", "juridicalAddress", "address") or "не задан",
+        ),
+    ]
+    return {
+        "id": company["id"],
+        "title": company["title"],
+        "typeCode": "SUPPLIER" if _workspace_type_value(workspace) in {"SUPPLIER", "MATERIAL_SUPPLIER"} else "COMPANY",
+        "companyTypeLabel": company_type_label,
+        "status": company.get("status"),
+        "region": _company_region_label(company),
+        "adminTitle": company.get("adminTitle"),
+        "assignedManager": _settings_first(settings, "assignedManager", "assignedManagerName", "managerName", "manager"),
+        "fields": fields,
+    }
+
+
+def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
+    if not workspace or not _is_company_workspace(workspace):
+        return {"summary": [], "recent": [], "total": 0}
+    active_members = [
+        member
+        for member in _safe_iterable(workspace.members)
+        if _enum_value(_get_value(member, "status")).upper() in {"", "ACTIVE"}
+    ]
+    leader_count = len([member for member in active_members if _member_role_in(member, COMPANY_ADMIN_COMPATIBLE_ROLE_CODES | {COMPANY_ADMIN_ROLE_CODE})])
+    engineer_count = len([member for member in active_members if _member_role_in(member, {"ENGINEER", "ENGINEER_DESIGNER", "ESTIMATOR", "CONTRACTOR"})])
+    buyer_count = len([member for member in active_members if _member_role_in(member, {"BUYER", "PURCHASER", "PROCUREMENT", "SUPPLIER"})])
+    manager_count = len([member for member in active_members if _member_role_contains(member, "MANAGER")])
+    return {
+        "total": len(active_members),
+        "summary": [
+            {"label": "Сотрудники", "value": len(active_members)},
+            {"label": "Руководители", "value": leader_count},
+            {"label": "Инженеры", "value": engineer_count},
+            {"label": "Закупщики", "value": buyer_count},
+            {"label": "Менеджеры", "value": manager_count},
+        ],
+        "recent": [
+            {
+                "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
+                "name": _get_value(_get_value(member, "user"), "name")
+                or _get_value(_get_value(member, "user"), "email")
+                or str(_get_value(member, "user_id") or ""),
+                "roleTitle": role_label(_get_value(member, "roleCode") or _get_value(member, "role_code")),
+                "status": _enum_value(_get_value(member, "status")) or "ACTIVE",
+            }
+            for member in active_members[:5]
+        ],
+    }
+
+
+def _profile_module_access_rows(user_data: dict[str, Any], access_matrix: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    subject_id = str(user_data.get("id") or "")
+    selected_company_id = access_matrix.get("selectedCompanyId")
+    for row in access_matrix.get("rows") or []:
+        cell = row.get("employee") if selected_company_id else row.get("user")
+        editable_cell = next((item for item in row.get("cells") or [] if item.get("key") == "employee"), cell or {})
+        source = _effective_access_source(cell or {})
+        rows.append(
+            {
+                "subjectType": "USER",
+                "subjectId": subject_id,
+                "moduleCode": row["moduleCode"],
+                "moduleTitle": row["title"],
+                "widgetCount": row.get("widgetCount", 0),
+                "allowed": (cell or {}).get("stateCode") == "OPEN",
+                "accessLabel": (cell or {}).get("label"),
+                "accessStatus": (cell or {}).get("stateCode"),
+                "reason": (cell or {}).get("reason"),
+                "source": source,
+                "sourceLabel": _effective_access_source_label(source),
+                "resolutionSource": (cell or {}).get("resolutionSource"),
+                "workspaceId": row.get("workspaceId"),
+                "canOpen": bool(editable_cell.get("canOpen")),
+                "canClose": bool(editable_cell.get("canClose")),
+                "disabledReason": editable_cell.get("disabledReason") or (cell or {}).get("reason"),
+            }
+        )
+    return rows
+
+
+def _profile_widget_access_groups(access_matrix: dict[str, Any]) -> list[dict[str, Any]]:
+    groups: list[dict[str, Any]] = []
+    selected_company_id = access_matrix.get("selectedCompanyId")
+    for row in access_matrix.get("rows") or []:
+        widgets = row.get("widgets") or []
+        if not widgets:
+            continue
+        module_cell = row.get("employee") if selected_company_id else row.get("user")
+        module_allowed = (module_cell or {}).get("stateCode") == "OPEN"
+        groups.append(
+            {
+                "moduleCode": row["moduleCode"],
+                "moduleTitle": row["title"],
+                "moduleAllowed": module_allowed,
+                "workspaceId": row.get("workspaceId"),
+                "disabledReason": "" if module_allowed else ACCESS_DENY_REASONS["WIDGET_REVOKED_BY_MODULE_DENY"],
+                "widgets": [
+                    {
+                        "widgetCode": widget["widgetCode"],
+                        "title": widget["title"],
+                        "allowed": widget.get("stateCode") == "OPEN",
+                        "accessLabel": widget.get("label"),
+                        "reason": widget.get("reason"),
+                        "source": _effective_access_source(widget),
+                        "sourceLabel": _effective_access_source_label(_effective_access_source(widget)),
+                        "canOpen": bool(widget.get("canOpen")),
+                        "canClose": bool(widget.get("canClose")),
+                        "disabledReason": widget.get("disabledReason") or ("" if module_allowed else ACCESS_DENY_REASONS["WIDGET_REVOKED_BY_MODULE_DENY"]),
+                    }
+                    for widget in widgets
+                ],
+            }
+        )
+    return groups
+
+
+def _profile_field(label: str, value: Any) -> dict[str, Any]:
+    return {"label": label, "value": value if value not in {None, ""} else "не задан"}
+
+
+def _profile_status_label(status: Any) -> str:
+    normalized = str(status or "").lower()
+    if normalized == "active":
+        return "Активен"
+    if normalized in {"blocked", "disabled"}:
+        return "Заблокирован"
+    if normalized == "deleted":
+        return "Удален"
+    return normalized or "не задан"
+
+
+def _company_type_label(workspace_type: str) -> str:
+    return {
+        "SUPPLIER": "Поставщик",
+        "MATERIAL_SUPPLIER": "Поставщик",
+        "CONTRACTOR": "Строительная компания",
+        "CONSTRUCTION_COMPANY": "Строительная компания",
+        "ORGANIZATION": "Компания",
+    }.get(workspace_type, workspace_type or "Компания")
+
+
+def _settings_first(settings: dict[str, Any], *keys: str) -> Any:
+    lowered = {str(key).lower(): value for key, value in settings.items()}
+    for key in keys:
+        if key in settings and settings[key] not in {None, ""}:
+            return settings[key]
+        lowered_value = lowered.get(key.lower())
+        if lowered_value not in {None, ""}:
+            return lowered_value
+    return None
+
+
+def _find_workspace_by_id(workspaces: list[Workspace], workspace_id: Any) -> Workspace | None:
+    if not workspace_id:
+        return None
+    workspace_id_str = str(workspace_id)
+    return next((workspace for workspace in workspaces if str(workspace.id) == workspace_id_str), None)
+
+
+def _member_role_in(member: WorkspaceMember, role_codes: set[str]) -> bool:
+    role_code = normalize_role_code(_get_value(member, "roleCode") or _get_value(member, "role_code"))
+    return role_code in role_codes
+
+
+def _member_role_contains(member: WorkspaceMember, pattern: str) -> bool:
+    role_code = normalize_role_code(_get_value(member, "roleCode") or _get_value(member, "role_code"))
+    return pattern in role_code
+
+
+def _effective_access_source(cell: dict[str, Any]) -> str:
+    resolution_source = str(cell.get("resolutionSource") or "")
+    if resolution_source == "USER_OVERRIDE":
+        return "USER_OVERRIDE"
+    if resolution_source in {"ROLE_DEFAULT", "GROUP_DEFAULT", "COMPANY_DEFAULT"}:
+        return "TYPE_TEMPLATE"
+    return "SYSTEM"
+
+
+def _effective_access_source_label(source: str) -> str:
+    return {
+        "TYPE_TEMPLATE": "По типу пользователя",
+        "USER_OVERRIDE": "Индивидуально переопределен",
+        "SYSTEM": "Системный",
+    }.get(source, ACCESS_SOURCE_LABELS.get(source, source))
 
 
 def workspace_panel_summary(workspaces: list[Workspace], *, recent_history: list[AuditLog]) -> dict[str, Any]:
