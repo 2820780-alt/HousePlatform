@@ -19,6 +19,7 @@ class DashboardQuickAction:
     moduleCode: str
     featureCode: str | None = None
     contextCode: str | None = None
+    maxSurface: str = "BOTH"
     cabinetTypes: tuple[str, ...] = ("ADMIN",)
     requiresConfirmation: bool = False
     mock: bool = False
@@ -31,7 +32,7 @@ def _dashboard_quick_action_registry() -> tuple[DashboardQuickAction, ...]:
     return tuple(
         _dashboard_action_from_registry(item)
         for item in get_quick_action_registry()
-        if item["status"] == "ACTIVE"
+        if item["status"] == "ACTIVE" and item.get("maxSurface") in {"MODULE_CARD", "BOTH"}
     )
 
 
@@ -132,6 +133,7 @@ def _dashboard_action_from_registry(item: dict[str, Any]) -> DashboardQuickActio
         moduleCode=item["sourceModuleCode"],
         featureCode=item.get("featureCode"),
         contextCode=settings.get("contextCode"),
+        maxSurface=item.get("maxSurface") or "BOTH",
         cabinetTypes=tuple(item.get("allowedCabinetTypes") or ("ADMIN",)),
         requiresConfirmation=bool(settings.get("requiresConfirmation")),
         mock=bool(settings.get("mock")),

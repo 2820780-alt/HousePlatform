@@ -8,6 +8,13 @@ from app.models import (
     UpdateUserQuickActionRequest,
     UserModuleQuickAction,
 )
+from app.services.quick_action_preferences import (
+    MAX_MODULE_BAR_QUICK_ACTIONS,
+    MAX_MODULE_CARD_QUICK_ACTIONS,
+    build_user_quick_action_preference,
+    select_module_bar_preferences,
+    select_module_card_preferences,
+)
 from pathlib import Path
 
 
@@ -111,3 +118,38 @@ def test_add_update_and_run_types_keep_config_not_result_payload():
     assert result["requiresModuleHandler"] is True
     assert "businessPayload" not in request
     assert "resultPayload" not in result
+
+
+def test_user_quick_action_preference_contract_is_module_scoped_and_limited():
+    preferences = [
+        build_user_quick_action_preference(
+            user_id="user-1",
+            quick_action_code=f"ACTION_{index}",
+            source_module_code="MODULE_03_USERS_ROLES",
+            is_enabled=True,
+            is_pinned_in_module=True,
+            is_pinned_on_module_card=True,
+            sort_order=index,
+        )
+        for index in range(12)
+    ]
+
+    assert preferences[0]["userId"] == "user-1"
+    assert preferences[0]["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+    assert "moduleNumber" not in preferences[0]
+    assert "businessPayload" not in preferences[0]
+    assert len(select_module_bar_preferences(preferences)) == MAX_MODULE_BAR_QUICK_ACTIONS
+    assert len(select_module_card_preferences(preferences)) == MAX_MODULE_CARD_QUICK_ACTIONS
+
+
+def test_user_quick_action_preference_requires_source_module_code():
+    try:
+        build_user_quick_action_preference(
+            user_id="user-1",
+            quick_action_code="ACTION",
+            source_module_code="",
+        )
+    except ValueError as exc:
+        assert "source_module_code is required" in str(exc)
+    else:
+        raise AssertionError("source_module_code must be required")

@@ -130,6 +130,8 @@ def _quick_action_permission_result(
     module_item = get_dashboard_module_registry_item(module_code)
     if action.status not in ACTIVE_QUICK_ACTION_STATUSES:
         return _denied(action.quickActionCode, f"Quick action status is {action.status}.", permission_context, action)
+    if not action.isAvailable:
+        return _denied(action.quickActionCode, "Quick action is not available on this surface.", permission_context, action)
     if module_item and module_item.status not in ACTIVE_MODULE_STATUSES:
         return _denied(action.quickActionCode, f"Module status is {module_item.status}.", permission_context, action)
     if module_item and not module_item.isAvailableForDashboard:
@@ -172,6 +174,7 @@ def _denied(
         quickActionCode=action_code,
         title=action_code,
         sourceModuleCode="UNKNOWN",
+        actionCode=action_code,
         requiredActionCode="VIEW",
         requiredAccessLevel="NO_ACCESS",
         requiredScope=AccessScope.NONE,

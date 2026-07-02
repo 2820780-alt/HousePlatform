@@ -872,8 +872,12 @@ def test_module3_quick_actions_are_configured_for_shell_navigation():
 
     for action in actions:
         assert action["id"]
+        assert action["quickActionCode"].startswith("MODULE3_")
+        assert action["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
         assert action["permissionCode"]
         assert action["featureCode"]
+        assert action["actionCode"].startswith("OPEN_")
+        assert action["maxSurface"] == "MODULE_BAR"
         assert action["visible"] is True
         assert action["enabled"] is True
         assert action["actionType"] == "navigate"
@@ -1195,6 +1199,10 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'data-module3-quick-actions' in template
     assert template.index('data-module3-quick-actions') < template.index('<section class="command-hero" id="overview">')
     assert 'data-action-id="{{ action.id }}"' in template
+    assert 'data-quick-action-code="{{ action.quickActionCode }}"' in template
+    assert 'data-source-module-code="{{ action.sourceModuleCode }}"' in template
+    assert 'data-action-code="{{ action.actionCode }}"' in template
+    assert 'data-max-surface="{{ action.maxSurface }}"' in template
     assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
     assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
     assert "МОДУЛЬ №3" in nav

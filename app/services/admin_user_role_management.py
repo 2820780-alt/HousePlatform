@@ -31,7 +31,7 @@ from app.services.audit_log_service import AuditLogType, write_audit_event
 from app.services.dashboard_module_registry import get_dashboard_module_registry, get_dashboard_module_registry_item
 from app.services.module8_cabinet_admin_preview import get_module8_cabinet_admin_preview
 from app.services.quick_action_preferences import build_quick_action_preference_preview
-from app.services.quick_action_registry import get_quick_action_registry
+from app.services.quick_action_registry import get_quick_action_registry, get_quick_action_registry_items_for_module
 from app.services.role_dashboard_access_profiles import get_role_dashboard_access_profile
 from app.services.widget_settings_schema import build_widget_settings_schema_preview
 from app.services.widget_registry import get_widget_registry, get_widget_registry_item
@@ -71,93 +71,14 @@ COMPANY_ADMIN_VISIBLE_ROLE_CODES = {
     "VIEWER",
 }
 
-MODULE3_QUICK_ACTIONS: tuple[dict[str, Any], ...] = (
-    {
-        "id": "add-user",
-        "label": "Добавить пользователя",
-        "icon": "+",
-        "permissionCode": "MODULE_03_USERS_MANAGE",
-        "featureCode": "USERS",
-        "visibleForCompanyAdmin": True,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#users",
-        "description": "Переход к пользователям. Ручное создание заменяется стандартной регистрацией.",
-    },
-    {
-        "id": "add-company",
-        "label": "Добавить компанию",
-        "icon": "+",
-        "permissionCode": "MODULE_03_COMPANIES_MANAGE",
-        "featureCode": "COMPANIES",
-        "visibleForCompanyAdmin": False,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#companies",
-        "description": "Переход к компаниям и карточкам организаций.",
-    },
-    {
-        "id": "import-users",
-        "label": "Импорт пользователей",
-        "icon": "⇧",
-        "permissionCode": "MODULE_03_USERS_IMPORT",
-        "featureCode": "USERS_IMPORT",
-        "visibleForCompanyAdmin": False,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#audit-log",
-        "description": "Переход к журналу и существующим операциям импорта.",
-    },
-    {
-        "id": "open-history",
-        "label": "Открыть историю",
-        "icon": "◷",
-        "permissionCode": "MODULE_03_AUDIT_VIEW",
-        "featureCode": "AUDIT_LOG",
-        "visibleForCompanyAdmin": True,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#audit-log",
-        "description": "Открыть историю изменений доступа.",
-    },
-    {
-        "id": "configure-access",
-        "label": "Настроить доступы",
-        "icon": "◇",
-        "permissionCode": "MODULE_03_ACCESS_MANAGE",
-        "featureCode": "ACCESS_MATRIX",
-        "visibleForCompanyAdmin": True,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#access-matrix",
-        "detailTarget": "#access-matrix-detail",
-        "description": "Переход к матрице доступа.",
-    },
-    {
-        "id": "bulk-access-assignment",
-        "label": "Массовое назначение доступа",
-        "icon": "▦",
-        "permissionCode": "MODULE_03_ACCESS_BULK_ASSIGN",
-        "featureCode": "ACCESS_MATRIX",
-        "visibleForCompanyAdmin": False,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#access-matrix",
-        "detailTarget": "#access-matrix-detail",
-        "description": "Групповой переход к настройке доступов.",
-    },
-    {
-        "id": "export-users",
-        "label": "Экспорт списка",
-        "icon": "⇩",
-        "permissionCode": "MODULE_03_USERS_EXPORT",
-        "featureCode": "USERS",
-        "visibleForCompanyAdmin": True,
-        "enabled": True,
-        "actionType": "navigate",
-        "target": "#users",
-        "description": "Переход к списку пользователей для выгрузки/проверки.",
-    },
+MODULE3_QUICK_ACTION_CODES: tuple[str, ...] = (
+    "MODULE3_USERS_OPEN",
+    "MODULE3_COMPANIES_OPEN",
+    "MODULE3_USERS_IMPORT",
+    "MODULE3_AUDIT_OPEN",
+    "MODULE3_ACCESS_CONFIGURE",
+    "MODULE3_ACCESS_BULK_ASSIGN",
+    "MODULE3_USERS_EXPORT",
 )
 
 USER_TYPE_WIDGET_DEFINITIONS: tuple[dict[str, Any], ...] = (
@@ -636,26 +557,42 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
 
 def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> list[dict[str, Any]]:
     is_company_admin = bool(admin_scope.get("isCompanyAdminMode"))
+    registry_actions = {
+        action["quickActionCode"]: action
+        for action in get_quick_action_registry_items_for_module(
+            "MODULE_03_USERS_ROLES",
+            surface="MODULE_BAR",
+        )
+    }
     actions: list[dict[str, Any]] = []
-    for action in MODULE3_QUICK_ACTIONS:
-        if is_company_admin and not action.get("visibleForCompanyAdmin"):
+    for action_code in MODULE3_QUICK_ACTION_CODES:
+        action = registry_actions.get(action_code)
+        if not action:
             continue
-        target = action.get("detailTarget") if detail_mode and action.get("detailTarget") else action.get("target")
+        settings = action.get("settings") or {}
+        if is_company_admin and not settings.get("visibleForCompanyAdmin"):
+            continue
+        target = settings.get("detailTarget") if detail_mode and settings.get("detailTarget") else action.get("targetRoute")
         actions.append(
             {
-                "id": action["id"],
-                "label": action["label"],
+                "id": settings.get("shellActionId") or action["quickActionCode"],
+                "quickActionCode": action["quickActionCode"],
+                "sourceModuleCode": action["sourceModuleCode"],
+                "label": action["titleRu"],
                 "icon": action.get("icon"),
-                "permissionCode": action.get("permissionCode"),
+                "permissionCode": action.get("requiredPermission") or settings.get("permissionCode"),
                 "featureCode": action.get("featureCode"),
+                "sectionCode": action.get("sectionCode"),
+                "actionCode": action.get("actionCode"),
+                "maxSurface": action.get("maxSurface"),
                 "visible": True,
-                "enabled": bool(action.get("enabled", True)),
+                "enabled": bool(action.get("isEnabledByDefault", True)) and bool(action.get("isAvailable", True)),
                 "actionType": action.get("actionType", "navigate"),
                 "target": target,
                 "description": action.get("description"),
             }
         )
-    return actions
+    return actions[:9]
 
 
 def user_type_summary_widgets(users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
