@@ -33,6 +33,7 @@ from app.services.admin_user_role_management import (
     company_module_is_open,
     company_widget_is_open,
     change_history_for_admin_panel,
+    module3_quick_actions,
     pending_access_distribution_items,
     require_can_assign_role,
     require_can_disable_user,
@@ -601,6 +602,47 @@ def test_settings_panel_separates_regular_settings_from_debug_zones():
     }.issubset(diagnostic_titles)
 
 
+def test_module3_quick_actions_are_configured_for_shell_navigation():
+    actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=False)
+    labels = {action["label"] for action in actions}
+
+    assert {
+        "Добавить пользователя",
+        "Добавить компанию",
+        "Импорт пользователей",
+        "Открыть историю",
+        "Настроить доступы",
+        "Массовое назначение доступа",
+        "Экспорт списка",
+    }.issubset(labels)
+
+    for action in actions:
+        assert action["id"]
+        assert action["permissionCode"]
+        assert action["featureCode"]
+        assert action["visible"] is True
+        assert action["enabled"] is True
+        assert action["actionType"] == "navigate"
+        assert str(action["target"]).startswith("#")
+
+    detail_actions = {
+        action["id"]: action
+        for action in module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=True)
+    }
+    assert detail_actions["configure-access"]["target"] == "#access-matrix-detail"
+    assert detail_actions["bulk-access-assignment"]["target"] == "#access-matrix-detail"
+
+    company_actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": True}, detail_mode=False)
+    company_labels = {action["label"] for action in company_actions}
+    assert "Добавить пользователя" in company_labels
+    assert "Открыть историю" in company_labels
+    assert "Настроить доступы" in company_labels
+    assert "Экспорт списка" in company_labels
+    assert "Добавить компанию" not in company_labels
+    assert "Импорт пользователей" not in company_labels
+    assert "Массовое назначение доступа" not in company_labels
+
+
 def test_admin_users_roles_view_route_is_registered():
     paths = {route.path for route in admin_users_roles_router.routes}
 
@@ -643,7 +685,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' in template
     assert "savedConfigRef:" in template
     assert "requirePermission(" in template
-    assert "Обзор управления" in overview
+    assert "Обзор модуля" in overview
     assert "Пользователи всего" in overview
     assert "Компании всего" in overview
     assert "Заблокированные пользователи" in overview
@@ -675,11 +717,21 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "тарифные ограничения" not in overview.lower()
     assert "Последние изменения" not in overview
     assert "что требует внимания" not in overview.lower()
+    assert "Быстрые действия" in overview
+    assert 'data-module3-quick-actions' in overview
+    assert 'data-action-id="{{ action.id }}"' in overview
+    assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in overview
+    assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in overview
     assert "Рабочее меню" in nav
-    assert "Обзор управления" in nav
+    assert "Обзор модуля" in nav
     assert "Пользователи" in nav
-    assert "Роли и группы" in nav
-    assert 'id="roles-permissions"' in template
+    assert "Доступы" in nav
+    assert nav.count("<a ") == 3
+    assert "Роли и группы" not in nav
+    assert "Рабочие области" not in nav
+    assert "Журнал изменений" not in nav
+    assert "Настройки" not in nav
+    assert 'id="roles-permissions" aria-labelledby="roles-groups-title" hidden data-system-section="roles-groups-preserved"' in template
     assert "Список ролей" in template
     assert "Список групп" in template
     assert "Карточка роли" in template
@@ -689,8 +741,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "История изменений роли / группы" in template
     assert "Технические детали" in template
     assert "Коды доступны в tooltip" in template
-    assert "Рабочие области" in nav
-    assert 'id="workspaces"' in template
+    assert 'id="workspaces" aria-labelledby="workspaces-title" hidden data-system-section="workspace-preserved"' in template
     assert "Список рабочих областей" in template
     assert "Карточка workspace" in template
     assert "Связанные пользователи" in template
@@ -698,7 +749,6 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "История изменений workspace" in template
     assert "Dashboard layout здесь не редактируется" in template
     assert "Технические Dashboard presets и layout registry скрыты" in template
-    assert "Журнал изменений" in nav
     assert 'id="audit-log"' in template
     assert "Таблица изменений" in template
     assert "Фильтры журнала изменений" in template
@@ -709,7 +759,6 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Кто изменил" in template
     assert "Когда изменил" in template
     assert "Для кого изменил" in template
-    assert "Настройки" in nav
     assert "Реестр модулей" not in nav
     assert "Виджеты и доступ" not in nav
     assert "Быстрые действия" not in nav
@@ -817,6 +866,10 @@ def test_module3_final_visual_unification_contract():
 
     assert template.count('<nav class="module3-nav"') == 1
     assert "module3-shell" in template
+    assert "data-module3-shell" in template
+    assert "data-module3-quick-actions" in template
+    assert "data-module3-sidebar" in template
+    assert "data-module3-content" in template
     assert "control-shell" in template
     assert "control-main" in template
     assert ".system-card" in template
@@ -836,13 +889,22 @@ def test_module3_final_visual_unification_contract():
         "Состояния и причины недоступности",
         "Кабинеты и контекст",
         "Виджеты и доступ",
-        "Быстрые действия",
         "Макеты Dashboard",
         "Предпросмотр роли",
+        "Роли и группы",
+        "Рабочие области",
     ):
         assert forbidden not in nav
         assert forbidden not in overview
 
+    assert "Журнал изменений" not in nav
+    assert "Настройки" not in nav
+    assert "Обзор модуля" in nav
+    assert "Пользователи" in nav
+    assert "Доступы" in nav
+    assert nav.count("<a ") == 3
+    assert 'hidden data-system-section="roles-groups-preserved"' in template
+    assert 'hidden data-system-section="workspace-preserved"' in template
     assert "наследуется" not in template.lower()
     assert "атомная карта" not in template.lower()
     assert "орбита" not in template.lower()

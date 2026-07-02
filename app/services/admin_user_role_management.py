@@ -71,6 +71,95 @@ COMPANY_ADMIN_VISIBLE_ROLE_CODES = {
     "VIEWER",
 }
 
+MODULE3_QUICK_ACTIONS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "add-user",
+        "label": "Добавить пользователя",
+        "icon": "+",
+        "permissionCode": "MODULE_03_USERS_MANAGE",
+        "featureCode": "USERS",
+        "visibleForCompanyAdmin": True,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#users",
+        "description": "Переход к пользователям. Ручное создание заменяется стандартной регистрацией.",
+    },
+    {
+        "id": "add-company",
+        "label": "Добавить компанию",
+        "icon": "+",
+        "permissionCode": "MODULE_03_COMPANIES_MANAGE",
+        "featureCode": "COMPANIES",
+        "visibleForCompanyAdmin": False,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#companies",
+        "description": "Переход к компаниям и карточкам организаций.",
+    },
+    {
+        "id": "import-users",
+        "label": "Импорт пользователей",
+        "icon": "⇧",
+        "permissionCode": "MODULE_03_USERS_IMPORT",
+        "featureCode": "USERS_IMPORT",
+        "visibleForCompanyAdmin": False,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#audit-log",
+        "description": "Переход к журналу и существующим операциям импорта.",
+    },
+    {
+        "id": "open-history",
+        "label": "Открыть историю",
+        "icon": "◷",
+        "permissionCode": "MODULE_03_AUDIT_VIEW",
+        "featureCode": "AUDIT_LOG",
+        "visibleForCompanyAdmin": True,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#audit-log",
+        "description": "Открыть историю изменений доступа.",
+    },
+    {
+        "id": "configure-access",
+        "label": "Настроить доступы",
+        "icon": "◇",
+        "permissionCode": "MODULE_03_ACCESS_MANAGE",
+        "featureCode": "ACCESS_MATRIX",
+        "visibleForCompanyAdmin": True,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#access-matrix",
+        "detailTarget": "#access-matrix-detail",
+        "description": "Переход к матрице доступа.",
+    },
+    {
+        "id": "bulk-access-assignment",
+        "label": "Массовое назначение доступа",
+        "icon": "▦",
+        "permissionCode": "MODULE_03_ACCESS_BULK_ASSIGN",
+        "featureCode": "ACCESS_MATRIX",
+        "visibleForCompanyAdmin": False,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#access-matrix",
+        "detailTarget": "#access-matrix-detail",
+        "description": "Групповой переход к настройке доступов.",
+    },
+    {
+        "id": "export-users",
+        "label": "Экспорт списка",
+        "icon": "⇩",
+        "permissionCode": "MODULE_03_USERS_EXPORT",
+        "featureCode": "USERS",
+        "visibleForCompanyAdmin": True,
+        "enabled": True,
+        "actionType": "navigate",
+        "target": "#users",
+        "description": "Переход к списку пользователей для выгрузки/проверки.",
+    },
+)
+
 ACCESS_RESOLUTION_SOURCES: tuple[str, ...] = (
     "SYSTEM_DEFAULT",
     "ROLE_DEFAULT",
@@ -437,6 +526,30 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
     return result.scalar_one_or_none() or actor
 
 
+def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> list[dict[str, Any]]:
+    is_company_admin = bool(admin_scope.get("isCompanyAdminMode"))
+    actions: list[dict[str, Any]] = []
+    for action in MODULE3_QUICK_ACTIONS:
+        if is_company_admin and not action.get("visibleForCompanyAdmin"):
+            continue
+        target = action.get("detailTarget") if detail_mode and action.get("detailTarget") else action.get("target")
+        actions.append(
+            {
+                "id": action["id"],
+                "label": action["label"],
+                "icon": action.get("icon"),
+                "permissionCode": action.get("permissionCode"),
+                "featureCode": action.get("featureCode"),
+                "visible": True,
+                "enabled": bool(action.get("enabled", True)),
+                "actionType": action.get("actionType", "navigate"),
+                "target": target,
+                "description": action.get("description"),
+            }
+        )
+    return actions
+
+
 async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str, Any]:
     require_user_role_admin(actor)
     admin_scope = admin_scope_for_actor(actor)
@@ -471,6 +584,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "summary": summary,
         "pendingAccessDistributionItems": pending_items,
         "accessDistributionPanel": access_distribution_panel,
+        "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=False),
         "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
         "auditPanel": audit_panel_summary(recent_history),
         "settingsPanel": settings_panel_summary(admin_scope),
@@ -545,6 +659,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         ),
         "accessContextForCabinet": access_context.to_dict(),
         "module8CabinetPreview": module8_preview_data,
+        "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=True),
         "widgetAccessRows": widget_access_rows_for_user(
             user_data,
             access_context=access_context.to_dict(),
