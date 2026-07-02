@@ -2,8 +2,10 @@ import uuid
 from datetime import datetime
 
 import pytest
+from fastapi.testclient import TestClient
 from jinja2 import Environment, FileSystemLoader
 
+from app.main import app
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.models import AuditLog, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
@@ -1072,6 +1074,34 @@ def test_admin_users_roles_view_route_is_registered():
     assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin/revoke" in paths
+
+
+def test_legacy_module3_view_route_redirects_to_api_prefix():
+    client = TestClient(app)
+
+    response = client.get("/admin/users-roles/view/users/user-1?tab=access", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "/api/v1/admin/users-roles/view/users/user-1?tab=access"
+
+
+def test_admin_users_roles_template_has_sprint8_responsive_contracts():
+    template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+
+    assert "width: min(1920px, calc(100vw - 24px))" in template
+    assert "grid-template-columns: clamp(218px, 15vw, 260px) minmax(0, 1fr)" in template
+    assert ".control-main" in template
+    assert "min-width: 0" in template
+    assert ".table-wrap" in template
+    assert "max-width: 100%" in template
+    assert "overflow-x: auto" in template
+    assert ".entity-table th:first-child" in template
+    assert ".access-matrix-table th:first-child" in template
+    assert "position: sticky" in template
+    assert "@media (max-width: 1440px)" in template
+    assert "@media (max-width: 1366px)" in template
+    assert ".ui-state.loading" in template
+    assert ".ui-state.error" in template
 
 
 def test_admin_users_roles_template_contains_module8_bridge_copy():

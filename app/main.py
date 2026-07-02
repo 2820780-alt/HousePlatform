@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.v1 import api_router
@@ -123,6 +123,25 @@ async def legacy_construction_groups_route():
         url="/api/v1/admin/material-hub/view?feature=construction-applicability",
         status_code=307,
     )
+
+
+def _redirect_to_module3_api_path(path: str = "", query_string: str = "") -> RedirectResponse:
+    suffix = f"/{path}" if path else ""
+    query = f"?{query_string}" if query_string else ""
+    return RedirectResponse(
+        url=f"/api/v1/admin/users-roles/view{suffix}{query}",
+        status_code=307,
+    )
+
+
+@app.get("/admin/users-roles/view", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_users_roles_view_route(request: Request):
+    return _redirect_to_module3_api_path(query_string=request.url.query)
+
+
+@app.get("/admin/users-roles/view/{path:path}", tags=["module-compatibility"], include_in_schema=False)
+async def legacy_users_roles_view_nested_route(path: str, request: Request):
+    return _redirect_to_module3_api_path(path=path, query_string=request.url.query)
 
 
 app.include_router(api_router, prefix="/api/v1")
