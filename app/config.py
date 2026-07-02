@@ -4,11 +4,11 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://platform:platform_secret@db:5432/buildplatform"
-    DATABASE_URL_SYNC: str = "postgresql://platform:platform_secret@db:5432/buildplatform"
+    DATABASE_URL: str = "postgresql+asyncpg://platform:platform_secret@localhost:5432/buildplatform"
+    DATABASE_URL_SYNC: str = "postgresql://platform:platform_secret@localhost:5432/buildplatform"
 
     # Redis
-    REDIS_URL: str = "redis://redis:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     # JWT
     JWT_SECRET_KEY: str = "change-me-to-random-secret-key-min-32-chars"

@@ -1,6 +1,18 @@
 from fastapi.testclient import TestClient
 
+from app.config import Settings
 from app.main import app
+
+
+def test_default_local_settings_use_host_ports_for_page_views(monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL_SYNC", raising=False)
+    monkeypatch.delenv("REDIS_URL", raising=False)
+
+    local_settings = Settings(_env_file=None)
+
+    assert "@localhost:5432/" in local_settings.DATABASE_URL
+    assert local_settings.REDIS_URL == "redis://localhost:6379/0"
 
 
 def test_legacy_price_history_route_redirects_to_price_dynamics_view():

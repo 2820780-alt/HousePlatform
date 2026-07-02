@@ -578,6 +578,28 @@
         <div>
           <label for="supplier-file">Файл CSV/XLSX</label>
           <input id="supplier-file" type="file" onchange="updateScenarioPreview()" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          <span class="atom-action-with-menu" hidden>
+            <button
+              id="quick-action-upload-supplier-price"
+              type="button"
+              onclick="uploadSupplierFile()"
+              data-quick-action-candidate
+              data-quick-action-source-module-code="MODULE_01_MATERIAL_HUB"
+              data-quick-action-feature-code="SUPPLIER_PRICE_UPLOAD"
+              data-quick-action-key="UPLOAD_SUPPLIER_PRICE"
+              data-quick-action-title="Загрузить прайс"
+              data-quick-action-route="/api/v1/admin/material-hub/view"
+              data-quick-action-config-provider="materialHubSupplierUploadQuickActionConfig"
+              data-quick-action-atom-card-accent="blue"
+            >Загрузить прайс</button>
+            <button
+              class="atom-quick-action-menu-button"
+              type="button"
+              data-quick-action-menu-for="quick-action-upload-supplier-price"
+              title="Быстрые действия"
+              aria-label="Быстрые действия: загрузить прайс поставщика"
+            ></button>
+          </span>
           <div class="muted" style="margin-top:6px">
             Шаблон прайса:
             <a href="/api/v1/admin/material-hub/view/supplier-price-template/csv">CSV</a>
