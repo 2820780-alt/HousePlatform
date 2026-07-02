@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.models import AuditLog, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
-from app.models.enums import UserRole
+from app.models.enums import UserRole, UserStatus
 from app.services.admin_user_role_management import (
     ACCESS_DENY_REASONS,
     ACCESS_REASON_CATEGORIES,
@@ -34,13 +34,20 @@ from app.services.admin_user_role_management import (
     company_widget_is_open,
     change_history_for_admin_panel,
     module3_quick_actions,
+    module_registry_overview_summary,
     pending_access_distribution_items,
     require_can_assign_role,
     require_can_disable_user,
     quick_action_rows_for_user,
     role_group_panel_summary,
     settings_panel_summary,
+    system_user_cards,
+    user_directory_filter_options,
+    user_directory_rows,
+    user_directory_summary_chips,
+    user_type_summary_widgets,
     widget_access_rows_for_user,
+    widget_registry_overview_summary,
     workspace_panel_summary,
 )
 from app.services.access_distribution_registry import (
@@ -345,7 +352,7 @@ def test_active_module_and_widget_registration_requires_access_distribution():
     assert "Dashboard не переписывается" in panel["dashboardNote"]
 
 
-def test_admin_users_roles_template_renders_access_distribution_panel_items():
+def test_admin_users_roles_template_renders_module_overview_widgets():
     template = Environment(loader=FileSystemLoader("templates")).get_template("admin_users_roles.html")
     overview = {
         "adminScope": {"isCompanyAdminMode": False},
@@ -356,6 +363,91 @@ def test_admin_users_roles_template_renders_access_distribution_panel_items():
             "blockedCompaniesTotal": 0,
             "pendingAccessDistributionTotal": 1,
             "historyTotal": 0,
+        },
+        "userTypeSummaryWidgets": [
+            {"userTypeCode": "COMPANY", "title": "Компании", "description": "Юридические лица.", "total": 3, "active": 2, "blocked": 1, "onModeration": 1},
+            {"userTypeCode": "SUPPLIER", "title": "Поставщики", "description": "Поставщики.", "total": 4, "active": 3, "blocked": 1, "onModeration": 0},
+            {"userTypeCode": "CUSTOMER", "title": "Заказчики", "description": "Заказчики.", "total": 5, "active": 5, "blocked": 0},
+            {"userTypeCode": "SPECIALIST", "title": "Специалисты", "description": "Специалисты.", "total": 6, "active": 5, "blocked": 1},
+        ],
+        "moduleRegistrySummary": {"total": 24, "active": 18, "inDevelopment": 4, "archived": 2},
+        "widgetRegistrySummary": {"total": 156, "active": 132, "inDevelopment": 24, "archived": 0},
+        "systemUsers": [
+            {
+                "login": "platform-admin",
+                "displayName": "platform-admin",
+                "email": "platform-admin@example.com",
+                "roleTitle": "Администратор платформы",
+                "purpose": "Рабочее управление пользователями.",
+                "status": "active",
+                "statusLabel": "Активен",
+                "lastActivity": "2026-06-30 14:35",
+                "isPlaceholder": False,
+            },
+            {
+                "login": "super-admin",
+                "displayName": "super-admin",
+                "email": "",
+                "roleTitle": "Супер администратор",
+                "purpose": "Полный контроль платформы.",
+                "status": "active",
+                "statusLabel": "Активен",
+                "lastActivity": "2026-06-30 14:10",
+                "isPlaceholder": False,
+            },
+            {
+                "login": "moderator",
+                "displayName": "moderator",
+                "email": "",
+                "roleTitle": "Модератор",
+                "purpose": "Модерация пользователей.",
+                "status": "active",
+                "statusLabel": "Активен",
+                "lastActivity": "2026-06-30 13:55",
+                "isPlaceholder": False,
+            },
+        ],
+        "userDirectoryRows": [
+            {
+                "id": "user-1",
+                "subjectKind": "user",
+                "typeCode": "CUSTOMER",
+                "typeLabel": "Заказчик",
+                "displayName": "Иван Петров",
+                "companyName": "ООО СтройПроект",
+                "organizationLabel": "Менеджер",
+                "contacts": ["ivan@example.com", "+7 900 000-00-00"],
+                "status": "active",
+                "statusLabel": "active",
+                "moduleCount": 3,
+                "widgetCount": 2,
+                "moduleLabel": "3 модулей",
+                "widgetLabel": "2 виджетов",
+                "blocking": "not_blocked",
+                "blockingLabel": "—",
+                "activity": "has_activity",
+                "lastActivity": "2026-06-30 14:35",
+                "registeredAt": "2026-06-01 10:00",
+                "region": "Краснодарский край",
+                "moduleAccess": "has_modules",
+                "sortName": "иван петров",
+                "sortType": "заказчик",
+                "cardUrl": "/api/v1/admin/users-roles/view/users/user-1",
+                "searchBlob": "иван петров ivan@example.com ооо стройпроект",
+            }
+        ],
+        "userDirectoryChips": [
+            {"typeCode": "ALL", "label": "Все", "count": 1},
+            {"typeCode": "COMPANY", "label": "Компании", "count": 0},
+            {"typeCode": "SUPPLIER", "label": "Поставщики", "count": 0},
+            {"typeCode": "CUSTOMER", "label": "Заказчики", "count": 1},
+            {"typeCode": "SPECIALIST", "label": "Специалисты", "count": 0},
+        ],
+        "userDirectoryFilters": {
+            "types": [{"value": "CUSTOMER", "label": "Заказчик"}],
+            "statuses": [{"value": "active", "label": "active"}],
+            "regions": [{"value": "Краснодарский край", "label": "Краснодарский край"}],
+            "moduleAccess": [{"value": "has_modules", "label": "Есть доступ к модулям"}],
         },
         "accessDistributionPanel": {
             "description": "Новые ACTIVE элементы появляются автоматически.",
@@ -383,7 +475,18 @@ def test_admin_users_roles_template_renders_access_distribution_panel_items():
             ],
             "emptyState": "Новых модулей и виджетов для распределения нет.",
         },
-        "recentAccessHistory": [],
+        "recentAccessHistory": [
+            {
+                "createdAt": "2026-06-30 14:35",
+                "actor": "platform-admin",
+                "actionType": "Создан пользователь",
+                "subjectLabel": "ivan@example.com",
+                "objectType": "пользователь",
+                "reason": "Стандартная регистрация",
+                "comment": "",
+                "result": "SUCCESS",
+            }
+        ],
         "users": [],
         "companies": [],
         "roles": [],
@@ -408,6 +511,7 @@ def test_admin_users_roles_template_renders_access_distribution_panel_items():
             "dangerZone": {"warning": "Опасные действия требуют подтверждения.", "actions": [], "confirmationText": "DISABLE_USER"},
         },
         "actorRoleCodes": ["SUPER_ADMIN"],
+        "moduleQuickActions": module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=False),
     }
 
     html = template.render(
@@ -419,9 +523,33 @@ def test_admin_users_roles_template_renders_access_distribution_panel_items():
         atom_topbar_profile_name="Администратор",
     )
 
-    assert "Auto Access Module" in html
-    assert 'class="btn distribution-action"' in html
-    assert 'href="#access-matrix"' in html
+    assert 'data-user-type="COMPANY"' in html
+    assert "Компании" in html
+    assert "Поставщики" in html
+    assert "Заказчики" in html
+    assert "Специалисты" in html
+    assert "История изменений" in html
+    assert "Создан пользователь" in html
+    assert "Модули в системе" in html
+    assert "24" in html
+    assert "Виджеты в системе" in html
+    assert "156" in html
+    assert "Системные пользователи" in html
+    assert "platform-admin" in html
+    assert "super-admin" in html
+    assert "moderator" in html
+    assert "Summary chips по типам пользователей" in html
+    assert "Поиск по ФИО, компании, email, телефону, ИНН / ID" in html
+    assert "Фильтр по типу пользователя" in html
+    assert "Фильтр по блокировке" in html
+    assert "Фильтр по активности" in html
+    assert "Фильтр по региону" in html
+    assert "Фильтр по доступу к модулю" in html
+    assert "Сортировать по дате регистрации" in html
+    assert "Единый список пользователей" in html
+    assert "Наименование / ФИО" in html
+    assert 'href="/api/v1/admin/users-roles/view/users/user-1"' in html
+    assert "data-user-page-summary" in html
 
 
 def test_pending_distribution_hides_inactive_or_already_distributed_items():
@@ -643,6 +771,91 @@ def test_module3_quick_actions_are_configured_for_shell_navigation():
     assert "Массовое назначение доступа" not in company_labels
 
 
+def test_module3_overview_widgets_summarize_user_types_registry_and_system_users():
+    company = _company_workspace()
+    supplier = _company_workspace()
+    supplier.workspace_type = "SUPPLIER"
+    supplier.status = "PENDING_REVIEW"
+    supplier.is_active = True
+    blocked_company = _company_workspace()
+    blocked_company.status = "BLOCKED"
+    blocked_company.is_active = False
+
+    customer = _user(UserRole.CUSTOMER)
+    customer.status = UserStatus.ACTIVE
+    specialist = _user(UserRole.CONTRACTOR)
+    specialist.status = UserStatus.BLOCKED
+    platform_admin = _user(UserRole.ADMIN)
+    platform_admin.email = "platform-admin@example.com"
+    super_admin = _user_with_assignment("SUPER_ADMIN")
+    super_admin.name = "super-admin"
+    moderator = _user_with_assignment("MODERATOR")
+    moderator.name = "moderator"
+
+    widgets = user_type_summary_widgets(
+        [customer, specialist, platform_admin, super_admin, moderator],
+        [company, supplier, blocked_company],
+    )
+    by_code = {widget["userTypeCode"]: widget for widget in widgets}
+
+    assert list(by_code) == ["COMPANY", "SUPPLIER", "CUSTOMER", "SPECIALIST"]
+    assert by_code["COMPANY"]["total"] == 3
+    assert by_code["COMPANY"]["active"] == 1
+    assert by_code["COMPANY"]["blocked"] == 1
+    assert by_code["COMPANY"]["onModeration"] == 1
+    assert by_code["SUPPLIER"]["total"] == 1
+    assert by_code["SUPPLIER"]["onModeration"] == 1
+    assert by_code["CUSTOMER"]["active"] >= 1
+    assert by_code["SPECIALIST"]["blocked"] == 1
+
+    module_summary = module_registry_overview_summary()
+    widget_summary = widget_registry_overview_summary()
+    assert module_summary["total"] >= module_summary["active"]
+    assert module_summary["inDevelopment"] >= 0
+    assert widget_summary["total"] >= widget_summary["active"]
+    assert widget_summary["inDevelopment"] >= 0
+
+    system_cards = system_user_cards([platform_admin, super_admin, moderator], recent_history=[])
+    system_logins = {card["login"] for card in system_cards}
+    assert system_logins == {"platform-admin", "super-admin", "moderator"}
+    assert all("roleTitle" in card for card in system_cards)
+
+
+def test_user_directory_rows_expose_search_filter_sort_and_card_links():
+    customer = _user(UserRole.CUSTOMER)
+    customer.status = UserStatus.ACTIVE
+    customer.name = "Иван Петров"
+    customer.phone = "+7 900 000-00-00"
+    company = _company_workspace()
+    member = _workspace_member(customer, company, "CUSTOMER")
+    customer.workspace_members = [member]
+    company.members = [member]
+
+    rows = user_directory_rows([customer], [company])
+    user_row = next(row for row in rows if row["subjectKind"] == "user")
+    company_row = next(row for row in rows if row["subjectKind"] == "company")
+
+    assert user_row["typeCode"] == "CUSTOMER"
+    assert user_row["displayName"] == "Иван Петров"
+    assert user_row["companyName"] == company.title
+    assert user_row["contacts"] == [customer.email, customer.phone]
+    assert user_row["cardUrl"] == f"/api/v1/admin/users-roles/view/users/{customer.id}"
+    assert "иван петров" in user_row["searchBlob"]
+    assert user_row["moduleAccess"] in {"has_modules", "no_modules"}
+    assert company_row["typeCode"] == "COMPANY"
+    assert company_row["cardUrl"] == f"/api/v1/admin/users-roles/view/users/{customer.id}"
+
+    chips = user_directory_summary_chips(rows)
+    assert chips[0] == {"typeCode": "ALL", "label": "Все", "count": 2}
+    assert next(chip for chip in chips if chip["typeCode"] == "COMPANY")["count"] == 1
+    assert next(chip for chip in chips if chip["typeCode"] == "CUSTOMER")["count"] == 1
+
+    filters = user_directory_filter_options(rows)
+    assert any(option["value"] == "CUSTOMER" for option in filters["types"])
+    assert any(option["value"] == "active" for option in filters["statuses"])
+    assert {option["value"] for option in filters["moduleAccess"]} == {"has_modules", "no_modules"}
+
+
 def test_admin_users_roles_view_route_is_registered():
     paths = {route.path for route in admin_users_roles_router.routes}
 
@@ -686,22 +899,27 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "savedConfigRef:" in template
     assert "requirePermission(" in template
     assert "Обзор модуля" in overview
-    assert "Пользователи всего" in overview
-    assert "Компании всего" in overview
-    assert "Заблокированные пользователи" in overview
-    assert "Заблокированные компании" in overview
-    assert "Новые модули / виджеты" in overview
+    assert 'data-user-type="{{ widget.userTypeCode }}"' in overview
+    assert "Компании" in overview
+    assert "Поставщики" in overview
+    assert "Заказчики" in overview
+    assert "Специалисты" in overview
+    assert "Активные" in overview
+    assert "Заблокированные" in overview
+    assert "На модерации" in overview
     assert "История изменений" in overview
-    assert "Новые модули и виджеты требуют распределения" in overview
-    assert "новое" in overview
-    assert "canonicalModuleCode" in overview
-    assert "sourceModuleCode" in overview
-    assert "Распределить доступ" in overview
-    assert "system-critical" in overview
-    assert "billing-ready" in overview
-    assert "История изменений доступа" in overview
-    assert "Быстрые переходы администратора" in overview
-    assert "Это не пользовательские быстрые действия платформы" in overview
+    assert "Дата и время" in overview
+    assert "Кто изменил" in overview
+    assert "Действие" in overview
+    assert "Объект" in overview
+    assert "Детали" in overview
+    assert "Модули в системе" in overview
+    assert "Виджеты в системе" in overview
+    assert "Системные пользователи" in overview
+    assert "platform-admin" in overview
+    assert "super-admin" in overview
+    assert "moderator" in overview
+    assert "Последняя активность" in overview
     assert "MODULE_03_USERS_ROLES · unified admin panel" not in overview
     assert "Роли, доступы и кабинетный контекст" not in overview
     assert "Единая системная панель управления" not in overview
@@ -717,6 +935,9 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "тарифные ограничения" not in overview.lower()
     assert "Последние изменения" not in overview
     assert "что требует внимания" not in overview.lower()
+    assert "Новые модули и виджеты требуют распределения" not in overview
+    assert "Пользователи — превью рабочей зоны" not in overview
+    assert "Быстрые переходы администратора" not in overview
     assert "Быстрые действия" in overview
     assert 'data-module3-quick-actions' in overview
     assert 'data-action-id="{{ action.id }}"' in overview
@@ -786,9 +1007,26 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Группы" in users_section
     assert "Доступы" in users_section
     assert "История" in users_section
-    assert "Фильтр по роли" in users_section
-    assert "Фильтр по компании" in users_section
+    assert "Summary chips по типам пользователей" in users_section
+    assert "Все" in users_section
+    assert "Поставщики" in users_section
+    assert "Заказчики" in users_section
+    assert "Специалисты" in users_section
+    assert "Поиск по ФИО, названию компании, email, телефону, ИНН или ID" in users_section
+    assert "Фильтр по типу пользователя" in users_section
     assert "Фильтр по статусу" in users_section
+    assert "Фильтр по блокировке" in users_section
+    assert "Фильтр по активности" in users_section
+    assert "Фильтр по региону" in users_section
+    assert "Фильтр по доступу к модулю" in users_section
+    assert "Сортировка пользователей" in users_section
+    assert "Единый список пользователей" in users_section
+    assert "Наименование / ФИО" in users_section
+    assert "Компания / Организация" in users_section
+    assert "Последняя активность" in users_section
+    assert "data-user-page-summary" in users_section
+    assert "data-user-page-prev" in users_section
+    assert "data-user-page-next" in users_section
     assert "Матрица доступа открывается в карточке выбранного пользователя" in users_section
     assert "Если модуль закрыт компании, связанные виджеты закрываются для сотрудников автоматически" in users_section
     assert "Доступы к модулям и виджетам" in template

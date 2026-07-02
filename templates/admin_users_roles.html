@@ -241,6 +241,52 @@
       line-height: 1;
       overflow-wrap: anywhere;
     }
+    .user-type-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .metric-pill {
+      min-width: 0;
+      padding: 8px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.5);
+    }
+    .metric-pill strong {
+      margin: 0;
+      font-size: 18px;
+    }
+    .system-registry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .registry-meter {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .system-user-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 14px;
+    }
+    .system-user-card {
+      display: grid;
+      gap: 10px;
+      min-height: 150px;
+      padding: 13px;
+      border: 1px solid rgba(119, 172, 255, 0.17);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(11, 23, 54, 0.74), rgba(5, 12, 30, 0.88));
+    }
+    .system-user-card.placeholder {
+      opacity: 0.74;
+    }
     .relationship-strip {
       display: flex;
       flex-wrap: wrap;
@@ -387,6 +433,50 @@
     .filter-row select,
     .filter-row input {
       width: min(100%, 190px);
+    }
+    .user-directory-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 10px 10px;
+    }
+    .user-directory-summary .chip {
+      border-color: rgba(119, 172, 255, 0.24);
+    }
+    .user-directory-summary .chip.active {
+      border-color: rgba(24, 215, 242, 0.64);
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.12);
+    }
+    .directory-toolbar {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      border-top: 1px solid rgba(119, 172, 255, 0.1);
+      border-bottom: 1px solid rgba(119, 172, 255, 0.1);
+      background: rgba(5, 12, 30, 0.26);
+    }
+    .directory-toolbar .filter-row {
+      padding: 0;
+    }
+    .directory-search {
+      width: min(100%, 360px) !important;
+    }
+    .directory-pagination {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      color: var(--muted);
+      border-top: 1px solid rgba(119, 172, 255, 0.1);
+    }
+    .pagination-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
     }
     .subject-section {
       display: grid;
@@ -886,7 +976,7 @@
     @media (max-width: 980px) {
       main,
       .module3-shell { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .module3-quick-actions, .system-grid, .widget-row, .state-legend { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .module3-quick-actions, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
       .module3-nav { position: static; }
       .module3-quick-actions-title { white-space: normal; }
@@ -946,188 +1036,116 @@
       </nav>
 
       <section class="control-main" data-module3-content>
-        <div class="system-grid" aria-label="Рабочие показатели управления">
-          <article class="system-card">
-            <span>Пользователи всего</span>
-            <strong>{{ overview.summary.usersTotal }}</strong>
-            <div class="muted">Физические лица, роли, группы и индивидуальные ограничения.</div>
+        <div class="system-grid" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
+          {% for widget in overview.userTypeSummaryWidgets %}
+          <article class="system-card" data-user-type="{{ widget.userTypeCode }}">
+            <span>{{ widget.title }}</span>
+            <strong>{{ widget.total }}</strong>
+            <div class="muted">{{ widget.description }}</div>
+            <div class="user-type-metrics">
+              <div class="metric-pill">
+                <span>Активные</span>
+                <strong>{{ widget.active }}</strong>
+              </div>
+              <div class="metric-pill">
+                <span>Заблокированные</span>
+                <strong>{{ widget.blocked }}</strong>
+              </div>
+              {% if widget.onModeration is defined %}
+              <div class="metric-pill">
+                <span>На модерации</span>
+                <strong>{{ widget.onModeration }}</strong>
+              </div>
+              {% endif %}
+            </div>
           </article>
-          <article class="system-card">
-            <span>Компании всего</span>
-            <strong>{{ overview.summary.companiesTotal }}</strong>
-            <div class="muted">Поставщики, строительные компании и организации.</div>
-          </article>
-          <article class="system-card">
-            <span>Заблокированные пользователи</span>
-            <strong>{{ overview.summary.blockedUsersTotal }}</strong>
-            <div class="muted">Пользователи, которым закрыт вход или работа в системе.</div>
-          </article>
-          <article class="system-card">
-            <span>Заблокированные компании</span>
-            <strong>{{ overview.summary.blockedCompaniesTotal }}</strong>
-            <div class="muted">Компании, доступ которых ограничен платформой.</div>
-          </article>
-          {% if not company_mode %}
-          <article class="system-card">
-            <span>Новые модули / виджеты</span>
-            <strong>{{ overview.summary.pendingAccessDistributionTotal }}</strong>
-            <div class="muted">Активные элементы, которым нужно распределить доступ.</div>
-          </article>
-          {% endif %}
-          <article class="system-card">
-            <span>История изменений</span>
-            <strong>{{ overview.summary.historyTotal }}</strong>
-            <div class="muted">Журнал изменений ролей, прав, модулей, виджетов и layout.</div>
-          </article>
+          {% endfor %}
         </div>
 
-        <div class="overview-panels">
-          {% if not company_mode %}
-          <section class="panel" aria-labelledby="pending-distribution-title">
-            <div class="panel-head">
-              <div>
-                <h2 id="pending-distribution-title">Новые модули и виджеты требуют распределения</h2>
-                <div class="muted">{{ overview.accessDistributionPanel.description }} Dashboard не переписывается при добавлении нового модуля или виджета.</div>
-              </div>
-              <div class="code-list">
-                <span class="chip warn">{{ overview.accessDistributionPanel.summary.total }} всего</span>
-                <span class="chip info">{{ overview.accessDistributionPanel.summary.modules }} модулей</span>
-                <span class="chip ok">{{ overview.accessDistributionPanel.summary.widgets }} виджетов</span>
-              </div>
-            </div>
-            <div class="user-list">
-              {% for item in overview.accessDistributionPanel["items"] %}
-              <div class="permission-row new-distribution {{ item.itemKind }}">
-                <div>
-                  <strong>
-                    {{ item.title }}
-                    <span class="chip new" title="статус: новое">{{ item.statusLabel }}</span>
-                    <span class="chip {% if item.itemKind == 'module' %}info{% else %}ok{% endif %}">{% if item.itemKind == 'module' %}модуль{% else %}виджет{% endif %}</span>
-                  </strong>
-                  <small title="{{ item.code }}{% if item.sourceModuleCode %} · sourceModuleCode: {{ item.sourceModuleCode }}{% endif %}{% if item.featureCode %} · featureCode: {{ item.featureCode }}{% endif %}{% if item.canonicalModuleCode %} · canonicalModuleCode: {{ item.canonicalModuleCode }}{% endif %}">
-                    {{ item.type }} · ACTIVE · зарегистрировано: {{ item.registeredAt }}
-                  </small>
-                  <small>{{ item.reason }}</small>
-                  <div class="distribution-meta">
-                    {% if item.moduleCode %}<span class="chip" title="{{ item.moduleCode }}">moduleCode</span>{% endif %}
-                    {% if item.widgetCode %}<span class="chip" title="{{ item.widgetCode }}">widgetCode</span>{% endif %}
-                    {% if item.sourceModuleCode %}<span class="chip" title="{{ item.sourceModuleCode }}">sourceModuleCode</span>{% endif %}
-                    {% if item.canonicalModuleCode %}<span class="chip" title="{{ item.canonicalModuleCode }}">canonicalModuleCode</span>{% endif %}
-                    {% if item.isSystemCritical %}<span class="chip danger">system-critical</span>{% endif %}
-                    {% if item.isBillingEligible %}<span class="chip warn">billing-ready</span>{% endif %}
-                    {% for zone in item.allowedDashboardZones %}
-                    <span class="chip">{{ zone }}</span>
-                    {% endfor %}
-                    {% for widget_code in item.moduleOwnedWidgets[:3] %}
-                    <span class="chip">widget: {{ widget_code }}</span>
-                    {% endfor %}
-                  </div>
-                </div>
-                <a class="btn distribution-action" title="Перейти в матрицу доступа" aria-label="Распределить доступ" href="{{ item.actionTarget or overview.accessDistributionPanel.actionTarget }}">Распределить доступ</a>
-              </div>
-              {% else %}
-              <div class="empty">{{ overview.accessDistributionPanel.emptyState }}</div>
-              {% endfor %}
-            </div>
-          </section>
-          {% endif %}
-
-          <section class="panel" aria-labelledby="access-history-title">
-            <div class="panel-head">
-              <div>
-                <h2 id="access-history-title">История изменений доступа</h2>
-                <div class="muted">Краткий журнал административных изменений с переходом к полной истории.</div>
-              </div>
-              <a class="chip info" href="#audit-log">Открыть полную историю</a>
-            </div>
-            <div class="user-list">
-              {% for item in overview.recentAccessHistory %}
-              <div class="history-row">
-                <div>
-                  <strong>{{ item.actionType }}</strong>
-                  <small>{{ item.actor }} · {{ item.createdAt }}</small>
-                </div>
-                <span class="chip">{{ item.result }}</span>
-              </div>
-              {% else %}
-              <div class="empty">Изменений доступа пока нет.</div>
-              {% endfor %}
-            </div>
-          </section>
-        </div>
-
-        <section class="panel" aria-labelledby="admin-shortcuts-title">
+        <section class="panel" aria-labelledby="overview-history-title">
           <div class="panel-head">
             <div>
-              <h2 id="admin-shortcuts-title">Быстрые переходы администратора</h2>
-              <div class="muted">Навигация внутри панели управления. Это не пользовательские быстрые действия платформы.</div>
+              <h2 id="overview-history-title">История изменений</h2>
+              <div class="muted">Последние действия по пользователям, компаниям, модулям, виджетам и доступам.</div>
+            </div>
+            <a class="chip info" href="#audit-log">Открыть полную историю</a>
+          </div>
+          <table class="entity-table" aria-label="История изменений Module №3">
+            <thead>
+              <tr>
+                <th>Дата и время</th>
+                <th>Кто изменил</th>
+                <th>Действие</th>
+                <th>Объект</th>
+                <th>Детали</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in overview.recentAccessHistory[:6] %}
+              <tr>
+                <td>{{ item.createdAt }}</td>
+                <td>{{ item.actor }}</td>
+                <td><span class="chip info">{{ item.actionType }}</span></td>
+                <td>{{ item.subjectLabel or item.objectType }}</td>
+                <td>{{ item.reason or item.comment or item.result }}</td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5"><div class="empty">Изменений доступа пока нет.</div></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+
+        <section class="system-registry-grid" aria-label="Модули и виджеты в системе">
+          <div class="bridge-card">
+            <h3>Модули в системе</h3>
+            <strong>{{ overview.moduleRegistrySummary.total }}</strong>
+            <div class="registry-meter">
+              <span class="chip ok">{{ overview.moduleRegistrySummary.active }} активные</span>
+              <span class="chip info">{{ overview.moduleRegistrySummary.inDevelopment }} в разработке</span>
+              {% if overview.moduleRegistrySummary.archived %}
+              <span class="chip">{{ overview.moduleRegistrySummary.archived }} архивные</span>
+              {% endif %}
             </div>
           </div>
-          <div class="bridge-grid">
-            <a class="chip info" href="#users">Открыть пользователей</a>
-            <a class="chip info" href="#companies">Открыть компании</a>
-            <a class="chip info" href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}">Открыть доступы</a>
-            <a class="chip info" href="#audit-log">Открыть историю изменений</a>
+          <div class="bridge-card">
+            <h3>Виджеты в системе</h3>
+            <strong>{{ overview.widgetRegistrySummary.total }}</strong>
+            <div class="registry-meter">
+              <span class="chip ok">{{ overview.widgetRegistrySummary.active }} активные</span>
+              <span class="chip info">{{ overview.widgetRegistrySummary.inDevelopment }} в разработке</span>
+              {% if overview.widgetRegistrySummary.archived %}
+              <span class="chip">{{ overview.widgetRegistrySummary.archived }} архивные</span>
+              {% endif %}
+            </div>
           </div>
         </section>
 
-        <section class="panel" aria-labelledby="users-preview-title">
+        <section class="panel" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator">
           <div class="panel-head">
             <div>
-              <h2 id="users-preview-title">Пользователи — превью рабочей зоны</h2>
-              <div class="muted">Короткий срез главного раздела: физические лица, компании и история изменений доступа. Подробная работа остается во вкладке “Пользователи”.</div>
+              <h2 id="system-users-title">Системные пользователи</h2>
+              <div class="muted">Ключевые технические и административные учетные записи Module №3.</div>
             </div>
-            <a class="chip info" href="#users">Открыть раздел</a>
           </div>
-          <div class="overview-preview-grid">
-            <div class="bridge-card">
-              <h3>Физические лица</h3>
-              <div class="user-list">
-                {% for user in overview.users[:3] %}
-                <a class="user-row" href="/api/v1/admin/users-roles/view/users/{{ user.id }}">
-                  <span class="user-main">
-                    <strong>{{ user.name }}</strong>
-                    <span>{{ user.email }}</span>
-                  </span>
-                  <span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.status }}</span>
-                </a>
-                {% else %}
-                <div class="empty">Пользователи еще не найдены. Новые записи появятся после стандартной регистрации.</div>
-                {% endfor %}
+          <div class="system-user-grid">
+            {% for user in overview.systemUsers %}
+            <article class="system-user-card {% if user.isPlaceholder %}placeholder{% endif %}">
+              <div>
+                <h3>{{ user.login }}</h3>
+                <div class="muted">{{ user.displayName }}</div>
+                {% if user.email %}<small>{{ user.email }}</small>{% endif %}
               </div>
-            </div>
-            <div class="bridge-card">
-              <h3>Компании</h3>
-              <div class="user-list">
-                {% for company in overview.companies[:3] %}
-                <div class="permission-row">
-                  <div>
-                    <strong>{{ company.title }}</strong>
-                    <small>{{ company.type }} · {{ company.status }}</small>
-                  </div>
-                  <span class="chip {% if company.isActive %}ok{% else %}danger{% endif %}">{{ company.moduleAccessState }}</span>
-                </div>
-                {% else %}
-                <div class="empty">Компании появятся после регистрации/подключения через профиль участника.</div>
-                {% endfor %}
+              <div class="code-list">
+                <span class="chip info">{{ user.roleTitle }}</span>
+                <span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.statusLabel }}</span>
               </div>
-            </div>
-            <div class="bridge-card">
-              <h3>История изменений доступа</h3>
-              <div class="user-list">
-                {% for item in overview.recentAccessHistory[:3] %}
-                <div class="history-row">
-                  <div>
-                    <strong>{{ item.actionType }}</strong>
-                    <small>{{ item.actor }} · {{ item.createdAt }}</small>
-                  </div>
-                  <span class="chip">{{ item.result }}</span>
-                </div>
-                {% else %}
-                <div class="empty">Изменений доступа пока нет.</div>
-                {% endfor %}
-              </div>
-            </div>
+              <div class="muted">{{ user.purpose }}</div>
+              <small>Последняя активность: {{ user.lastActivity }}</small>
+            </article>
+            {% endfor %}
           </div>
         </section>
 
@@ -1648,6 +1666,134 @@
           </div>
           <span class="chip"><strong>{{ overview.users|length }}</strong> физлиц</span>
         </div>
+        <div class="user-directory-summary" aria-label="Summary chips по типам пользователей: Все, Компании, Поставщики, Заказчики, Специалисты">
+          {% for chip in overview.userDirectoryChips %}
+          <button class="chip {% if chip.typeCode == 'ALL' %}active{% endif %}" type="button" data-directory-chip data-type-filter-value="{{ chip.typeCode }}">
+            {{ chip.label }} <strong>{{ chip.count }}</strong>
+          </button>
+          {% endfor %}
+        </div>
+
+        <div class="directory-toolbar" aria-label="Поиск, фильтры и сортировка пользователей">
+          <div class="filter-row">
+            <input class="directory-search" data-user-search aria-label="Поиск по ФИО, названию компании, email, телефону, ИНН или ID" placeholder="Поиск по ФИО, компании, email, телефону, ИНН / ID">
+            <select data-user-type-filter aria-label="Фильтр по типу пользователя">
+              <option value="ALL">Все типы</option>
+              {% for option in overview.userDirectoryFilters.types %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <select data-user-status-filter aria-label="Фильтр по статусу">
+              <option value="ALL">Все статусы</option>
+              {% for option in overview.userDirectoryFilters.statuses %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <select data-user-blocking-filter aria-label="Фильтр по блокировке">
+              <option value="ALL">Любая блокировка</option>
+              <option value="blocked">Заблокированные</option>
+              <option value="not_blocked">Без блокировки</option>
+            </select>
+            <select data-user-activity-filter aria-label="Фильтр по активности">
+              <option value="ALL">Любая активность</option>
+              <option value="has_activity">Есть активность</option>
+              <option value="no_activity">Нет активности</option>
+            </select>
+            <select data-user-region-filter aria-label="Фильтр по региону">
+              <option value="ALL">Все регионы</option>
+              {% for option in overview.userDirectoryFilters.regions %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <select data-user-module-filter aria-label="Фильтр по доступу к модулю">
+              <option value="ALL">Любой доступ к модулю</option>
+              {% for option in overview.userDirectoryFilters.moduleAccess %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+              {% endfor %}
+            </select>
+            <select data-user-sort aria-label="Сортировка пользователей">
+              <option value="type">Сортировать по типу</option>
+              <option value="name">Сортировать по имени / наименованию</option>
+              <option value="registered">Сортировать по дате регистрации</option>
+              <option value="last_activity">Сортировать по последней активности</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap" data-user-directory>
+          <table class="entity-table" aria-label="Единый список пользователей">
+            <thead>
+              <tr>
+                <th>Тип</th>
+                <th>Наименование / ФИО</th>
+                <th>Компания / Организация</th>
+                <th>Контакты</th>
+                <th>Статус</th>
+                <th>Модули</th>
+                <th>Виджеты</th>
+                <th>Блокировка</th>
+                <th>Последняя активность</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in overview.userDirectoryRows %}
+              <tr
+                data-directory-row
+                data-type="{{ row.typeCode }}"
+                data-status="{{ row.status }}"
+                data-blocking="{{ row.blocking }}"
+                data-activity="{{ row.activity }}"
+                data-region="{{ row.region }}"
+                data-module-access="{{ row.moduleAccess }}"
+                data-search="{{ row.searchBlob }}"
+                data-sort-type="{{ row.sortType }}"
+                data-sort-name="{{ row.sortName }}"
+                data-registered-at="{{ row.registeredAt }}"
+                data-last-activity="{{ row.lastActivity }}"
+              >
+                <td><span class="chip info">{{ row.typeLabel }}</span></td>
+                <td>
+                  <a href="{{ row.cardUrl }}">{{ row.displayName }}</a>
+                  <small>{{ row.subjectKind }} · ID: {{ row.id }}</small>
+                </td>
+                <td>
+                  <span>{{ row.companyName }}</span>
+                  <small>{{ row.organizationLabel }}</small>
+                </td>
+                <td>
+                  {% for contact in row.contacts %}
+                  <span>{{ contact }}</span>
+                  {% else %}
+                  <span class="muted">контакты не заданы</span>
+                  {% endfor %}
+                </td>
+                <td><span class="chip {% if row.status == 'active' or row.status == 'ACTIVE' %}ok{% elif row.blocking == 'blocked' %}danger{% else %}warn{% endif %}">{{ row.statusLabel }}</span></td>
+                <td>{{ row.moduleLabel }}</td>
+                <td>{{ row.widgetLabel }}</td>
+                <td><span class="chip {% if row.blocking == 'blocked' %}danger{% else %}ok{% endif %}">{{ row.blockingLabel }}</span></td>
+                <td>{{ row.lastActivity }}</td>
+              </tr>
+              {% endfor %}
+              <tr data-directory-empty {% if overview.userDirectoryRows %}hidden{% endif %}>
+                <td colspan="9"><div class="empty">Пользователи еще не найдены. Новые пользователи появятся после стандартной регистрации.</div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="directory-pagination" data-user-pagination>
+            <span data-user-page-summary>Показано 0 записей</span>
+            <div class="pagination-controls">
+              <select data-user-page-size aria-label="На странице">
+                <option value="8">8 на странице</option>
+                <option value="25">25 на странице</option>
+                <option value="50">50 на странице</option>
+              </select>
+              <button class="btn" type="button" data-user-page-prev>Назад</button>
+              <span class="chip" data-user-page-number>1</span>
+              <button class="btn" type="button" data-user-page-next>Вперед</button>
+            </div>
+          </div>
+        </div>
+
         <div class="user-admin-tabs" aria-label="Подразделы пользователей">
           <a class="active" href="#physical-users">Физические лица</a>
           <a href="#companies">Компании</a>
@@ -1655,27 +1801,6 @@
           <a href="#access-groups">Группы</a>
           <a href="#access-matrix">Доступы</a>
           <a href="#audit-log">История</a>
-        </div>
-        <div class="filter-row" aria-label="Фильтры пользователей">
-          <select aria-label="Фильтр по роли">
-            <option>Все роли</option>
-            {% for role in overview.roles %}
-            <option>{{ role.roleCode }}</option>
-            {% endfor %}
-          </select>
-          <select aria-label="Фильтр по компании">
-            <option>Все компании</option>
-            {% for company in overview.companies %}
-            <option>{{ company.title }}</option>
-            {% endfor %}
-          </select>
-          <select aria-label="Фильтр по статусу">
-            <option>Все статусы</option>
-            <option>active</option>
-            <option>blocked</option>
-            <option>disabled</option>
-          </select>
-          <input aria-label="Поиск пользователя или компании" placeholder="Поиск">
         </div>
         <div class="subject-section" id="physical-users">
           <h3>Физические лица</h3>
@@ -2732,5 +2857,118 @@
       </section>
     </div>
   </main>
+  <script>
+    (() => {
+      const directory = document.querySelector("[data-user-directory]");
+      if (!directory) return;
+
+      const rows = Array.from(directory.querySelectorAll("[data-directory-row]"));
+      const emptyRow = directory.querySelector("[data-directory-empty]");
+      const search = document.querySelector("[data-user-search]");
+      const typeFilter = document.querySelector("[data-user-type-filter]");
+      const statusFilter = document.querySelector("[data-user-status-filter]");
+      const blockingFilter = document.querySelector("[data-user-blocking-filter]");
+      const activityFilter = document.querySelector("[data-user-activity-filter]");
+      const regionFilter = document.querySelector("[data-user-region-filter]");
+      const moduleFilter = document.querySelector("[data-user-module-filter]");
+      const sortSelect = document.querySelector("[data-user-sort]");
+      const pageSizeSelect = document.querySelector("[data-user-page-size]");
+      const pagePrev = document.querySelector("[data-user-page-prev]");
+      const pageNext = document.querySelector("[data-user-page-next]");
+      const pageNumber = document.querySelector("[data-user-page-number]");
+      const pageSummary = document.querySelector("[data-user-page-summary]");
+      const chips = Array.from(document.querySelectorAll("[data-directory-chip]"));
+      let currentPage = 1;
+
+      const getValue = (element) => element ? element.value : "ALL";
+      const parseDate = (value) => {
+        const time = Date.parse(value || "");
+        return Number.isFinite(time) ? time : 0;
+      };
+
+      const matches = (row) => {
+        const query = (search?.value || "").trim().toLowerCase();
+        const type = getValue(typeFilter);
+        const status = getValue(statusFilter);
+        const blocking = getValue(blockingFilter);
+        const activity = getValue(activityFilter);
+        const region = getValue(regionFilter);
+        const moduleAccess = getValue(moduleFilter);
+
+        return (
+          (!query || (row.dataset.search || "").includes(query)) &&
+          (type === "ALL" || row.dataset.type === type) &&
+          (status === "ALL" || row.dataset.status === status) &&
+          (blocking === "ALL" || row.dataset.blocking === blocking) &&
+          (activity === "ALL" || row.dataset.activity === activity) &&
+          (region === "ALL" || row.dataset.region === region) &&
+          (moduleAccess === "ALL" || row.dataset.moduleAccess === moduleAccess)
+        );
+      };
+
+      const sortedRows = (items) => {
+        const mode = getValue(sortSelect);
+        return [...items].sort((a, b) => {
+          if (mode === "name") return (a.dataset.sortName || "").localeCompare(b.dataset.sortName || "");
+          if (mode === "registered") return parseDate(b.dataset.registeredAt) - parseDate(a.dataset.registeredAt);
+          if (mode === "last_activity") return parseDate(b.dataset.lastActivity) - parseDate(a.dataset.lastActivity);
+          return (a.dataset.sortType || "").localeCompare(b.dataset.sortType || "") || (a.dataset.sortName || "").localeCompare(b.dataset.sortName || "");
+        });
+      };
+
+      const render = () => {
+        const pageSize = Number(pageSizeSelect?.value || 8);
+        const filtered = sortedRows(rows.filter(matches));
+        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        currentPage = Math.min(currentPage, totalPages);
+        const pageStart = (currentPage - 1) * pageSize;
+        const visible = new Set(filtered.slice(pageStart, pageStart + pageSize));
+
+        rows.forEach((row) => {
+          row.hidden = !visible.has(row);
+        });
+        if (emptyRow) emptyRow.hidden = filtered.length !== 0;
+        if (pageNumber) pageNumber.textContent = `${currentPage} / ${totalPages}`;
+        if (pageSummary) {
+          const first = filtered.length ? pageStart + 1 : 0;
+          const last = Math.min(pageStart + pageSize, filtered.length);
+          pageSummary.textContent = `Показано ${first}-${last} из ${filtered.length} записей`;
+        }
+        if (pagePrev) pagePrev.disabled = currentPage <= 1;
+        if (pageNext) pageNext.disabled = currentPage >= totalPages;
+      };
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const value = chip.dataset.typeFilterValue || "ALL";
+          if (typeFilter) typeFilter.value = value;
+          chips.forEach((item) => item.classList.toggle("active", item === chip));
+          currentPage = 1;
+          render();
+        });
+      });
+
+      [search, typeFilter, statusFilter, blockingFilter, activityFilter, regionFilter, moduleFilter, sortSelect, pageSizeSelect].forEach((control) => {
+        control?.addEventListener("input", () => {
+          currentPage = 1;
+          render();
+        });
+        control?.addEventListener("change", () => {
+          currentPage = 1;
+          render();
+        });
+      });
+      pagePrev?.addEventListener("click", () => {
+        currentPage = Math.max(1, currentPage - 1);
+        render();
+      });
+      pageNext?.addEventListener("click", () => {
+        currentPage += 1;
+        render();
+      });
+
+      render();
+    })();
+  </script>
 </body>
 </html>
