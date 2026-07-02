@@ -43,9 +43,10 @@
     button { cursor: pointer; }
     main,
     .module3-shell {
-      width: min(1920px, calc(100vw - 24px));
+      width: 100%;
+      max-width: none;
       margin: 0 auto;
-      padding: 18px 0 48px;
+      padding: 0;
       min-width: 0;
     }
     .page-head {
@@ -87,12 +88,12 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 8px;
       align-items: start;
-      margin-bottom: 14px;
-      padding: 16px;
-      border: 1px solid rgba(24, 215, 242, 0.24);
-      border-radius: 8px;
-      background: linear-gradient(145deg, rgba(10, 18, 43, 0.94), rgba(7, 13, 33, 0.96));
-      box-shadow: var(--shadow);
+      margin: 18px 0 14px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
     .command-title {
       display: grid;
@@ -105,20 +106,20 @@
       letter-spacing: 0.08em;
     }
     .command-title h1 {
-      font-size: clamp(24px, 2.4vw, 34px);
+      font-size: clamp(25px, 2vw, 34px);
       line-height: 1.08;
     }
     .module3-quick-actions {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
-      gap: 14px;
+      gap: 26px;
       align-items: center;
-      margin-bottom: 14px;
-      padding: 12px 14px;
+      margin: 14px 0 0;
+      padding: 13px 24px;
       border: 1px solid rgba(24, 215, 242, 0.24);
       border-radius: 8px;
-      background: linear-gradient(145deg, rgba(10, 18, 43, 0.9), rgba(7, 13, 33, 0.96));
-      box-shadow: var(--shadow);
+      background: linear-gradient(145deg, rgba(7, 18, 44, 0.94), rgba(4, 10, 27, 0.96));
+      box-shadow: 0 0 0 1px rgba(24, 215, 242, 0.04), 0 24px 70px rgba(0, 0, 0, 0.22);
     }
     .module3-quick-actions-title {
       font-weight: 700;
@@ -126,18 +127,21 @@
     }
     .module3-quick-actions-list {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      flex-wrap: nowrap;
+      gap: 16px;
       min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: thin;
     }
     .module3-action {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 38px;
-      padding: 8px 12px;
-      max-width: 100%;
+      min-height: 42px;
+      min-width: 190px;
+      padding: 9px 14px;
+      max-width: 240px;
       border: 1px solid rgba(119, 172, 255, 0.2);
       border-radius: 8px;
       color: var(--text);
@@ -167,72 +171,127 @@
     }
     .control-shell {
       display: grid;
-      grid-template-columns: clamp(218px, 15vw, 260px) minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: clamp(248px, 15.5vw, 296px) minmax(0, 1fr);
+      gap: 0;
       align-items: start;
+      min-height: calc(100vh - 64px);
     }
     .module3-nav {
       position: sticky;
-      top: 78px;
+      top: 64px;
       display: grid;
-      gap: 7px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: linear-gradient(145deg, rgba(10, 18, 43, 0.92), rgba(7, 13, 33, 0.98));
-      box-shadow: var(--shadow);
+      align-content: start;
+      gap: 10px;
+      min-height: calc(100vh - 64px);
+      padding: 24px 14px 18px;
+      border: 0;
+      border-right: 1px solid rgba(24, 215, 242, 0.14);
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(8, 22, 52, 0.94), rgba(4, 12, 31, 0.98)),
+        radial-gradient(circle at 50% 0, rgba(24, 215, 242, 0.1), transparent 320px);
+      box-shadow: inset -1px 0 0 rgba(119, 172, 255, 0.08);
     }
     .module3-nav-title {
-      padding: 7px 9px 9px;
+      padding: 0 6px 22px;
       color: var(--muted);
       font-size: 12px;
-      border-bottom: 1px solid rgba(119, 172, 255, 0.14);
+      border-bottom: 0;
+    }
+    .module3-nav-title small,
+    .module3-nav-title strong {
+      display: block;
+    }
+    .module3-nav-title strong {
+      margin-top: 8px;
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.22;
     }
     .module3-nav a {
-      display: flex;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      min-height: 36px;
-      padding: 8px 10px;
+      gap: 12px;
+      min-height: 48px;
+      padding: 10px 12px;
       border: 1px solid transparent;
       border-radius: 8px;
       color: var(--muted);
-      background: rgba(5, 12, 30, 0.32);
+      background: transparent;
+      font-weight: 700;
     }
     .module3-nav a:hover,
     .module3-nav a.active {
+      color: var(--cyan);
+      border-color: rgba(24, 215, 242, 0.58);
+      background: linear-gradient(90deg, rgba(24, 215, 242, 0.16), rgba(24, 215, 242, 0.04));
+      box-shadow: inset 0 0 0 1px rgba(24, 215, 242, 0.1), 0 0 22px rgba(24, 215, 242, 0.12);
+    }
+    .module3-nav-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(119, 172, 255, 0.22);
+      border-radius: 8px;
       color: var(--text);
-      border-color: rgba(24, 215, 242, 0.34);
-      background: rgba(24, 215, 242, 0.08);
+      background: rgba(7, 14, 35, 0.62);
+      line-height: 1;
     }
     .module3-nav-help {
       display: grid;
       gap: 8px;
-      margin-top: 8px;
-      padding: 10px;
+      margin-top: auto;
+      padding: 14px;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 8px;
       color: var(--muted);
-      background: rgba(5, 12, 30, 0.42);
+      background:
+        linear-gradient(145deg, rgba(7, 20, 48, 0.78), rgba(4, 10, 27, 0.88)),
+        radial-gradient(circle at 90% 10%, rgba(24, 215, 242, 0.12), transparent 92px);
+    }
+    .module3-nav-footer {
+      display: grid;
+      gap: 6px;
+      padding: 10px 6px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
     .control-main {
       display: grid;
       gap: 14px;
       min-width: 0;
+      padding: 18px 28px 32px;
     }
     .system-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
     }
     .system-card {
-      min-height: 112px;
-      padding: 13px;
-      border: 1px solid var(--line-soft);
+      position: relative;
+      overflow: hidden;
+      min-height: 170px;
+      padding: 22px;
+      border: 1px solid rgba(119, 172, 255, 0.22);
       border-radius: 8px;
-      background: linear-gradient(145deg, var(--surface-2), rgba(7, 13, 33, 0.82));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      background:
+        linear-gradient(145deg, rgba(10, 28, 67, 0.78), rgba(4, 12, 31, 0.94)),
+        radial-gradient(circle at 86% 18%, rgba(24, 215, 242, 0.16), transparent 88px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 54px rgba(0, 0, 0, 0.18);
+    }
+    .system-card::before {
+      content: "";
+      display: block;
+      width: 52px;
+      height: 52px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(24, 215, 242, 0.32);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(24, 215, 242, 0.16), rgba(119, 93, 255, 0.12));
+      box-shadow: 0 0 24px rgba(24, 215, 242, 0.12);
     }
     .system-card span {
       display: block;
@@ -242,7 +301,7 @@
     .system-card strong {
       display: block;
       margin-top: 8px;
-      font-size: 24px;
+      font-size: clamp(30px, 2.5vw, 42px);
       line-height: 1;
       overflow-wrap: anywhere;
     }
@@ -250,7 +309,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 18px;
     }
     .metric-pill {
       min-width: 0;
@@ -266,7 +325,13 @@
     .system-registry-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 16px;
+    }
+    .overview-dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(460px, 1fr);
+      gap: 16px;
+      align-items: stretch;
     }
     .registry-meter {
       display: grid;
@@ -440,23 +505,36 @@
       width: min(100%, 190px);
     }
     .user-directory-summary {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 0 10px 10px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+      padding: 18px 14px 22px;
     }
     .user-directory-summary .chip {
       border-color: rgba(119, 172, 255, 0.24);
+      justify-content: flex-start;
+      min-height: 86px;
+      padding: 16px 18px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(10, 28, 67, 0.78), rgba(4, 12, 31, 0.9));
+      font-size: 14px;
     }
     .user-directory-summary .chip.active {
       border-color: rgba(24, 215, 242, 0.64);
       color: var(--cyan);
       background: rgba(24, 215, 242, 0.12);
+      box-shadow: 0 0 24px rgba(24, 215, 242, 0.12);
+    }
+    .user-directory-summary .chip strong {
+      display: block;
+      margin-left: 0;
+      color: var(--text);
+      font-size: 24px;
     }
     .directory-toolbar {
       display: grid;
       gap: 10px;
-      padding: 10px;
+      padding: 14px;
       border-top: 1px solid rgba(119, 172, 255, 0.1);
       border-bottom: 1px solid rgba(119, 172, 255, 0.1);
       background: rgba(5, 12, 30, 0.26);
@@ -845,6 +923,50 @@
       border-radius: 8px;
       background: linear-gradient(145deg, var(--surface), rgba(7, 13, 33, 0.92));
     }
+    .profile-breadcrumb {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .profile-hero-layout {
+      display: grid;
+      grid-template-columns: 136px minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: center;
+    }
+    .profile-avatar {
+      display: grid;
+      place-items: center;
+      width: 136px;
+      height: 136px;
+      border: 1px solid rgba(24, 215, 242, 0.58);
+      border-radius: 50%;
+      color: var(--cyan);
+      background: radial-gradient(circle, rgba(24, 215, 242, 0.12), rgba(7, 14, 35, 0.82));
+      box-shadow: 0 0 34px rgba(24, 215, 242, 0.18);
+      text-align: center;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .profile-meta-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(119, 172, 255, 0.12);
+    }
+    .profile-meta-row div {
+      display: grid;
+      gap: 4px;
+      color: var(--text);
+    }
+    .profile-meta-row span {
+      color: var(--muted);
+      font-size: 12px;
+    }
     .hero-top {
       display: flex;
       justify-content: space-between;
@@ -1082,31 +1204,79 @@
     }
     @media (max-width: 1440px) {
       main,
-      .module3-shell { width: min(100vw - 20px, 1760px); }
-      .control-shell { grid-template-columns: 220px minmax(0, 1fr); gap: 12px; }
+      .module3-shell { width: 100%; }
+      .control-shell { grid-template-columns: 232px minmax(0, 1fr); gap: 0; }
       .module3-action { padding-inline: 10px; }
       .system-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .detail-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-dashboard-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 1366px) {
       main,
-      .module3-shell { width: min(100vw - 16px, 1560px); padding-top: 14px; }
+      .module3-shell { width: 100%; padding-top: 0; }
       .module3-quick-actions { grid-template-columns: 1fr; gap: 10px; }
       .module3-quick-actions-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .module3-action { white-space: normal; min-height: 42px; }
-      .control-shell { grid-template-columns: 204px minmax(0, 1fr); }
+      .control-shell { grid-template-columns: 216px minmax(0, 1fr); }
       .panel-head { align-items: flex-start; flex-direction: column; }
       .filter-row select,
       .filter-row input { width: min(100%, 172px); }
+      .user-directory-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .profile-hero-layout { grid-template-columns: 112px minmax(0, 1fr); }
+      .profile-hero-layout .toolbar { grid-column: 1 / -1; }
+      .profile-avatar { width: 112px; height: 112px; }
+      .profile-meta-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 980px) {
       main,
       .module3-shell { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .module3-quick-actions, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .module3-quick-actions, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
-      .module3-nav { position: static; }
+      .module3-nav { position: static; min-height: auto; }
       .module3-quick-actions-title { white-space: normal; }
       .module3-quick-actions-list { grid-template-columns: 1fr; }
+      .control-main { padding: 14px; }
+      .user-directory-summary { grid-template-columns: 1fr; }
+      .profile-hero-layout,
+      .profile-meta-row { grid-template-columns: 1fr; }
+    }
+    .module3-shell[data-active-tab="overview"] #users,
+    .module3-shell[data-active-tab="overview"] .detail,
+    .module3-shell[data-active-tab="overview"] #settings,
+    .module3-shell[data-active-tab="users"] #overview,
+    .module3-shell[data-active-tab="users"] .overview-only,
+    .module3-shell[data-active-tab="users"] .detail,
+    .module3-shell[data-active-tab="users"] #settings,
+    .module3-shell[data-active-tab="access"] #overview,
+    .module3-shell[data-active-tab="access"] .overview-only,
+    .module3-shell[data-active-tab="access"] .detail,
+    .module3-shell[data-active-tab="access"] #settings,
+    .module3-shell[data-active-tab="detail"] #overview,
+    .module3-shell[data-active-tab="detail"] .overview-only,
+    .module3-shell[data-active-tab="detail"] #users,
+    .module3-shell[data-active-tab="detail"] #settings {
+      display: none;
+    }
+    .module3-shell[data-active-tab="users"] #users .user-admin-tabs,
+    .module3-shell[data-active-tab="users"] #users .subject-section,
+    .module3-shell[data-active-tab="access"] #users > .panel-head,
+    .module3-shell[data-active-tab="access"] #users > .user-directory-summary,
+    .module3-shell[data-active-tab="access"] #users > .directory-toolbar,
+    .module3-shell[data-active-tab="access"] #users > .table-wrap,
+    .module3-shell[data-active-tab="access"] #users > .user-admin-tabs,
+    .module3-shell[data-active-tab="access"] #users .subject-section:not(#access-matrix) {
+      display: none;
+    }
+    .module3-shell[data-active-tab="access"] #users {
+      display: block;
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .module3-shell[data-active-tab="access"] #access-matrix {
+      display: grid;
+      padding: 0;
+      border-bottom: 0;
     }
   </style>
   {% include "_atom_ui_standards.html" %}
@@ -1114,56 +1284,69 @@
 <body data-atom-page data-rbac-ready>
   {% include "_atom_platform_topbar.html" %}
 
-  <main class="module3-shell" data-module3-shell>
+  <main
+    class="module3-shell"
+    data-module3-shell
+    data-module3-mode="{{ mode }}"
+    data-active-tab="{% if detail %}detail{% else %}overview{% endif %}"
+  >
     {% set company_mode = overview.adminScope.isCompanyAdminMode %}
-    <section class="command-hero" id="overview">
-      <div class="command-title">
-        <h1>{% if company_mode %}Обзор компании{% else %}Обзор модуля{% endif %}</h1>
-        {% if company_mode %}
-        <div class="muted">Ограниченный режим администратора компании: своя компания, сотрудники, доступы в пределах доступа компании и история изменений своей компании.</div>
-        {% else %}
-        <div class="muted">Рабочий экран администратора: пользователи, компании, блокировки, распределение новых модулей и история изменений доступа.</div>
-        {% endif %}
-      </div>
-    </section>
-
-    <section class="module3-quick-actions" aria-label="Быстрые действия Module №3" data-module3-quick-actions>
-      <div class="module3-quick-actions-title">Быстрые действия</div>
-      <div class="module3-quick-actions-list">
-        {% for action in overview.moduleQuickActions %}
-        {% if action.visible %}
-        <a
-          class="module3-action {% if not action.enabled %}disabled{% endif %}"
-          href="{% if action.enabled and action.actionType == 'navigate' and action.target %}{{ action.target }}{% else %}#{% endif %}"
-          data-action-id="{{ action.id }}"
-          data-action-type="{{ action.actionType }}"
-          data-permission-code="{{ action.permissionCode or '' }}"
-          data-feature-code="{{ action.featureCode or '' }}"
-          {% if not action.enabled %}aria-disabled="true"{% endif %}
-          title="{{ action.description or action.label }}"
-        >
-          <span class="module3-action-icon" aria-hidden="true">{{ action.icon or '•' }}</span>
-          <span>{{ action.label }}</span>
-        </a>
-        {% endif %}
-        {% endfor %}
-      </div>
-    </section>
-
     <div class="control-shell">
       <nav class="module3-nav" aria-label="Разделы Module №3" data-module3-sidebar>
-        <div class="module3-nav-title">Рабочее меню</div>
-        <a class="active" href="#overview">Обзор модуля</a>
-        <a href="#users">Пользователи</a>
-        <a href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}">Доступы</a>
+        <div class="module3-nav-title">
+          <small>МОДУЛЬ №3</small>
+          <strong>Пользователи и роли</strong>
+        </div>
+        <a class="active" href="#overview" data-module3-tab-link="overview"><span class="module3-nav-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
+        <a href="#users" data-module3-tab-link="users"><span class="module3-nav-icon" aria-hidden="true">♙</span><span>Пользователи</span></a>
+        <a href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}" data-module3-tab-link="access"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
         <div class="module3-nav-help">
-          <strong>Help / Docs</strong>
-          <span>Дополнительные справочники остаются в доменной логике, но скрыты из текущего рабочего меню.</span>
+          <strong>Нужна помощь?</strong>
+          <span>Документация и поддержка по модулю.</span>
+          <span class="chip info">Открыть документацию</span>
+        </div>
+        <div class="module3-nav-footer">
+          <span>ATOM — единая платформа управления строительством</span>
+          <span>Версия 1.0.0 · Май 2025</span>
         </div>
       </nav>
 
       <section class="control-main" data-module3-content>
-        <div class="system-grid" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
+        <section class="module3-quick-actions" aria-label="Быстрые действия Module №3" data-module3-quick-actions>
+          <div class="module3-quick-actions-title">Быстрые действия</div>
+          <div class="module3-quick-actions-list">
+            {% for action in overview.moduleQuickActions %}
+            {% if action.visible %}
+            <a
+              class="module3-action {% if not action.enabled %}disabled{% endif %}"
+              href="{% if action.enabled and action.actionType == 'navigate' and action.target %}{{ action.target }}{% else %}#{% endif %}"
+              data-action-id="{{ action.id }}"
+              data-action-type="{{ action.actionType }}"
+              data-permission-code="{{ action.permissionCode or '' }}"
+              data-feature-code="{{ action.featureCode or '' }}"
+              {% if not action.enabled %}aria-disabled="true"{% endif %}
+              title="{{ action.description or action.label }}"
+            >
+              <span class="module3-action-icon" aria-hidden="true">{{ action.icon or '•' }}</span>
+              <span>{{ action.label }}</span>
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="command-hero" id="overview">
+          <div class="command-title">
+            <h1>{% if company_mode %}Обзор компании{% else %}Обзор модуля{% endif %}</h1>
+            {% if company_mode %}
+            <div class="muted">Ограниченный режим администратора компании: своя компания, сотрудники, доступы в пределах доступа компании и история изменений своей компании.</div>
+            {% else %}
+            <div class="muted">Мониторинг ключевых метрик и активности модуля «Пользователи и роли».</div>
+            {% endif %}
+          </div>
+        </section>
+
+        <div class="system-grid overview-only" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
           {% for widget in overview.userTypeSummaryWidgets %}
           <article class="system-card" data-user-type="{{ widget.userTypeCode }}">
             <span>{{ widget.title }}</span>
@@ -1189,6 +1372,7 @@
           {% endfor %}
         </div>
 
+        <div class="overview-dashboard-grid overview-only">
         <section class="panel" aria-labelledby="overview-history-title">
           <div class="panel-head">
             <div>
@@ -1249,8 +1433,9 @@
             </div>
           </div>
         </section>
+        </div>
 
-        <section class="panel" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator">
+        <section class="panel overview-only" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator">
           <div class="panel-head">
             <div>
               <h2 id="system-users-title">Системные пользователи</h2>
@@ -2211,30 +2396,40 @@
 
       <section class="detail detail-drawer">
         {% if detail %}
+        <div class="profile-breadcrumb">
+          <span>Пользователи</span>
+          <span>/</span>
+          <strong>{{ detail.profileCard.header.title }}</strong>
+        </div>
         <article class="hero-card" id="selected-user-access-card">
-          <div class="hero-top">
+          <div class="profile-hero-layout">
+            <div class="profile-avatar" aria-hidden="true">
+              {{ detail.profileCard.header.title[:18] }}
+            </div>
             <div class="card-title">
               <strong>{{ detail.profileCard.header.title }}</strong>
               <div class="muted">
                 {{ detail.profileCard.header.typeLabel }}
                 {% if detail.profileCard.header.subtitle %} · {{ detail.profileCard.header.subtitle }}{% endif %}
               </div>
+              <div class="code-list">
+                <span class="chip {% if detail.profileCard.header.status == 'active' %}ok{% elif detail.profileCard.header.status in ['blocked', 'disabled', 'deleted'] %}danger{% else %}warn{% endif %}">{{ detail.profileCard.header.statusLabel }}</span>
+                <span class="chip {% if detail.profileCard.header.blockLabel == 'Без блокировки' %}ok{% else %}danger{% endif %}">{{ detail.profileCard.header.blockLabel }}</span>
+              </div>
             </div>
             <div class="toolbar" aria-label="Действия карточки: Редактировать; Заблокировать или Разблокировать; Назначить доступ">
-              <span class="chip {% if detail.profileCard.header.status == 'active' %}ok{% elif detail.profileCard.header.status in ['blocked', 'disabled', 'deleted'] %}danger{% else %}warn{% endif %}">{{ detail.profileCard.header.statusLabel }}</span>
-              <span class="chip {% if detail.profileCard.header.blockLabel == 'Без блокировки' %}ok{% else %}danger{% endif %}">{{ detail.profileCard.header.blockLabel }}</span>
               {% for action in detail.profileCard.header.actions %}
               <a class="btn {% if action.tone == 'danger' %}danger{% endif %}" href="{{ action.target }}" data-profile-action="{{ action.id }}">{{ action.label }}</a>
               {% endfor %}
             </div>
           </div>
-          <dl class="detail-kv">
-            <div><dt>Основной контакт</dt><dd>{{ detail.profileCard.header.primaryContact }}</dd></div>
-            <div><dt>Телефон</dt><dd>{{ detail.profileCard.header.phone }}</dd></div>
-            <div><dt>Регион</dt><dd>{{ detail.profileCard.header.region }}</dd></div>
-            <div><dt>Дата регистрации</dt><dd>{{ detail.profileCard.header.registeredAt }}</dd></div>
-            <div><dt>Назначенный менеджер</dt><dd>{{ detail.profileCard.header.assignedManager }}</dd></div>
-          </dl>
+          <div class="profile-meta-row">
+            <div><span>Основной контакт</span><strong>{{ detail.profileCard.header.primaryContact }}</strong></div>
+            <div><span>Телефон</span><strong>{{ detail.profileCard.header.phone }}</strong></div>
+            <div><span>Регион</span><strong>{{ detail.profileCard.header.region }}</strong></div>
+            <div><span>Дата регистрации</span><strong>{{ detail.profileCard.header.registeredAt }}</strong></div>
+            <div><span>Назначенный менеджер</span><strong>{{ detail.profileCard.header.assignedManager }}</strong></div>
+          </div>
           <div class="muted">Карточка открыта из таблицы пользователей. Доступы меняются здесь индивидуально, а сервер сохраняет проверки через Permission Guard и границы компании.</div>
         </article>
 
@@ -3176,6 +3371,39 @@
     </div>
   </main>
   <script>
+    (() => {
+      const shell = document.querySelector("[data-module3-shell]");
+      if (!shell) return;
+
+      const tabForHash = () => {
+        if (shell.dataset.module3Mode === "detail") return "detail";
+        const hash = (window.location.hash || "#overview").replace("#", "");
+        if (hash.startsWith("access-matrix")) return "access";
+        if (hash.startsWith("users") || hash.startsWith("companies") || hash.startsWith("company-employees") || hash.startsWith("physical-users")) return "users";
+        return "overview";
+      };
+
+      const syncTabs = () => {
+        const tab = tabForHash();
+        shell.dataset.activeTab = tab;
+        document.querySelectorAll("[data-module3-tab-link]").forEach((link) => {
+          const linkTab = link.getAttribute("data-module3-tab-link");
+          link.classList.toggle("active", linkTab === tab || (tab === "detail" && linkTab === "users"));
+        });
+        document.querySelectorAll("[data-action-id]").forEach((action) => {
+          const id = action.getAttribute("data-action-id");
+          const visibleForUsers = ["add-user", "add-company", "import-users", "bulk-access-assignment", "export-users"].includes(id);
+          const visibleForDefault = ["add-user", "add-company", "import-users", "open-history", "configure-access"].includes(id);
+          const shouldShow = tab === "users" ? visibleForUsers : visibleForDefault;
+          action.hidden = !shouldShow;
+        });
+      };
+
+      window.addEventListener("hashchange", syncTabs);
+      document.addEventListener("DOMContentLoaded", syncTabs);
+      syncTabs();
+    })();
+
     (() => {
       const directory = document.querySelector("[data-user-directory]");
       if (!directory) return;

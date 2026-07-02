@@ -1088,16 +1088,25 @@ def test_legacy_module3_view_route_redirects_to_api_prefix():
 def test_admin_users_roles_template_has_sprint8_responsive_contracts():
     template = open("templates/admin_users_roles.html", encoding="utf-8").read()
 
-    assert "width: min(1920px, calc(100vw - 24px))" in template
-    assert "grid-template-columns: clamp(218px, 15vw, 260px) minmax(0, 1fr)" in template
+    assert "width: 100%" in template
+    assert "max-width: none" in template
+    assert "grid-template-columns: clamp(248px, 15.5vw, 296px) minmax(0, 1fr)" in template
+    assert "min-height: calc(100vh - 64px)" in template
+    assert "top: 64px" in template
     assert ".control-main" in template
     assert "min-width: 0" in template
+    assert "padding: 18px 28px 32px" in template
     assert ".table-wrap" in template
     assert "max-width: 100%" in template
     assert "overflow-x: auto" in template
     assert ".entity-table th:first-child" in template
     assert ".access-matrix-table th:first-child" in template
     assert "position: sticky" in template
+    assert ".overview-dashboard-grid" in template
+    assert ".profile-hero-layout" in template
+    assert ".profile-meta-row" in template
+    assert "data-active-tab" in template
+    assert "data-module3-tab-link" in template
     assert "@media (max-width: 1440px)" in template
     assert "@media (max-width: 1366px)" in template
     assert ".ui-state.loading" in template
@@ -1182,12 +1191,13 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Новые модули и виджеты требуют распределения" not in overview
     assert "Пользователи — превью рабочей зоны" not in overview
     assert "Быстрые переходы администратора" not in overview
-    assert "Быстрые действия" in overview
-    assert 'data-module3-quick-actions' in overview
-    assert 'data-action-id="{{ action.id }}"' in overview
-    assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in overview
-    assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in overview
-    assert "Рабочее меню" in nav
+    assert "Быстрые действия" in template
+    assert 'data-module3-quick-actions' in template
+    assert template.index('data-module3-quick-actions') < template.index('<section class="command-hero" id="overview">')
+    assert 'data-action-id="{{ action.id }}"' in template
+    assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
+    assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
+    assert "МОДУЛЬ №3" in nav
     assert "Обзор модуля" in nav
     assert "Пользователи" in nav
     assert "Доступы" in nav
