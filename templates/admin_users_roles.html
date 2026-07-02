@@ -1143,11 +1143,11 @@
             <tbody>
               {% for item in overview.recentAccessHistory[:6] %}
               <tr>
-                <td>{{ item.createdAt }}</td>
-                <td>{{ item.actor }}</td>
-                <td><span class="chip info">{{ item.actionType }}</span></td>
-                <td>{{ item.subjectLabel or item.objectType }}</td>
-                <td>{{ item.reason or item.comment or item.result }}</td>
+                <td>{{ item.timestamp }}</td>
+                <td>{{ item.actorName }}</td>
+                <td><span class="chip info">{{ item.action }}</span></td>
+                <td>{{ item.objectName or item.objectTypeCode }}</td>
+                <td>{{ item.detailsText or item.result }}</td>
               </tr>
               {% else %}
               <tr>
@@ -2208,8 +2208,8 @@
               {% for item in detail.changeHistory.rows[:2] %}
               <div class="history-row">
                 <div>
-                  <strong>{{ item.actionType }}</strong>
-                  <small>{{ item.actor }} · {{ item.createdAt }}</small>
+                  <strong>{{ item.action }}</strong>
+                  <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
                 <span class="chip">{{ item.result }}</span>
               </div>
@@ -2287,8 +2287,8 @@
               {% for item in detail.changeHistory.rows[:2] %}
               <div class="history-row">
                 <div>
-                  <strong>{{ item.actionType }}</strong>
-                  <small>{{ item.actor }} · {{ item.createdAt }}</small>
+                  <strong>{{ item.action }}</strong>
+                  <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
                 <span class="chip">{{ item.result }}</span>
               </div>
@@ -2357,8 +2357,8 @@
               {% for item in detail.changeHistory.rows[:2] %}
               <div class="history-row">
                 <div>
-                  <strong>{{ item.actionType }}</strong>
-                  <small>{{ item.actor }} · {{ item.createdAt }}</small>
+                  <strong>{{ item.action }}</strong>
+                  <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
                 <span class="chip">{{ item.result }}</span>
               </div>
@@ -3010,7 +3010,7 @@
           <div class="panel-head">
             <div>
               <h2>История изменений</h2>
-              <div class="muted">Здесь видно, кто, когда, что изменил, для какого пользователя, компании, сотрудника, модуля или виджета, а также старое значение, новое значение и причину.</div>
+              <div class="muted">Здесь видно, кто, когда, что изменил, для какого пользователя, компании, сотрудника, модуля или виджета, а также старое значение, новое значение и причину. Структура записи Module3AuditLogEntry: id, timestamp, actorId, actorName, action, objectType, objectId, objectName, details.</div>
             </div>
             <span class="chip">{{ detail.changeHistory.rows|length }} записей</span>
           </div>
@@ -3079,13 +3079,15 @@
             {% for item in detail.changeHistory.rows %}
             <div class="history-row">
               <div>
-                <strong>{{ item.actionType }} · {{ item.objectType }}</strong>
-                <small>Автор: {{ item.actor }} · Дата: {{ item.createdAt }} · Объект: {{ item.subjectLabel }}</small>
+                <strong>{{ item.action }} · {{ item.objectTypeCode }}</strong>
+                <small>Автор: {{ item.actorName }} · actorId: {{ item.actorId or 'system' }} · Дата: {{ item.timestamp }} · Объект: {{ item.objectName }}</small>
+                <small>objectId: {{ item.objectId or '—' }} · actionType: {{ item.actionType }}</small>
                 {% if item.moduleCode %}<small>moduleCode: {{ item.moduleCode }}{% if item.featureCode %} · featureCode: {{ item.featureCode }}{% endif %}</small>{% endif %}
                 {% if item.widgetCode %}<small>widgetCode: {{ item.widgetCode }}</small>{% endif %}
                 {% if item.roleCode %}<small>roleCode: {{ item.roleCode }}</small>{% endif %}
                 <small>Старое значение: {{ item.oldValue or '—' }}</small>
                 <small>Новое значение: {{ item.newValue or '—' }}</small>
+                <small>Детали: {{ item.detailsText }}</small>
                 <small>Причина: {{ item.reason or 'не указана' }}</small>
               </div>
               <span class="chip">{{ item.result }}</span>

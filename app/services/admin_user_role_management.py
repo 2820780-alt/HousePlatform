@@ -216,6 +216,24 @@ ACCESS_MATRIX_USER_TYPE_COLUMNS: tuple[dict[str, str], ...] = (
     },
 )
 
+MODULE3_AUDIT_ACTION_LABELS: dict[str, str] = {
+    "user_created": "Создание пользователя",
+    "company_created": "Создание компании",
+    "user_updated": "Изменение пользователя",
+    "user_disabled": "Блокировка",
+    "user_enabled": "Разблокировка",
+    "permission_changed": "Изменение индивидуального доступа",
+    "widget_permission_changed": "Включение/отключение виджета",
+    "module_access_changed": "Изменение доступа по типу пользователя",
+    "role_changed": "Изменение пользователя",
+    "users_imported": "Импорт пользователей",
+    "bulk_access_assigned": "Массовое назначение доступа",
+    "platform_module_registry_changed": "Включение/отключение модуля",
+    "widget_registry_changed": "Включение/отключение виджета",
+}
+
+MODULE3_AUDIT_ACTION_TYPES: tuple[str, ...] = tuple(MODULE3_AUDIT_ACTION_LABELS)
+
 SYSTEM_USER_CARD_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
         "login": "platform-admin",
@@ -2865,13 +2883,18 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
     role_code = _details_value(details, "roleCode")
     workspace_id = _details_value(details, "workspaceId") or str(item.workspace_id or "")
     target_user_id = _details_value(details, "targetUserId")
-    return {
+    object_type = _audit_object_type(entity_type, module_code=module_code, widget_code=widget_code, role_code=role_code)
+    subject_label = _audit_subject_label(entity_type, target_user_id=target_user_id, workspace_id=workspace_id, module_code=module_code, widget_code=widget_code)
+    actor_id = _details_value(details, "actorUserId") or str(item.user_id or "")
+    actor_name = item.user.email if item.user else "system/dev"
+    reason = _details_value(details, "reason") or _details_value(details, "comment") or ""
+    summary = {
         "id": str(item.id),
         "createdAt": item.created_at,
         "actionType": item.action_type,
         "result": item.result,
-        "actor": item.user.email if item.user else "system/dev",
-        "actorUserId": _details_value(details, "actorUserId") or str(item.user_id or ""),
+        "actor": actor_name,
+        "actorUserId": actor_id,
         "targetUserId": target_user_id,
         "workspaceId": workspace_id,
         "moduleCode": module_code,
@@ -2881,14 +2904,87 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
         "roleCode": role_code,
         "oldValue": _details_value(details, "oldValue"),
         "newValue": _details_value(details, "newValue"),
-        "reason": _details_value(details, "reason") or _details_value(details, "comment") or "",
+        "reason": reason,
         "comment": _details_value(details, "comment") or "",
         "entityType": entity_type,
         "entityId": entity_id,
-        "objectType": _audit_object_type(entity_type, module_code=module_code, widget_code=widget_code, role_code=role_code),
-        "subjectLabel": _audit_subject_label(entity_type, target_user_id=target_user_id, workspace_id=workspace_id, module_code=module_code, widget_code=widget_code),
+        "objectType": object_type,
+        "subjectLabel": subject_label,
         "details": details,
     }
+    module3_entry = module3_audit_log_entry(summary)
+    summary.update(
+        {
+            "timestamp": module3_entry["timestamp"],
+            "actorId": module3_entry["actorId"],
+            "actorName": module3_entry["actorName"],
+            "action": module3_entry["action"],
+            "objectTypeCode": module3_entry["objectType"],
+            "objectId": module3_entry["objectId"],
+            "objectName": module3_entry["objectName"],
+            "detailsText": module3_entry["details"],
+            "module3Entry": module3_entry,
+        }
+    )
+    return summary
+
+
+def module3_audit_log_entry(row: dict[str, Any]) -> dict[str, Any]:
+    action_type = str(row.get("actionType") or "")
+    object_type_code = _module3_object_type_code(row)
+    object_id = row.get("widgetCode") or row.get("moduleCode") or row.get("targetUserId") or row.get("workspaceId") or row.get("entityId") or ""
+    object_name = row.get("subjectLabel") or row.get("objectName") or object_id or object_type_code
+    details_text = _module3_audit_details_text(row)
+    return {
+        "id": str(row.get("id") or ""),
+        "timestamp": _stringify_search_value(row.get("createdAt")),
+        "actorId": str(row.get("actorUserId") or row.get("actorId") or ""),
+        "actorName": str(row.get("actor") or row.get("actorName") or "system/dev"),
+        "action": MODULE3_AUDIT_ACTION_LABELS.get(action_type, action_type or "Изменение"),
+        "objectType": object_type_code,
+        "objectId": str(object_id or ""),
+        "objectName": str(object_name or ""),
+        "details": details_text,
+    }
+
+
+def _module3_object_type_code(row: dict[str, Any]) -> str:
+    if row.get("widgetCode"):
+        return "WIDGET"
+    if row.get("moduleCode"):
+        action_type = str(row.get("actionType") or "")
+        return "ACCESS" if "access" in action_type or "permission" in action_type else "MODULE"
+    object_type = str(row.get("objectType") or "").lower()
+    entity_type = str(row.get("entityType") or "").lower()
+    if "company" in entity_type or object_type == "компания":
+        return "COMPANY"
+    if "workspace" in entity_type or object_type == "сотрудник компании":
+        return "COMPANY"
+    if "system" in entity_type:
+        return "SYSTEM_USER"
+    if "widget" in entity_type or object_type == "виджет":
+        return "WIDGET"
+    if "module" in entity_type or object_type == "модуль":
+        return "MODULE"
+    if "access" in entity_type or "permission" in entity_type:
+        return "ACCESS"
+    return "USER"
+
+
+def _module3_audit_details_text(row: dict[str, Any]) -> str:
+    reason = str(row.get("reason") or row.get("comment") or "")
+    old_value = row.get("oldValue")
+    new_value = row.get("newValue")
+    parts = []
+    if reason:
+        parts.append(reason)
+    if old_value is not None and old_value != "":
+        parts.append(f"Старое значение: {old_value}")
+    if new_value is not None and new_value != "":
+        parts.append(f"Новое значение: {new_value}")
+    if not parts:
+        parts.append(str(row.get("result") or "SUCCESS"))
+    return "; ".join(parts)
 
 
 def change_history_for_admin_panel(history: list[AuditLog], user_data: dict[str, Any]) -> dict[str, Any]:
@@ -3793,8 +3889,11 @@ async def _load_recent_access_history(db: AsyncSession, *, workspace_ids: list[U
     filters = [
         AuditLog.action_type.in_(
             [
+                *MODULE3_AUDIT_ACTION_TYPES,
                 AuditLogType.ROLE_CHANGED.value,
                 AuditLogType.PERMISSION_CHANGED.value,
+                AuditLogType.WIDGET_PERMISSION_CHANGED.value,
+                AuditLogType.MODULE_ACCESS_CHANGED.value,
                 AuditLogType.PLATFORM_MODULE_REGISTRY_CHANGED.value,
                 AuditLogType.WIDGET_REGISTRY_CHANGED.value,
                 AuditLogType.USER_DASHBOARD_LAYOUT_CHANGED.value,

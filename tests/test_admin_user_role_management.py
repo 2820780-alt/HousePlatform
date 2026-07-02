@@ -35,6 +35,7 @@ from app.services.admin_user_role_management import (
     company_module_is_open,
     company_widget_is_open,
     change_history_for_admin_panel,
+    module3_audit_log_entry,
     module3_quick_actions,
     module_registry_overview_summary,
     pending_access_distribution_items,
@@ -402,6 +403,7 @@ async def test_saving_user_type_access_matrix_writes_history_without_replacing_p
 
     assert MOCK_AUDIT_EVENTS[-1]["eventType"] == AuditLogType.MODULE_ACCESS_CHANGED
     assert MOCK_AUDIT_EVENTS[-1]["moduleCode"] == "MODULE_03_USERS_ROLES"
+    assert MOCK_AUDIT_EVENTS[-1]["reason"] == "User type access matrix saved from Module 03 UI adapter."
     assert MOCK_AUDIT_EVENTS[-1]["metadata"]["viewModelOnly"] is True
     assert MOCK_AUDIT_EVENTS[-1]["metadata"]["permissionModelReplaced"] is False
     assert MOCK_AUDIT_EVENTS[-1]["metadata"]["historyWritten"] is True
@@ -534,11 +536,20 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
         "userTypeAccessMatrix": user_type_access_matrix_view_model(),
         "recentAccessHistory": [
             {
+                "id": "audit-1",
+                "timestamp": "2026-06-30 14:35",
                 "createdAt": "2026-06-30 14:35",
+                "actorId": "platform-admin-id",
+                "actorName": "platform-admin",
                 "actor": "platform-admin",
+                "action": "Создание пользователя",
                 "actionType": "Создан пользователь",
+                "objectTypeCode": "USER",
+                "objectId": "user-1",
+                "objectName": "ivan@example.com",
                 "subjectLabel": "ivan@example.com",
                 "objectType": "пользователь",
+                "detailsText": "Стандартная регистрация",
                 "reason": "Стандартная регистрация",
                 "comment": "",
                 "result": "SUCCESS",
@@ -586,7 +597,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Заказчики" in html
     assert "Специалисты" in html
     assert "История изменений" in html
-    assert "Создан пользователь" in html
+    assert "Создание пользователя" in html
     assert "Модули в системе" in html
     assert "24" in html
     assert "Виджеты в системе" in html
@@ -673,11 +684,30 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
 
     summary = audit_log_summary(audit)
     assert summary["objectType"] == "виджет"
+    assert summary["objectTypeCode"] == "WIDGET"
     assert summary["moduleCode"] == "MODULE_11_ANALYTICS"
     assert summary["widgetCode"] == "price-dynamics"
     assert summary["oldValue"] == {"accessLevel": "VIEW"}
     assert summary["newValue"] == {"accessLevel": "NO_ACCESS"}
     assert summary["reason"] == "Закрыто администратором платформы"
+    assert summary["actorId"] == "actor-1"
+    assert summary["actorName"] == "system/dev"
+    assert summary["action"] == "Изменение индивидуального доступа"
+    assert summary["objectId"] == "price-dynamics"
+    assert summary["objectName"] == "price-dynamics"
+    assert "Старое значение" in summary["detailsText"]
+    assert "Новое значение" in summary["detailsText"]
+    assert summary["module3Entry"] == {
+        "id": str(audit.id),
+        "timestamp": "2026-06-30T10:15:00",
+        "actorId": "actor-1",
+        "actorName": "system/dev",
+        "action": "Изменение индивидуального доступа",
+        "objectType": "WIDGET",
+        "objectId": "price-dynamics",
+        "objectName": "price-dynamics",
+        "details": summary["detailsText"],
+    }
 
     history = change_history_for_admin_panel([audit], {"id": "user-1", "name": "User One"})
     assert history["filters"]["authors"] == ["system/dev"]
@@ -700,8 +730,38 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     assert panel["selectedRecord"]["oldValue"] == {"accessLevel": "VIEW"}
     assert panel["selectedRecord"]["newValue"] == {"accessLevel": "NO_ACCESS"}
     assert panel["selectedRecord"]["subjectLabel"] == "price-dynamics"
+    assert panel["selectedRecord"]["module3Entry"]["objectType"] == "WIDGET"
     assert panel["notes"]["oldNewValuesVisible"] is True
     assert panel["notes"]["businessPayloadLogged"] is False
+
+
+def test_module3_audit_log_entry_maps_required_actions_and_objects():
+    entry = module3_audit_log_entry(
+        {
+            "id": "audit-1",
+            "createdAt": "2026-06-30T12:00:00",
+            "actorUserId": "actor-1",
+            "actor": "platform-admin",
+            "actionType": "module_access_changed",
+            "moduleCode": "MODULE_01_MATERIAL_HUB",
+            "subjectLabel": "База материалов",
+            "oldValue": {"allowed": True},
+            "newValue": {"allowed": False},
+            "reason": "Массовое назначение доступа",
+        }
+    )
+
+    assert entry == {
+        "id": "audit-1",
+        "timestamp": "2026-06-30T12:00:00",
+        "actorId": "actor-1",
+        "actorName": "platform-admin",
+        "action": "Изменение доступа по типу пользователя",
+        "objectType": "ACCESS",
+        "objectId": "MODULE_01_MATERIAL_HUB",
+        "objectName": "База материалов",
+        "details": "Массовое назначение доступа; Старое значение: {'allowed': True}; Новое значение: {'allowed': False}",
+    }
 
 
 def test_active_permissions_are_role_matrix_based_and_code_first():
@@ -1062,6 +1122,11 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Действие" in overview
     assert "Объект" in overview
     assert "Детали" in overview
+    assert "{{ item.timestamp }}" in overview
+    assert "{{ item.actorName }}" in overview
+    assert "{{ item.action }}" in overview
+    assert "{{ item.objectName or item.objectTypeCode }}" in overview
+    assert "{{ item.detailsText or item.result }}" in overview
     assert "Модули в системе" in overview
     assert "Виджеты в системе" in overview
     assert "Системные пользователи" in overview
@@ -1129,6 +1194,10 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Кто изменил" in template
     assert "Когда изменил" in template
     assert "Для кого изменил" in template
+    assert "Module3AuditLogEntry: id, timestamp, actorId, actorName, action, objectType, objectId, objectName, details" in template
+    assert "actorId:" in template
+    assert "objectId:" in template
+    assert "Детали:" in template
     assert "Реестр модулей" not in nav
     assert "Виджеты и доступ" not in nav
     assert "Быстрые действия" not in nav
