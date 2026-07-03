@@ -4,7 +4,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -112,6 +112,12 @@ class Module3DemoSeedResult:
     rolesCreated: int = 0
     preferencesCreated: int = 0
     preferencesUpdated: int = 0
+    usersDeleted: int = 0
+    companiesDeleted: int = 0
+    membershipsDeleted: int = 0
+    rolesDeleted: int = 0
+    preferencesDeleted: int = 0
+    dryRun: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -205,6 +211,79 @@ async def seed_module3_demo_data(
 
     await db.flush()
     return result.freeze()
+
+
+async def reset_module3_demo_data(
+    db: AsyncSession,
+    *,
+    environment: str | None = None,
+    enabled: bool | None = None,
+    node_env: str | None = None,
+    dry_run: bool = False,
+) -> Module3DemoSeedResult:
+    effective_environment = environment or settings.APP_ENV
+    require_module3_demo_seed_allowed(app_env=effective_environment, node_env=node_env, enabled=enabled)
+    plan = build_module3_demo_seed_plan(effective_environment)
+    result = _MutableSeedResult(seedCode=plan.seedCode, environment=plan.environment, dryRun=dry_run)
+
+    demo_users = await _demo_users_for_reset(db, plan)
+    demo_workspaces = await _demo_workspaces_for_reset(db, plan)
+    demo_roles = await _demo_roles_for_reset(db, plan)
+    user_ids = {user.id for user in demo_users}
+    workspace_ids = {workspace.id for workspace in demo_workspaces}
+
+    memberships = await _demo_memberships_for_reset(db, user_ids, workspace_ids)
+    assignments = await _demo_role_assignments_for_reset(db, user_ids)
+    preferences = await _demo_preferences_for_reset(db, user_ids)
+
+    result.membershipsDeleted = len(memberships)
+    result.preferencesDeleted = len(preferences)
+    result.usersDeleted = len(demo_users)
+    result.companiesDeleted = len(demo_workspaces)
+    result.rolesDeleted = len(demo_roles)
+
+    if dry_run:
+        return result.freeze()
+
+    for item in memberships:
+        await db.delete(item)
+    for item in assignments:
+        await db.delete(item)
+    for item in preferences:
+        await db.delete(item)
+    for item in demo_workspaces:
+        await db.delete(item)
+    for item in demo_users:
+        await db.delete(item)
+    for item in demo_roles:
+        await db.delete(item)
+    await db.flush()
+    return result.freeze()
+
+
+async def recreate_module3_demo_data(
+    db: AsyncSession,
+    *,
+    environment: str | None = None,
+    enabled: bool | None = None,
+    node_env: str | None = None,
+) -> dict[str, dict[str, Any]]:
+    reset_result = await reset_module3_demo_data(
+        db,
+        environment=environment,
+        enabled=enabled,
+        node_env=node_env,
+    )
+    seed_result = await seed_module3_demo_data(
+        db,
+        environment=environment,
+        enabled=enabled,
+        node_env=node_env,
+    )
+    return {
+        "reset": reset_result.to_dict(),
+        "seed": seed_result.to_dict(),
+    }
 
 
 async def _ensure_roles(
@@ -413,6 +492,99 @@ async def _find_user_demo_metadata(db: AsyncSession, user: User) -> UserPreferen
     return result.scalar_one_or_none()
 
 
+async def _demo_users_for_reset(db: AsyncSession, plan: Module3DemoSeedPlan) -> list[User]:
+    emails = [item.email for item in plan.users]
+    result = await db.execute(select(User).where(User.email.in_(emails)))
+    users = []
+    for user in result.scalars().all():
+        metadata = await _find_user_demo_metadata(db, user)
+        if metadata is not None and _is_demo_payload(metadata.value):
+            users.append(user)
+    return users
+
+
+async def _demo_workspaces_for_reset(db: AsyncSession, plan: Module3DemoSeedPlan) -> list[Workspace]:
+    slugs = [item.slug for item in plan.companies]
+    result = await db.execute(select(Workspace).where(Workspace.slug.in_(slugs)))
+    return [
+        workspace
+        for workspace in result.scalars().all()
+        if _is_demo_workspace(workspace)
+    ]
+
+
+async def _demo_roles_for_reset(db: AsyncSession, plan: Module3DemoSeedPlan) -> list[Role]:
+    role_codes = sorted({role for user in plan.users for role in user.role_codes})
+    result = await db.execute(select(Role).where(Role.role_key.in_(role_codes)))
+    return [
+        role
+        for role in result.scalars().all()
+        if _is_demo_role(role)
+    ]
+
+
+async def _demo_memberships_for_reset(
+    db: AsyncSession,
+    user_ids: set[Any],
+    workspace_ids: set[Any],
+) -> list[WorkspaceMember]:
+    if not user_ids and not workspace_ids:
+        return []
+    filters = []
+    if user_ids:
+        filters.append(WorkspaceMember.user_id.in_(user_ids))
+    if workspace_ids:
+        filters.append(WorkspaceMember.workspace_id.in_(workspace_ids))
+    result = await db.execute(select(WorkspaceMember).where(or_(*filters)))
+    return [
+        item
+        for item in result.scalars().all()
+        if _is_demo_payload(item.permissions)
+    ]
+
+
+async def _demo_role_assignments_for_reset(db: AsyncSession, user_ids: set[Any]) -> list[UserRoleAssignment]:
+    if not user_ids:
+        return []
+    result = await db.execute(select(UserRoleAssignment).where(UserRoleAssignment.user_id.in_(user_ids)))
+    return list(result.scalars().all())
+
+
+async def _demo_preferences_for_reset(db: AsyncSession, user_ids: set[Any]) -> list[UserPreference]:
+    if not user_ids:
+        return []
+    result = await db.execute(
+        select(UserPreference).where(
+            UserPreference.user_id.in_(user_ids),
+            UserPreference.preference_key == MODULE3_DEMO_METADATA_KEY,
+        )
+    )
+    return [
+        item
+        for item in result.scalars().all()
+        if _is_demo_payload(item.value)
+    ]
+
+
+def _is_demo_workspace(workspace: Workspace) -> bool:
+    return _is_demo_payload(workspace.settings)
+
+
+def _is_demo_role(role: Role) -> bool:
+    settings_payload = role.settings or {}
+    return _is_demo_payload(settings_payload.get("demoSeed"))
+
+
+def _is_demo_payload(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    return (
+        value.get("isDemo") is True
+        and value.get("isSeed") is True
+        and value.get("sourceModuleCode") == "MODULE_03_USERS_ROLES"
+    )
+
+
 def _demo_users(environment: str) -> tuple[Module3DemoUserSpec, ...]:
     meta = lambda code: Module3DemoMetadata(demoScenarioCode=code, environment=environment)
     return (
@@ -476,6 +648,12 @@ class _MutableSeedResult:
     rolesCreated: int = 0
     preferencesCreated: int = 0
     preferencesUpdated: int = 0
+    usersDeleted: int = 0
+    companiesDeleted: int = 0
+    membershipsDeleted: int = 0
+    rolesDeleted: int = 0
+    preferencesDeleted: int = 0
+    dryRun: bool = False
 
     def freeze(self) -> Module3DemoSeedResult:
         return Module3DemoSeedResult(**asdict(self))

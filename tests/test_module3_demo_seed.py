@@ -1,9 +1,13 @@
+import json
+
 import pytest
 
+from app.cli import module3_demo_seed as module3_demo_seed_cli
 from app.models.enums import UserStatus
 from app.services.module3_demo_seed import (
     MODULE3_DEMO_METADATA_KEY,
     MODULE3_DEMO_SEED_CODE,
+    Module3DemoSeedResult,
     Module3DemoSeedGuardError,
     build_module3_demo_seed_plan,
     module3_demo_seed_is_allowed,
@@ -104,3 +108,51 @@ def test_module3_demo_seed_plan_is_idempotent_by_natural_keys():
     assert all(email.endswith("@atom.local") for email in emails)
     assert all(slug.startswith("demo-") for slug in slugs)
     assert build_module3_demo_seed_plan("development").to_dict() == plan.to_dict()
+
+
+def test_module3_demo_seed_cli_declares_local_control_commands():
+    parser = module3_demo_seed_cli.build_parser()
+
+    create_args = parser.parse_args(["create", "--environment", "development", "--enable"])
+    reset_args = parser.parse_args(["reset", "--environment", "development", "--enable", "--dry-run"])
+    recreate_args = parser.parse_args(["recreate", "--environment", "demo", "--enable"])
+
+    assert create_args.command == "create"
+    assert create_args.enable is True
+    assert reset_args.command == "reset"
+    assert reset_args.dry_run is True
+    assert recreate_args.command == "recreate"
+    assert recreate_args.environment == "demo"
+
+
+def test_module3_demo_seed_cli_rejects_dry_run_for_create():
+    with pytest.raises(SystemExit):
+        module3_demo_seed_cli.main(["create", "--environment", "development", "--enable", "--dry-run"])
+
+
+def test_module3_demo_seed_cli_plan_runs_without_server(capsys):
+    exit_code = module3_demo_seed_cli.main(["plan", "--environment", "development", "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["seedCode"] == MODULE3_DEMO_SEED_CODE
+    assert payload["metadata"]["isDemo"] is True
+    assert payload["users"]
+    assert payload["companies"]
+
+
+def test_module3_demo_seed_result_reports_reset_counts():
+    result = Module3DemoSeedResult(
+        seedCode=MODULE3_DEMO_SEED_CODE,
+        environment="development",
+        usersDeleted=2,
+        companiesDeleted=1,
+        membershipsDeleted=3,
+        rolesDeleted=4,
+        preferencesDeleted=2,
+        dryRun=True,
+    )
+
+    assert result.to_dict()["dryRun"] is True
+    assert result.to_dict()["usersDeleted"] == 2
+    assert result.to_dict()["companiesDeleted"] == 1
