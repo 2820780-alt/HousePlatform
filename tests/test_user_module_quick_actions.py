@@ -153,3 +153,44 @@ def test_user_quick_action_preference_requires_source_module_code():
         assert "source_module_code is required" in str(exc)
     else:
         raise AssertionError("source_module_code must be required")
+
+
+def test_user_quick_action_preferences_survive_new_and_archived_actions():
+    preferences = [
+        build_user_quick_action_preference(
+            user_id="user-1",
+            quick_action_code="SAMPLE_ARCHIVED_ACTION",
+            source_module_code="MODULE_TEST_SAMPLE",
+            is_enabled=False,
+            is_pinned_in_module=True,
+            is_pinned_on_module_card=True,
+            sort_order=1,
+            disabled_reason="Действие больше недоступно.",
+        ),
+        build_user_quick_action_preference(
+            user_id="user-1",
+            quick_action_code="SAMPLE_OPEN_LIST",
+            source_module_code="MODULE_TEST_SAMPLE",
+            is_enabled=True,
+            is_pinned_in_module=True,
+            is_pinned_on_module_card=True,
+            sort_order=2,
+        ),
+        build_user_quick_action_preference(
+            user_id="user-1",
+            quick_action_code="SAMPLE_NEW_REPORT",
+            source_module_code="MODULE_TEST_SAMPLE",
+            is_enabled=True,
+            is_pinned_in_module=False,
+            is_pinned_on_module_card=False,
+            sort_order=3,
+        ),
+    ]
+
+    module_bar = select_module_bar_preferences(preferences)
+    module_card = select_module_card_preferences(preferences)
+
+    assert [item["quickActionCode"] for item in module_bar] == ["SAMPLE_OPEN_LIST"]
+    assert [item["quickActionCode"] for item in module_card] == ["SAMPLE_OPEN_LIST"]
+    assert all(item["sourceModuleCode"] == "MODULE_TEST_SAMPLE" for item in preferences)
+    assert all("moduleNumber" not in item for item in preferences)

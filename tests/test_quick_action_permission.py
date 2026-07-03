@@ -4,11 +4,48 @@ from app.core.exceptions import ForbiddenError
 from app.services.quick_action_permission import (
     canUseQuickAction,
     can_use_quick_action,
+    can_use_quick_action_item,
     filterAllowedQuickActions,
+    filter_allowed_quick_action_items,
     filter_allowed_quick_actions,
     requireQuickActionPermission,
     require_quick_action_permission,
 )
+
+
+SAMPLE_MODULE_QUICK_ACTIONS = [
+    {
+        "quickActionCode": "SAMPLE_OPEN_LIST",
+        "sourceModuleCode": "MODULE_TEST_SAMPLE",
+        "featureCode": "SAMPLE",
+        "sectionCode": "LIST",
+        "actionCode": "OPEN_LIST",
+        "titleRu": "Открыть список",
+        "actionType": "navigate",
+        "targetRoute": "/modules/sample/list",
+        "requiredPermission": "sample.read",
+        "isEnabledByDefault": False,
+        "isAvailable": True,
+        "maxSurface": "BOTH",
+        "sortOrder": 10,
+    },
+    {
+        "quickActionCode": "SAMPLE_ARCHIVED_ACTION",
+        "sourceModuleCode": "MODULE_TEST_SAMPLE",
+        "featureCode": "SAMPLE",
+        "sectionCode": "LEGACY",
+        "actionCode": "OPEN_ARCHIVED",
+        "titleRu": "Архивное действие",
+        "actionType": "navigate",
+        "targetRoute": "/modules/sample/legacy",
+        "requiredPermission": "sample.read",
+        "isEnabledByDefault": False,
+        "isAvailable": False,
+        "status": "DISABLED",
+        "maxSurface": "BOTH",
+        "sortOrder": 20,
+    },
+]
 
 
 def _user(**overrides):
@@ -158,3 +195,43 @@ def test_filter_allowed_quick_actions_keeps_only_server_allowed_items():
     assert filterAllowedQuickActions(supplier, actions, context) == [
         {"quickActionCode": "SUPPLIER_PRICE_UPLOAD"},
     ]
+
+
+def test_future_module_quick_action_items_filter_by_permissions_without_registry_rewrite():
+    user = _user(
+        allowedActionCodes=["SAMPLE_OPEN_LIST", "SAMPLE_ARCHIVED_ACTION"],
+        moduleAccessRules=[
+            {
+                "moduleCode": "MODULE_TEST_SAMPLE",
+                "accessLevel": "VIEW",
+                "accessScope": "GLOBAL",
+            }
+        ],
+    )
+    context = _context(
+        roleDashboardAccessProfile={"defaultQuickActionCodes": ["SAMPLE_OPEN_LIST", "SAMPLE_ARCHIVED_ACTION"]},
+    )
+
+    assert can_use_quick_action_item(user, SAMPLE_MODULE_QUICK_ACTIONS[0], context)
+    assert not can_use_quick_action_item(user, SAMPLE_MODULE_QUICK_ACTIONS[1], context)
+    assert filter_allowed_quick_action_items(user, SAMPLE_MODULE_QUICK_ACTIONS, context) == [
+        SAMPLE_MODULE_QUICK_ACTIONS[0],
+    ]
+
+    denied_user = _user(
+        allowedActionCodes=["SAMPLE_OPEN_LIST"],
+        moduleAccessRules=[
+            {
+                "moduleCode": "MODULE_TEST_SAMPLE",
+                "accessLevel": "NO_ACCESS",
+                "accessScope": "GLOBAL",
+            }
+        ],
+    )
+    assert not can_use_quick_action_item(denied_user, SAMPLE_MODULE_QUICK_ACTIONS[0], context)
+
+    disabled_context = _context(
+        disabledModuleCodes=["MODULE_TEST_SAMPLE"],
+        roleDashboardAccessProfile={"defaultQuickActionCodes": ["SAMPLE_OPEN_LIST"]},
+    )
+    assert not can_use_quick_action_item(user, SAMPLE_MODULE_QUICK_ACTIONS[0], disabled_context)

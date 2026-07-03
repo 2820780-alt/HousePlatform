@@ -2,14 +2,53 @@ from app.models import QuickActionRegistryItem
 from pathlib import Path
 from app.services.quick_action_registry import (
     QUICK_ACTION_REGISTRY_LAYER,
+    build_quick_action_registry_item,
+    filter_quick_action_registry_items_for_module,
     get_quick_action_registry_items_for_module,
     get_preview_quick_action_registry_items,
     get_quick_action_registry,
     get_quick_action_registry_item,
+    quick_action_registry_item_to_dict,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+SAMPLE_MODULE_QUICK_ACTIONS = [
+    {
+        "quickActionCode": "SAMPLE_OPEN_LIST",
+        "sourceModuleCode": "MODULE_TEST_SAMPLE",
+        "featureCode": "SAMPLE",
+        "sectionCode": "LIST",
+        "actionCode": "OPEN_LIST",
+        "titleRu": "Открыть список",
+        "descriptionRu": "Тестовое действие для проверки расширяемости quick actions.",
+        "actionType": "navigate",
+        "targetRoute": "/modules/sample/list",
+        "requiredPermission": "sample.read",
+        "isEnabledByDefault": False,
+        "isAvailable": True,
+        "maxSurface": "BOTH",
+        "sortOrder": 10,
+    },
+    {
+        "quickActionCode": "SAMPLE_ARCHIVED_ACTION",
+        "sourceModuleCode": "MODULE_TEST_SAMPLE",
+        "featureCode": "SAMPLE",
+        "sectionCode": "LEGACY",
+        "actionCode": "OPEN_ARCHIVED",
+        "titleRu": "Архивное действие",
+        "actionType": "navigate",
+        "targetRoute": "/modules/sample/legacy",
+        "requiredPermission": "sample.read",
+        "isEnabledByDefault": False,
+        "isAvailable": False,
+        "status": "DISABLED",
+        "maxSurface": "BOTH",
+        "sortOrder": 20,
+    },
+]
 
 
 def test_quick_action_registry_is_code_first_and_not_dashboard_hardcode():
@@ -34,6 +73,67 @@ def test_quick_action_registry_is_code_first_and_not_dashboard_hardcode():
     assert supplier_action.requiredAccessLevel == "VIEW"
     assert supplier_action.requiredScope == "LIMITED"
     assert supplier_action.targetRoute == "/api/v1/admin/material-hub/view"
+
+
+def test_quick_action_layer_does_not_branch_by_module_number():
+    files = [
+        ROOT / "app/services/quick_action_registry.py",
+        ROOT / "app/services/quick_action_permission.py",
+        ROOT / "app/services/quick_action_preferences.py",
+        ROOT / "app/services/user_module_quick_actions.py",
+    ]
+    text = "\n".join(path.read_text(encoding="utf-8") for path in files)
+
+    assert "if (moduleNumber" not in text
+    assert "if moduleNumber" not in text
+    assert "if module_number" not in text
+    assert "sourceModuleNumber" not in text
+
+
+def test_future_module_quick_actions_can_use_universal_surface_contract():
+    item = build_quick_action_registry_item(SAMPLE_MODULE_QUICK_ACTIONS[0])
+    payload = quick_action_registry_item_to_dict(SAMPLE_MODULE_QUICK_ACTIONS[0])
+
+    assert item.quickActionCode == "SAMPLE_OPEN_LIST"
+    assert item.sourceModuleCode == "MODULE_TEST_SAMPLE"
+    assert item.featureCode == "SAMPLE"
+    assert item.sectionCode == "LIST"
+    assert item.actionCode == "OPEN_LIST"
+    assert item.requiredPermission == "sample.read"
+    assert item.requiredActionCode == "VIEW"
+    assert item.requiredAccessLevel == "VIEW"
+    assert item.requiredScope == "GLOBAL"
+    assert item.targetRoute == "/modules/sample/list"
+    assert item.maxSurface == "BOTH"
+    assert payload["titleRu"] == "Открыть список"
+    assert payload["sortOrder"] == 10
+    assert "moduleNumber" not in payload
+    assert "sourceModuleNumber" not in payload
+
+    module_bar = filter_quick_action_registry_items_for_module(
+        SAMPLE_MODULE_QUICK_ACTIONS,
+        "MODULE_TEST_SAMPLE",
+        surface="MODULE_BAR",
+    )
+    module_card = filter_quick_action_registry_items_for_module(
+        SAMPLE_MODULE_QUICK_ACTIONS,
+        "MODULE_TEST_SAMPLE",
+        surface="MODULE_CARD",
+    )
+    inactive = filter_quick_action_registry_items_for_module(
+        SAMPLE_MODULE_QUICK_ACTIONS,
+        "MODULE_TEST_SAMPLE",
+        surface="MODULE_CARD",
+        include_inactive=True,
+    )
+
+    assert [action["quickActionCode"] for action in module_bar] == ["SAMPLE_OPEN_LIST"]
+    assert [action["quickActionCode"] for action in module_card] == ["SAMPLE_OPEN_LIST"]
+    assert [action["quickActionCode"] for action in inactive] == [
+        "SAMPLE_OPEN_LIST",
+        "SAMPLE_ARCHIVED_ACTION",
+    ]
+    assert get_quick_action_registry_items_for_module("MODULE_TEST_SAMPLE") == []
 
 
 def test_module3_shell_actions_are_registered_in_platform_quick_action_registry():

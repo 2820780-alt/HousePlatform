@@ -11,7 +11,11 @@ from app.core.system_roles import LEGACY_ADMIN_ROLE_CODES
 from app.services.audit_log_service import record_access_denied_attempt
 from app.services.dashboard_module_registry import get_canonical_module_code, get_dashboard_module_registry_item
 from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
-from app.services.quick_action_registry import QuickActionRegistryItemDefinition, get_quick_action_registry_item
+from app.services.quick_action_registry import (
+    QuickActionRegistryItemDefinition,
+    build_quick_action_registry_item,
+    get_quick_action_registry_item,
+)
 from app.services.role_dashboard_access_profiles import get_role_dashboard_access_profile
 from app.services.widget_permission import can_view_widget
 
@@ -31,6 +35,7 @@ class QuickActionPermissionContext:
     accessScope: str | None = None
     roleCode: str | None = None
     cabinetType: str | None = None
+    disabledModuleCodes: tuple[str, ...] = field(default_factory=tuple)
     roleDashboardAccessProfile: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -45,6 +50,7 @@ class QuickActionPermissionContext:
             accessScope=_first_value(data, "accessScope", "access_scope"),
             roleCode=_first_value(data, "effectiveRoleCode", "roleCode", "role_code", "role"),
             cabinetType=_first_value(data, "activeCabinetType", "cabinetType", "cabinet_type"),
+            disabledModuleCodes=tuple(str(item) for item in _list_value(data.get("disabledModuleCodes"))),
             roleDashboardAccessProfile=data.get("roleDashboardAccessProfile") or data.get("dashboardAccessProfile") or {},
         )
 
@@ -58,12 +64,27 @@ class QuickActionPermissionContext:
             "accessScope": self.accessScope,
             "roleCode": self.roleCode,
             "cabinetType": self.cabinetType,
+            "disabledModuleCodes": list(self.disabledModuleCodes),
             "roleDashboardAccessProfile": self.roleDashboardAccessProfile,
         }
 
 
 def can_use_quick_action(user: Any, quick_action_code: str, context: Any | None = None) -> bool:
     return _quick_action_permission_result(user, quick_action_code, context).allowed
+
+
+def can_use_quick_action_item(
+    user: Any,
+    action: dict[str, Any] | QuickActionRegistryItemDefinition,
+    context: Any | None = None,
+) -> bool:
+    action_definition = build_quick_action_registry_item(action)
+    return _quick_action_permission_result(
+        user,
+        action_definition.quickActionCode,
+        context,
+        action=action_definition,
+    ).allowed
 
 
 def require_quick_action_permission(
@@ -96,6 +117,18 @@ def filter_allowed_quick_actions(user: Any, actions: Sequence[Any], context: Any
     return allowed
 
 
+def filter_allowed_quick_action_items(
+    user: Any,
+    actions: Sequence[dict[str, Any] | QuickActionRegistryItemDefinition],
+    context: Any | None = None,
+) -> list[dict[str, Any] | QuickActionRegistryItemDefinition]:
+    allowed: list[dict[str, Any] | QuickActionRegistryItemDefinition] = []
+    for action in actions:
+        if can_use_quick_action_item(user, action, context):
+            allowed.append(action)
+    return allowed
+
+
 def canUseQuickAction(user: Any, quickActionCode: str, context: Any | None = None) -> bool:
     return can_use_quick_action(user, quickActionCode, context)
 
@@ -120,9 +153,11 @@ def _quick_action_permission_result(
     user: Any,
     quick_action_code: str,
     context: Any | None,
+    *,
+    action: QuickActionRegistryItemDefinition | None = None,
 ) -> _QuickActionPermissionResult:
     permission_context = QuickActionPermissionContext.from_value(_merge_context(user, context))
-    action = get_quick_action_registry_item(quick_action_code)
+    action = action or get_quick_action_registry_item(quick_action_code)
     if action is None:
         return _denied(quick_action_code, "QuickActionRegistry item not found.", permission_context)
 
@@ -132,6 +167,8 @@ def _quick_action_permission_result(
         return _denied(action.quickActionCode, f"Quick action status is {action.status}.", permission_context, action)
     if not action.isAvailable:
         return _denied(action.quickActionCode, "Quick action is not available on this surface.", permission_context, action)
+    if module_code in {canonical_module_code(item) for item in permission_context.disabledModuleCodes}:
+        return _denied(action.quickActionCode, "Module is disabled for this user.", permission_context, action)
     if module_item and module_item.status not in ACTIVE_MODULE_STATUSES:
         return _denied(action.quickActionCode, f"Module status is {module_item.status}.", permission_context, action)
     if module_item and not module_item.isAvailableForDashboard:
