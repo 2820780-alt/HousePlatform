@@ -47,6 +47,31 @@ async def admin_users_roles_view(request: Request, db: DBSession):
     )
 
 
+@router.get("/users")
+async def admin_users_tab_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view#users", status_code=307)
+
+
+@router.get("/access")
+async def admin_access_tab_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view#access-matrix", status_code=307)
+
+
+@router.get("/access-matrix")
+async def admin_access_matrix_tab_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view#access-matrix", status_code=307)
+
+
+@router.get("/history")
+async def admin_history_tab_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view#audit-log", status_code=307)
+
+
+@router.get("/settings")
+async def admin_settings_tab_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view#settings", status_code=307)
+
+
 @router.get("/users/{user_id}", response_class=HTMLResponse)
 async def admin_user_card_view(user_id: UUID, request: Request, db: DBSession):
     actor = _dev_actor()

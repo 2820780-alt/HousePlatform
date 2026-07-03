@@ -1424,6 +1424,10 @@
     data-active-tab="{% if detail %}detail{% else %}overview{% endif %}"
   >
     {% set company_mode = overview.adminScope.isCompanyAdminMode %}
+    {% set fallback_quick_action_settings = detail.moduleQuickActionSettings if detail and detail.moduleQuickActionSettings is defined else {} %}
+    {% set quick_action_settings = overview.moduleQuickActionSettings|default(fallback_quick_action_settings, true) %}
+    {% set fallback_quick_actions = detail.moduleQuickActions if detail and detail.moduleQuickActions is defined else [] %}
+    {% set quick_actions = overview.moduleQuickActions|default(fallback_quick_actions, true) %}
     <div class="control-shell">
       <nav class="module3-nav" aria-label="Разделы Module №3" data-module3-sidebar>
         <div class="module3-nav-title">
@@ -1449,15 +1453,15 @@
           class="module3-quick-actions"
           aria-label="Быстрые действия Module №3"
           data-module3-quick-actions
-          data-quick-action-storage-key="{{ overview.moduleQuickActionSettings.localStorageKey }}"
-          data-max-module-actions="{{ overview.moduleQuickActionSettings.maxModuleActions }}"
-          data-max-card-actions="{{ overview.moduleQuickActionSettings.maxDashboardCardActions }}"
-          data-source-module-code="{{ overview.moduleQuickActionSettings.sourceModuleCode }}"
-          data-storage-layer="{{ overview.moduleQuickActionSettings.storageLayer }}"
+          data-quick-action-storage-key="{{ quick_action_settings.localStorageKey|default('atom:module3:quickActionSettings:v1') }}"
+          data-max-module-actions="{{ quick_action_settings.maxModuleActions|default(9) }}"
+          data-max-card-actions="{{ quick_action_settings.maxDashboardCardActions|default(3) }}"
+          data-source-module-code="{{ quick_action_settings.sourceModuleCode|default('MODULE_03_USERS_ROLES') }}"
+          data-storage-layer="{{ quick_action_settings.storageLayer|default('UserDashboardLayout.layout_settings.moduleQuickActions') }}"
         >
           <div class="module3-quick-actions-title">Быстрые действия</div>
           <div class="module3-quick-actions-list">
-            {% for action in overview.moduleQuickActions %}
+            {% for action in quick_actions %}
             {% if action.visible %}
             <a
               class="module3-action {% if not action.enabled %}disabled{% endif %}"
@@ -1491,20 +1495,20 @@
           <div class="module3-quick-action-dialog">
             <header class="module3-quick-action-modal-head">
               <div>
-                <h2 id="module3-quick-action-settings-title">{{ overview.moduleQuickActionSettings.title }}</h2>
-                <div class="muted">{{ overview.moduleQuickActionSettings.localAdapterNote }}</div>
+                <h2 id="module3-quick-action-settings-title">{{ quick_action_settings.title|default('Настроить быстрые действия') }}</h2>
+                <div class="muted">{{ quick_action_settings.localAdapterNote|default('Настройки быстрых действий Module №3.') }}</div>
               </div>
               <button class="btn" type="button" data-module3-quick-actions-close>Закрыть</button>
             </header>
             <div class="module3-quick-action-modal-body">
               <div class="module3-quick-action-limit-row" aria-label="Лимиты быстрых действий">
-                <span class="chip info">В модуле: <strong data-module3-quick-actions-module-count>0</strong> / {{ overview.moduleQuickActionSettings.maxModuleActions }}</span>
-                <span class="chip info">На карточке Dashboard: <strong data-module3-quick-actions-card-count>0</strong> / {{ overview.moduleQuickActionSettings.maxDashboardCardActions }}</span>
-                <span class="chip" title="{{ overview.moduleQuickActionSettings.storageLayer }}">UserDashboardLayout adapter</span>
+                <span class="chip info">В модуле: <strong data-module3-quick-actions-module-count>0</strong> / {{ quick_action_settings.maxModuleActions|default(9) }}</span>
+                <span class="chip info">На карточке Dashboard: <strong data-module3-quick-actions-card-count>0</strong> / {{ quick_action_settings.maxDashboardCardActions|default(3) }}</span>
+                <span class="chip" title="{{ quick_action_settings.storageLayer|default('UserDashboardLayout.layout_settings.moduleQuickActions') }}">UserDashboardLayout adapter</span>
               </div>
               <div class="module3-quick-action-modal-message" data-module3-quick-action-message aria-live="polite"></div>
               <div class="module3-quick-action-settings-list">
-                {% for action in overview.moduleQuickActionSettings.actions %}
+                {% for action in quick_action_settings.actions|default([], true) %}
                 <article
                   class="module3-quick-action-setting {% if action.isModulePinnedByDefault %}pinned{% endif %} {% if not action.canPin %}disabled{% endif %}"
                   data-quick-action-setting
@@ -1531,7 +1535,7 @@
                     <input type="checkbox" data-module3-quick-action-card-toggle {% if action.isDashboardPinnedByDefault %}checked{% endif %} {% if not action.canPin %}disabled{% endif %}>
                     <span>Dashboard</span>
                   </label>
-                  <input type="number" min="1" max="{{ overview.moduleQuickActionSettings.maxModuleActions }}" value="{{ action.sortOrder }}" data-module3-quick-action-order {% if not action.canPin %}disabled{% endif %} aria-label="Порядок {{ action.label }}">
+                  <input type="number" min="1" max="{{ quick_action_settings.maxModuleActions|default(9) }}" value="{{ action.sortOrder }}" data-module3-quick-action-order {% if not action.canPin %}disabled{% endif %} aria-label="Порядок {{ action.label }}">
                 </article>
                 {% endfor %}
               </div>

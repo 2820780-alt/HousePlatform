@@ -1,13 +1,16 @@
+import asyncio
 import uuid
 from datetime import datetime
 
 import pytest
 from fastapi.testclient import TestClient
 from jinja2 import Environment, FileSystemLoader
+from sqlalchemy import select
 
 from app.main import app
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
+from app.database import async_session_factory
 from app.models import AuditLog, FunctionAccess, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole, UserStatus
 from app.services.audit_log_service import AuditLogType, MOCK_AUDIT_EVENTS, clear_mock_audit_events
@@ -652,8 +655,20 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
         atom_topbar_current_block="Пользователи и роли",
         atom_topbar_profile_name="Администратор",
     )
+    overview_without_quick_settings = dict(overview)
+    overview_without_quick_settings.pop("moduleQuickActions", None)
+    overview_without_quick_settings.pop("moduleQuickActionSettings", None)
+    fallback_html = template.render(
+        mode="list",
+        overview=overview_without_quick_settings,
+        detail=None,
+        disable_confirmation="DISABLE_USER",
+        atom_topbar_current_block="Пользователи и роли",
+        atom_topbar_profile_name="Администратор",
+    )
 
     assert 'data-user-type="COMPANY"' in html
+    assert 'data-quick-action-storage-key="atom:module3:quickActionSettings:v1"' in fallback_html
     assert "Компании" in html
     assert "Поставщики" in html
     assert "Заказчики" in html
@@ -1178,6 +1193,11 @@ def test_admin_users_roles_view_route_is_registered():
     paths = {route.path for route in admin_users_roles_router.routes}
 
     assert "/admin/users-roles/view" in paths
+    assert "/admin/users-roles/view/users" in paths
+    assert "/admin/users-roles/view/access" in paths
+    assert "/admin/users-roles/view/access-matrix" in paths
+    assert "/admin/users-roles/view/history" in paths
+    assert "/admin/users-roles/view/settings" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
     assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
@@ -1199,6 +1219,34 @@ def test_app_lifespan_disposes_db_engine_between_local_clients():
 
     with TestClient(app) as client:
         assert client.get("/admin/users-roles/view", follow_redirects=False).status_code == 307
+
+
+def test_app_lifespan_discards_connections_opened_on_previous_event_loop():
+    async def touch_db_on_temporary_loop() -> None:
+        async with async_session_factory() as session:
+            await session.execute(select(User.id).limit(1))
+
+    asyncio.run(touch_db_on_temporary_loop())
+
+    with TestClient(app) as client:
+        assert client.get("/api/v1/health").status_code == 200
+
+
+def test_module3_tab_routes_redirect_to_hash_based_shell():
+    client = TestClient(app)
+
+    expected = {
+        "/api/v1/admin/users-roles/view/users": "/api/v1/admin/users-roles/view#users",
+        "/api/v1/admin/users-roles/view/access": "/api/v1/admin/users-roles/view#access-matrix",
+        "/api/v1/admin/users-roles/view/access-matrix": "/api/v1/admin/users-roles/view#access-matrix",
+        "/api/v1/admin/users-roles/view/history": "/api/v1/admin/users-roles/view#audit-log",
+        "/api/v1/admin/users-roles/view/settings": "/api/v1/admin/users-roles/view#settings",
+    }
+
+    for path, location in expected.items():
+        response = client.get(path, follow_redirects=False)
+        assert response.status_code == 307
+        assert response.headers["location"] == location
 
 
 def test_admin_users_roles_template_has_sprint8_responsive_contracts():
@@ -1317,9 +1365,11 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'data-max-surface="{{ action.maxSurface }}"' in template
     assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
     assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
-    assert 'data-quick-action-storage-key="{{ overview.moduleQuickActionSettings.localStorageKey }}"' in template
-    assert 'data-max-module-actions="{{ overview.moduleQuickActionSettings.maxModuleActions }}"' in template
-    assert 'data-max-card-actions="{{ overview.moduleQuickActionSettings.maxDashboardCardActions }}"' in template
+    assert "quick_action_settings = overview.moduleQuickActionSettings|default" in template
+    assert "quick_actions = overview.moduleQuickActions|default" in template
+    assert 'data-quick-action-storage-key="{{ quick_action_settings.localStorageKey|default' in template
+    assert 'data-max-module-actions="{{ quick_action_settings.maxModuleActions|default(9) }}"' in template
+    assert 'data-max-card-actions="{{ quick_action_settings.maxDashboardCardActions|default(3) }}"' in template
     assert "Настроить быстрые действия" in template
     assert "data-module3-quick-actions-configure" in template
     assert "data-module3-quick-action-modal" in template

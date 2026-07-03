@@ -23,6 +23,7 @@ class Base(DeclarativeBase):
 async def init_db() -> None:
     import app.models  # noqa: F401
 
+    await engine.dispose(close=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
