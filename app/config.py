@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Admin seed
     ADMIN_EMAIL: str = "admin@buildplatform.ru"
     ADMIN_PASSWORD: str = "admin123"
+    ENABLE_MODULE3_DEMO_USERS: bool = False
 
     # Ollama
     OLLAMA_BASE_URL: str = "http://ollama:11434"

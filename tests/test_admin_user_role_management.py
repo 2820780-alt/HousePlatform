@@ -467,6 +467,17 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
                 "lastActivity": "2026-06-30 13:55",
                 "isPlaceholder": False,
             },
+            {
+                "login": "support-admin",
+                "displayName": "support-admin",
+                "email": "",
+                "roleTitle": "Поддержка",
+                "purpose": "Помощь администраторам.",
+                "status": "active",
+                "statusLabel": "Активен",
+                "lastActivity": "2026-06-30 13:30",
+                "isPlaceholder": False,
+            },
         ],
         "userDirectoryRows": [
             {
@@ -613,6 +624,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "platform-admin" in html
     assert "super-admin" in html
     assert "moderator" in html
+    assert "support-admin" in html
     assert "Summary chips по типам пользователей" in html
     assert "Поиск по ФИО, компании, email, телефону, ИНН / ID" in html
     assert "Фильтр по типу пользователя" in html
@@ -967,9 +979,11 @@ def test_module3_overview_widgets_summarize_user_types_registry_and_system_users
     super_admin.name = "super-admin"
     moderator = _user_with_assignment("MODERATOR")
     moderator.name = "moderator"
+    support_admin = _user_with_assignment("SUPPORT_ADMIN")
+    support_admin.name = "support-admin"
 
     widgets = user_type_summary_widgets(
-        [customer, specialist, platform_admin, super_admin, moderator],
+        [customer, specialist, platform_admin, super_admin, moderator, support_admin],
         [company, supplier, blocked_company],
     )
     by_code = {widget["userTypeCode"]: widget for widget in widgets}
@@ -991,9 +1005,9 @@ def test_module3_overview_widgets_summarize_user_types_registry_and_system_users
     assert widget_summary["total"] >= widget_summary["active"]
     assert widget_summary["inDevelopment"] >= 0
 
-    system_cards = system_user_cards([platform_admin, super_admin, moderator], recent_history=[])
+    system_cards = system_user_cards([platform_admin, super_admin, moderator, support_admin], recent_history=[])
     system_logins = {card["login"] for card in system_cards}
-    assert system_logins == {"platform-admin", "super-admin", "moderator"}
+    assert system_logins == {"platform-admin", "super-admin", "moderator", "support-admin"}
     assert all("roleTitle" in card for card in system_cards)
 
 

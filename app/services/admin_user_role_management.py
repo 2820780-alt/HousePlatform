@@ -181,6 +181,12 @@ SYSTEM_USER_CARD_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "roleTitle": "Модератор",
         "purpose": "Модерация пользователей, компаний и изменений доступа.",
     },
+    {
+        "login": "support-admin",
+        "roleCodes": {"SUPPORT_ADMIN", "PLATFORM_ADMIN"},
+        "roleTitle": "Поддержка",
+        "purpose": "Помощь администраторам, проверка обращений и сопровождение доступа.",
+    },
 )
 
 ACCESS_RESOLUTION_SOURCES: tuple[str, ...] = (
