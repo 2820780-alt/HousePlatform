@@ -840,6 +840,7 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 company.get("title") if company else "",
             )
         )
+        blocking_state = "blocked" if _user_is_blocked(user) else "not_blocked"
         rows.append(
             {
                 "id": f"user-{user_data['id']}",
@@ -851,16 +852,18 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "organizationLabel": primary_workspace.get("roleTitle") if primary_workspace else "не связан с компанией",
                 "contacts": _contact_lines(user_data.get("email"), user_data.get("phone")),
                 "status": user_data["status"],
-                "statusLabel": user_data["status"] or "не задан",
+                "statusLabel": _directory_status_label(user_data["status"], blocking_state),
                 "moduleCount": user_data["allowedModuleCount"],
                 "widgetCount": user_data["allowedWidgetCount"],
                 "moduleLabel": f"{user_data['allowedModuleCount']} модулей",
                 "widgetLabel": f"{user_data['allowedWidgetCount']} виджетов",
-                "blocking": "blocked" if _user_is_blocked(user) else "not_blocked",
-                "blockingLabel": "Да" if _user_is_blocked(user) else "—",
+                "blocking": blocking_state,
+                "blockingLabel": "Да" if blocking_state == "blocked" else "—",
                 "activity": "has_activity" if last_activity else "no_activity",
                 "lastActivity": last_activity or "нет данных",
+                "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
                 "registeredAt": registered_at or "",
+                "registeredAtCompact": _compact_datetime_label(registered_at) or "—",
                 "region": _company_region_label(company),
                 "moduleAccess": "has_modules" if user_data["allowedModuleCount"] else "no_modules",
                 "isWithoutCompany": primary_workspace is None,
@@ -893,6 +896,7 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 _get_value(workspace, "organization_id"),
             )
         )
+        blocking_state = "not_blocked" if company["isActive"] else "blocked"
         rows.append(
             {
                 "id": f"company-{company['id']}",
@@ -904,16 +908,18 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "organizationLabel": company["type"],
                 "contacts": _contact_lines(company["adminTitle"], _get_value(workspace, "organization_id")),
                 "status": str(company["status"] or "").lower(),
-                "statusLabel": company["status"],
+                "statusLabel": _directory_status_label(company["status"], blocking_state),
                 "moduleCount": None,
                 "widgetCount": None,
                 "moduleLabel": company["moduleAccessState"],
                 "widgetLabel": company["widgetAccessState"],
-                "blocking": "not_blocked" if company["isActive"] else "blocked",
-                "blockingLabel": "—" if company["isActive"] else "Да",
+                "blocking": blocking_state,
+                "blockingLabel": "—" if blocking_state == "not_blocked" else "Да",
                 "activity": "has_activity" if last_activity else "no_activity",
                 "lastActivity": last_activity or "нет данных",
+                "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
                 "registeredAt": registered_at or "",
+                "registeredAtCompact": _compact_datetime_label(registered_at) or "—",
                 "region": _company_region_label(company),
                 "moduleAccess": "has_modules" if company["isActive"] else "no_modules",
                 "isWithoutCompany": False,
@@ -3543,6 +3549,21 @@ def _system_user_status_label(status: Any) -> str:
     if normalized:
         return normalized
     return "Не настроен"
+
+
+def _directory_status_label(status: Any, blocking_state: str) -> str:
+    if blocking_state == "blocked":
+        return "Заблокирован"
+    normalized = _status_value(status)
+    if normalized == "active":
+        return "Активен"
+    if normalized in {"pending", "moderation", "review", "on_moderation"}:
+        return "На модерации"
+    if normalized in {"invited", "invite_sent"}:
+        return "Приглашен"
+    if normalized in {"disabled", "archived", "deleted"}:
+        return "Отключен"
+    return normalized or "Не задан"
 
 
 def _latest_user_activity(user: User | None, recent_history: list[AuditLog]) -> Any:

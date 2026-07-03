@@ -1089,16 +1089,24 @@
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 16px;
-      padding: 18px 14px 22px;
+      padding: 16px 10px 22px;
     }
     .user-directory-summary .chip {
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
       border-color: rgba(119, 172, 255, 0.24);
       justify-content: flex-start;
-      min-height: 86px;
-      padding: 16px 18px;
+      min-height: 78px;
+      padding: 14px 18px 14px 14px;
       border-radius: 8px;
-      background: linear-gradient(145deg, rgba(10, 28, 67, 0.78), rgba(4, 12, 31, 0.9));
+      background:
+        linear-gradient(145deg, rgba(10, 28, 67, 0.72), rgba(4, 12, 31, 0.92)),
+        radial-gradient(circle at 88% 22%, rgba(24, 215, 242, 0.08), transparent 84px);
       font-size: 14px;
+      text-align: left;
+      cursor: pointer;
     }
     .user-directory-summary .chip.active {
       border-color: rgba(24, 215, 242, 0.64);
@@ -1106,25 +1114,145 @@
       background: rgba(24, 215, 242, 0.12);
       box-shadow: 0 0 24px rgba(24, 215, 242, 0.12);
     }
+    .directory-chip-icon {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(24, 215, 242, 0.32);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+      box-shadow: 0 0 22px rgba(24, 215, 242, 0.1);
+    }
+    .directory-chip-icon::before,
+    .directory-chip-icon::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .directory-chip-icon--all::before {
+      width: 21px;
+      height: 21px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+    }
+    .directory-chip-icon--all::after {
+      width: 28px;
+      height: 14px;
+      bottom: 9px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 18px 18px;
+      opacity: 0.75;
+    }
+    .directory-chip-icon--company::before {
+      width: 22px;
+      height: 28px;
+      border: 2px solid currentColor;
+      box-shadow: inset 7px 0 0 rgba(24, 215, 242, 0.1);
+    }
+    .directory-chip-icon--company::after {
+      width: 3px;
+      height: 3px;
+      background: currentColor;
+      box-shadow: -6px -7px 0 currentColor, 1px -7px 0 currentColor, 8px -7px 0 currentColor, -6px 3px 0 currentColor, 1px 3px 0 currentColor, 8px 3px 0 currentColor;
+    }
+    .directory-chip-icon--supplier::before {
+      width: 24px;
+      height: 24px;
+      border: 2px solid currentColor;
+      border-radius: 4px;
+      transform: rotate(30deg) skewY(-16deg);
+    }
+    .directory-chip-icon--customer::before {
+      width: 14px;
+      height: 14px;
+      top: 11px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      box-shadow: -11px 9px 0 -5px currentColor, 11px 9px 0 -5px currentColor;
+    }
+    .directory-chip-icon--customer::after {
+      width: 32px;
+      height: 15px;
+      bottom: 10px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 18px 18px;
+    }
+    .directory-chip-icon--specialist::before {
+      width: 27px;
+      height: 16px;
+      top: 12px;
+      border: 2px solid currentColor;
+      border-bottom: 0;
+      border-radius: 18px 18px 0 0;
+    }
+    .directory-chip-icon--specialist::after {
+      width: 24px;
+      height: 22px;
+      bottom: 8px;
+      border: 2px solid currentColor;
+      border-top: 3px solid currentColor;
+      border-radius: 13px 13px 8px 8px;
+    }
+    .directory-chip-text span,
+    .directory-chip-text strong {
+      display: block;
+    }
+    .directory-chip-text span {
+      color: var(--muted);
+      font-size: 13px;
+    }
     .user-directory-summary .chip strong {
       display: block;
       margin-left: 0;
       color: var(--text);
-      font-size: 24px;
+      font-size: 26px;
+      line-height: 1.1;
     }
     .directory-toolbar {
       display: grid;
       gap: 10px;
-      padding: 14px;
-      border-top: 1px solid rgba(119, 172, 255, 0.1);
-      border-bottom: 1px solid rgba(119, 172, 255, 0.1);
-      background: rgba(5, 12, 30, 0.26);
+      padding: 0 10px 16px;
+      border: 0;
+      background: transparent;
     }
     .directory-toolbar .filter-row {
+      display: grid;
+      grid-template-columns: minmax(280px, 1.4fr) repeat(3, minmax(142px, 0.62fr)) minmax(170px, 0.72fr) minmax(145px, 0.58fr) auto;
+      align-items: center;
+      gap: 12px;
       padding: 0;
+      border: 0;
     }
     .directory-search {
-      width: min(100%, 360px) !important;
+      width: 100% !important;
+    }
+    .directory-toolbar select,
+    .directory-toolbar input {
+      width: 100% !important;
+      min-height: 42px;
+      border-color: rgba(119, 172, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.66);
+      color: var(--text);
+    }
+    .directory-toolbar select {
+      appearance: auto;
+    }
+    .directory-advanced-filter {
+      display: none;
+    }
+    .directory-reset-button {
+      min-height: 42px;
+      padding-inline: 14px;
+      white-space: nowrap;
+      color: var(--cyan);
+      border-color: rgba(24, 215, 242, 0.28);
+      background: rgba(24, 215, 242, 0.08);
     }
     .directory-pagination {
       display: flex;
@@ -1132,9 +1260,10 @@
       gap: 8px;
       align-items: center;
       justify-content: space-between;
-      padding: 10px;
+      padding: 12px 16px;
       color: var(--muted);
       border-top: 1px solid rgba(119, 172, 255, 0.1);
+      background: rgba(5, 12, 30, 0.4);
     }
     .pagination-controls {
       display: flex;
@@ -1163,12 +1292,27 @@
       background: rgba(5, 12, 30, 0.36);
       scrollbar-color: rgba(24, 215, 242, 0.38) rgba(5, 12, 30, 0.62);
     }
+    .user-directory-table-wrap {
+      margin: 0 10px 12px;
+      overflow: hidden;
+      border-color: rgba(119, 172, 255, 0.18);
+      background: linear-gradient(145deg, rgba(7, 18, 44, 0.72), rgba(4, 10, 27, 0.92));
+    }
+    .user-directory-scroll {
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-color: rgba(24, 215, 242, 0.38) rgba(5, 12, 30, 0.62);
+    }
     .entity-table,
     .access-matrix-table {
       width: 100%;
       min-width: 980px;
       border-collapse: collapse;
       font-size: 12px;
+    }
+    .user-directory-table {
+      min-width: 1320px;
+      font-size: 13px;
     }
     .access-matrix-table {
       min-width: 1120px;
@@ -1191,6 +1335,16 @@
       color: var(--muted);
       font-weight: 700;
       background: rgba(5, 12, 30, 0.36);
+    }
+    .user-directory-table th,
+    .user-directory-table td {
+      padding: 13px 14px;
+      vertical-align: middle;
+    }
+    .user-directory-table th {
+      color: #b8c8ee;
+      font-size: 13px;
+      background: rgba(10, 25, 56, 0.72);
     }
     .entity-table th:first-child,
     .entity-table td:first-child,
@@ -1218,6 +1372,34 @@
     .entity-table a {
       color: var(--text);
       font-weight: 700;
+    }
+    .user-directory-name-link {
+      color: #54dfff !important;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .user-directory-cell-stack {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .user-directory-cell-stack small {
+      color: var(--muted);
+    }
+    .user-directory-type-chip,
+    .user-directory-status-chip,
+    .user-directory-block-chip {
+      justify-content: center;
+      min-width: 86px;
+      max-width: 128px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-directory-status-chip {
+      border-radius: 8px;
+    }
+    .user-directory-block-chip.danger {
+      max-width: 116px;
     }
     .entity-table small {
       display: block;
@@ -2748,8 +2930,12 @@
         </div>
         <div class="user-directory-summary" aria-label="Summary chips по типам пользователей: Все, Компании, Поставщики, Заказчики, Специалисты">
           {% for chip in overview.userDirectoryChips %}
-          <button class="chip {% if chip.typeCode == 'ALL' %}active{% endif %}" type="button" data-directory-chip data-type-filter-value="{{ chip.typeCode }}">
-            {{ chip.label }} <strong>{{ chip.count }}</strong>
+          <button class="chip directory-chip {% if chip.typeCode == 'ALL' %}active{% endif %}" type="button" data-directory-chip data-type-filter-value="{{ chip.typeCode }}">
+            <span class="directory-chip-icon {% if chip.typeCode == 'ALL' %}directory-chip-icon--all{% elif chip.typeCode == 'COMPANY' %}directory-chip-icon--company{% elif chip.typeCode == 'SUPPLIER' %}directory-chip-icon--supplier{% elif chip.typeCode == 'CUSTOMER' %}directory-chip-icon--customer{% else %}directory-chip-icon--specialist{% endif %}" aria-hidden="true"></span>
+            <span class="directory-chip-text">
+              <span>{{ chip.label }}</span>
+              <strong>{{ chip.count }}</strong>
+            </span>
           </button>
           {% endfor %}
         </div>
@@ -2759,9 +2945,10 @@
             <input class="directory-search" data-user-search aria-label="Поиск по ФИО, названию компании, email, телефону, ИНН или ID" placeholder="Поиск по ФИО, компании, email, телефону, ИНН / ID">
             <select data-user-type-filter aria-label="Фильтр по типу пользователя">
               <option value="ALL">Все типы</option>
-              {% for option in overview.userDirectoryFilters.types %}
-              <option value="{{ option.value }}">{{ option.label }}</option>
-              {% endfor %}
+              <option value="COMPANY">Компании</option>
+              <option value="SUPPLIER">Поставщики</option>
+              <option value="CUSTOMER">Заказчики</option>
+              <option value="SPECIALIST">Специалисты</option>
             </select>
             <select data-user-status-filter aria-label="Фильтр по статусу">
               <option value="ALL">Все статусы</option>
@@ -2774,18 +2961,18 @@
               <option value="blocked">Заблокированные</option>
               <option value="not_blocked">Без блокировки</option>
             </select>
-            <select data-user-activity-filter aria-label="Фильтр по активности">
+            <select class="directory-advanced-filter" data-user-activity-filter aria-label="Фильтр по активности">
               <option value="ALL">Любая активность</option>
               <option value="has_activity">Есть активность</option>
               <option value="no_activity">Нет активности</option>
             </select>
-            <select data-user-region-filter aria-label="Фильтр по региону">
+            <select class="directory-advanced-filter" data-user-region-filter aria-label="Фильтр по региону">
               <option value="ALL">Все регионы</option>
               {% for option in overview.userDirectoryFilters.regions %}
               <option value="{{ option.value }}">{{ option.label }}</option>
               {% endfor %}
             </select>
-            <select data-user-module-filter aria-label="Фильтр по доступу к модулю">
+            <select class="directory-advanced-filter" data-user-module-filter aria-label="Фильтр по доступу к модулю">
               <option value="ALL">Любой доступ к модулю</option>
               {% for option in overview.userDirectoryFilters.moduleAccess %}
               <option value="{{ option.value }}">{{ option.label }}</option>
@@ -2793,15 +2980,21 @@
             </select>
             <select data-user-sort aria-label="Сортировка пользователей">
               <option value="type">Сортировать по типу</option>
-              <option value="name">Сортировать по имени / наименованию</option>
+              <option value="name">Сортировать по имени</option>
               <option value="registered">Сортировать по дате регистрации</option>
               <option value="last_activity">Сортировать по последней активности</option>
             </select>
+            <select data-user-name-order aria-label="Сортировка по имени">
+              <option value="asc">A → Я</option>
+              <option value="desc">Я → A</option>
+            </select>
+            <button class="btn directory-reset-button" type="button" data-user-reset-filters>Сбросить фильтры</button>
           </div>
         </div>
 
-        <div class="table-wrap" data-user-directory>
-          <table class="entity-table" aria-label="Единый список пользователей">
+        <div class="table-wrap user-directory-table-wrap" data-user-directory>
+          <div class="user-directory-scroll">
+          <table class="entity-table user-directory-table" aria-label="Единый список пользователей">
             <thead>
               <tr>
                 <th>Тип</th>
@@ -2834,27 +3027,33 @@
                 data-registered-at="{{ row.registeredAt }}"
                 data-last-activity="{{ row.lastActivity }}"
               >
-                <td><span class="chip info">{{ row.typeLabel }}</span></td>
+                <td><span class="chip info user-directory-type-chip">{{ row.typeLabel }}</span></td>
                 <td>
-                  <a href="{{ row.cardUrl }}">{{ row.displayName }}</a>
-                  <small>{{ row.subjectKind }} · ID: {{ row.id }}</small>
+                  <div class="user-directory-cell-stack">
+                    <a class="user-directory-name-link" href="{{ row.cardUrl }}">{{ row.displayName }}</a>
+                    <small>{{ row.subjectKind }} · ID: {{ row.id }}</small>
+                  </div>
                 </td>
                 <td>
-                  <span>{{ row.companyName }}</span>
-                  <small>{{ row.organizationLabel }}</small>
+                  <div class="user-directory-cell-stack">
+                    <span>{{ row.companyName }}</span>
+                    <small>{{ row.organizationLabel }}</small>
+                  </div>
                 </td>
                 <td>
+                  <div class="user-directory-cell-stack">
                   {% for contact in row.contacts %}
                   <span>{{ contact }}</span>
                   {% else %}
                   <span class="muted">контакты не заданы</span>
                   {% endfor %}
+                  </div>
                 </td>
-                <td><span class="chip {% if row.status == 'active' or row.status == 'ACTIVE' %}ok{% elif row.blocking == 'blocked' %}danger{% else %}warn{% endif %}">{{ row.statusLabel }}</span></td>
+                <td><span class="chip user-directory-status-chip {% if row.blocking == 'blocked' %}danger{% elif row.status == 'active' or row.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ row.statusLabel }}</span></td>
                 <td>{{ row.moduleLabel }}</td>
                 <td>{{ row.widgetLabel }}</td>
-                <td><span class="chip {% if row.blocking == 'blocked' %}danger{% else %}ok{% endif %}">{{ row.blockingLabel }}</span></td>
-                <td>{{ row.lastActivity }}</td>
+                <td><span class="chip user-directory-block-chip {% if row.blocking == 'blocked' %}danger{% else %}ok{% endif %}">{{ row.blockingLabel }}</span></td>
+                <td title="{{ row.lastActivity }}">{{ row.lastActivityCompact or row.lastActivity }}</td>
               </tr>
               {% endfor %}
               <tr data-directory-empty {% if overview.userDirectoryRows %}hidden{% endif %}>
@@ -2862,13 +3061,15 @@
               </tr>
             </tbody>
           </table>
+          </div>
           <div class="directory-pagination" data-user-pagination>
-            <span data-user-page-summary>Показано 0 записей</span>
+            <span data-user-page-summary>Показано 0 пользователей</span>
             <div class="pagination-controls">
+              <span>На странице:</span>
               <select data-user-page-size aria-label="На странице">
-                <option value="8">8 на странице</option>
-                <option value="25">25 на странице</option>
-                <option value="50">50 на странице</option>
+                <option value="8">8</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
               </select>
               <button class="btn" type="button" data-user-page-prev>Назад</button>
               <span class="chip" data-user-page-number>1</span>
@@ -4390,6 +4591,8 @@
       const regionFilter = document.querySelector("[data-user-region-filter]");
       const moduleFilter = document.querySelector("[data-user-module-filter]");
       const sortSelect = document.querySelector("[data-user-sort]");
+      const nameOrderSelect = document.querySelector("[data-user-name-order]");
+      const resetFilters = document.querySelector("[data-user-reset-filters]");
       const pageSizeSelect = document.querySelector("[data-user-page-size]");
       const pagePrev = document.querySelector("[data-user-page-prev]");
       const pageNext = document.querySelector("[data-user-page-next]");
@@ -4430,11 +4633,13 @@
 
       const sortedRows = (items) => {
         const mode = getValue(sortSelect);
+        const nameDirection = getValue(nameOrderSelect) === "desc" ? -1 : 1;
+        const compareNames = (a, b) => (a.dataset.sortName || "").localeCompare(b.dataset.sortName || "") * nameDirection;
         return [...items].sort((a, b) => {
-          if (mode === "name") return (a.dataset.sortName || "").localeCompare(b.dataset.sortName || "");
+          if (mode === "name") return compareNames(a, b);
           if (mode === "registered") return parseDate(b.dataset.registeredAt) - parseDate(a.dataset.registeredAt);
           if (mode === "last_activity") return parseDate(b.dataset.lastActivity) - parseDate(a.dataset.lastActivity);
-          return (a.dataset.sortType || "").localeCompare(b.dataset.sortType || "") || (a.dataset.sortName || "").localeCompare(b.dataset.sortName || "");
+          return (a.dataset.sortType || "").localeCompare(b.dataset.sortType || "") || compareNames(a, b);
         });
       };
 
@@ -4454,7 +4659,7 @@
         if (pageSummary) {
           const first = filtered.length ? pageStart + 1 : 0;
           const last = Math.min(pageStart + pageSize, filtered.length);
-          pageSummary.textContent = `Показано ${first}-${last} из ${filtered.length} записей`;
+          pageSummary.textContent = `Показано ${first}-${last} из ${filtered.length} пользователей`;
         }
         if (pagePrev) pagePrev.disabled = currentPage <= 1;
         if (pageNext) pageNext.disabled = currentPage >= totalPages;
@@ -4470,7 +4675,7 @@
         });
       });
 
-      [search, typeFilter, statusFilter, blockingFilter, activityFilter, regionFilter, moduleFilter, sortSelect, pageSizeSelect].forEach((control) => {
+      [search, typeFilter, statusFilter, blockingFilter, activityFilter, regionFilter, moduleFilter, sortSelect, nameOrderSelect, pageSizeSelect].forEach((control) => {
         control?.addEventListener("input", () => {
           quickActionFilter = "ALL";
           currentPage = 1;
@@ -4481,6 +4686,18 @@
           currentPage = 1;
           render();
         });
+      });
+      resetFilters?.addEventListener("click", () => {
+        if (search) search.value = "";
+        [typeFilter, statusFilter, blockingFilter, activityFilter, regionFilter, moduleFilter].forEach((control) => {
+          if (control) control.value = "ALL";
+        });
+        if (sortSelect) sortSelect.value = "type";
+        if (nameOrderSelect) nameOrderSelect.value = "asc";
+        quickActionFilter = "ALL";
+        chips.forEach((item) => item.classList.toggle("active", item.dataset.typeFilterValue === "ALL"));
+        currentPage = 1;
+        render();
       });
       pagePrev?.addEventListener("click", () => {
         currentPage = Math.max(1, currentPage - 1);
