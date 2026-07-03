@@ -8,7 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models import Role, User, UserPreference, UserRoleAssignment, Workspace, WorkspaceMember
+from app.models import FunctionAccess, ModuleAccess, Role, User, UserPreference, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole, UserStatus
 
 
@@ -16,6 +16,7 @@ MODULE3_DEMO_SEED_CODE = "MODULE3_DEMO_USERS_V1"
 MODULE3_DEMO_ENVIRONMENTS = {"development", "demo", "staging"}
 MODULE3_DEMO_METADATA_KEY = "module3_demo_seed_metadata"
 MODULE3_DEMO_PASSWORD_HASH = "module3-demo-seed-password-hash"
+MODULE3_DEMO_ACCESS_TEMPLATE_KEY = "module3_demo_access_template"
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,68 @@ class Module3DemoEmployeeSpec:
 
 
 @dataclass(frozen=True)
+class Module3DemoModuleAccessSpec:
+    moduleCode: str
+    accessLevel: str
+    accessScope: str
+    sourceLabel: str = "По типу пользователя"
+    runtimeModuleCode: str | None = None
+    isLimited: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class Module3DemoWidgetAccessSpec:
+    widgetCode: str
+    moduleCode: str
+    accessLevel: str
+    accessScope: str
+    sourceLabel: str = "По типу пользователя"
+    isLimited: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class Module3DemoAccessTemplateSpec:
+    userTypeCode: str
+    title: str
+    moduleAccess: tuple[Module3DemoModuleAccessSpec, ...]
+    widgetAccess: tuple[Module3DemoWidgetAccessSpec, ...] = ()
+    deniedModuleCodes: tuple[str, ...] = ()
+    notes: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "userTypeCode": self.userTypeCode,
+            "title": self.title,
+            "moduleAccess": [item.to_dict() for item in self.moduleAccess],
+            "widgetAccess": [item.to_dict() for item in self.widgetAccess],
+            "deniedModuleCodes": list(self.deniedModuleCodes),
+            "notes": list(self.notes),
+        }
+
+
+@dataclass(frozen=True)
+class Module3DemoAccessOverrideSpec:
+    user_email: str
+    scenarioCode: str
+    sourceLabel: str
+    moduleCode: str | None = None
+    widgetCode: str | None = None
+    featureCode: str | None = None
+    accessLevel: str = "VIEW"
+    accessScope: str = "OWN"
+    reason: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
 class Module3DemoSeedPlan:
     seedCode: str
     environment: str
@@ -87,6 +150,8 @@ class Module3DemoSeedPlan:
     users: tuple[Module3DemoUserSpec, ...]
     companies: tuple[Module3DemoCompanySpec, ...]
     employees: tuple[Module3DemoEmployeeSpec, ...]
+    accessTemplates: tuple[Module3DemoAccessTemplateSpec, ...]
+    accessOverrides: tuple[Module3DemoAccessOverrideSpec, ...]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -96,6 +161,8 @@ class Module3DemoSeedPlan:
             "users": [item.to_dict() for item in self.users],
             "companies": [item.to_dict() for item in self.companies],
             "employees": [item.to_dict() for item in self.employees],
+            "accessTemplates": [item.to_dict() for item in self.accessTemplates],
+            "accessOverrides": [item.to_dict() for item in self.accessOverrides],
         }
 
 
@@ -117,6 +184,10 @@ class Module3DemoSeedResult:
     membershipsDeleted: int = 0
     rolesDeleted: int = 0
     preferencesDeleted: int = 0
+    moduleAccessDeleted: int = 0
+    functionAccessDeleted: int = 0
+    moduleAccessUpserted: int = 0
+    functionAccessUpserted: int = 0
     dryRun: bool = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -163,6 +234,8 @@ def build_module3_demo_seed_plan(environment: str = "development") -> Module3Dem
         users=_demo_users(environment),
         companies=_demo_companies(environment),
         employees=_demo_employees(environment),
+        accessTemplates=_demo_access_templates(),
+        accessOverrides=_demo_access_overrides(),
     )
 
 
@@ -209,6 +282,8 @@ async def seed_module3_demo_data(
         else:
             result.membershipsUpdated += 1
 
+    await _ensure_demo_access_overrides(db, users_by_email, plan, result)
+
     await db.flush()
     return result.freeze()
 
@@ -234,6 +309,8 @@ async def reset_module3_demo_data(
 
     memberships = await _demo_memberships_for_reset(db, user_ids, workspace_ids)
     assignments = await _demo_role_assignments_for_reset(db, user_ids)
+    module_access = await _demo_module_access_for_reset(db, user_ids)
+    function_access = await _demo_function_access_for_reset(db, user_ids)
     preferences = await _demo_preferences_for_reset(db, user_ids)
 
     result.membershipsDeleted = len(memberships)
@@ -241,6 +318,8 @@ async def reset_module3_demo_data(
     result.usersDeleted = len(demo_users)
     result.companiesDeleted = len(demo_workspaces)
     result.rolesDeleted = len(demo_roles)
+    result.moduleAccessDeleted = len(module_access)
+    result.functionAccessDeleted = len(function_access)
 
     if dry_run:
         return result.freeze()
@@ -248,6 +327,10 @@ async def reset_module3_demo_data(
     for item in memberships:
         await db.delete(item)
     for item in assignments:
+        await db.delete(item)
+    for item in module_access:
+        await db.delete(item)
+    for item in function_access:
         await db.delete(item)
     for item in preferences:
         await db.delete(item)
@@ -429,6 +512,7 @@ async def _upsert_user_demo_metadata(
         "typeCode": spec.typeCode,
         "accessProfile": spec.accessProfile,
         "email": spec.email,
+        MODULE3_DEMO_ACCESS_TEMPLATE_KEY: _demo_access_payload_for_user(spec),
     }
     if preference is None:
         preference = UserPreference(
@@ -550,6 +634,20 @@ async def _demo_role_assignments_for_reset(db: AsyncSession, user_ids: set[Any])
     return list(result.scalars().all())
 
 
+async def _demo_module_access_for_reset(db: AsyncSession, user_ids: set[Any]) -> list[ModuleAccess]:
+    if not user_ids:
+        return []
+    result = await db.execute(select(ModuleAccess).where(ModuleAccess.user_id.in_(user_ids)))
+    return list(result.scalars().all())
+
+
+async def _demo_function_access_for_reset(db: AsyncSession, user_ids: set[Any]) -> list[FunctionAccess]:
+    if not user_ids:
+        return []
+    result = await db.execute(select(FunctionAccess).where(FunctionAccess.user_id.in_(user_ids)))
+    return list(result.scalars().all())
+
+
 async def _demo_preferences_for_reset(db: AsyncSession, user_ids: set[Any]) -> list[UserPreference]:
     if not user_ids:
         return []
@@ -583,6 +681,108 @@ def _is_demo_payload(value: Any) -> bool:
         and value.get("isSeed") is True
         and value.get("sourceModuleCode") == "MODULE_03_USERS_ROLES"
     )
+
+
+async def _ensure_demo_access_overrides(
+    db: AsyncSession,
+    users_by_email: dict[str, User],
+    plan: Module3DemoSeedPlan,
+    result: "_MutableSeedResult",
+) -> None:
+    for override in plan.accessOverrides:
+        user = users_by_email.get(override.user_email)
+        if user is None:
+            continue
+        if override.moduleCode:
+            await _upsert_demo_module_access(db, user, override)
+            result.moduleAccessUpserted += 1
+        if override.widgetCode:
+            await _upsert_demo_function_access(db, user, override)
+            result.functionAccessUpserted += 1
+
+
+async def _upsert_demo_module_access(
+    db: AsyncSession,
+    user: User,
+    override: Module3DemoAccessOverrideSpec,
+) -> ModuleAccess:
+    module_code = _runtime_module_code(override.moduleCode or "")
+    result = await db.execute(
+        select(ModuleAccess).where(
+            ModuleAccess.user_id == user.id,
+            ModuleAccess.workspace_id.is_(None),
+            ModuleAccess.canonical_module_code == module_code,
+        )
+    )
+    access = result.scalar_one_or_none()
+    if access is None:
+        access = ModuleAccess(user_id=user.id, module_code=module_code, canonical_module_code=module_code)
+    access.module_code = module_code
+    access.canonical_module_code = module_code
+    access.access_level = override.accessLevel
+    access.access_scope = override.accessScope
+    access.status = "ACTIVE"
+    db.add(access)
+    return access
+
+
+async def _upsert_demo_function_access(
+    db: AsyncSession,
+    user: User,
+    override: Module3DemoAccessOverrideSpec,
+) -> FunctionAccess:
+    module_code = _runtime_module_code(override.moduleCode or "")
+    result = await db.execute(
+        select(FunctionAccess).where(
+            FunctionAccess.user_id == user.id,
+            FunctionAccess.workspace_id.is_(None),
+            FunctionAccess.function_key == override.widgetCode,
+        )
+    )
+    access = result.scalar_one_or_none()
+    if access is None:
+        access = FunctionAccess(
+            user_id=user.id,
+            module_code=module_code,
+            canonical_module_code=module_code,
+            function_key=override.widgetCode or "",
+        )
+    access.module_code = module_code
+    access.canonical_module_code = module_code
+    access.feature_code = override.featureCode or override.widgetCode
+    access.function_key = override.widgetCode or ""
+    access.access_level = override.accessLevel
+    access.access_scope = override.accessScope
+    access.status = "ACTIVE"
+    db.add(access)
+    return access
+
+
+def _demo_access_payload_for_user(spec: Module3DemoUserSpec) -> dict[str, Any]:
+    template = _demo_access_template_for_user(spec)
+    overrides = [item.to_dict() for item in _demo_access_overrides() if item.user_email == spec.email]
+    return {
+        "template": template.to_dict() if template else None,
+        "overrides": overrides,
+        "sourceLegend": [
+            {"source": "TYPE_TEMPLATE", "label": "По типу пользователя"},
+            {"source": "USER_OVERRIDE", "label": "Индивидуально переопределен"},
+            {"source": "SYSTEM", "label": "Системное правило"},
+        ],
+    }
+
+
+def _demo_access_template_for_user(spec: Module3DemoUserSpec) -> Module3DemoAccessTemplateSpec | None:
+    template_code = "SYSTEM_USER" if spec.isSystemUser else spec.typeCode
+    return next((item for item in _demo_access_templates() if item.userTypeCode == template_code), None)
+
+
+def _runtime_module_code(module_code: str) -> str:
+    aliases = {
+        "MODULE_05_ESTIMATE_ENGINE": "MODULE_05_ESTIMATES",
+        "MODULE_09_PROCUREMENT": "MODULE_08_PROCUREMENT",
+    }
+    return aliases.get(module_code, module_code)
 
 
 def _demo_users(environment: str) -> tuple[Module3DemoUserSpec, ...]:
@@ -631,6 +831,152 @@ def _demo_employees(environment: str) -> tuple[Module3DemoEmployeeSpec, ...]:
     )
 
 
+def _demo_access_templates() -> tuple[Module3DemoAccessTemplateSpec, ...]:
+    module = Module3DemoModuleAccessSpec
+    widget = Module3DemoWidgetAccessSpec
+    return (
+        Module3DemoAccessTemplateSpec(
+            "CUSTOMER",
+            "Заказчики",
+            moduleAccess=(
+                module("MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN", runtimeModuleCode="MODULE_05_ESTIMATES"),
+                module("MODULE_07_DIGITAL_HOUSE", "VIEW", "OWN"),
+                module("MODULE_09_PROCUREMENT", "VIEW", "OWN", runtimeModuleCode="MODULE_08_PROCUREMENT"),
+                module("MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+            ),
+            widgetAccess=(
+                widget("estimate-summary", "MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN"),
+                widget("procurement-requests", "MODULE_09_PROCUREMENT", "VIEW", "OWN"),
+                widget("price-dynamics", "MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+            ),
+            deniedModuleCodes=("MODULE_03_USERS_ROLES", "MODULE_03_SYSTEM_SETTINGS"),
+            notes=("Административные функции Module №3 закрыты.",),
+        ),
+        Module3DemoAccessTemplateSpec(
+            "SUPPLIER",
+            "Поставщики",
+            moduleAccess=(
+                module("MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
+                module("MODULE_08_PARTNER_PORTAL", "VIEW", "OWN"),
+                module("MODULE_09_PROCUREMENT", "VIEW", "LIMITED", runtimeModuleCode="MODULE_08_PROCUREMENT", isLimited=True),
+                module("MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+            ),
+            widgetAccess=(
+                widget("materials-kpi", "MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
+                widget("source-health", "MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
+                widget("partner-tender-invites", "MODULE_08_PARTNER_PORTAL", "VIEW", "OWN"),
+                widget("price-dynamics", "MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+            ),
+            deniedModuleCodes=("MODULE_03_USERS_ROLES", "MODULE_03_ACCESS_MATRIX"),
+            notes=("Глобальная матрица доступа закрыта.",),
+        ),
+        Module3DemoAccessTemplateSpec(
+            "CONSTRUCTION_COMPANY",
+            "Строительные компании",
+            moduleAccess=(
+                module("MODULE_02_KNOWLEDGE_BASE", "VIEW", "GLOBAL"),
+                module("MODULE_04_WORKS_COSTS", "ADMIN", "OWN"),
+                module("MODULE_05_ESTIMATE_ENGINE", "ADMIN", "OWN", runtimeModuleCode="MODULE_05_ESTIMATES"),
+                module("MODULE_07_DIGITAL_HOUSE", "VIEW", "OWN"),
+                module("MODULE_11_ANALYTICS", "VIEW", "OWN"),
+                module("MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
+            ),
+            widgetAccess=(
+                widget("materials-kpi", "MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
+                widget("price-dynamics", "MODULE_11_ANALYTICS", "VIEW", "OWN"),
+                widget("estimate-summary", "MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN"),
+            ),
+        ),
+        Module3DemoAccessTemplateSpec(
+            "SPECIALIST",
+            "Самостоятельные инженеры",
+            moduleAccess=(
+                module("MODULE_02_KNOWLEDGE_BASE", "VIEW", "GLOBAL"),
+                module("MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN", runtimeModuleCode="MODULE_05_ESTIMATES"),
+                module("MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+            ),
+            widgetAccess=(
+                widget("price-dynamics", "MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
+                widget("materials-kpi", "MODULE_01_MATERIAL_HUB", "NO_ACCESS", "NONE"),
+            ),
+            deniedModuleCodes=("MODULE_03_USERS_ROLES", "MODULE_08_PARTNER_PORTAL"),
+            notes=("Управление компаниями и поставщиками закрыто.",),
+        ),
+        Module3DemoAccessTemplateSpec(
+            "SYSTEM_USER",
+            "Системные пользователи",
+            moduleAccess=(
+                module("MODULE_01_MATERIAL_HUB", "ADMIN", "GLOBAL"),
+                module("MODULE_02_KNOWLEDGE_BASE", "ADMIN", "GLOBAL"),
+                module("MODULE_03_USERS_ROLES", "ADMIN", "GLOBAL", sourceLabel="Системное правило"),
+                module("MODULE_11_ANALYTICS", "ADMIN", "GLOBAL"),
+            ),
+            widgetAccess=(
+                widget("materials-kpi", "MODULE_01_MATERIAL_HUB", "ADMIN", "GLOBAL"),
+                widget("classification-queue", "MODULE_01_MATERIAL_HUB", "ADMIN", "GLOBAL"),
+                widget("source-health", "MODULE_01_MATERIAL_HUB", "ADMIN", "GLOBAL"),
+                widget("price-dynamics", "MODULE_11_ANALYTICS", "ADMIN", "GLOBAL"),
+            ),
+            notes=("platform-admin / super-admin получают полный доступ; moderator/support-admin ограничиваются role/profile правилами.",),
+        ),
+    )
+
+
+def _demo_access_overrides() -> tuple[Module3DemoAccessOverrideSpec, ...]:
+    override = Module3DemoAccessOverrideSpec
+    return (
+        override(
+            "demo.engineer.limited@atom.local",
+            "MODULE3_USER_INDIVIDUAL_MODULE_DENY",
+            "Индивидуально запрещено",
+            moduleCode="MODULE_11_ANALYTICS",
+            accessLevel="NO_ACCESS",
+            accessScope="NONE",
+            reason="Проверка сценария индивидуального запрета модуля.",
+        ),
+        override(
+            "demo.customer.active@atom.local",
+            "MODULE3_USER_INDIVIDUAL_MODULE_ALLOW",
+            "Индивидуально разрешено",
+            moduleCode="MODULE_01_MATERIAL_HUB",
+            accessLevel="VIEW",
+            accessScope="LIMITED",
+            reason="Проверка сценария индивидуального добавления модуля.",
+        ),
+        override(
+            "demo.customer.active@atom.local",
+            "MODULE3_USER_INDIVIDUAL_WIDGET_ALLOW",
+            "Индивидуально разрешено",
+            moduleCode="MODULE_01_MATERIAL_HUB",
+            widgetCode="materials-kpi",
+            featureCode="MATERIALS",
+            accessLevel="VIEW",
+            accessScope="LIMITED",
+            reason="Проверка сценария индивидуального добавления виджета.",
+        ),
+        override(
+            "demo.supplier.active@atom.local",
+            "MODULE3_USER_INDIVIDUAL_WIDGET_DENY",
+            "Индивидуально запрещено",
+            moduleCode="MODULE_01_MATERIAL_HUB",
+            widgetCode="source-health",
+            featureCode="SOURCES",
+            accessLevel="NO_ACCESS",
+            accessScope="NONE",
+            reason="Проверка запрета виджета при включенном модуле.",
+        ),
+        override(
+            "demo.customer.blocked@atom.local",
+            "MODULE3_BLOCKED_USER_ACCESS_DISABLED",
+            "Системное правило",
+            moduleCode="MODULE_05_ESTIMATE_ENGINE",
+            accessLevel="NO_ACCESS",
+            accessScope="NONE",
+            reason="Заблокированный пользователь не должен получать рабочий доступ.",
+        ),
+    )
+
+
 def _role_title(role_code: str) -> str:
     return role_code.replace("_", " ").title()
 
@@ -653,6 +999,10 @@ class _MutableSeedResult:
     membershipsDeleted: int = 0
     rolesDeleted: int = 0
     preferencesDeleted: int = 0
+    moduleAccessDeleted: int = 0
+    functionAccessDeleted: int = 0
+    moduleAccessUpserted: int = 0
+    functionAccessUpserted: int = 0
     dryRun: bool = False
 
     def freeze(self) -> Module3DemoSeedResult:

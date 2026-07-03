@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.main import app
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
 from app.core.exceptions import ForbiddenError, ValidationError
-from app.models import AuditLog, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
+from app.models import AuditLog, FunctionAccess, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole, UserStatus
 from app.services.audit_log_service import AuditLogType, MOCK_AUDIT_EVENTS, clear_mock_audit_events
 from app.services.admin_user_role_management import (
@@ -311,6 +311,50 @@ def test_access_matrix_uses_visible_reasons_without_inheritance_ui_and_revokes_w
     planned = next(row for row in matrix["rows"] if row["status"] == "planned")
     assert planned["user"]["stateCode"] == "MODULE_PLANNED"
     assert planned["user"]["reason"] == "Недоступно: модуль еще не активен"
+
+
+def test_access_matrix_shows_demo_user_module_and_widget_overrides():
+    user = _user(UserRole.CUSTOMER)
+    user.role_assignments = []
+    user.workspace_members = []
+    user.module_access = [
+        ModuleAccess(
+            user_id=user.id,
+            module_code="MODULE_01_MATERIAL_HUB",
+            canonical_module_code="MODULE_01_MATERIAL_HUB",
+            access_level="VIEW",
+            access_scope="LIMITED",
+            status="ACTIVE",
+        )
+    ]
+    user.function_access = [
+        FunctionAccess(
+            user_id=user.id,
+            module_code="MODULE_01_MATERIAL_HUB",
+            canonical_module_code="MODULE_01_MATERIAL_HUB",
+            feature_code="SOURCES",
+            function_key="source-health",
+            access_level="NO_ACCESS",
+            access_scope="NONE",
+            status="ACTIVE",
+        )
+    ]
+
+    user_data = user_summary(user, include_permissions=True)
+    matrix = access_matrix_for_subject(
+        user_data,
+        workspaces=[],
+        roles=[],
+        permissions=active_permissions_for_user(user),
+    )
+    module_row = next(row for row in matrix["rows"] if row["moduleCode"] == "MODULE_01_MATERIAL_HUB")
+    source_widget = next(widget for widget in module_row["widgets"] if widget["widgetCode"] == "source-health")
+
+    assert module_row["user"]["stateCode"] == "OPEN"
+    assert module_row["user"]["resolutionSource"] == "USER_OVERRIDE"
+    assert source_widget["stateCode"] == "CLOSED"
+    assert source_widget["resolutionSource"] == "USER_OVERRIDE"
+    assert source_widget["reason"] == "Закрыто индивидуальным правилом пользователя."
 
 
 def test_active_module_and_widget_registration_requires_access_distribution():
@@ -1147,6 +1191,14 @@ def test_legacy_module3_view_route_redirects_to_api_prefix():
 
     assert response.status_code == 307
     assert response.headers["location"] == "/api/v1/admin/users-roles/view/users/user-1?tab=access"
+
+
+def test_app_lifespan_disposes_db_engine_between_local_clients():
+    with TestClient(app) as client:
+        assert client.get("/api/v1/health").status_code == 200
+
+    with TestClient(app) as client:
+        assert client.get("/admin/users-roles/view", follow_redirects=False).status_code == 307
 
 
 def test_admin_users_roles_template_has_sprint8_responsive_contracts():

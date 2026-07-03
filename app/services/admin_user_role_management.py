@@ -2255,6 +2255,7 @@ def active_permissions_for_user(user: User) -> list[dict[str, Any]]:
             "roleCode": "USER_OVERRIDE",
             "moduleCode": access.module_code,
             "featureCode": access.feature_code or access.function_key,
+            "functionKey": access.function_key,
             "accessLevel": _enum_value(access.access_level),
             "accessScope": _enum_value(access.access_scope),
         })
@@ -2279,11 +2280,13 @@ def access_matrix_for_subject(
         None,
     )
     permission_map = _permission_map_by_module(permissions)
+    widget_permission_map = _permission_map_by_widget(permissions)
     pending_module_codes, pending_widget_codes = _pending_access_distribution_codes()
     rows = [
         _access_matrix_module_row(
             module,
             permission_map=permission_map,
+            widget_permission_map=widget_permission_map,
             selected_company=selected_company,
             pending_module_codes=pending_module_codes,
             pending_widget_codes=pending_widget_codes,
@@ -2313,6 +2316,7 @@ def _access_matrix_module_row(
     module: dict[str, Any],
     *,
     permission_map: dict[str, dict[str, Any]],
+    widget_permission_map: dict[str, dict[str, Any]],
     selected_company: Workspace | None,
     pending_module_codes: set[str],
     pending_widget_codes: set[str],
@@ -2344,6 +2348,7 @@ def _access_matrix_module_row(
         module_code,
         company_state=company_state,
         user_state=user_state,
+        widget_permission_map=widget_permission_map,
         pending_widget_codes=pending_widget_codes,
     )
     cells = [
@@ -2389,6 +2394,7 @@ def _access_matrix_widgets_for_module(
     *,
     company_state: dict[str, str],
     user_state: dict[str, str],
+    widget_permission_map: dict[str, dict[str, Any]],
     pending_widget_codes: set[str],
 ) -> list[dict[str, Any]]:
     widgets: list[dict[str, Any]] = []
@@ -2406,6 +2412,16 @@ def _access_matrix_widgets_for_module(
             widget_limit_code = _widget_limit_reason_code(widget)
             if widget_limit_code:
                 cell = _matrix_cell(widget_limit_code, ACCESS_DENY_REASONS[widget_limit_code], "SYSTEM_LIMIT")
+            elif widget_permission := _widget_permission_for_widget(widget_permission_map, widget):
+                if _access_level_is_open(widget_permission.get("accessLevel")):
+                    cell = _matrix_cell("OPEN", "Открыто индивидуальным правилом пользователя.", "USER_OVERRIDE")
+                else:
+                    cell = _matrix_cell(
+                        "CLOSED",
+                        "Закрыто индивидуальным правилом пользователя.",
+                        "USER_OVERRIDE",
+                        reason_code="PLATFORM_ADMIN_DENY",
+                    )
             else:
                 cell = _matrix_cell("OPEN", "Открыто: модуль доступен, виджет активен.", "SYSTEM_DEFAULT")
         widgets.append(
@@ -2493,7 +2509,10 @@ def _module_access_cell(
         return _matrix_cell(module_limit_code, ACCESS_DENY_REASONS[module_limit_code], "SYSTEM_LIMIT")
     if explicit_permission and not _access_level_is_open(explicit_permission.get("accessLevel")):
         return _matrix_cell("CLOSED", ACCESS_DENY_REASONS[closed_reason], "USER_OVERRIDE", reason_code=closed_reason)
-    return _matrix_cell("OPEN", open_reason, "ROLE_DEFAULT" if explicit_permission else "SYSTEM_DEFAULT")
+    if explicit_permission:
+        source = "USER_OVERRIDE" if explicit_permission.get("source") == "user_override" else "ROLE_DEFAULT"
+        return _matrix_cell("OPEN", open_reason, source)
+    return _matrix_cell("OPEN", open_reason, "SYSTEM_DEFAULT")
 
 
 def _company_module_access_cell(
@@ -2623,6 +2642,30 @@ def _permission_map_by_module(permissions: list[dict[str, Any]]) -> dict[str, di
         if module_code:
             result[module_code] = permission
     return result
+
+
+def _permission_map_by_widget(permissions: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for permission in permissions:
+        if permission.get("kind") != "feature":
+            continue
+        for key in (permission.get("functionKey"), permission.get("featureCode")):
+            if key:
+                result[str(key)] = permission
+    return result
+
+
+def _widget_permission_for_widget(
+    permissions: dict[str, dict[str, Any]],
+    widget: dict[str, Any],
+) -> dict[str, Any] | None:
+    widget_code = widget.get("widgetCode")
+    feature_code = widget.get("featureCode")
+    if widget_code and str(widget_code) in permissions:
+        return permissions[str(widget_code)]
+    if feature_code and str(feature_code) in permissions:
+        return permissions[str(feature_code)]
+    return None
 
 
 def _access_level_is_open(access_level: Any) -> bool:

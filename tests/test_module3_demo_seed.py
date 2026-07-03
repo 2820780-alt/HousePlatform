@@ -31,6 +31,7 @@ def test_module3_demo_seed_plan_contains_required_users_companies_and_metadata()
     plan = build_module3_demo_seed_plan("development")
     users = {item.code: item for item in plan.users}
     companies = {item.code: item for item in plan.companies}
+    templates = {item.userTypeCode: item for item in plan.accessTemplates}
 
     assert plan.seedCode == MODULE3_DEMO_SEED_CODE
     assert plan.metadata == {
@@ -86,6 +87,18 @@ def test_module3_demo_seed_plan_contains_required_users_companies_and_metadata()
         "PROJECT_MANAGER",
         "ESTIMATOR",
     ]
+    assert {"CUSTOMER", "SUPPLIER", "CONSTRUCTION_COMPANY", "SPECIALIST", "SYSTEM_USER"} == set(templates)
+    assert "MODULE_05_ESTIMATE_ENGINE" in {item.moduleCode for item in templates["CUSTOMER"].moduleAccess}
+    assert "MODULE_01_MATERIAL_HUB" in {item.moduleCode for item in templates["SUPPLIER"].moduleAccess}
+    assert "MODULE_03_USERS_ROLES" in templates["SUPPLIER"].deniedModuleCodes
+    assert "price-dynamics" in {item.widgetCode for item in templates["CONSTRUCTION_COMPANY"].widgetAccess}
+    assert "MODULE_03_USERS_ROLES" in {item.moduleCode for item in templates["SYSTEM_USER"].moduleAccess}
+
+    overrides = {item.scenarioCode: item for item in plan.accessOverrides}
+    assert overrides["MODULE3_USER_INDIVIDUAL_MODULE_ALLOW"].moduleCode == "MODULE_01_MATERIAL_HUB"
+    assert overrides["MODULE3_USER_INDIVIDUAL_WIDGET_ALLOW"].widgetCode == "materials-kpi"
+    assert overrides["MODULE3_USER_INDIVIDUAL_WIDGET_DENY"].accessLevel == "NO_ACCESS"
+    assert overrides["MODULE3_BLOCKED_USER_ACCESS_DISABLED"].sourceLabel == "Системное правило"
 
     for collection in (plan.users, plan.companies, plan.employees):
         for item in collection:
@@ -101,10 +114,12 @@ def test_module3_demo_seed_plan_is_idempotent_by_natural_keys():
     emails = [item.email for item in plan.users]
     slugs = [item.slug for item in plan.companies]
     membership_keys = [(item.user_email, item.company_slug) for item in plan.employees]
+    override_keys = [(item.user_email, item.moduleCode, item.widgetCode, item.scenarioCode) for item in plan.accessOverrides]
 
     assert len(emails) == len(set(emails))
     assert len(slugs) == len(set(slugs))
     assert len(membership_keys) == len(set(membership_keys))
+    assert len(override_keys) == len(set(override_keys))
     assert all(email.endswith("@atom.local") for email in emails)
     assert all(slug.startswith("demo-") for slug in slugs)
     assert build_module3_demo_seed_plan("development").to_dict() == plan.to_dict()
@@ -150,9 +165,15 @@ def test_module3_demo_seed_result_reports_reset_counts():
         membershipsDeleted=3,
         rolesDeleted=4,
         preferencesDeleted=2,
+        moduleAccessDeleted=1,
+        functionAccessDeleted=1,
+        moduleAccessUpserted=2,
+        functionAccessUpserted=3,
         dryRun=True,
     )
 
     assert result.to_dict()["dryRun"] is True
     assert result.to_dict()["usersDeleted"] == 2
     assert result.to_dict()["companiesDeleted"] == 1
+    assert result.to_dict()["moduleAccessUpserted"] == 2
+    assert result.to_dict()["functionAccessUpserted"] == 3

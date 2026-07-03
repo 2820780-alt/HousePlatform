@@ -5,13 +5,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.v1 import api_router
 from app.config import settings
-from app.database import init_db
+from app.database import close_db, init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    yield
+    try:
+        yield
+    finally:
+        await close_db()
 
 
 app = FastAPI(
