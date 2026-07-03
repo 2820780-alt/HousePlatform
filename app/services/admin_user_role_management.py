@@ -31,6 +31,11 @@ from app.services.audit_log_service import AuditLogType, write_audit_event
 from app.services.dashboard_module_registry import get_dashboard_module_registry, get_dashboard_module_registry_item
 from app.services.module8_cabinet_admin_preview import get_module8_cabinet_admin_preview
 from app.services.quick_action_preferences import build_quick_action_preference_preview
+from app.services.quick_action_preferences import (
+    MAX_MODULE_BAR_QUICK_ACTIONS,
+    MAX_MODULE_CARD_QUICK_ACTIONS,
+    build_user_quick_action_preference,
+)
 from app.services.quick_action_registry import get_quick_action_registry, get_quick_action_registry_items_for_module
 from app.services.role_dashboard_access_profiles import get_role_dashboard_access_profile
 from app.services.widget_settings_schema import build_widget_settings_schema_preview
@@ -602,6 +607,58 @@ def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = Fa
     return actions[:9]
 
 
+def module3_quick_action_settings(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> dict[str, Any]:
+    actions = module3_quick_actions(admin_scope=admin_scope, detail_mode=detail_mode)
+    preferences = [
+        build_user_quick_action_preference(
+            user_id=str(admin_scope.get("userId") or "current-user"),
+            quick_action_code=action["quickActionCode"],
+            source_module_code=action["sourceModuleCode"],
+            is_enabled=bool(action["enabled"]),
+            is_pinned_in_module=bool(action["enabled"]),
+            is_pinned_on_module_card=False,
+            sort_order=index,
+            disabled_reason=action.get("disabledReason"),
+        )
+        for index, action in enumerate(actions, start=1)
+    ]
+    return {
+        "title": "Настроить быстрые действия",
+        "sourceModuleCode": "MODULE_03_USERS_ROLES",
+        "maxModuleActions": MAX_MODULE_BAR_QUICK_ACTIONS,
+        "maxDashboardCardActions": MAX_MODULE_CARD_QUICK_ACTIONS,
+        "storageLayer": "UserDashboardLayout.layout_settings.moduleQuickActions",
+        "localStorageKey": "atom:module3:quickActionSettings:v1",
+        "localAdapterNote": (
+            "Временный UI adapter до подключения API сохранения. "
+            "Контракт совместим с UserDashboardLayout.layout_settings.moduleQuickActions."
+        ),
+        "actions": [
+            {
+                **action,
+                "sortOrder": index,
+                "sourceLabel": _module3_quick_action_source_label(action.get("sectionCode")),
+                "isModulePinnedByDefault": bool(action["enabled"]),
+                "isDashboardPinnedByDefault": False,
+                "canPin": bool(action["enabled"]),
+                "unavailableReason": action.get("disabledReason") or ("" if action["enabled"] else "Действие сейчас недоступно."),
+            }
+            for index, action in enumerate(actions, start=1)
+        ],
+        "preferences": preferences,
+    }
+
+
+def _module3_quick_action_source_label(section_code: str | None) -> str:
+    labels = {
+        "USERS_TABLE": "Пользователи",
+        "ACCESS_MATRIX": "Доступы",
+        "AUDIT_LOG": "Журнал изменений",
+        "SYSTEM_USERS": "Системные пользователи",
+    }
+    return labels.get(str(section_code or ""), "Module №3")
+
+
 def user_type_summary_widgets(users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
     company_workspaces = [workspace for workspace in workspaces if _is_company_workspace(workspace)]
     supplier_workspaces = [
@@ -878,6 +935,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "accessDistributionPanel": access_distribution_panel,
         "userTypeAccessMatrix": user_type_access_matrix_view_model(),
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=False),
+        "moduleQuickActionSettings": module3_quick_action_settings(admin_scope=admin_scope, detail_mode=False),
         "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
         "auditPanel": audit_panel_summary(recent_history),
         "settingsPanel": settings_panel_summary(admin_scope),
@@ -962,6 +1020,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         "accessContextForCabinet": access_context.to_dict(),
         "module8CabinetPreview": module8_preview_data,
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=True),
+        "moduleQuickActionSettings": module3_quick_action_settings(admin_scope=admin_scope, detail_mode=True),
         "widgetAccessRows": widget_access_rows_for_user(
             user_data,
             access_context=access_context.to_dict(),

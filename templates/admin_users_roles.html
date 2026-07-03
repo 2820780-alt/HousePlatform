@@ -111,8 +111,8 @@
     }
     .module3-quick-actions {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 26px;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 18px;
       align-items: center;
       margin: 14px 0 0;
       padding: 13px 24px;
@@ -158,6 +158,9 @@
       opacity: 0.52;
       pointer-events: none;
     }
+    .module3-action[hidden] {
+      display: none;
+    }
     .module3-action-icon {
       display: inline-grid;
       place-items: center;
@@ -168,6 +171,136 @@
       color: var(--cyan);
       background: rgba(24, 215, 242, 0.08);
       flex: 0 0 auto;
+    }
+    .module3-quick-actions-more,
+    .module3-quick-actions-configure {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 9px 12px;
+      border-color: rgba(24, 215, 242, 0.32);
+      background: rgba(24, 215, 242, 0.08);
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .module3-quick-actions-more[hidden] {
+      display: none;
+    }
+    .module3-quick-actions-configure {
+      width: 42px;
+      padding: 0;
+      font-weight: 800;
+    }
+    .module3-quick-actions-configure:hover {
+      border-color: rgba(24, 215, 242, 0.58);
+      box-shadow: 0 0 22px rgba(24, 215, 242, 0.16);
+    }
+    .module3-quick-action-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(2, 7, 18, 0.72);
+      backdrop-filter: blur(10px);
+    }
+    .module3-quick-action-modal[hidden] {
+      display: none;
+    }
+    .module3-quick-action-dialog {
+      width: min(1080px, calc(100vw - 32px));
+      max-height: min(760px, calc(100vh - 48px));
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      border: 1px solid rgba(24, 215, 242, 0.28);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(7, 18, 44, 0.98), rgba(4, 10, 27, 0.98));
+      box-shadow: 0 26px 90px rgba(0, 0, 0, 0.5), 0 0 34px rgba(24, 215, 242, 0.1);
+    }
+    .module3-quick-action-modal-head,
+    .module3-quick-action-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(119, 172, 255, 0.16);
+    }
+    .module3-quick-action-modal-footer {
+      border-top: 1px solid rgba(119, 172, 255, 0.16);
+      border-bottom: 0;
+    }
+    .module3-quick-action-modal-body {
+      overflow: auto;
+      padding: 14px 18px;
+    }
+    .module3-quick-action-limit-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .module3-quick-action-settings-list {
+      display: grid;
+      gap: 8px;
+    }
+    .module3-quick-action-setting {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 160px 150px 150px 96px;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(119, 172, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(6, 14, 34, 0.72);
+    }
+    .module3-quick-action-setting.pinned {
+      border-color: rgba(24, 215, 242, 0.38);
+      box-shadow: inset 0 0 0 1px rgba(24, 215, 242, 0.08), 0 0 24px rgba(24, 215, 242, 0.08);
+    }
+    .module3-quick-action-setting.disabled {
+      opacity: 0.64;
+    }
+    .module3-quick-action-setting-title {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .module3-quick-action-setting-title strong,
+    .module3-quick-action-setting-title small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .module3-quick-action-setting-toggle {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .module3-quick-action-setting-toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--cyan);
+    }
+    .module3-quick-action-setting input[type="number"] {
+      width: 84px;
+      min-height: 34px;
+      padding: 5px 8px;
+    }
+    .module3-quick-action-modal-message {
+      min-height: 20px;
+      color: #ffd28a;
+      font-size: 13px;
+    }
+    @media (max-width: 1180px) {
+      .module3-quick-action-setting {
+        grid-template-columns: minmax(220px, 1fr) 130px 130px;
+      }
     }
     .control-shell {
       display: grid;
@@ -1312,7 +1445,16 @@
       </nav>
 
       <section class="control-main" data-module3-content>
-        <section class="module3-quick-actions" aria-label="Быстрые действия Module №3" data-module3-quick-actions>
+        <section
+          class="module3-quick-actions"
+          aria-label="Быстрые действия Module №3"
+          data-module3-quick-actions
+          data-quick-action-storage-key="{{ overview.moduleQuickActionSettings.localStorageKey }}"
+          data-max-module-actions="{{ overview.moduleQuickActionSettings.maxModuleActions }}"
+          data-max-card-actions="{{ overview.moduleQuickActionSettings.maxDashboardCardActions }}"
+          data-source-module-code="{{ overview.moduleQuickActionSettings.sourceModuleCode }}"
+          data-storage-layer="{{ overview.moduleQuickActionSettings.storageLayer }}"
+        >
           <div class="module3-quick-actions-title">Быстрые действия</div>
           <div class="module3-quick-actions-list">
             {% for action in overview.moduleQuickActions %}
@@ -1328,6 +1470,8 @@
               data-action-type="{{ action.actionType }}"
               data-permission-code="{{ action.permissionCode or '' }}"
               data-feature-code="{{ action.featureCode or '' }}"
+              data-quick-action-target="{{ action.target or '' }}"
+              data-quick-action-enabled="{{ action.enabled }}"
               {% if not action.enabled %}aria-disabled="true"{% endif %}
               title="{{ action.description or action.label }}"
             >
@@ -1336,6 +1480,69 @@
             </a>
             {% endif %}
             {% endfor %}
+          </div>
+          <div class="toolbar">
+            <button class="module3-quick-actions-more" type="button" data-module3-quick-actions-more hidden>Ещё</button>
+            <button class="module3-quick-actions-configure" type="button" data-module3-quick-actions-configure aria-label="Настроить быстрые действия" title="Настроить быстрые действия">⋯</button>
+          </div>
+        </section>
+
+        <section class="module3-quick-action-modal" data-module3-quick-action-modal hidden role="dialog" aria-modal="true" aria-labelledby="module3-quick-action-settings-title">
+          <div class="module3-quick-action-dialog">
+            <header class="module3-quick-action-modal-head">
+              <div>
+                <h2 id="module3-quick-action-settings-title">{{ overview.moduleQuickActionSettings.title }}</h2>
+                <div class="muted">{{ overview.moduleQuickActionSettings.localAdapterNote }}</div>
+              </div>
+              <button class="btn" type="button" data-module3-quick-actions-close>Закрыть</button>
+            </header>
+            <div class="module3-quick-action-modal-body">
+              <div class="module3-quick-action-limit-row" aria-label="Лимиты быстрых действий">
+                <span class="chip info">В модуле: <strong data-module3-quick-actions-module-count>0</strong> / {{ overview.moduleQuickActionSettings.maxModuleActions }}</span>
+                <span class="chip info">На карточке Dashboard: <strong data-module3-quick-actions-card-count>0</strong> / {{ overview.moduleQuickActionSettings.maxDashboardCardActions }}</span>
+                <span class="chip" title="{{ overview.moduleQuickActionSettings.storageLayer }}">UserDashboardLayout adapter</span>
+              </div>
+              <div class="module3-quick-action-modal-message" data-module3-quick-action-message aria-live="polite"></div>
+              <div class="module3-quick-action-settings-list">
+                {% for action in overview.moduleQuickActionSettings.actions %}
+                <article
+                  class="module3-quick-action-setting {% if action.isModulePinnedByDefault %}pinned{% endif %} {% if not action.canPin %}disabled{% endif %}"
+                  data-quick-action-setting
+                  data-quick-action-code="{{ action.quickActionCode }}"
+                  data-action-id="{{ action.id }}"
+                  data-source-module-code="{{ action.sourceModuleCode }}"
+                  data-action-target="{{ action.target or '' }}"
+                  data-action-enabled="{{ action.canPin }}"
+                  data-default-module-pinned="{{ action.isModulePinnedByDefault }}"
+                  data-default-card-pinned="{{ action.isDashboardPinnedByDefault }}"
+                  data-default-order="{{ action.sortOrder }}"
+                  title="{{ action.unavailableReason or action.description or action.label }}"
+                >
+                  <div class="module3-quick-action-setting-title">
+                    <strong>{{ action.label }}</strong>
+                    <small>{{ action.description or action.unavailableReason or 'Действие Module №3' }}</small>
+                  </div>
+                  <span class="chip info">{{ action.sourceLabel }}</span>
+                  <label class="module3-quick-action-setting-toggle">
+                    <input type="checkbox" data-module3-quick-action-module-toggle {% if action.isModulePinnedByDefault %}checked{% endif %} {% if not action.canPin %}disabled{% endif %}>
+                    <span>В модуле</span>
+                  </label>
+                  <label class="module3-quick-action-setting-toggle">
+                    <input type="checkbox" data-module3-quick-action-card-toggle {% if action.isDashboardPinnedByDefault %}checked{% endif %} {% if not action.canPin %}disabled{% endif %}>
+                    <span>Dashboard</span>
+                  </label>
+                  <input type="number" min="1" max="{{ overview.moduleQuickActionSettings.maxModuleActions }}" value="{{ action.sortOrder }}" data-module3-quick-action-order {% if not action.canPin %}disabled{% endif %} aria-label="Порядок {{ action.label }}">
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+            <footer class="module3-quick-action-modal-footer">
+              <span class="muted">Настройки сохраняются в локальный adapter. API сохранения можно подключить к тому же payload без изменения UI.</span>
+              <div class="toolbar">
+                <button class="btn" type="button" data-module3-quick-actions-reset>Сбросить</button>
+                <button class="btn" type="button" data-module3-quick-actions-save>Сохранить</button>
+              </div>
+            </footer>
           </div>
         </section>
 
@@ -3402,6 +3609,213 @@
       window.addEventListener("hashchange", syncTabs);
       document.addEventListener("DOMContentLoaded", syncTabs);
       syncTabs();
+    })();
+
+    (() => {
+      const root = document.querySelector("[data-module3-quick-actions]");
+      const modal = document.querySelector("[data-module3-quick-action-modal]");
+      if (!root || !modal) return;
+
+      const list = root.querySelector(".module3-quick-actions-list");
+      const configureButton = root.querySelector("[data-module3-quick-actions-configure]");
+      const moreButton = root.querySelector("[data-module3-quick-actions-more]");
+      const closeButton = modal.querySelector("[data-module3-quick-actions-close]");
+      const saveButton = modal.querySelector("[data-module3-quick-actions-save]");
+      const resetButton = modal.querySelector("[data-module3-quick-actions-reset]");
+      const message = modal.querySelector("[data-module3-quick-action-message]");
+      const moduleCount = modal.querySelector("[data-module3-quick-actions-module-count]");
+      const cardCount = modal.querySelector("[data-module3-quick-actions-card-count]");
+      const actionNodes = Array.from(root.querySelectorAll(".module3-action[data-action-id]"));
+      const settingRows = Array.from(modal.querySelectorAll("[data-quick-action-setting]"));
+      const storageKey = root.dataset.quickActionStorageKey || "atom:module3:quickActionSettings:v1";
+      const sourceModuleCode = root.dataset.sourceModuleCode || "MODULE_03_USERS_ROLES";
+      const storageLayer = root.dataset.storageLayer || "UserDashboardLayout.layout_settings.moduleQuickActions";
+      const maxModuleActions = Number(root.dataset.maxModuleActions || 9);
+      const maxCardActions = Number(root.dataset.maxCardActions || 3);
+      const parseBool = (value) => ["true", "True", "1", "yes"].includes(String(value));
+
+      const showMessage = (text) => {
+        if (!message) return;
+        message.textContent = text || "";
+      };
+
+      const readStateFromRows = () => settingRows.map((row, index) => {
+        const moduleToggle = row.querySelector("[data-module3-quick-action-module-toggle]");
+        const cardToggle = row.querySelector("[data-module3-quick-action-card-toggle]");
+        const orderInput = row.querySelector("[data-module3-quick-action-order]");
+        return {
+          quickActionCode: row.dataset.quickActionCode,
+          actionId: row.dataset.actionId,
+          sourceModuleCode: row.dataset.sourceModuleCode || sourceModuleCode,
+          isEnabled: parseBool(row.dataset.actionEnabled),
+          isPinnedInModule: Boolean(moduleToggle?.checked),
+          isPinnedOnModuleCard: Boolean(cardToggle?.checked),
+          sortOrder: Number(orderInput?.value || row.dataset.defaultOrder || index + 1),
+        };
+      });
+
+      const defaultState = () => settingRows.map((row, index) => ({
+        quickActionCode: row.dataset.quickActionCode,
+        actionId: row.dataset.actionId,
+        sourceModuleCode: row.dataset.sourceModuleCode || sourceModuleCode,
+        isEnabled: parseBool(row.dataset.actionEnabled),
+        isPinnedInModule: parseBool(row.dataset.defaultModulePinned),
+        isPinnedOnModuleCard: parseBool(row.dataset.defaultCardPinned),
+        sortOrder: Number(row.dataset.defaultOrder || index + 1),
+      }));
+
+      const normalizeState = (items) => {
+        const defaults = defaultState();
+        const byCode = new Map((items || []).map((item) => [item.quickActionCode, item]));
+        return defaults.map((item) => {
+          const saved = byCode.get(item.quickActionCode) || {};
+          return {
+            ...item,
+            isPinnedInModule: item.isEnabled ? Boolean(saved.isPinnedInModule ?? item.isPinnedInModule) : false,
+            isPinnedOnModuleCard: item.isEnabled ? Boolean(saved.isPinnedOnModuleCard ?? item.isPinnedOnModuleCard) : false,
+            sortOrder: Number(saved.sortOrder || item.sortOrder),
+          };
+        });
+      };
+
+      const loadState = () => {
+        try {
+          const raw = window.localStorage.getItem(storageKey);
+          if (!raw) return defaultState();
+          const parsed = JSON.parse(raw);
+          return normalizeState(parsed.actions || parsed.preferences || []);
+        } catch (_error) {
+          return defaultState();
+        }
+      };
+
+      let state = normalizeState(loadState());
+
+      const writeRows = () => {
+        const byCode = new Map(state.map((item) => [item.quickActionCode, item]));
+        settingRows.forEach((row) => {
+          const item = byCode.get(row.dataset.quickActionCode);
+          if (!item) return;
+          const moduleToggle = row.querySelector("[data-module3-quick-action-module-toggle]");
+          const cardToggle = row.querySelector("[data-module3-quick-action-card-toggle]");
+          const orderInput = row.querySelector("[data-module3-quick-action-order]");
+          if (moduleToggle) moduleToggle.checked = Boolean(item.isPinnedInModule);
+          if (cardToggle) cardToggle.checked = Boolean(item.isPinnedOnModuleCard);
+          if (orderInput) orderInput.value = String(item.sortOrder);
+          row.classList.toggle("pinned", Boolean(item.isPinnedInModule || item.isPinnedOnModuleCard));
+        });
+      };
+
+      const updateStateFromRows = () => {
+        state = normalizeState(readStateFromRows());
+      };
+
+      const enforceLimits = (changedInput) => {
+        updateStateFromRows();
+        const modulePinned = state.filter((item) => item.isEnabled && item.isPinnedInModule).length;
+        const cardPinned = state.filter((item) => item.isEnabled && item.isPinnedOnModuleCard).length;
+        if (modulePinned > maxModuleActions) {
+          if (changedInput) changedInput.checked = false;
+          showMessage("Внутри модуля можно закрепить не больше 9 быстрых действий.");
+          updateStateFromRows();
+          return false;
+        }
+        if (cardPinned > maxCardActions) {
+          if (changedInput) changedInput.checked = false;
+          showMessage("На карточке модуля можно вывести не больше 3 быстрых действий.");
+          updateStateFromRows();
+          return false;
+        }
+        showMessage("");
+        return true;
+      };
+
+      const applyState = () => {
+        const byId = new Map(state.map((item) => [item.actionId, item]));
+        const orderedActions = [...actionNodes].sort((a, b) => {
+          const left = byId.get(a.dataset.actionId)?.sortOrder || 1000;
+          const right = byId.get(b.dataset.actionId)?.sortOrder || 1000;
+          return left - right || String(a.dataset.actionId).localeCompare(String(b.dataset.actionId));
+        });
+        orderedActions.forEach((node) => list?.appendChild(node));
+        let visibleCount = 0;
+        let overflowCount = 0;
+        orderedActions.forEach((node) => {
+          const item = byId.get(node.dataset.actionId);
+          const visible = Boolean(item?.isEnabled && item?.isPinnedInModule);
+          const fits = visible && visibleCount < maxModuleActions;
+          node.hidden = !fits;
+          if (fits) visibleCount += 1;
+          if (visible && !fits) overflowCount += 1;
+        });
+        if (moreButton) {
+          moreButton.hidden = overflowCount === 0;
+          moreButton.textContent = overflowCount ? `Ещё ${overflowCount}` : "Ещё";
+        }
+        if (moduleCount) moduleCount.textContent = String(state.filter((item) => item.isEnabled && item.isPinnedInModule).length);
+        if (cardCount) cardCount.textContent = String(state.filter((item) => item.isEnabled && item.isPinnedOnModuleCard).length);
+        writeRows();
+      };
+
+      const saveState = () => {
+        enforceLimits();
+        const payload = {
+          version: 1,
+          storageLayer,
+          sourceModuleCode,
+          updatedAt: new Date().toISOString(),
+          actions: state.map(({ quickActionCode, sourceModuleCode, isPinnedInModule, isPinnedOnModuleCard, sortOrder }) => ({
+            quickActionCode,
+            sourceModuleCode,
+            isPinnedInModule,
+            isPinnedOnModuleCard,
+            sortOrder,
+          })),
+        };
+        window.localStorage.setItem(storageKey, JSON.stringify(payload));
+        showMessage("Настройки быстрых действий сохранены.");
+        applyState();
+      };
+
+      settingRows.forEach((row) => {
+        row.addEventListener("change", (event) => {
+          if (event.target.matches("[data-module3-quick-action-module-toggle], [data-module3-quick-action-card-toggle]")) {
+            enforceLimits(event.target);
+          } else {
+            updateStateFromRows();
+          }
+          applyState();
+        });
+        row.addEventListener("input", (event) => {
+          if (!event.target.matches("[data-module3-quick-action-order]")) return;
+          updateStateFromRows();
+          applyState();
+        });
+      });
+
+      configureButton?.addEventListener("click", () => {
+        modal.hidden = false;
+        showMessage("");
+      });
+      moreButton?.addEventListener("click", () => {
+        modal.hidden = false;
+        showMessage("");
+      });
+      closeButton?.addEventListener("click", () => {
+        modal.hidden = true;
+      });
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) modal.hidden = true;
+      });
+      resetButton?.addEventListener("click", () => {
+        window.localStorage.removeItem(storageKey);
+        state = defaultState();
+        showMessage("Настройки сброшены к значениям Module №3.");
+        applyState();
+      });
+      saveButton?.addEventListener("click", saveState);
+
+      applyState();
     })();
 
     (() => {

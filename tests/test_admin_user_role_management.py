@@ -39,6 +39,7 @@ from app.services.admin_user_role_management import (
     change_history_for_admin_panel,
     module3_audit_log_entry,
     module3_quick_actions,
+    module3_quick_action_settings,
     module_registry_overview_summary,
     pending_access_distribution_items,
     require_can_assign_role,
@@ -582,6 +583,10 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
         },
         "actorRoleCodes": ["SUPER_ADMIN"],
         "moduleQuickActions": module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=False),
+        "moduleQuickActionSettings": module3_quick_action_settings(
+            admin_scope={"isCompanyAdminMode": False},
+            detail_mode=False,
+        ),
     }
 
     html = template.render(
@@ -909,6 +914,39 @@ def test_module3_quick_actions_are_configured_for_shell_navigation():
     assert "Системные пользователи" not in company_labels
 
 
+def test_module3_quick_action_settings_view_model_supports_user_preferences_and_limits():
+    settings = module3_quick_action_settings(
+        admin_scope={"isCompanyAdminMode": False, "userId": "admin-user"},
+        detail_mode=False,
+    )
+
+    assert settings["title"] == "Настроить быстрые действия"
+    assert settings["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+    assert settings["maxModuleActions"] == 9
+    assert settings["maxDashboardCardActions"] == 3
+    assert settings["storageLayer"] == "UserDashboardLayout.layout_settings.moduleQuickActions"
+    assert settings["localStorageKey"] == "atom:module3:quickActionSettings:v1"
+    assert len(settings["actions"]) == 9
+    assert len(settings["preferences"]) == 9
+    assert settings["preferences"][0]["userId"] == "admin-user"
+    assert settings["preferences"][0]["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+
+    export_action = next(
+        action
+        for action in settings["actions"]
+        if action["quickActionCode"] == "MODULE_03_EXPORT_USERS"
+    )
+    assert export_action["canPin"] is False
+    assert export_action["isModulePinnedByDefault"] is False
+    assert export_action["unavailableReason"] == "Экспорт будет доступен после подключения сервиса экспорта."
+    assert {action["sourceLabel"] for action in settings["actions"]} >= {
+        "Пользователи",
+        "Доступы",
+        "Журнал изменений",
+        "Системные пользователи",
+    }
+
+
 def test_module3_overview_widgets_summarize_user_types_registry_and_system_users():
     company = _company_workspace()
     supplier = _company_workspace()
@@ -1213,6 +1251,19 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'data-max-surface="{{ action.maxSurface }}"' in template
     assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
     assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
+    assert 'data-quick-action-storage-key="{{ overview.moduleQuickActionSettings.localStorageKey }}"' in template
+    assert 'data-max-module-actions="{{ overview.moduleQuickActionSettings.maxModuleActions }}"' in template
+    assert 'data-max-card-actions="{{ overview.moduleQuickActionSettings.maxDashboardCardActions }}"' in template
+    assert "Настроить быстрые действия" in template
+    assert "data-module3-quick-actions-configure" in template
+    assert "data-module3-quick-action-modal" in template
+    assert "data-module3-quick-action-module-toggle" in template
+    assert "data-module3-quick-action-card-toggle" in template
+    assert "data-module3-quick-action-order" in template
+    assert "Внутри модуля можно закрепить не больше 9 быстрых действий." in template
+    assert "На карточке модуля можно вывести не больше 3 быстрых действий." in template
+    assert "UserDashboardLayout.layout_settings.moduleQuickActions" in template
+    assert "window.localStorage.setItem(storageKey" in template
     assert 'data-without-company="{{ row.isWithoutCompany }}"' in template
     assert 'data-without-type="{{ row.isWithoutType }}"' in template
     assert 'data-system-user="{{ row.isSystemUser }}"' in template
