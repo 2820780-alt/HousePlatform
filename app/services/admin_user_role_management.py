@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -736,6 +736,7 @@ def system_user_cards(users: list[User], recent_history: list[AuditLog]) -> list
     cards: list[dict[str, Any]] = []
     for definition in SYSTEM_USER_CARD_DEFINITIONS:
         user = _find_system_user(users, definition["roleCodes"], definition["login"])
+        last_activity = _latest_user_activity(user, recent_history) if user else "нет данных"
         cards.append(
             {
                 "login": definition["login"],
@@ -745,11 +746,72 @@ def system_user_cards(users: list[User], recent_history: list[AuditLog]) -> list
                 "purpose": definition["purpose"],
                 "status": _status_value(_get_value(user, "status")) or "not_configured",
                 "statusLabel": _system_user_status_label(_get_value(user, "status")),
-                "lastActivity": _latest_user_activity(user, recent_history) if user else "нет данных",
+                "lastActivity": last_activity,
+                "lastActivityCompact": _compact_datetime_label(last_activity),
                 "isPlaceholder": user is None,
             }
         )
     return cards
+
+
+def demo_recent_access_history_summaries(users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
+    if not _has_module3_demo_records(users, workspaces):
+        return []
+    base_time = _latest_demo_activity_time(users, workspaces) or datetime(2026, 7, 3, 14, 35)
+    rows = [
+        ("platform-admin", "Создана компания", "ООО «СтройПроект Юг»", "Компания активирована для проверки карточки и сотрудников."),
+        ("platform-admin", "Изменён доступ", "MODULE_03_USERS_ROLES", "Строительным компаниям предоставлен доступ к управлению сотрудниками."),
+        ("moderator", "Заблокирован пользователь", "demo.customer.blocked@atom.local", "Демо-сценарий блокировки пользователя."),
+        ("super-admin", "Назначен доступ к модулю", "MODULE_01_MATERIAL_HUB", "Поставщику разрешен ограниченный доступ к материалам."),
+        ("platform-admin", "Отключён виджет", "price-dynamics", "Индивидуальное ограничение виджета при включенном модуле."),
+    ]
+    return [
+        {
+            "id": f"module3-demo-history-{index}",
+            "timestamp": _stringify_search_value((base_time - timedelta(minutes=index * 7)).replace(microsecond=0)),
+            "timestampCompact": _compact_datetime_label((base_time - timedelta(minutes=index * 7)).replace(microsecond=0)),
+            "actorId": actor,
+            "actorName": actor,
+            "action": action,
+            "objectTypeCode": "ACCESS",
+            "objectId": object_name,
+            "objectName": object_name,
+            "detailsText": details,
+            "result": "SUCCESS",
+        }
+        for index, (actor, action, object_name, details) in enumerate(rows)
+    ]
+
+
+def _has_module3_demo_records(users: list[User], workspaces: list[Workspace]) -> bool:
+    return any(_is_module3_demo_user(user) for user in users) or any(_is_module3_demo_workspace(workspace) for workspace in workspaces)
+
+
+def _is_module3_demo_user(user: User) -> bool:
+    email = str(_get_value(user, "email") or "").lower()
+    name = str(_get_value(user, "name") or "").lower()
+    return email.startswith("demo.") or email in {
+        "platform-admin@atom.local",
+        "super-admin@atom.local",
+        "moderator@atom.local",
+        "support-admin@atom.local",
+    } or name in {"platform-admin", "super-admin", "moderator", "support-admin"}
+
+
+def _is_module3_demo_workspace(workspace: Workspace) -> bool:
+    slug = str(_get_value(workspace, "slug") or "").lower()
+    name = str(_get_value(workspace, "name") or _get_value(workspace, "title") or "").lower()
+    return slug.startswith("demo-") or "стройпроект юг" in name or "бетонпоставка кубань" in name
+
+
+def _latest_demo_activity_time(users: list[User], workspaces: list[Workspace]) -> datetime | None:
+    values: list[datetime] = []
+    for item in [*users, *workspaces]:
+        for field_name in ("updated_at", "created_at", "updatedAt", "createdAt"):
+            value = _get_value(item, field_name)
+            if isinstance(value, datetime):
+                values.append(value)
+    return max(values) if values else None
 
 
 def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
@@ -912,6 +974,9 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
     access_distribution_panel = access_distribution_panel_summary(pending_items)
     summary = _overview_summary(users, workspaces, recent_history, pending_items=pending_items)
     directory_rows = user_directory_rows(users, workspaces)
+    recent_history_rows = [audit_log_summary(item) for item in recent_history]
+    if not recent_history_rows:
+        recent_history_rows = demo_recent_access_history_summaries(users, workspaces)
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
         "adminScope": admin_scope,
@@ -942,7 +1007,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "userTypeAccessMatrix": user_type_access_matrix_view_model(),
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=False),
         "moduleQuickActionSettings": module3_quick_action_settings(admin_scope=admin_scope, detail_mode=False),
-        "recentAccessHistory": [audit_log_summary(item) for item in recent_history],
+        "recentAccessHistory": recent_history_rows,
         "auditPanel": audit_panel_summary(recent_history),
         "settingsPanel": settings_panel_summary(admin_scope),
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
@@ -2974,6 +3039,7 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
     summary.update(
         {
             "timestamp": module3_entry["timestamp"],
+            "timestampCompact": _compact_datetime_label(module3_entry["timestamp"]),
             "actorId": module3_entry["actorId"],
             "actorName": module3_entry["actorName"],
             "action": module3_entry["action"],
@@ -3522,6 +3588,25 @@ def _stringify_search_value(value: Any) -> str:
     if isinstance(value, datetime):
         return value.isoformat()
     return str(value)
+
+
+def _compact_datetime_label(value: Any) -> str:
+    if value in {None, ""}:
+        return ""
+    parsed: datetime | None = None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        raw = str(value).strip()
+        for candidate in (raw, raw.replace("Z", "+00:00"), raw.replace(" ", "T", 1)):
+            try:
+                parsed = datetime.fromisoformat(candidate)
+                break
+            except ValueError:
+                continue
+    if parsed:
+        return parsed.strftime("%d.%m %H:%M")
+    return str(value)[:16]
 
 
 def _company_primary_user(workspace: Workspace) -> User | None:

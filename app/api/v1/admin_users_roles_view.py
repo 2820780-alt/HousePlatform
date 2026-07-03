@@ -41,8 +41,8 @@ async def admin_users_roles_view(request: Request, db: DBSession):
             "overview": overview,
             "detail": None,
             "disable_confirmation": DISABLE_CONFIRMATION,
-            "atom_topbar_current_block": "Пользователи и роли",
-            "atom_topbar_profile_name": "Администратор",
+            "atom_topbar_current_block": "Модуль №3: Пользователи и роли",
+            "atom_topbar_profile_name": "Admin",
         },
     )
 
@@ -85,8 +85,8 @@ async def admin_user_card_view(user_id: UUID, request: Request, db: DBSession):
             "overview": overview,
             "detail": detail,
             "disable_confirmation": DISABLE_CONFIRMATION,
-            "atom_topbar_current_block": "Карточка пользователя",
-            "atom_topbar_profile_name": "Администратор",
+            "atom_topbar_current_block": "Модуль №3: Пользователи и роли",
+            "atom_topbar_profile_name": "Admin",
         },
     )
 

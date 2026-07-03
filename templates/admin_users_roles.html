@@ -29,7 +29,8 @@
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
       background:
-        linear-gradient(180deg, rgba(14, 28, 67, 0.22), transparent 280px),
+        radial-gradient(circle at 70% -80px, rgba(24, 215, 242, 0.1), transparent 420px),
+        linear-gradient(180deg, rgba(5, 13, 34, 0.92), rgba(3, 8, 21, 0.98) 58%, #030816),
         linear-gradient(135deg, var(--bg), #08122d 58%, #0e1029);
     }
     a { color: inherit; text-decoration: none; }
@@ -88,8 +89,8 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 8px;
       align-items: start;
-      margin: 18px 0 14px;
-      padding: 0 16px;
+      margin: 20px 0 8px;
+      padding: 0 14px;
       border: 0;
       border-radius: 0;
       background: transparent;
@@ -106,7 +107,7 @@
       letter-spacing: 0.08em;
     }
     .command-title h1 {
-      font-size: clamp(25px, 2vw, 34px);
+      font-size: 28px;
       line-height: 1.08;
     }
     .module3-quick-actions {
@@ -114,12 +115,15 @@
       grid-template-columns: auto minmax(0, 1fr) auto;
       gap: 18px;
       align-items: center;
-      margin: 14px 0 0;
-      padding: 13px 24px;
+      min-height: 74px;
+      margin: 14px 0 2px;
+      padding: 12px 24px;
       border: 1px solid rgba(24, 215, 242, 0.24);
       border-radius: 8px;
-      background: linear-gradient(145deg, rgba(7, 18, 44, 0.94), rgba(4, 10, 27, 0.96));
-      box-shadow: 0 0 0 1px rgba(24, 215, 242, 0.04), 0 24px 70px rgba(0, 0, 0, 0.22);
+      background:
+        linear-gradient(145deg, rgba(7, 19, 46, 0.96), rgba(4, 10, 27, 0.98)),
+        linear-gradient(90deg, rgba(24, 215, 242, 0.05), transparent 45%, rgba(24, 215, 242, 0.04));
+      box-shadow: 0 0 0 1px rgba(24, 215, 242, 0.05), 0 20px 58px rgba(0, 0, 0, 0.24);
     }
     .module3-quick-actions-title {
       font-weight: 700;
@@ -131,7 +135,10 @@
       gap: 16px;
       min-width: 0;
       overflow-x: auto;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+    }
+    .module3-quick-actions-list::-webkit-scrollbar {
+      height: 0;
     }
     .module3-action {
       display: inline-flex;
@@ -139,15 +146,16 @@
       justify-content: center;
       gap: 8px;
       min-height: 42px;
-      min-width: 190px;
+      min-width: 204px;
       padding: 9px 14px;
       max-width: 240px;
       border: 1px solid rgba(119, 172, 255, 0.2);
       border-radius: 8px;
       color: var(--text);
-      background: rgba(7, 14, 35, 0.72);
+      background: linear-gradient(180deg, rgba(13, 26, 59, 0.82), rgba(6, 13, 32, 0.82));
       text-align: center;
       white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
     .module3-action:hover {
       border-color: rgba(24, 215, 242, 0.42);
@@ -308,6 +316,9 @@
       gap: 0;
       align-items: start;
       min-height: calc(100vh - 64px);
+      background:
+        linear-gradient(90deg, rgba(4, 12, 30, 0.96), rgba(4, 10, 26, 0.72) 16%, rgba(4, 10, 26, 0.96)),
+        linear-gradient(180deg, rgba(10, 28, 67, 0.18), transparent 360px);
     }
     .module3-nav {
       position: sticky;
@@ -322,7 +333,7 @@
       border-radius: 0;
       background:
         linear-gradient(180deg, rgba(8, 22, 52, 0.94), rgba(4, 12, 31, 0.98)),
-        radial-gradient(circle at 50% 0, rgba(24, 215, 242, 0.1), transparent 320px);
+        radial-gradient(circle at 60% 0, rgba(24, 215, 242, 0.08), transparent 320px);
       box-shadow: inset -1px 0 0 rgba(119, 172, 255, 0.08);
     }
     .module3-nav-title {
@@ -394,9 +405,11 @@
     }
     .control-main {
       display: grid;
-      gap: 14px;
+      gap: 16px;
+      width: 100%;
       min-width: 0;
       padding: 18px 28px 32px;
+      overflow: hidden;
     }
     .system-grid {
       display: grid;
@@ -404,56 +417,235 @@
       gap: 16px;
     }
     .system-card {
+      --card-accent: var(--cyan);
       position: relative;
       overflow: hidden;
-      min-height: 170px;
-      padding: 22px;
-      border: 1px solid rgba(119, 172, 255, 0.22);
+      min-height: 184px;
+      display: grid;
+      gap: 14px;
+      padding: 18px 16px 14px;
+      border: 1px solid rgba(119, 172, 255, 0.24);
       border-radius: 8px;
       background:
-        linear-gradient(145deg, rgba(10, 28, 67, 0.78), rgba(4, 12, 31, 0.94)),
-        radial-gradient(circle at 86% 18%, rgba(24, 215, 242, 0.16), transparent 88px);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 54px rgba(0, 0, 0, 0.18);
+        linear-gradient(145deg, rgba(9, 27, 64, 0.82), rgba(4, 12, 31, 0.96)),
+        radial-gradient(circle at 88% 22%, color-mix(in srgb, var(--card-accent) 17%, transparent), transparent 96px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 54px rgba(0, 0, 0, 0.2);
     }
     .system-card::before {
       content: "";
-      display: block;
+      position: absolute;
+      top: 22px;
+      right: 18px;
+      width: 96px;
+      height: 64px;
+      opacity: 0.42;
+      background:
+        linear-gradient(150deg, transparent 0 46%, color-mix(in srgb, var(--card-accent) 60%, transparent) 47% 49%, transparent 50%),
+        linear-gradient(22deg, transparent 0 46%, color-mix(in srgb, var(--card-accent) 44%, transparent) 47% 48%, transparent 49%),
+        radial-gradient(circle at 22% 68%, var(--card-accent) 0 2px, transparent 3px),
+        radial-gradient(circle at 76% 24%, var(--card-accent) 0 2px, transparent 3px),
+        radial-gradient(circle at 90% 76%, var(--card-accent) 0 2px, transparent 3px);
+    }
+    .system-card-atom {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      width: 82px;
+      height: 66px;
+      pointer-events: none;
+      opacity: 0.74;
+      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--card-accent) 28%, transparent));
+    }
+    .system-card-atom span {
+      position: absolute;
+      left: 15px;
+      top: 22px;
+      width: 52px;
+      height: 20px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 64%, transparent);
+      border-radius: 50%;
+    }
+    .system-card-atom span:nth-child(1) { transform: rotate(28deg); }
+    .system-card-atom span:nth-child(2) { transform: rotate(-28deg); }
+    .system-card-atom span:nth-child(3) { transform: rotate(90deg) scaleX(0.66); }
+    .system-card-atom::before,
+    .system-card-atom::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: var(--card-accent);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--card-accent) 70%, transparent);
+    }
+    .system-card-atom::before {
+      width: 6px;
+      height: 6px;
+      left: 38px;
+      top: 29px;
+    }
+    .system-card-atom::after {
+      width: 4px;
+      height: 4px;
+      right: 7px;
+      top: 11px;
+    }
+    .system-card[data-user-type="SUPPLIER"] { --card-accent: #8b5cf6; }
+    .system-card[data-user-type="CUSTOMER"] { --card-accent: #7c9dff; }
+    .system-card[data-user-type="SPECIALIST"] { --card-accent: #18d7f2; }
+    .system-card-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .system-card-icon {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
       width: 52px;
       height: 52px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(24, 215, 242, 0.32);
+      border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
       border-radius: 8px;
-      background: linear-gradient(145deg, rgba(24, 215, 242, 0.16), rgba(119, 93, 255, 0.12));
-      box-shadow: 0 0 24px rgba(24, 215, 242, 0.12);
+      color: var(--card-accent);
+      background: color-mix(in srgb, var(--card-accent) 13%, rgba(7, 14, 35, 0.76));
+      font-size: 25px;
+      line-height: 1;
+      box-shadow: 0 0 24px color-mix(in srgb, var(--card-accent) 12%, transparent);
     }
-    .system-card span {
+    .system-card-icon::before,
+    .system-card-icon::after,
+    .registry-card-icon::before,
+    .registry-card-icon::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .system-card-icon--company::before {
+      width: 23px;
+      height: 29px;
+      border: 2px solid currentColor;
+      border-bottom-width: 3px;
+      box-shadow: inset 7px 0 0 rgba(24, 215, 242, 0.1);
+    }
+    .system-card-icon--company::after {
+      width: 3px;
+      height: 3px;
+      background: currentColor;
+      box-shadow: -7px -7px 0 currentColor, 0 -7px 0 currentColor, 7px -7px 0 currentColor, -7px 2px 0 currentColor, 0 2px 0 currentColor, 7px 2px 0 currentColor;
+    }
+    .system-card-icon--supplier::before {
+      width: 26px;
+      height: 26px;
+      border: 2px solid currentColor;
+      transform: rotate(30deg) skewY(-18deg);
+      border-radius: 4px;
+    }
+    .system-card-icon--supplier::after {
+      width: 18px;
+      height: 18px;
+      border-top: 2px solid currentColor;
+      border-left: 2px solid currentColor;
+      transform: translate(3px, -3px) rotate(30deg) skewY(-18deg);
+      opacity: 0.72;
+    }
+    .system-card-icon--customer::before {
+      width: 13px;
+      height: 13px;
+      top: 13px;
+      left: 19px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      box-shadow: -12px 8px 0 -4px currentColor, 12px 8px 0 -4px currentColor;
+    }
+    .system-card-icon--customer::after {
+      width: 34px;
+      height: 17px;
+      left: 8px;
+      bottom: 10px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 18px 18px;
+    }
+    .system-card-icon--specialist::before {
+      width: 28px;
+      height: 17px;
+      top: 13px;
+      border: 2px solid currentColor;
+      border-bottom: 0;
+      border-radius: 18px 18px 0 0;
+    }
+    .system-card-icon--specialist::after {
+      width: 25px;
+      height: 23px;
+      bottom: 9px;
+      border: 2px solid currentColor;
+      border-top: 3px solid currentColor;
+      border-radius: 13px 13px 8px 8px;
+      box-shadow: 0 -9px 0 -6px currentColor;
+    }
+    .system-card-title,
+    .metric-pill span {
       display: block;
       color: var(--muted);
       font-size: 12px;
     }
+    .system-card-title {
+      color: var(--text);
+      font-size: 15px;
+    }
     .system-card strong {
       display: block;
-      margin-top: 8px;
-      font-size: clamp(30px, 2.5vw, 42px);
+      margin-top: 4px;
+      font-size: 40px;
       line-height: 1;
       overflow-wrap: anywhere;
+    }
+    .system-card-description {
+      display: none;
     }
     .user-type-metrics {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 18px;
+      margin-top: auto;
+    }
+    .system-card[data-has-moderation="false"] .user-type-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .metric-pill {
       min-width: 0;
-      padding: 8px;
+      overflow: hidden;
+      padding: 9px 10px;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 8px;
-      background: rgba(5, 12, 30, 0.5);
+      background: rgba(5, 12, 30, 0.54);
+    }
+    .metric-pill span {
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.16;
+    }
+    .metric-pill span::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.44);
+    }
+    .metric-pill[data-metric="moderation"] span::before {
+      background: var(--amber);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.42);
+    }
+    .metric-pill[data-metric="blocked"] span::before {
+      background: #ff667e;
+      box-shadow: 0 0 10px rgba(255, 59, 127, 0.42);
     }
     .metric-pill strong {
       margin: 0;
-      font-size: 18px;
+      font-size: 20px;
     }
     .system-registry-grid {
       display: grid;
@@ -462,30 +654,278 @@
     }
     .overview-dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(460px, 1fr);
+      grid-template-columns: minmax(0, 1.15fr) minmax(430px, 0.98fr);
       gap: 16px;
       align-items: stretch;
     }
+    .overview-dashboard-grid > .panel,
+    .overview-dashboard-grid > .system-registry-grid {
+      min-height: 270px;
+    }
+    .overview-history-table {
+      padding: 0 14px 14px;
+      overflow: hidden;
+    }
+    .overview-history-entity-table {
+      min-width: 0 !important;
+      table-layout: fixed;
+      font-size: 11.5px;
+    }
+    .overview-history-entity-table th,
+    .overview-history-entity-table td {
+      padding: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .overview-history-entity-table .overview-history-icon-cell {
+      width: 34px;
+      text-align: center;
+    }
+    .overview-history-entity-table th:nth-child(2),
+    .overview-history-entity-table td:nth-child(2) {
+      width: 96px;
+    }
+    .overview-history-entity-table th:nth-child(3),
+    .overview-history-entity-table td:nth-child(3) {
+      width: 128px;
+    }
+    .overview-history-entity-table th:nth-child(4),
+    .overview-history-entity-table td:nth-child(4) {
+      width: 118px;
+    }
+    .overview-history-entity-table th:nth-child(5),
+    .overview-history-entity-table td:nth-child(5) {
+      width: 128px;
+    }
+    .overview-history-entity-table td:last-child {
+      width: 28px;
+      text-align: center;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .overview-history-entity-table td:nth-last-child(2) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .overview-history-entity-table .chip {
+      max-width: 100%;
+      min-height: 24px;
+      padding: 3px 7px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .history-action-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid rgba(24, 215, 242, 0.28);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .history-action-icon::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(24, 215, 242, 0.08);
+    }
+    .history-action-icon[data-kind="blocked"] {
+      border-color: rgba(255, 59, 127, 0.34);
+      color: #ff6d8e;
+      background: rgba(255, 59, 127, 0.08);
+    }
+    .history-action-icon[data-kind="created"] {
+      border-color: rgba(34, 197, 94, 0.34);
+      color: #4ee995;
+      background: rgba(34, 197, 94, 0.08);
+    }
     .registry-meter {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 12px;
+      gap: 12px;
+      margin-top: 0;
+    }
+    .registry-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      min-height: 270px;
+      padding: 18px;
+      border-color: rgba(119, 172, 255, 0.2);
+      background:
+        linear-gradient(145deg, rgba(9, 27, 64, 0.76), rgba(4, 12, 31, 0.94)),
+        radial-gradient(circle at 18% 42%, rgba(24, 215, 242, 0.08), transparent 130px);
+    }
+    .registry-card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .registry-card-icon {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .registry-card-icon--cube::before {
+      width: 13px;
+      height: 13px;
+      border: 2px solid currentColor;
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+    .registry-card-icon--atom::before,
+    .registry-card-icon--atom::after {
+      width: 22px;
+      height: 10px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      top: 8px;
+      left: 2px;
+    }
+    .registry-card-icon--atom::before {
+      transform: rotate(28deg);
+    }
+    .registry-card-icon--atom::after {
+      transform: rotate(-28deg);
+    }
+    .registry-card-icon--atom span {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .registry-card-body {
+      display: grid;
+      grid-template-columns: minmax(132px, 0.8fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: center;
+      padding: 14px 0 12px;
+    }
+    .registry-ring {
+      display: grid;
+      place-items: center;
+      justify-self: center;
+      width: 138px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, rgba(4, 10, 26, 0.94) 0 56%, transparent 57%),
+        conic-gradient(from -34deg, rgba(24, 215, 242, 0.95), rgba(0, 115, 255, 0.92) 68%, rgba(119, 172, 255, 0.16) 69% 100%);
+      box-shadow: 0 0 30px rgba(24, 215, 242, 0.18), inset 0 0 20px rgba(24, 215, 242, 0.08);
+      text-align: center;
+    }
+    .registry-ring strong {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1;
+    }
+    .registry-ring span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .registry-stats {
+      display: grid;
+      gap: 14px;
+    }
+    .registry-stat {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 10px;
+      align-items: baseline;
+      color: var(--muted);
+    }
+    .registry-stat strong {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1;
+      color: var(--text);
+    }
+    .registry-stat.ok span { color: #77f2a8; }
+    .registry-stat.info span { color: #54dfff; }
+    .registry-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 34px;
+      color: #54dfff;
+      font-size: 13px;
     }
     .system-user-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      padding: 14px;
+      padding: 14px 14px 16px;
     }
     .system-user-card {
       display: grid;
-      gap: 10px;
-      min-height: 150px;
-      padding: 13px;
+      grid-template-columns: 54px minmax(0, 1fr) 1px minmax(116px, 0.42fr);
+      gap: 14px;
+      align-items: center;
+      min-height: 132px;
+      padding: 16px;
       border: 1px solid rgba(119, 172, 255, 0.17);
       border-radius: 8px;
-      background: linear-gradient(145deg, rgba(11, 23, 54, 0.74), rgba(5, 12, 30, 0.88));
+      background:
+        linear-gradient(145deg, rgba(11, 23, 54, 0.74), rgba(5, 12, 30, 0.9)),
+        linear-gradient(90deg, rgba(24, 215, 242, 0.04), transparent 44%);
+    }
+    .system-user-card:nth-child(n+4) {
+      display: none;
+    }
+    .system-user-avatar {
+      display: inline-grid;
+      place-items: center;
+      width: 50px;
+      height: 50px;
+      border: 1px solid rgba(24, 215, 242, 0.32);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+      font-size: 25px;
+    }
+    .system-user-main {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+    .system-user-main .code-list {
+      margin-top: 0;
+    }
+    .system-user-main h3 {
+      font-size: 16px;
+    }
+    .system-user-main small,
+    .system-user-last small {
+      color: var(--muted);
+    }
+    .system-user-last {
+      display: grid;
+      gap: 8px;
+      justify-items: start;
+      color: var(--muted);
+    }
+    .system-user-separator {
+      width: 1px;
+      height: 78px;
+      background: linear-gradient(180deg, transparent, rgba(119, 172, 255, 0.2), transparent);
+    }
+    .system-user-last .chip {
+      align-self: end;
+      min-width: 100px;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(34, 197, 94, 0.14);
     }
     .system-user-card.placeholder {
       opacity: 0.74;
@@ -603,9 +1043,17 @@
     .chip.state-error { border-color: rgba(255, 59, 127, 0.34); }
     .layout {
       display: grid;
-      grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.35fr);
+      grid-template-columns: minmax(0, 1fr);
+      width: 100%;
       gap: 14px;
       align-items: start;
+    }
+    .layout > .panel,
+    #users,
+    #access-matrix {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
     }
     .user-admin-tabs,
     .filter-row {
@@ -1376,18 +1824,22 @@
     .module3-shell[data-active-tab="overview"] #users,
     .module3-shell[data-active-tab="overview"] .detail,
     .module3-shell[data-active-tab="overview"] #settings,
+    .module3-shell[data-active-tab="overview"] #audit-log,
     .module3-shell[data-active-tab="users"] #overview,
     .module3-shell[data-active-tab="users"] .overview-only,
     .module3-shell[data-active-tab="users"] .detail,
     .module3-shell[data-active-tab="users"] #settings,
+    .module3-shell[data-active-tab="users"] #audit-log,
     .module3-shell[data-active-tab="access"] #overview,
     .module3-shell[data-active-tab="access"] .overview-only,
     .module3-shell[data-active-tab="access"] .detail,
     .module3-shell[data-active-tab="access"] #settings,
+    .module3-shell[data-active-tab="access"] #audit-log,
     .module3-shell[data-active-tab="detail"] #overview,
     .module3-shell[data-active-tab="detail"] .overview-only,
     .module3-shell[data-active-tab="detail"] #users,
-    .module3-shell[data-active-tab="detail"] #settings {
+    .module3-shell[data-active-tab="detail"] #settings,
+    .module3-shell[data-active-tab="detail"] #audit-log {
       display: none;
     }
     .module3-shell[data-active-tab="users"] #users .user-admin-tabs,
@@ -1416,6 +1868,51 @@
 </head>
 <body data-atom-page data-rbac-ready>
   {% include "_atom_platform_topbar.html" %}
+  <style>
+    body[data-rbac-ready] .atom-platform-topbar {
+      min-height: 64px;
+      padding: 9px 18px;
+      gap: 14px;
+      background: rgba(3, 8, 21, 0.96);
+      border-bottom-color: rgba(119, 172, 255, 0.16);
+    }
+    body[data-rbac-ready] .atom-platform-logo {
+      width: 42px;
+      height: 42px;
+      flex-basis: 42px;
+      border-color: rgba(24, 215, 242, 0.82);
+      box-shadow: 0 0 28px rgba(24, 215, 242, 0.3);
+    }
+    body[data-rbac-ready] .atom-platform-brand strong {
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    body[data-rbac-ready] .atom-platform-brand small {
+      font-size: 10px;
+    }
+    body[data-rbac-ready] .atom-platform-chip {
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: rgba(6, 13, 32, 0.78);
+    }
+    body[data-rbac-ready] .atom-platform-chip.region {
+      border-radius: 8px;
+    }
+    body[data-rbac-ready] .atom-platform-icon {
+      width: 36px;
+      min-height: 36px;
+      flex-basis: 36px;
+      border-radius: 8px;
+      background: rgba(6, 13, 32, 0.82);
+    }
+    body[data-rbac-ready] .atom-platform-profile {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 6px 12px;
+      background: rgba(6, 13, 32, 0.74);
+    }
+  </style>
 
   <main
     class="module3-shell"
@@ -1563,25 +2060,31 @@
 
         <div class="system-grid overview-only" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
           {% for widget in overview.userTypeSummaryWidgets %}
-          <article class="system-card" data-user-type="{{ widget.userTypeCode }}">
-            <span>{{ widget.title }}</span>
-            <strong>{{ widget.total }}</strong>
-            <div class="muted">{{ widget.description }}</div>
+          <article class="system-card" data-user-type="{{ widget.userTypeCode }}" data-has-moderation="{% if widget.onModeration is defined %}true{% else %}false{% endif %}">
+            <span class="system-card-atom" aria-hidden="true"><span></span><span></span><span></span></span>
+            <div class="system-card-head">
+              <span class="system-card-icon {% if widget.userTypeCode == 'COMPANY' %}system-card-icon--company{% elif widget.userTypeCode == 'SUPPLIER' %}system-card-icon--supplier{% elif widget.userTypeCode == 'CUSTOMER' %}system-card-icon--customer{% else %}system-card-icon--specialist{% endif %}" aria-hidden="true"></span>
+              <div>
+                <span class="system-card-title">{{ widget.title }}</span>
+                <strong>{{ widget.total }}</strong>
+              </div>
+            </div>
+            <div class="system-card-description muted">{{ widget.description }}</div>
             <div class="user-type-metrics">
-              <div class="metric-pill">
-                <span>Активные</span>
+              <div class="metric-pill" data-metric="active">
+                <span title="Активные">Активные</span>
                 <strong>{{ widget.active }}</strong>
               </div>
-              <div class="metric-pill">
-                <span>Заблокированные</span>
-                <strong>{{ widget.blocked }}</strong>
-              </div>
               {% if widget.onModeration is defined %}
-              <div class="metric-pill">
-                <span>На модерации</span>
+              <div class="metric-pill" data-metric="moderation">
+                <span title="На модерации">Модерация</span>
                 <strong>{{ widget.onModeration }}</strong>
               </div>
               {% endif %}
+              <div class="metric-pill" data-metric="blocked">
+                <span title="Заблокированные">Заблок.</span>
+                <strong>{{ widget.blocked }}</strong>
+              </div>
             </div>
           </article>
           {% endfor %}
@@ -1592,60 +2095,105 @@
           <div class="panel-head">
             <div>
               <h2 id="overview-history-title">История изменений</h2>
-              <div class="muted">Последние действия по пользователям, компаниям, модулям, виджетам и доступам.</div>
+              <div class="muted">Короткая лента последних изменений доступа и пользователей.</div>
             </div>
-            <a class="chip info" href="#audit-log">Открыть полную историю</a>
           </div>
-          <table class="entity-table" aria-label="История изменений Module №3">
-            <thead>
-              <tr>
-                <th>Дата и время</th>
-                <th>Кто изменил</th>
-                <th>Действие</th>
-                <th>Объект</th>
-                <th>Детали</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in overview.recentAccessHistory[:6] %}
-              <tr>
-                <td>{{ item.timestamp }}</td>
-                <td>{{ item.actorName }}</td>
-                <td><span class="chip info">{{ item.action }}</span></td>
-                <td>{{ item.objectName or item.objectTypeCode }}</td>
-                <td>{{ item.detailsText or item.result }}</td>
-              </tr>
-              {% else %}
-              <tr>
-                <td colspan="5"><div class="empty">Изменений доступа пока нет.</div></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <div class="overview-history-table">
+            <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
+              <thead>
+                <tr>
+                  <th class="overview-history-icon-cell" aria-label="Тип события"></th>
+                  <th title="Дата и время">Дата</th>
+                  <th>Кто изменил</th>
+                  <th>Действие</th>
+                  <th>Объект</th>
+                  <th>Детали</th>
+                  <th aria-label="Меню"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in overview.recentAccessHistory[:6] %}
+                <tr>
+                  <td class="overview-history-icon-cell"><span class="history-action-icon" data-kind="{% if 'Заблок' in item.action %}blocked{% elif 'Создан' in item.action %}created{% else %}changed{% endif %}" aria-hidden="true"></span></td>
+                  <td title="{{ item.timestamp }}">{{ item.timestampCompact or item.timestamp }}</td>
+                  <td>{{ item.actorName }}</td>
+                  <td><span class="chip info">{{ item.action }}</span></td>
+                  <td>{{ item.objectName or item.objectTypeCode }}</td>
+                  <td>{{ item.detailsText or item.result }}</td>
+                  <td aria-label="Действия">⋮</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="7"><div class="empty">Изменений доступа пока нет.</div></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section class="system-registry-grid" aria-label="Модули и виджеты в системе">
-          <div class="bridge-card">
-            <h3>Модули в системе</h3>
-            <strong>{{ overview.moduleRegistrySummary.total }}</strong>
-            <div class="registry-meter">
-              <span class="chip ok">{{ overview.moduleRegistrySummary.active }} активные</span>
-              <span class="chip info">{{ overview.moduleRegistrySummary.inDevelopment }} в разработке</span>
-              {% if overview.moduleRegistrySummary.archived %}
-              <span class="chip">{{ overview.moduleRegistrySummary.archived }} архивные</span>
-              {% endif %}
+          <div class="bridge-card registry-card">
+            <div class="registry-card-head">
+              <span class="registry-card-icon registry-card-icon--cube" aria-hidden="true"></span>
+              <h3>Модули в системе</h3>
             </div>
+            <div class="registry-card-body">
+              <div class="registry-ring">
+                <div>
+                  <strong>{{ overview.moduleRegistrySummary.total }}</strong>
+                  <span>Всего модулей</span>
+                </div>
+              </div>
+              <div class="registry-meter registry-stats">
+                <div class="registry-stat ok">
+                  <strong>{{ overview.moduleRegistrySummary.active }}</strong>
+                  <span>Активные</span>
+                </div>
+                <div class="registry-stat info">
+                  <strong>{{ overview.moduleRegistrySummary.inDevelopment }}</strong>
+                  <span>В разработке</span>
+                </div>
+                {% if overview.moduleRegistrySummary.archived %}
+                <div class="registry-stat">
+                  <strong>{{ overview.moduleRegistrySummary.archived }}</strong>
+                  <span>Архивные</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            <a class="registry-link" href="/api/v1/admin/module-registry/view"><span>Открыть все модули</span><span aria-hidden="true">→</span></a>
           </div>
-          <div class="bridge-card">
-            <h3>Виджеты в системе</h3>
-            <strong>{{ overview.widgetRegistrySummary.total }}</strong>
-            <div class="registry-meter">
-              <span class="chip ok">{{ overview.widgetRegistrySummary.active }} активные</span>
-              <span class="chip info">{{ overview.widgetRegistrySummary.inDevelopment }} в разработке</span>
-              {% if overview.widgetRegistrySummary.archived %}
-              <span class="chip">{{ overview.widgetRegistrySummary.archived }} архивные</span>
-              {% endif %}
+          <div class="bridge-card registry-card">
+            <div class="registry-card-head">
+              <span class="registry-card-icon registry-card-icon--atom" aria-hidden="true"><span></span></span>
+              <h3>Виджеты в системе</h3>
             </div>
+            <div class="registry-card-body">
+              <div class="registry-ring">
+                <div>
+                  <strong>{{ overview.widgetRegistrySummary.total }}</strong>
+                  <span>Всего виджетов</span>
+                </div>
+              </div>
+              <div class="registry-meter registry-stats">
+                <div class="registry-stat ok">
+                  <strong>{{ overview.widgetRegistrySummary.active }}</strong>
+                  <span>Активные</span>
+                </div>
+                <div class="registry-stat info">
+                  <strong>{{ overview.widgetRegistrySummary.inDevelopment }}</strong>
+                  <span>В разработке</span>
+                </div>
+                {% if overview.widgetRegistrySummary.archived %}
+                <div class="registry-stat">
+                  <strong>{{ overview.widgetRegistrySummary.archived }}</strong>
+                  <span>Архивные</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            <a class="registry-link" href="#access-matrix"><span>Открыть все виджеты</span><span aria-hidden="true">→</span></a>
           </div>
         </section>
         </div>
@@ -1660,17 +2208,22 @@
           <div class="system-user-grid">
             {% for user in overview.systemUsers %}
             <article class="system-user-card {% if user.isPlaceholder %}placeholder{% endif %}">
-              <div>
+              <span class="system-user-avatar" aria-hidden="true">{% if user.login == 'super-admin' %}◇{% elif user.login == 'moderator' %}♙{% else %}♜{% endif %}</span>
+              <div class="system-user-main">
                 <h3>{{ user.login }}</h3>
                 <div class="muted">{{ user.displayName }}</div>
                 {% if user.email %}<small>{{ user.email }}</small>{% endif %}
+                <div class="code-list">
+                  <span class="chip info">{{ user.roleTitle }}</span>
+                </div>
+                <div class="muted system-user-purpose">{{ user.purpose }}</div>
               </div>
-              <div class="code-list">
-                <span class="chip info">{{ user.roleTitle }}</span>
+              <span class="system-user-separator" aria-hidden="true"></span>
+              <div class="system-user-last">
+                <small>Последняя активность</small>
+                <span title="{{ user.lastActivity }}">{{ user.lastActivityCompact or user.lastActivity }}</span>
                 <span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.statusLabel }}</span>
               </div>
-              <div class="muted">{{ user.purpose }}</div>
-              <small>Последняя активность: {{ user.lastActivity }}</small>
             </article>
             {% endfor %}
           </div>
@@ -3671,7 +4224,7 @@
       const normalizeState = (items) => {
         const defaults = defaultState();
         const byCode = new Map((items || []).map((item) => [item.quickActionCode, item]));
-        return defaults.map((item) => {
+        const normalized = defaults.map((item) => {
           const saved = byCode.get(item.quickActionCode) || {};
           return {
             ...item,
@@ -3680,6 +4233,7 @@
             sortOrder: Number(saved.sortOrder || item.sortOrder),
           };
         });
+        return normalized.some((item) => item.isEnabled && item.isPinnedInModule) ? normalized : defaults;
       };
 
       const loadState = () => {
