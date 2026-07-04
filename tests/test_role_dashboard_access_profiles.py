@@ -28,8 +28,7 @@ def test_profile_filters_widgets_through_registry_and_permissions_layer():
     assert "MODULE_11_ANALYTICS" not in supplier_profile["allowedModuleCodes"]
     assert supplier_profile["defaultWidgetCodes"] == ["materials-kpi"]
     assert "digital-house-status" not in supplier_profile["defaultWidgetCodes"]
-    assert "SUPPLIER_PRICE_UPLOAD" in supplier_profile["defaultQuickActionCodes"]
-    assert "SOURCE_TASK_CREATE" not in supplier_profile["defaultQuickActionCodes"]
+    assert supplier_profile["defaultQuickActionCodes"] == []
 
 
 def test_legacy_admin_uses_platform_admin_dashboard_profile():
@@ -82,12 +81,11 @@ def test_dashboard_context_consumes_role_dashboard_access_profile_for_preview():
     assert context.workspaceType == "SUPPLIER"
     assert context.allowedModuleCodes == [
         "MODULE_01_MATERIAL_HUB",
-        "MODULE_08_PROCUREMENT",
-        "MODULE_09_TENDERS",
+        "MODULE_09_PROCUREMENT",
         "MODULE_10_MARKETPLACE",
     ]
     assert context.allowedWidgetCodes == ["materials-kpi"]
-    assert context.allowedActionCodes == ["SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"]
+    assert context.allowedActionCodes == []
 
 
 def test_role_dashboard_access_profile_model_is_module03_preset_not_payload():

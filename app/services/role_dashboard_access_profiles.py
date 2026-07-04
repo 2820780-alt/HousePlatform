@@ -16,7 +16,7 @@ from app.services.widget_registry import get_widget_registry_item
 ROLE_DASHBOARD_PROFILE_LAYER = "module03_role_dashboard_access_profile"
 ROLE_DASHBOARD_PROFILE_NOTE = (
     "RoleDashboardAccessProfile is a Module 03 access/preset layer for the existing Dashboard. "
-    "It recommends visible modules, widgets, quick actions and layout defaults, then the result is "
+    "It recommends visible modules, widgets and layout defaults, then the result is "
     "filtered by PermissionGuard, WidgetRegistry, PlatformModuleRegistry, UserDashboardLayout and later Module 08 presets."
 )
 
@@ -27,24 +27,7 @@ LEGACY_ROLE_PROFILE_ALIASES = {
     "ENGINEER": "ENGINEER_DESIGNER",
 }
 
-KNOWN_DASHBOARD_QUICK_ACTION_CODES = {
-    "MATERIAL_CREATE",
-    "MATERIAL_APPROVE",
-    "MATERIAL_CLASSIFICATION_FIX",
-    "MATERIAL_RECHECK_SEND",
-    "SUPPLIER_PRICE_UPLOAD",
-    "SUPPLIER_PRICE_UPDATE",
-    "SUPPLIER_OFFER_CREATE",
-    "SOURCE_TASK_CREATE",
-    "MATERIAL_MODERATION_OPEN",
-    "SOURCE_ERRORS_OPEN",
-    "SOURCE_CREATE",
-    "DOCUMENT_LIST_OPEN",
-    "CUSTOMER_OBJECT_CREATE",
-    "CUSTOMER_ESTIMATE_REQUEST",
-    "CUSTOMER_PROCUREMENT_REQUEST",
-    "DASHBOARD_CONFIGURE",
-}
+KNOWN_DASHBOARD_QUICK_ACTION_CODES: set[str] = set()
 
 
 def get_role_dashboard_access_profile(role_code: str | None) -> dict[str, Any] | None:
@@ -140,11 +123,7 @@ def _filter_default_widget_codes(
 
 
 def _filter_default_quick_action_codes(action_codes: list[str] | tuple[str, ...]) -> list[str]:
-    return [
-        action_code
-        for action_code in _unique_strings(action_codes)
-        if action_code in KNOWN_DASHBOARD_QUICK_ACTION_CODES
-    ]
+    return []
 
 
 def _normalize_module_codes(module_codes: list[str] | tuple[str, ...]) -> list[str]:

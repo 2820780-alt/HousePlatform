@@ -7,7 +7,7 @@ def test_cabinet_context_mock_exposes_dashboard_preset_and_actions():
             "roleCode": "ADMIN",
             "activeCabinetId": "cabinet-admin-mock",
             "activeCabinetType": "ADMIN",
-            "allowedActionCodes": ["DASHBOARD_CONFIGURE", "MATERIAL_CREATE"],
+            "allowedActionCodes": ["SAMPLE_OPEN_LIST"],
         }
     )
 
@@ -18,10 +18,10 @@ def test_cabinet_context_mock_exposes_dashboard_preset_and_actions():
     assert context.cabinetDashboardPreset["presetCode"] == "ADMIN_CABINET_DEFAULT"
     assert context.cabinetDashboardPreset["topbar"]["showGlobalPeriod"] is False
     assert context.cabinetDashboardPreset["atomCardActions"]["maxActionsPerCard"] == 3
-    assert "MODULE_01_MATERIAL_HUB" in context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"]
-    assert "MODULE_03_USERS_ROLES" in context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"]
-    assert "DASHBOARD_ADMIN_CONTEXT" in context.cabinetDashboardPreset["atomCardActions"]["contextActionCodes"]
-    assert "DASHBOARD_CONFIGURE" in context.allowedActionCodes
+    assert context.cabinetDashboardPreset["atomCardActions"]["moduleActionCodes"] == {}
+    assert context.cabinetDashboardPreset["atomCardActions"]["contextActionCodes"] == {}
+    assert context.cabinetDashboardPreset["quickActionCodes"] == []
+    assert context.allowedActionCodes == ["SAMPLE_OPEN_LIST"]
 
 
 def test_cabinet_context_uses_effective_preview_role_in_title():
@@ -33,7 +33,7 @@ def test_cabinet_context_uses_effective_preview_role_in_title():
             "workspaceTitle": "Административное пространство",
             "activeCabinetId": "cabinet-admin-mock",
             "activeCabinetType": "SUPPLIER",
-            "allowedActionCodes": ["SUPPLIER_PRICE_UPLOAD"],
+            "allowedActionCodes": ["SAMPLE_OPEN_LIST"],
         }
     )
 

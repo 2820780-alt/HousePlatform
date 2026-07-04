@@ -40,12 +40,7 @@ CUSTOMER_ACCESS = {
         "procurement-requests",
         "price-dynamics",
     ],
-    "allowedQuickActionCodes": [
-        "CUSTOMER_OBJECT_CREATE",
-        "CUSTOMER_ESTIMATE_REQUEST",
-        "CUSTOMER_PROCUREMENT_REQUEST",
-        "DASHBOARD_CONFIGURE",
-    ],
+    "allowedQuickActionCodes": [],
 }
 
 
@@ -63,7 +58,7 @@ def test_default_preferences_are_built_from_filtered_preset():
     assert preferences["cabinetId"] == "cabinet-customer"
     assert preferences["blockPreferences"]
     assert preferences["widgetPreferences"]
-    assert preferences["quickActions"]
+    assert preferences["quickActions"] == []
     assert preferences["moduleShortcuts"] == []
 
 
@@ -153,7 +148,7 @@ def test_remove_widget_and_quick_action_visibility_do_not_bypass_permissions():
         access_context=CUSTOMER_ACCESS,
     )
     preferences = remove_widget(preferences, "price-dynamics")
-    preferences = set_quick_action_visibility(preferences, "CUSTOMER_ESTIMATE_REQUEST", False)
+    preferences = set_quick_action_visibility(preferences, "SAMPLE_OPEN_LIST", False)
 
     result = apply_cabinet_dashboard_preferences(
         "CustomerDashboardPreset",
@@ -162,8 +157,7 @@ def test_remove_widget_and_quick_action_visibility_do_not_bypass_permissions():
     )
 
     assert "price-dynamics" not in result["recommendedWidgetCodes"]
-    assert "CUSTOMER_ESTIMATE_REQUEST" not in result["recommendedQuickActionCodes"]
-    assert "CUSTOMER_PROCUREMENT_REQUEST" in result["recommendedQuickActionCodes"]
+    assert result["recommendedQuickActionCodes"] == []
 
 
 def test_reset_to_role_template_restores_filtered_defaults():

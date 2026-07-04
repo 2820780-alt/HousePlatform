@@ -74,7 +74,10 @@ def test_block_catalog_has_expected_ownership_boundaries():
     assert get_cabinet_block_definition("WORKS_BLOCK").sourceModuleCode == "MODULE_04_WORKS_COSTS"
     assert get_cabinet_block_definition("PROCUREMENT_BLOCK").sourceModuleCode == "MODULE_09_PROCUREMENT"
     assert get_cabinet_block_definition("PRICE_ANALYTICS_BLOCK").featureCode == "PRICE_DYNAMICS"
-    assert get_cabinet_block_definition("VISIBILITY_SETTINGS_BLOCK").sourceModuleCode == "MODULE_08_PARTNER_PORTAL"
+    visibility_block = get_cabinet_block_definition("VISIBILITY_SETTINGS_BLOCK")
+    assert visibility_block.sourceModuleCode == "MODULE_08_PARTNER_PORTAL"
+    assert visibility_block.sourceContextModuleCode == "PARTICIPANT_CABINET_CONTEXT"
+    assert visibility_block.requiresPermission.moduleCode == "PARTICIPANT_CABINET_CONTEXT"
 
 
 def test_cabinet_type_recommendations_reference_known_block_codes():

@@ -557,12 +557,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "procurement-requests",
             "price-dynamics",
         ],
-        recommendedQuickActionCodes=[
-            "CUSTOMER_OBJECT_CREATE",
-            "CUSTOMER_ESTIMATE_REQUEST",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, widgetCodes=["digital-house-status", "estimate-summary"]),
             DashboardPresetZone(ATOM_MAP, blockCodes=["OBJECT_IMAGE_BLOCK"], widgetCodes=["atom-map"], maxItems=1),
@@ -577,7 +572,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
         businessRole="SUPPLIER",
         recommendedModuleCodes=[
             "MODULE_01_MATERIAL_HUB",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_09_PROCUREMENT",
             "MODULE_10_MARKETPLACE",
             "MODULE_11_ANALYTICS",
@@ -596,15 +590,9 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "materials-kpi",
             "source-health",
             "procurement-requests",
-            "partner-tender-invites",
             "price-dynamics",
         ],
-        recommendedQuickActionCodes=[
-            "SUPPLIER_PRICE_UPLOAD",
-            "SUPPLIER_PRICE_UPDATE",
-            "SUPPLIER_OFFER_CREATE",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["SUPPLIER_PRICE_LIST_BLOCK"], widgetCodes=["materials-kpi", "source-health"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -623,7 +611,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "MODULE_05_ESTIMATE_ENGINE",
             "MODULE_09_PROCUREMENT",
             "MODULE_01_MATERIAL_HUB",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_11_ANALYTICS",
             "MODULE_13_PROJECT_COLLABORATION",
             "MODULE_15_CONTRACTS",
@@ -653,10 +640,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "project-collaboration-activity",
             "price-dynamics",
         ],
-        recommendedQuickActionCodes=[
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["COMPANY_OBJECTS_BLOCK", "WORKS_BLOCK"], widgetCodes=["estimate-summary"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -675,7 +659,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "MODULE_05_ESTIMATE_ENGINE",
             "MODULE_06_ESTIMATE_AUDIT",
             "MODULE_07_DIGITAL_HOUSE",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_11_ANALYTICS",
             "MODULE_13_PROJECT_COLLABORATION",
         ],
@@ -706,12 +689,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "price-dynamics",
             "system-alerts",
         ],
-        recommendedQuickActionCodes=[
-            "ESTIMATE_OPEN",
-            "MATERIAL_CLASSIFICATION_FIX",
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["SPECIALIST_OBJECTS_BLOCK", "WORKS_BLOCK"], widgetCodes=["classification-queue"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -744,7 +722,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "project-collaboration-activity",
             "quality-control-issues",
         ],
-        recommendedQuickActionCodes=["DASHBOARD_CONFIGURE"],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["SPECIALIST_OBJECTS_BLOCK", "WORKS_BLOCK"], widgetCodes=["digital-house-status"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -764,7 +742,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "MODULE_10_MARKETPLACE",
             "MODULE_11_ANALYTICS",
             "MODULE_02_KNOWLEDGE_BASE",
-            "MODULE_08_PARTNER_PORTAL",
         ],
         recommendedBlockCodes=[
             "SPECIALIST_SPECIFICATIONS_BLOCK",
@@ -779,11 +756,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "marketplace-cart",
             "price-dynamics",
         ],
-        recommendedQuickActionCodes=[
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "SUPPLIER_PRICE_UPLOAD",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["SPECIALIST_SPECIFICATIONS_BLOCK", "PROCUREMENT_BLOCK"], widgetCodes=["procurement-requests"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -820,11 +793,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "materials-kpi",
             "price-dynamics",
         ],
-        recommendedQuickActionCodes=[
-            "ESTIMATE_OPEN",
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["ESTIMATES_BLOCK", "ESTIMATE_AUDIT_BLOCK"], widgetCodes=["estimate-summary", "estimate-audit-risk"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -842,7 +811,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
         recommendedModuleCodes=[
             "MODULE_01_MATERIAL_HUB",
             "MODULE_05_ESTIMATE_ENGINE",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_13_PROJECT_COLLABORATION",
         ],
         recommendedBlockCodes=[
@@ -856,10 +824,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "classification-queue",
             "project-collaboration-activity",
         ],
-        recommendedQuickActionCodes=[
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["CABINET_DOCUMENTS_BLOCK", "VOLUMES_BLOCK"], widgetCodes=["materials-kpi"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),
@@ -877,7 +842,6 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "MODULE_19_CONSTRUCTOR_LITE",
             "MODULE_07_DIGITAL_HOUSE",
             "MODULE_02_KNOWLEDGE_BASE",
-            "MODULE_08_PARTNER_PORTAL",
         ],
         recommendedBlockCodes=[
             "PROJECT_DATA_BLOCK",
@@ -890,10 +854,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
             "constructor-changes",
             "materials-kpi",
         ],
-        recommendedQuickActionCodes=[
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ],
+        recommendedQuickActionCodes=[],
         zones=[
             DashboardPresetZone(TOP_WIDGET_GRID, blockCodes=["PROJECT_DATA_BLOCK", "OBJECT_PLAN_BLOCK"], widgetCodes=["digital-house-status"]),
             DashboardPresetZone(ATOM_MAP, widgetCodes=["atom-map"], maxItems=1),

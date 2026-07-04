@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from app.models.partner_portal import MODULE_08_PARTNER_PORTAL
+from app.models.partner_portal import MODULE_08_PARTNER_PORTAL, PARTICIPANT_CABINET_CONTEXT_CODE
 from app.services.partner_portal_cabinet_types import (
     CONSTRUCTION_COMPANY,
     CUSTOMER,
@@ -36,7 +36,7 @@ class CabinetBlockDefinition:
     requiresPermission: BlockPermissionRequirement | None = None
     isFuture: bool = False
     isPremiumFeature: bool = False
-    sourceContextModuleCode: str = MODULE_08_PARTNER_PORTAL
+    sourceContextModuleCode: str = PARTICIPANT_CABINET_CONTEXT_CODE
     status: str = "ACTIVE"
 
     def to_dict(self) -> dict[str, Any]:
@@ -223,7 +223,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
             "DESIGNER",
             "ENGINEER_DESIGNER",
         ],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="CABINET_DOCUMENTS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="CABINET_DOCUMENTS"),
     ),
     CabinetBlockDefinition(
         blockCode="TECHNOLOGY_KNOWLEDGE_BLOCK",
@@ -275,7 +275,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Регионы и зоны присутствия поставщика. Module 8 хранит настройки контекста, не логистику.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER],
         allowedBusinessRoles=["SUPPLIER", "SUPPLIER_OWNER", "SUPPLIER_ADMIN", "SALES_MANAGER"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="SUPPLY_REGIONS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="SUPPLY_REGIONS"),
     ),
     CabinetBlockDefinition(
         blockCode="SUPPLIER_ACTIVE_OBJECTS_BLOCK",
@@ -285,7 +285,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Связанные объекты и видимость для поставщика. Данные объектов остаются в Module 7.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER],
         allowedBusinessRoles=["SUPPLIER", "SUPPLIER_OWNER", "SUPPLIER_ADMIN", "SALES_MANAGER"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="SUPPLIER_ACTIVE_OBJECTS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="SUPPLIER_ACTIVE_OBJECTS"),
     ),
     CabinetBlockDefinition(
         blockCode="DEMAND_ANALYTICS_BLOCK",
@@ -302,8 +302,8 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         blockCode="MARKETPLACE_BLOCK",
         sourceModuleCode="MODULE_10_MARKETPLACE",
         featureCode="MARKETPLACE_OFFERS",
-        userTitle="Marketplace",
-        description="Предложения поставщика в витрине. Marketplace остается в Module 10.",
+        userTitle="Витрина",
+        description="Предложения поставщика в витрине. Технический код остается MODULE_10_MARKETPLACE.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER],
         allowedBusinessRoles=["SUPPLIER", "SUPPLIER_OWNER", "SUPPLIER_ADMIN", "SALES_MANAGER"],
         requiresPermission=_requires("MODULE_10_MARKETPLACE", feature_code="MARKETPLACE_OFFERS"),
@@ -348,7 +348,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Состав участников кабинета и рабочие роли. Это контекст Module 8, не RBAC Module 3.",
         allowedCabinetTypes=[CONSTRUCTION_COMPANY],
         allowedBusinessRoles=["CONTRACTOR"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="COMPANY_EMPLOYEES"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="COMPANY_EMPLOYEES"),
         isFuture=True,
     ),
     CabinetBlockDefinition(
@@ -518,7 +518,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Контакты участника кабинета. Это профильный контекст Module 8.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER, CONSTRUCTION_COMPANY, SPECIALIST],
         allowedBusinessRoles=["SUPPLIER", "CONTRACTOR", "SPECIALIST", "ESTIMATOR", "ENGINEER_DESIGNER"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="PARTNER_CONTACTS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="PARTNER_CONTACTS"),
     ),
     CabinetBlockDefinition(
         blockCode="BRANCHES_BLOCK",
@@ -528,7 +528,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Филиалы и точки присутствия участника. Это профильный контекст Module 8.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER, CONSTRUCTION_COMPANY],
         allowedBusinessRoles=["SUPPLIER", "CONTRACTOR"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="PARTNER_BRANCHES"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="PARTNER_BRANCHES"),
     ),
     CabinetBlockDefinition(
         blockCode="OFFER_SETTINGS_BLOCK",
@@ -538,7 +538,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Правила показа предложений и участия в заявках. Module 8 хранит только настройки видимости.",
         allowedCabinetTypes=[CUSTOMER, MATERIAL_SUPPLIER, CONSTRUCTION_COMPANY],
         allowedBusinessRoles=["CUSTOMER", "SUPPLIER", "CONTRACTOR"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="OFFER_SETTINGS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="OFFER_SETTINGS"),
     ),
     CabinetBlockDefinition(
         blockCode="VISIBILITY_SETTINGS_BLOCK",
@@ -548,7 +548,7 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
         description="Настройки видимости кабинета, объекта и предложений без копирования бизнес-данных других модулей.",
         allowedCabinetTypes=[CUSTOMER, MATERIAL_SUPPLIER, CONSTRUCTION_COMPANY, SPECIALIST],
         allowedBusinessRoles=["CUSTOMER", "SUPPLIER", "CONTRACTOR", "SPECIALIST", "ESTIMATOR", "ENGINEER_DESIGNER"],
-        requiresPermission=_requires(MODULE_08_PARTNER_PORTAL, feature_code="VISIBILITY_SETTINGS"),
+        requiresPermission=_requires(PARTICIPANT_CABINET_CONTEXT_CODE, feature_code="VISIBILITY_SETTINGS"),
     ),
 )
 

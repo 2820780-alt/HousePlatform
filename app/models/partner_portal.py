@@ -8,6 +8,12 @@ from app.database import Base
 
 
 MODULE_08_PARTNER_PORTAL = "MODULE_08_PARTNER_PORTAL"
+PARTICIPANT_CABINET_CONTEXT_CODE = "PARTICIPANT_CABINET_CONTEXT"
+PARTNER_PORTAL_BOUNDARY_STATUS = "LEGACY_DRAFT_BOUNDARY"
+PARTNER_PORTAL_BOUNDARY_NOTE = (
+    "Participant cabinets are a future separate contour; MODULE_08_PARTNER_PORTAL "
+    "is a legacy draft source code and is not the final Module 8 boundary."
+)
 
 
 class Module8RecordMixin:

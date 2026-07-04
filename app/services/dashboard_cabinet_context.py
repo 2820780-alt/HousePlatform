@@ -3,8 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
-
 ROLE_LABELS = {
     "ADMIN": "Администратор",
     "SUPER_ADMIN": "Супер администратор",
@@ -116,33 +114,10 @@ def _admin_cabinet_preset() -> CabinetDashboardPreset:
         atomCardActions={
             "placement": "ATOM_CARD",
             "maxActionsPerCard": 3,
-            "moduleActionCodes": {
-                "MODULE_01_MATERIAL_HUB": [
-                    "MATERIAL_CREATE",
-                    "SUPPLIER_PRICE_UPLOAD",
-                    "MATERIAL_MODERATION_OPEN",
-                ],
-                DASHBOARD_ADMIN_SOURCE_MODULE: [
-                    "DASHBOARD_CONFIGURE",
-                ],
-            },
-            "contextActionCodes": {
-                DASHBOARD_ADMIN_CONTEXT: [
-                    "DASHBOARD_CONFIGURE",
-                ],
-            },
+            "moduleActionCodes": {},
+            "contextActionCodes": {},
         },
-        quickActionCodes=[
-            "MATERIAL_CREATE",
-            "SUPPLIER_PRICE_UPLOAD",
-            "SOURCE_TASK_CREATE",
-            "MATERIAL_MODERATION_OPEN",
-            "SOURCE_ERRORS_OPEN",
-            "SOURCE_CREATE",
-            "MATERIAL_CREATE",
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ],
+        quickActionCodes=[],
     )
 
 

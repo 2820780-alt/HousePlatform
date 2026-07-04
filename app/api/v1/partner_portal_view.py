@@ -46,7 +46,7 @@ def _settings_context() -> dict:
                 "MODULE_09_PROCUREMENT",
                 "MODULE_10_MARKETPLACE",
                 "MODULE_11_ANALYTICS",
-                "MODULE_08_PARTNER_PORTAL",
+                "PARTICIPANT_CABINET_CONTEXT",
             ],
             "allowedFeatureCodes": [
                 "CUSTOMER_OBJECTS",
@@ -69,12 +69,7 @@ def _settings_context() -> dict:
                 "procurement-requests",
                 "price-dynamics",
             ],
-            "allowedQuickActionCodes": [
-                "CUSTOMER_OBJECT_CREATE",
-                "CUSTOMER_ESTIMATE_REQUEST",
-                "CUSTOMER_PROCUREMENT_REQUEST",
-                "DASHBOARD_CONFIGURE",
-            ],
+            "allowedQuickActionCodes": [],
         },
         "availableCabinets": [
             {

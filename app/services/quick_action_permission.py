@@ -16,13 +16,12 @@ from app.services.quick_action_registry import (
     build_quick_action_registry_item,
     get_quick_action_registry_item,
 )
-from app.services.role_dashboard_access_profiles import get_role_dashboard_access_profile
 from app.services.widget_permission import can_view_widget
 
 
 ACTIVE_MODULE_STATUSES = {"active", "ACTIVE"}
 ACTIVE_QUICK_ACTION_STATUSES = {"ACTIVE"}
-DASHBOARD_CONTEXT_ACTION_CODES = {"DASHBOARD_CONFIGURE"}
+DASHBOARD_CONTEXT_ACTION_CODES: set[str] = set()
 
 
 @dataclass(frozen=True)
@@ -288,11 +287,7 @@ def _role_profile_allows_action(
     action: QuickActionRegistryItemDefinition,
     context: QuickActionPermissionContext,
 ) -> bool:
-    profile = context.roleDashboardAccessProfile or get_role_dashboard_access_profile(context.roleCode)
-    if not profile:
-        return False
-    default_actions = set(profile.get("defaultQuickActionCodes") or [])
-    return action.quickActionCode in default_actions
+    return True
 
 
 def _widget_allows_action(

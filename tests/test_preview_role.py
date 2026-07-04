@@ -69,7 +69,7 @@ def test_enter_preview_role_preserves_real_actor_and_builds_visual_user():
     assert preview["visualUser"]["roleCode"] == "SUPPLIER"
     assert preview["visualUser"]["realRoleCode"] == "ADMIN"
     assert preview["visualUser"]["activeRegionCode"] == "KRASNODAR_KRAI"
-    assert preview["visualUser"]["allowedActionCodes"] == ["SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"]
+    assert preview["visualUser"]["allowedActionCodes"] == []
     assert preview["userDashboardLayout"]["isPreviewLayout"] is True
     assert preview["userDashboardLayout"]["previewRoleCode"] == "SUPPLIER"
     assert MOCK_AUDIT_EVENTS[-1]["eventType"] == AuditLogType.VIEW_AS_ROLE_ENTERED

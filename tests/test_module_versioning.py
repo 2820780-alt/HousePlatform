@@ -66,7 +66,7 @@ def test_normalize_versioned_widget_reference_migrates_price_history_feature():
 def test_normalize_versioned_quick_action_reference_keeps_admin_context():
     action = normalize_versioned_quick_action_reference(
         {
-            "quickActionCode": "DASHBOARD_CONFIGURE",
+            "quickActionCode": "SAMPLE_OPEN_LIST",
             "sourceModuleCode": "MODULE_16_ADMIN_CABINET",
         }
     )

@@ -31,7 +31,7 @@ MODULE8_CONTEXT = {
             "MODULE_09_PROCUREMENT",
             "MODULE_10_MARKETPLACE",
             "MODULE_11_ANALYTICS",
-            "MODULE_08_PARTNER_PORTAL",
+            "PARTICIPANT_CABINET_CONTEXT",
         ],
         "allowedFeatureCodes": [
             "CUSTOMER_OBJECTS",
@@ -50,12 +50,7 @@ MODULE8_CONTEXT = {
             "procurement-requests",
             "price-dynamics",
         ],
-        "allowedQuickActionCodes": [
-            "CUSTOMER_OBJECT_CREATE",
-            "CUSTOMER_ESTIMATE_REQUEST",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "DASHBOARD_CONFIGURE",
-        ],
+        "allowedQuickActionCodes": [],
     },
     "availableCabinets": [
         {
@@ -119,13 +114,7 @@ def test_partner_portal_adapter_dashboard_context_preset_blocks_and_actions():
     assert preset["presetCode"] == "CustomerDashboardPreset"
     assert "MODULE_07_DIGITAL_HOUSE" in preset["recommendedModuleCodes"]
     assert any(block["blockCode"] == "OBJECT_IMAGE_BLOCK" for block in blocks)
-    assert [action["quickActionCode"] for action in actions] == [
-        "CUSTOMER_OBJECT_CREATE",
-        "CUSTOMER_ESTIMATE_REQUEST",
-        "CUSTOMER_PROCUREMENT_REQUEST",
-        "DASHBOARD_CONFIGURE",
-    ]
-    assert all(action["permissionSourceModuleCode"] == MODULE_03_USERS_ROLES for action in actions)
+    assert actions == []
 
 
 def test_partner_portal_adapter_widget_preferences_can_be_read_and_updated():

@@ -36,7 +36,7 @@ from app.models import (
     UserCabinetLink,
     WorksCostsCabinetLink,
 )
-from app.models.partner_portal import MODULE_08_PARTNER_PORTAL
+from app.models.partner_portal import MODULE_08_PARTNER_PORTAL, PARTNER_PORTAL_BOUNDARY_STATUS
 
 
 MODULE8_TYPES = (
@@ -103,3 +103,7 @@ def test_module8_types_use_partner_portal_module_code_by_default():
         default = model.__table__.columns["module_code"].default
         assert default is not None, model.__name__
         assert default.arg == MODULE_08_PARTNER_PORTAL
+
+
+def test_partner_portal_module_code_is_legacy_draft_boundary_marker():
+    assert PARTNER_PORTAL_BOUNDARY_STATUS == "LEGACY_DRAFT_BOUNDARY"

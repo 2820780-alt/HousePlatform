@@ -16,7 +16,7 @@ from app.services.widget_registry import WidgetRegistryItemDefinition, get_widge
 
 ACTIVE_MODULE_STATUSES = {"active", "ACTIVE"}
 ACTIVE_WIDGET_STATUSES = {"ACTIVE"}
-ADD_WIDGET_ACTION_CODE = "DASHBOARD_CONFIGURE"
+ADD_WIDGET_ACTION_CODE = "DASHBOARD_PERSONALIZE"
 
 
 @dataclass(frozen=True)

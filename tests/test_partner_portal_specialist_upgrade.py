@@ -18,7 +18,7 @@ FULL_UPGRADE_ACCESS = {
         "MODULE_04_WORKS_COSTS",
         "MODULE_05_ESTIMATE_ENGINE",
         "MODULE_07_DIGITAL_HOUSE",
-        "MODULE_08_PARTNER_PORTAL",
+        "PARTICIPANT_CABINET_CONTEXT",
         "MODULE_09_PROCUREMENT",
     ],
     "allowedFeatureCodes": [
@@ -32,7 +32,7 @@ FULL_UPGRADE_ACCESS = {
         "HOUSE_STORAGE",
     ],
     "allowedWidgetCodes": ["atom-map", "estimate-summary", "materials-kpi"],
-    "allowedQuickActionCodes": ["DASHBOARD_CONFIGURE"],
+    "allowedQuickActionCodes": [],
 }
 
 

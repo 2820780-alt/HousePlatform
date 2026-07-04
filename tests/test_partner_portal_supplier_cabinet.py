@@ -16,7 +16,7 @@ FULL_SUPPLIER_ACCESS = {
     "allowedModuleCodes": [
         "MODULE_01_MATERIAL_HUB",
         "MODULE_09_PROCUREMENT",
-        "MODULE_08_PARTNER_PORTAL",
+        "PARTICIPANT_CABINET_CONTEXT",
         "MODULE_11_ANALYTICS",
         "MODULE_10_MARKETPLACE",
     ],
@@ -35,15 +35,9 @@ FULL_SUPPLIER_ACCESS = {
         "materials-kpi",
         "source-health",
         "procurement-requests",
-        "partner-tender-invites",
         "price-dynamics",
     ],
-    "allowedQuickActionCodes": [
-        "SUPPLIER_PRICE_UPLOAD",
-        "SUPPLIER_PRICE_UPDATE",
-        "SUPPLIER_OFFER_CREATE",
-        "DASHBOARD_CONFIGURE",
-    ],
+    "allowedQuickActionCodes": [],
 }
 
 
@@ -82,7 +76,7 @@ def test_supplier_cabinet_template_has_requested_focus_roles_and_blocks():
         "Документы",
         "Объекты в работе",
         "Аналитика спроса",
-        "Marketplace",
+        "Витрина",
     ]
     assert cabinet["dashboardPreset"]["presetCode"] == "SupplierDashboardPreset"
 
@@ -107,10 +101,10 @@ def test_supplier_cabinet_marks_requested_placeholders():
 def test_supplier_cabinet_filters_blocks_through_module3_access_context():
     limited = {
         **FULL_SUPPLIER_ACCESS,
-        "allowedModuleCodes": ["MODULE_08_PARTNER_PORTAL"],
+        "allowedModuleCodes": ["PARTICIPANT_CABINET_CONTEXT"],
         "allowedFeatureCodes": ["PARTNER_BRANCHES", "PARTNER_CONTACTS", "SUPPLY_REGIONS"],
         "allowedWidgetCodes": [],
-        "allowedQuickActionCodes": ["DASHBOARD_CONFIGURE"],
+        "allowedQuickActionCodes": [],
     }
     cabinet = get_supplier_cabinet_template(access_context=limited).to_dict()
     codes = [block["blockCode"] for block in cabinet["blocks"]]

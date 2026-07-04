@@ -36,7 +36,7 @@ from app.services.quick_action_preferences import (
     MAX_MODULE_CARD_QUICK_ACTIONS,
     build_user_quick_action_preference,
 )
-from app.services.quick_action_registry import get_quick_action_registry, get_quick_action_registry_items_for_module
+from app.services.quick_action_registry import get_quick_action_registry
 from app.services.role_dashboard_access_profiles import get_role_dashboard_access_profile
 from app.services.widget_settings_schema import build_widget_settings_schema_preview
 from app.services.widget_registry import get_widget_registry, get_widget_registry_item
@@ -76,17 +76,7 @@ COMPANY_ADMIN_VISIBLE_ROLE_CODES = {
     "VIEWER",
 }
 
-MODULE3_QUICK_ACTION_CODES: tuple[str, ...] = (
-    "MODULE_03_FIND_USER",
-    "MODULE_03_BLOCKED_USERS",
-    "MODULE_03_CHECK_ACCESS",
-    "MODULE_03_AUDIT_LOG",
-    "MODULE_03_USERS_WITHOUT_COMPANY",
-    "MODULE_03_USERS_WITHOUT_TYPE",
-    "MODULE_03_SYSTEM_USERS",
-    "MODULE_03_ACCESS_MATRIX",
-    "MODULE_03_EXPORT_USERS",
-)
+MODULE3_QUICK_ACTION_CODES: tuple[str, ...] = ()
 
 USER_TYPE_WIDGET_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
@@ -569,48 +559,7 @@ async def load_actor_with_roles(db: AsyncSession, actor: User | dict[str, Any]) 
 
 
 def module3_quick_actions(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> list[dict[str, Any]]:
-    is_company_admin = bool(admin_scope.get("isCompanyAdminMode"))
-    actor_roles = set(admin_scope.get("actorRoleCodes") or [])
-    registry_actions = {
-        action["quickActionCode"]: action
-        for action in get_quick_action_registry_items_for_module(
-            "MODULE_03_USERS_ROLES",
-            surface="MODULE_BAR",
-        )
-    }
-    actions: list[dict[str, Any]] = []
-    for action_code in MODULE3_QUICK_ACTION_CODES:
-        action = registry_actions.get(action_code)
-        if not action:
-            continue
-        settings = action.get("settings") or {}
-        if is_company_admin and not settings.get("visibleForCompanyAdmin"):
-            continue
-        if actor_roles and action.get("allowedRoles") and not actor_roles.intersection(set(action["allowedRoles"])):
-            continue
-        target = settings.get("detailTarget") if detail_mode and settings.get("detailTarget") else action.get("targetRoute")
-        disabled_reason = settings.get("disabledReason")
-        actions.append(
-            {
-                "id": settings.get("shellActionId") or action["quickActionCode"],
-                "quickActionCode": action["quickActionCode"],
-                "sourceModuleCode": action["sourceModuleCode"],
-                "label": action["titleRu"],
-                "icon": action.get("icon"),
-                "permissionCode": action.get("requiredPermission") or settings.get("permissionCode"),
-                "featureCode": action.get("featureCode"),
-                "sectionCode": action.get("sectionCode"),
-                "actionCode": action.get("actionCode"),
-                "maxSurface": action.get("maxSurface"),
-                "visible": True,
-                "enabled": bool(action.get("isEnabledByDefault", True)) and bool(action.get("isAvailable", True)),
-                "actionType": action.get("actionType", "navigate"),
-                "target": target,
-                "description": disabled_reason or action.get("description"),
-                "disabledReason": disabled_reason,
-            }
-        )
-    return actions[:9]
+    return []
 
 
 def module3_quick_action_settings(*, admin_scope: dict[str, Any], detail_mode: bool = False) -> dict[str, Any]:
@@ -747,7 +696,7 @@ def system_user_cards(users: list[User], recent_history: list[AuditLog]) -> list
                 "status": _status_value(_get_value(user, "status")) or "not_configured",
                 "statusLabel": _system_user_status_label(_get_value(user, "status")),
                 "lastActivity": last_activity,
-                "lastActivityCompact": _compact_datetime_label(last_activity),
+                "lastActivityCompact": _reference_datetime_label(last_activity),
                 "isPlaceholder": user is None,
             }
         )
@@ -769,7 +718,7 @@ def demo_recent_access_history_summaries(users: list[User], workspaces: list[Wor
         {
             "id": f"module3-demo-history-{index}",
             "timestamp": _stringify_search_value((base_time - timedelta(minutes=index * 7)).replace(microsecond=0)),
-            "timestampCompact": _compact_datetime_label((base_time - timedelta(minutes=index * 7)).replace(microsecond=0)),
+            "timestampCompact": _reference_datetime_label((base_time - timedelta(minutes=index * 7)).replace(microsecond=0)),
             "actorId": actor,
             "actorName": actor,
             "action": action,
@@ -1062,11 +1011,12 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         workspace_id=module8_preview_data.get("workspaceId") or access_context.workspaceId,
         module_code="MODULE_08_PARTNER_PORTAL",
         canonical_module_code="MODULE_08_PARTNER_PORTAL",
-        reason="Module 03 Admin UI read Module 08 cabinet context through adapter/DTO.",
+        reason="Module 03 Admin UI read legacy draft cabinet context through adapter/DTO.",
         entity_type="Module8CabinetAdminPreviewDTO",
         entity_id=module8_preview_data.get("activeCabinetId"),
         metadata={
             "sourceModuleCode": "MODULE_08_PARTNER_PORTAL",
+            "moduleBoundaryStatus": "LEGACY_DRAFT_BOUNDARY",
             "activeRegionCode": module8_preview_data.get("activeRegionCode") or access_context.activeRegionCode,
             "activeCabinetType": module8_preview_data.get("activeCabinetType"),
             "isMock": module8_preview_data.get("isMock", True),
@@ -3046,6 +2996,7 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
         {
             "timestamp": module3_entry["timestamp"],
             "timestampCompact": _compact_datetime_label(module3_entry["timestamp"]),
+            "timestampReference": _reference_datetime_label(module3_entry["timestamp"]),
             "actorId": module3_entry["actorId"],
             "actorName": module3_entry["actorName"],
             "action": module3_entry["action"],
@@ -3627,6 +3578,25 @@ def _compact_datetime_label(value: Any) -> str:
                 continue
     if parsed:
         return parsed.strftime("%d.%m %H:%M")
+    return str(value)[:16]
+
+
+def _reference_datetime_label(value: Any) -> str:
+    if value in {None, ""}:
+        return ""
+    parsed: datetime | None = None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        raw = str(value).strip()
+        for candidate in (raw, raw.replace("Z", "+00:00"), raw.replace(" ", "T", 1)):
+            try:
+                parsed = datetime.fromisoformat(candidate)
+                break
+            except ValueError:
+                continue
+    if parsed:
+        return parsed.strftime("%d.%m.%Y %H:%M")
     return str(value)[:16]
 
 

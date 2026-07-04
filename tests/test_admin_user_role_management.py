@@ -668,7 +668,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     )
 
     assert 'data-user-type="COMPANY"' in html
-    assert 'data-quick-action-storage-key="atom:module3:quickActionSettings:v1"' in fallback_html
+    assert 'data-quick-action-storage-key="atom:module3:quickActionSettings:v1"' not in fallback_html
     assert "Компании" in html
     assert "Поставщики" in html
     assert "Заказчики" in html
@@ -932,60 +932,17 @@ def test_settings_panel_separates_regular_settings_from_debug_zones():
     }.issubset(diagnostic_titles)
 
 
-def test_module3_quick_actions_are_configured_for_shell_navigation():
+def test_module3_quick_actions_are_not_fixed_shell_navigation_presets():
     actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=False)
-    labels = [action["label"] for action in actions]
-
-    assert labels == [
-        "Найти пользователя",
-        "Открыть заблокированных",
-        "Проверить доступ",
-        "История изменений",
-        "Пользователи без компании",
-        "Пользователи без типа",
-        "Системные пользователи",
-        "Матрица доступов",
-        "Экспортировать список пользователей",
-    ]
-
-    for action in actions:
-        assert action["id"]
-        assert action["quickActionCode"].startswith("MODULE_03_")
-        assert action["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
-        assert action["permissionCode"]
-        assert action["featureCode"]
-        assert action["actionCode"]
-        assert action["maxSurface"] == "BOTH"
-        assert action["visible"] is True
-        assert action["actionType"] == "navigate"
-        assert str(action["target"]).startswith("#")
-
-    assert len(actions) == 9
-    assert actions[-1]["id"] == "export-users"
-    assert actions[-1]["enabled"] is False
-    assert actions[-1]["disabledReason"] == "Экспорт будет доступен после подключения сервиса экспорта."
-
-    detail_actions = {
-        action["id"]: action
-        for action in module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=True)
-    }
-    assert detail_actions["check-access"]["target"] == "#access-matrix-detail"
-    assert detail_actions["access-matrix"]["target"] == "#access-matrix-detail"
-
+    detail_actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": False}, detail_mode=True)
     company_actions = module3_quick_actions(admin_scope={"isCompanyAdminMode": True}, detail_mode=False)
-    company_labels = {action["label"] for action in company_actions}
-    assert "Найти пользователя" in company_labels
-    assert "Открыть заблокированных" in company_labels
-    assert "Проверить доступ" in company_labels
-    assert "История изменений" in company_labels
-    assert "Матрица доступов" in company_labels
-    assert "Экспортировать список пользователей" in company_labels
-    assert "Пользователи без компании" not in company_labels
-    assert "Пользователи без типа" not in company_labels
-    assert "Системные пользователи" not in company_labels
+
+    assert actions == []
+    assert detail_actions == []
+    assert company_actions == []
 
 
-def test_module3_quick_action_settings_view_model_supports_user_preferences_and_limits():
+def test_module3_quick_action_settings_view_model_has_no_fixed_actions():
     settings = module3_quick_action_settings(
         admin_scope={"isCompanyAdminMode": False, "userId": "admin-user"},
         detail_mode=False,
@@ -997,25 +954,8 @@ def test_module3_quick_action_settings_view_model_supports_user_preferences_and_
     assert settings["maxDashboardCardActions"] == 3
     assert settings["storageLayer"] == "UserDashboardLayout.layout_settings.moduleQuickActions"
     assert settings["localStorageKey"] == "atom:module3:quickActionSettings:v1"
-    assert len(settings["actions"]) == 9
-    assert len(settings["preferences"]) == 9
-    assert settings["preferences"][0]["userId"] == "admin-user"
-    assert settings["preferences"][0]["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
-
-    export_action = next(
-        action
-        for action in settings["actions"]
-        if action["quickActionCode"] == "MODULE_03_EXPORT_USERS"
-    )
-    assert export_action["canPin"] is False
-    assert export_action["isModulePinnedByDefault"] is False
-    assert export_action["unavailableReason"] == "Экспорт будет доступен после подключения сервиса экспорта."
-    assert {action["sourceLabel"] for action in settings["actions"]} >= {
-        "Пользователи",
-        "Доступы",
-        "Журнал изменений",
-        "Системные пользователи",
-    }
+    assert settings["actions"] == []
+    assert settings["preferences"] == []
 
 
 def test_module3_overview_widgets_summarize_user_types_registry_and_system_users():
@@ -1293,7 +1233,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'hidden data-system-section="module8-context-diagnostics"' in template
     assert "MODULE_08_PARTNER_PORTAL" in template
     assert "Module №3 их не хранит" in template
-    assert "Source of truth остается в MODULE_08_PARTNER_PORTAL" in template
+    assert "не является финальной границей Module №8" in template
     assert "Список кабинетов пользователя" in template
     assert "Настройки видимости placeholder" in template
     assert "Настройки предложений placeholder" in template
@@ -1355,31 +1295,15 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Новые модули и виджеты требуют распределения" not in overview
     assert "Пользователи — превью рабочей зоны" not in overview
     assert "Быстрые переходы администратора" not in overview
-    assert "Быстрые действия" in template
-    assert 'data-module3-quick-actions' in template
-    assert template.index('data-module3-quick-actions') < template.index('<section class="command-hero" id="overview">')
-    assert 'data-action-id="{{ action.id }}"' in template
-    assert 'data-quick-action-code="{{ action.quickActionCode }}"' in template
-    assert 'data-source-module-code="{{ action.sourceModuleCode }}"' in template
-    assert 'data-action-code="{{ action.actionCode }}"' in template
-    assert 'data-max-surface="{{ action.maxSurface }}"' in template
-    assert 'data-permission-code="{{ action.permissionCode or \'\' }}"' in template
-    assert 'data-feature-code="{{ action.featureCode or \'\' }}"' in template
-    assert "quick_action_settings = overview.moduleQuickActionSettings|default" in template
-    assert "quick_actions = overview.moduleQuickActions|default" in template
-    assert 'data-quick-action-storage-key="{{ quick_action_settings.localStorageKey|default' in template
-    assert 'data-max-module-actions="{{ quick_action_settings.maxModuleActions|default(9) }}"' in template
-    assert 'data-max-card-actions="{{ quick_action_settings.maxDashboardCardActions|default(3) }}"' in template
-    assert "Настроить быстрые действия" in template
-    assert "data-module3-quick-actions-configure" in template
-    assert "data-module3-quick-action-modal" in template
-    assert "data-module3-quick-action-module-toggle" in template
-    assert "data-module3-quick-action-card-toggle" in template
-    assert "data-module3-quick-action-order" in template
-    assert "Внутри модуля можно закрепить не больше 9 быстрых действий." in template
-    assert "На карточке модуля можно вывести не больше 3 быстрых действий." in template
-    assert "UserDashboardLayout.layout_settings.moduleQuickActions" in template
-    assert "window.localStorage.setItem(storageKey" in template
+    assert 'data-module3-quick-actions' not in template
+    assert "data-module3-quick-actions-configure" not in template
+    assert "data-module3-quick-action-modal" not in template
+    assert "data-module3-quick-action-module-toggle" not in template
+    assert "data-module3-quick-action-card-toggle" not in template
+    assert "data-module3-quick-action-order" not in template
+    assert "quick_action_settings = overview.moduleQuickActionSettings|default" not in template
+    assert "quick_actions = overview.moduleQuickActions|default" not in template
+    assert "window.localStorage.setItem(storageKey" not in template
     assert 'data-without-company="{{ row.isWithoutCompany }}"' in template
     assert 'data-without-type="{{ row.isWithoutType }}"' in template
     assert 'data-system-user="{{ row.isSystemUser }}"' in template
@@ -1587,7 +1511,7 @@ def test_module3_final_visual_unification_contract():
     assert template.count('<nav class="module3-nav"') == 1
     assert "module3-shell" in template
     assert "data-module3-shell" in template
-    assert "data-module3-quick-actions" in template
+    assert "data-module3-quick-actions" not in template
     assert "data-module3-sidebar" in template
     assert "data-module3-content" in template
     assert "control-shell" in template
@@ -1658,6 +1582,7 @@ def test_module8_cabinet_admin_preview_exposes_context_placeholders():
     ).to_dict()
 
     assert preview["sourceModuleCode"] == "MODULE_08_PARTNER_PORTAL"
+    assert preview["moduleBoundaryStatus"] == "LEGACY_DRAFT_BOUNDARY"
     assert preview["activeCabinetType"] == "CONSTRUCTION_COMPANY"
     assert preview["activeBusinessRole"] == "CONTRACTOR"
     assert preview["visibilitySettingsPreview"]["sourceOfTruth"] == "MODULE_08_PARTNER_PORTAL"
@@ -1711,7 +1636,7 @@ def test_widget_access_rows_are_registry_metadata_without_payload():
     assert future_row["isAllowed"] is False
 
 
-def test_quick_action_rows_expose_safe_preference_instance_without_business_result():
+def test_quick_action_rows_do_not_materialize_fixed_registry_actions():
     rows = quick_action_rows_for_user(
         {"id": "user-1", "roleCodes": ["PLATFORM_ADMIN"]},
         access_context={
@@ -1719,31 +1644,15 @@ def test_quick_action_rows_expose_safe_preference_instance_without_business_resu
             "workspaceId": "workspace-1",
             "roleCodes": ["PLATFORM_ADMIN"],
             "activeRegionCode": "KRASNODAR_KRAI",
-            "allowedQuickActionCodes": ["SOURCE_TASK_CREATE", "DASHBOARD_CONFIGURE"],
+            "allowedQuickActionCodes": ["SAMPLE_OPEN_LIST"],
         },
         module8_preview={
             "activeCabinetId": "admin-cabinet",
             "activeCabinetType": "ADMIN",
             "dashboardContextPreview": {
-                "recommendedQuickActionCodes": ["SOURCE_TASK_CREATE"],
+                "recommendedQuickActionCodes": ["SAMPLE_OPEN_LIST"],
             },
         },
     )
 
-    source_task = next(row for row in rows if row["quickActionCode"] == "SOURCE_TASK_CREATE")
-
-    assert source_task["sourceModuleCode"] == "MODULE_01_MATERIAL_HUB"
-    assert source_task["actionCode"] == "CREATE"
-    assert source_task["isAllowed"] is True
-    assert source_task["preferencePreview"]["savedConfigRef"].startswith(
-        "MODULE_01_MATERIAL_HUB:SOURCE_TASK_CREATE:"
-    )
-    assert source_task["preferencePreview"]["activeCabinetId"] == "admin-cabinet"
-    assert source_task["preferencePreview"]["requiresPermissionOnRun"] is True
-    assert source_task["preferencePreview"]["auditEventType"] == "quick_action_preference_changed"
-    assert "businessResult" not in source_task["preferencePreview"]
-    assert source_task["stateCode"] == "AVAILABLE"
-
-    future_action = next(row for row in rows if row["quickActionCode"] == "CUSTOMER_OBJECT_CREATE")
-    assert future_action["stateCode"] == "FUTURE_FEATURE"
-    assert future_action["isAllowed"] is False
+    assert rows == []

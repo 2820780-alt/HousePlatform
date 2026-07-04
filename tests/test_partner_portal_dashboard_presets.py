@@ -33,9 +33,10 @@ def test_dashboard_preset_catalog_contains_required_presets():
         assert item["primaryGoal"]
         assert item["mainFocus"]
         assert item["recommendedModuleCodes"]
+        assert "MODULE_08_PARTNER_PORTAL" not in item["recommendedModuleCodes"]
         assert item["recommendedBlockCodes"]
         assert item["recommendedWidgetCodes"]
-        assert item["recommendedQuickActionCodes"]
+        assert item["recommendedQuickActionCodes"] == []
         assert item["zones"]
         assert "Dashboard only renders data" in item["compatibilityNote"]
 
@@ -49,18 +50,18 @@ def test_supplier_preset_filters_modules_widgets_actions_and_blocks_through_modu
             "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB"],
             "allowedFeatureCodes": ["SUPPLIER_PRICE_LIST"],
             "allowedWidgetCodes": ["materials-kpi"],
-            "allowedQuickActionCodes": ["SUPPLIER_PRICE_UPLOAD"],
+            "allowedQuickActionCodes": [],
         },
     )
 
     assert preset["isPermissionFiltered"] is True
     assert preset["recommendedModuleCodes"] == ["MODULE_01_MATERIAL_HUB"]
     assert preset["recommendedWidgetCodes"] == ["materials-kpi"]
-    assert preset["recommendedQuickActionCodes"] == ["SUPPLIER_PRICE_UPLOAD"]
+    assert preset["recommendedQuickActionCodes"] == []
     assert preset["recommendedBlockCodes"] == ["SUPPLIER_PRICE_LIST_BLOCK"]
     assert "SUPPLIER_REQUESTS_BLOCK" in preset["deniedByAccess"]["blockCodes"]
     assert "source-health" in preset["deniedByAccess"]["widgetCodes"]
-    assert "SUPPLIER_PRICE_UPDATE" in preset["deniedByAccess"]["quickActionCodes"]
+    assert preset["deniedByAccess"]["quickActionCodes"] == []
 
 
 def test_future_blocks_are_hidden_until_explicitly_requested_and_allowed():
@@ -91,12 +92,7 @@ def test_future_blocks_are_hidden_until_explicitly_requested_and_allowed():
             "procurement-requests",
             "price-dynamics",
         ],
-        "allowedQuickActionCodes": [
-            "CUSTOMER_OBJECT_CREATE",
-            "CUSTOMER_ESTIMATE_REQUEST",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "DASHBOARD_CONFIGURE",
-        ],
+        "allowedQuickActionCodes": [],
     }
 
     default_preset = filter_dashboard_preset_for_access(
@@ -134,7 +130,7 @@ def test_context_selects_role_specific_preset_without_creating_another_dashboard
             ],
             "allowedFeatureCodes": [],
             "allowedWidgetCodes": ["materials-kpi", "price-dynamics"],
-            "allowedQuickActionCodes": ["DOCUMENT_LIST_OPEN", "DASHBOARD_CONFIGURE"],
+            "allowedQuickActionCodes": [],
         },
     )
 
@@ -143,5 +139,5 @@ def test_context_selects_role_specific_preset_without_creating_another_dashboard
     assert preset["sourceModuleCode"] == MODULE_08_PARTNER_PORTAL
     assert any(zone["zoneCode"] == BOTTOM_WIDGET_GRID for zone in preset["zones"])
     assert "materials-kpi" in preset["recommendedWidgetCodes"]
-    assert "DASHBOARD_CONFIGURE" in preset["recommendedQuickActionCodes"]
+    assert preset["recommendedQuickActionCodes"] == []
     assert "route" not in preset

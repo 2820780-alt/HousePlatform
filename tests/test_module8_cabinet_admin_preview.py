@@ -22,6 +22,7 @@ def test_module8_admin_preview_empty_state_does_not_create_module8_entities():
     ).to_dict()
 
     assert preview["sourceModuleCode"] == SOURCE_MODULE_CODE
+    assert preview["moduleBoundaryStatus"] == "LEGACY_DRAFT_BOUNDARY"
     assert preview["cabinets"] == []
     assert preview["linkedObjects"] == []
     assert preview["emptyState"] == MODULE8_EMPTY_STATE
@@ -58,6 +59,7 @@ def test_module8_admin_preview_uses_workspace_as_mock_preview_not_source_of_trut
     ).to_dict()
 
     assert preview["sourceModuleCode"] == "MODULE_08_PARTNER_PORTAL"
+    assert preview["moduleBoundaryStatus"] == "LEGACY_DRAFT_BOUNDARY"
     assert preview["activeCabinetId"] == "module8-preview:workspace-supplier:SUPPLIER"
     assert preview["activeCabinetType"] == "MATERIAL_SUPPLIER"
     assert preview["cabinets"][0]["businessRole"] == "SUPPLIER"
@@ -65,7 +67,7 @@ def test_module8_admin_preview_uses_workspace_as_mock_preview_not_source_of_trut
     assert preview["emptyState"] is None
     assert preview["dashboardContextPreview"]["recommendedBlocks"]
     assert "materials-kpi" in preview["dashboardContextPreview"]["recommendedWidgetCodes"]
-    assert "SUPPLIER_PRICE_UPLOAD" in preview["dashboardContextPreview"]["recommendedQuickActionCodes"]
+    assert preview["dashboardContextPreview"]["recommendedQuickActionCodes"] == []
 
 
 def test_module8_admin_preview_does_not_leak_cabinet_settings_into_module3_access_context():

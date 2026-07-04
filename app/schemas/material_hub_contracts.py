@@ -703,7 +703,7 @@ class SupplierCard(Module01Contract):
     upload_count: int = 0
     parsing_error_count: int = 0
     archive_policy: str = "Archive instead of delete when supplier has linked prices, uploads, documents or sources."
-    module8_todo: str = "Future cabinet link belongs to MODULE_08_PARTNER_PORTAL; Module 01 stores only link metadata."
+    module8_todo: str = "Future cabinet link belongs to PARTICIPANT_CABINET_CONTEXT; Module 01 stores only link metadata."
 
 
 class SourceSection(BaseModel):

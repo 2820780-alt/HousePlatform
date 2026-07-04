@@ -17,7 +17,7 @@ FULL_COMPANY_ACCESS = {
         "MODULE_07_DIGITAL_HOUSE",
         "MODULE_05_ESTIMATE_ENGINE",
         "MODULE_04_WORKS_COSTS",
-        "MODULE_08_PARTNER_PORTAL",
+        "PARTICIPANT_CABINET_CONTEXT",
         "MODULE_09_PROCUREMENT",
         "MODULE_01_MATERIAL_HUB",
         "MODULE_15_CONTRACTS",
@@ -42,10 +42,7 @@ FULL_COMPANY_ACCESS = {
         "procurement-requests",
         "price-dynamics",
     ],
-    "allowedQuickActionCodes": [
-        "CUSTOMER_PROCUREMENT_REQUEST",
-        "DASHBOARD_CONFIGURE",
-    ],
+    "allowedQuickActionCodes": [],
 }
 
 
@@ -122,10 +119,10 @@ def test_construction_company_cabinet_marks_requested_placeholders():
 def test_construction_company_cabinet_filters_blocks_through_module3_access_context():
     limited = {
         **FULL_COMPANY_ACCESS,
-        "allowedModuleCodes": ["MODULE_07_DIGITAL_HOUSE", "MODULE_08_PARTNER_PORTAL", "MODULE_01_MATERIAL_HUB"],
+        "allowedModuleCodes": ["MODULE_07_DIGITAL_HOUSE", "PARTICIPANT_CABINET_CONTEXT", "MODULE_01_MATERIAL_HUB"],
         "allowedFeatureCodes": ["COMPANY_OBJECTS", "COMPANY_EMPLOYEES", "CABINET_DOCUMENTS"],
         "allowedWidgetCodes": [],
-        "allowedQuickActionCodes": ["DASHBOARD_CONFIGURE"],
+        "allowedQuickActionCodes": [],
     }
     cabinet = get_construction_company_cabinet_template(access_context=limited).to_dict()
     codes = [block["blockCode"] for block in cabinet["blocks"]]

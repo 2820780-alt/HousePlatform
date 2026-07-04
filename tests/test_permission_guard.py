@@ -38,6 +38,10 @@ def test_aliases_are_normalized_before_permission_check():
     assert can(customer, "MODULE_05_ESTIMATES", "VIEW", "OWN")
     assert can(customer, "MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN")
     assert can(customer, "MODULE_09_PROCUREMENT", "VIEW", "OWN")
+    assert canonical_module_code("MODULE_08_PROCUREMENT") == "MODULE_09_PROCUREMENT"
+    assert canonical_module_code("MODULE_09_TENDERS") == "MODULE_09_PROCUREMENT"
+    assert can(customer, "MODULE_08_PROCUREMENT", "VIEW", "OWN")
+    assert can(customer, "MODULE_09_TENDERS", "VIEW", "OWN")
 
 
 def test_default_registration_permissions_cover_future_modules():

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -61,16 +61,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("SUPER_ADMIN"),
         allowedFeatureCodes=(*_role_features("SUPER_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
         defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map"),
-        defaultQuickActionCodes=(
-            "MATERIAL_CREATE",
-            "SUPPLIER_PRICE_UPLOAD",
-            "SOURCE_TASK_CREATE",
-            "MATERIAL_MODERATION_OPEN",
-            "SOURCE_ERRORS_OPEN",
-            "SOURCE_CREATE",
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Owner-level profile for viewing and configuring the existing Dashboard shell.",
         settings={
@@ -84,16 +75,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("PLATFORM_ADMIN"),
         allowedFeatureCodes=(*_role_features("PLATFORM_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
         defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map"),
-        defaultQuickActionCodes=(
-            "MATERIAL_CREATE",
-            "SUPPLIER_PRICE_UPLOAD",
-            "SOURCE_TASK_CREATE",
-            "MATERIAL_MODERATION_OPEN",
-            "SOURCE_ERRORS_OPEN",
-            "SOURCE_CREATE",
-            "DOCUMENT_LIST_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Platform administration profile without Super Admin ownership-level operations.",
         settings={
@@ -107,14 +89,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("MODERATOR"),
         allowedFeatureCodes=_role_features("MODERATOR"),
         defaultWidgetCodes=("classification-queue", "materials-kpi", "source-health"),
-        defaultQuickActionCodes=(
-            "MATERIAL_MODERATION_OPEN",
-            "MATERIAL_APPROVE",
-            "MATERIAL_CLASSIFICATION_FIX",
-            "MATERIAL_RECHECK_SEND",
-            "SOURCE_ERRORS_OPEN",
-            "DASHBOARD_CONFIGURE",
-        ),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="MODERATION_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "MODERATION",
@@ -127,7 +102,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("KNOWLEDGE_MANAGER"),
         allowedFeatureCodes=_role_features("KNOWLEDGE_MANAGER"),
         defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics"),
-        defaultQuickActionCodes=("MATERIAL_CREATE", "DOCUMENT_LIST_OPEN", "DASHBOARD_CONFIGURE"),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="KNOWLEDGE_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "KNOWLEDGE",
@@ -140,7 +115,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("ESTIMATOR"),
         allowedFeatureCodes=_role_features("ESTIMATOR"),
         defaultWidgetCodes=("price-dynamics", "materials-kpi", "atom-map"),
-        defaultQuickActionCodes=("DASHBOARD_CONFIGURE",),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="ESTIMATOR_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "ESTIMATES",
@@ -153,7 +128,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("ENGINEER_DESIGNER"),
         allowedFeatureCodes=_role_features("ENGINEER_DESIGNER"),
         defaultWidgetCodes=("materials-kpi", "price-dynamics"),
-        defaultQuickActionCodes=("DOCUMENT_LIST_OPEN", "DASHBOARD_CONFIGURE"),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="ENGINEER_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "ENGINEERING",
@@ -163,15 +138,15 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
     ),
     RoleDashboardAccessProfileDefinition(
         roleCode="SUPPLIER",
-        allowedModuleCodes=("MODULE_01_MATERIAL_HUB", "MODULE_08_PROCUREMENT", "MODULE_09_TENDERS", "MODULE_10_MARKETPLACE"),
+        allowedModuleCodes=("MODULE_01_MATERIAL_HUB", "MODULE_09_PROCUREMENT", "MODULE_10_MARKETPLACE"),
         allowedFeatureCodes=DEFAULT_DASHBOARD_FEATURES,
         defaultWidgetCodes=("materials-kpi", "atom-map"),
-        defaultQuickActionCodes=("SUPPLIER_PRICE_UPLOAD", "DASHBOARD_CONFIGURE"),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="SUPPLIER_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "SUPPLIER",
             "activeCabinetType": "SUPPLIER",
-            "favoriteModuleCodes": ("MODULE_01_MATERIAL_HUB", "MODULE_08_PROCUREMENT", "MODULE_09_TENDERS"),
+            "favoriteModuleCodes": ("MODULE_01_MATERIAL_HUB", "MODULE_09_PROCUREMENT", "MODULE_10_MARKETPLACE"),
         },
     ),
     RoleDashboardAccessProfileDefinition(
@@ -179,7 +154,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("CONTRACTOR"),
         allowedFeatureCodes=_role_features("CONTRACTOR"),
         defaultWidgetCodes=("price-dynamics", "atom-map"),
-        defaultQuickActionCodes=("DASHBOARD_CONFIGURE",),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="CONTRACTOR_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "CONTRACTOR",
@@ -189,15 +164,15 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
     ),
     RoleDashboardAccessProfileDefinition(
         roleCode="CUSTOMER",
-        allowedModuleCodes=("MODULE_05_ESTIMATES", "MODULE_07_DIGITAL_HOUSE", "MODULE_08_PROCUREMENT", "MODULE_10_MARKETPLACE"),
+        allowedModuleCodes=("MODULE_05_ESTIMATES", "MODULE_07_DIGITAL_HOUSE", "MODULE_09_PROCUREMENT", "MODULE_10_MARKETPLACE"),
         allowedFeatureCodes=DEFAULT_DASHBOARD_FEATURES,
         defaultWidgetCodes=("atom-map",),
-        defaultQuickActionCodes=("DASHBOARD_CONFIGURE",),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="CUSTOMER_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "CUSTOMER",
             "activeCabinetType": "CUSTOMER",
-            "favoriteModuleCodes": ("MODULE_07_DIGITAL_HOUSE", "MODULE_05_ESTIMATES", "MODULE_08_PROCUREMENT"),
+            "favoriteModuleCodes": ("MODULE_07_DIGITAL_HOUSE", "MODULE_05_ESTIMATES", "MODULE_09_PROCUREMENT"),
         },
     ),
     RoleDashboardAccessProfileDefinition(
@@ -205,7 +180,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=("MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS", "MODULE_13_AUDIT"),
         allowedFeatureCodes=(*_role_features("ANALYST"),),
         defaultWidgetCodes=("price-dynamics", "materials-kpi", "source-health", "atom-map"),
-        defaultQuickActionCodes=("SOURCE_ERRORS_OPEN", "DOCUMENT_LIST_OPEN", "DASHBOARD_CONFIGURE"),
+        defaultQuickActionCodes=(),
         defaultLayoutCode="ANALYST_DASHBOARD_DEFAULT",
         settings={
             "workspaceType": "ANALYTICS",

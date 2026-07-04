@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
 from app.services.quick_action_permission import can_use_quick_action
 from app.services.quick_action_registry import get_quick_action_registry
 
@@ -38,16 +37,7 @@ def _dashboard_quick_action_registry() -> tuple[DashboardQuickAction, ...]:
 
 QUICK_ACTION_REGISTRY: tuple[DashboardQuickAction, ...]
 
-DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {
-    "MODULE_01_MATERIAL_HUB": (
-        "MATERIAL_CREATE",
-        "SUPPLIER_PRICE_UPLOAD",
-        "MATERIAL_MODERATION_OPEN",
-    ),
-    DASHBOARD_ADMIN_SOURCE_MODULE: (
-        "DASHBOARD_CONFIGURE",
-    ),
-}
+DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {}
 
 
 def get_quick_actions_for_dashboard(user_context: Any, cabinet_context: dict[str, Any]) -> list[dict[str, Any]]:
@@ -116,10 +106,8 @@ def _selected_atom_action_codes(
     available_actions: list[dict[str, Any]],
 ) -> list[str]:
     available_codes = {action["actionCode"] for action in available_actions}
-    configured_codes = list(selected_action_codes or DEFAULT_ATOM_CARD_ACTION_CODES.get(module_code, ()))
+    configured_codes = list(selected_action_codes or ())
     selected_codes = [code for code in configured_codes if code in available_codes]
-    if not selected_codes:
-        selected_codes = [action["actionCode"] for action in available_actions]
     return selected_codes[:ATOM_CARD_QUICK_ACTION_LIMIT]
 
 

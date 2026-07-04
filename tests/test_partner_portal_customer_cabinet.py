@@ -19,7 +19,7 @@ FULL_CUSTOMER_ACCESS = {
         "MODULE_09_PROCUREMENT",
         "MODULE_01_MATERIAL_HUB",
         "MODULE_02_KNOWLEDGE_BASE",
-        "MODULE_08_PARTNER_PORTAL",
+        "PARTICIPANT_CABINET_CONTEXT",
         "MODULE_11_ANALYTICS",
     ],
     "allowedFeatureCodes": [
@@ -42,12 +42,7 @@ FULL_CUSTOMER_ACCESS = {
         "procurement-requests",
         "price-dynamics",
     ],
-    "allowedQuickActionCodes": [
-        "CUSTOMER_OBJECT_CREATE",
-        "CUSTOMER_ESTIMATE_REQUEST",
-        "CUSTOMER_PROCUREMENT_REQUEST",
-        "DASHBOARD_CONFIGURE",
-    ],
+    "allowedQuickActionCodes": [],
 }
 
 
@@ -108,7 +103,7 @@ def test_customer_cabinet_filters_blocks_through_module3_access_context():
         "allowedModuleCodes": ["MODULE_07_DIGITAL_HOUSE"],
         "allowedFeatureCodes": ["CUSTOMER_OBJECTS", "HOUSE_STORAGE"],
         "allowedWidgetCodes": ["digital-house-status"],
-        "allowedQuickActionCodes": ["DASHBOARD_CONFIGURE"],
+        "allowedQuickActionCodes": [],
     }
     cabinet = get_customer_cabinet_template(access_context=limited).to_dict()
     codes = [block["blockCode"] for block in cabinet["blocks"]]

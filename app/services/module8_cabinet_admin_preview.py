@@ -3,16 +3,18 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from app.models.partner_portal import PARTNER_PORTAL_BOUNDARY_STATUS
 from app.services.access_context_for_cabinet import AccessContextForCabinet
 
 
 SOURCE_MODULE_CODE = "MODULE_08_PARTNER_PORTAL"
 MODULE8_BRIDGE_WARNING = (
-    "Кабинеты управляются Module №8. Module №3 показывает только preview через adapter/mock "
-    "и продолжает управлять ролями, permissions, workspace, widget access и quick action access."
+    "Кабинетный контур пока является legacy draft boundary, а не финальным Module №8. "
+    "Module №3 показывает только preview через adapter/mock и продолжает управлять ролями, "
+    "permissions, workspace, widget access и quick action access."
 )
 MODULE8_EMPTY_STATE = (
-    "Кабинеты участников еще не подключены. После реализации Module №8 здесь будут отображаться "
+    "Кабинеты участников еще не подключены как отдельный будущий контур. Здесь будут отображаться "
     "активный кабинет, бизнес-роль, связанные объекты и настройки видимости."
 )
 
@@ -58,8 +60,8 @@ class Module8VisibilitySettingsPreview:
     status: str = "PLACEHOLDER"
     sourceOfTruth: str = SOURCE_MODULE_CODE
     summary: str = (
-        "ObjectVisibilitySettings будет храниться в Module №8. Module №3 показывает только "
-        "permission/visibility preview."
+        "ObjectVisibilitySettings будет храниться в отдельном контуре кабинетов. Module №3 "
+        "показывает только permission/visibility preview."
     )
     visibleByDefault: list[str] = field(default_factory=lambda: [
         "cabinet title",
@@ -84,8 +86,8 @@ class Module8OfferSettingsPreview:
     status: str = "PLACEHOLDER"
     sourceOfTruth: str = SOURCE_MODULE_CODE
     summary: str = (
-        "ObjectOfferSettings и offer policies будут приходить из Module №8. Module №3 может "
-        "управлять только доступом к этим настройкам."
+        "ObjectOfferSettings и offer policies будут приходить из отдельного контура кабинетов. "
+        "Module №3 может управлять только доступом к этим настройкам."
     )
     options: list[str] = field(default_factory=lambda: [
         "получать предложения от поставщиков",
@@ -102,6 +104,7 @@ class Module8OfferSettingsPreview:
 class Module8CabinetAdminPreviewDTO:
     userId: str
     sourceModuleCode: str = SOURCE_MODULE_CODE
+    moduleBoundaryStatus: str = PARTNER_PORTAL_BOUNDARY_STATUS
     workspaceId: str | None = None
     activeRegionCode: str | None = None
     cabinets: list[Module8CabinetPreviewItem] = field(default_factory=list)

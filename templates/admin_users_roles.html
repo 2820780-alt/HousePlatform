@@ -110,206 +110,6 @@
       font-size: 28px;
       line-height: 1.08;
     }
-    .module3-quick-actions {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 18px;
-      align-items: center;
-      min-height: 74px;
-      margin: 14px 0 2px;
-      padding: 12px 24px;
-      border: 1px solid rgba(24, 215, 242, 0.24);
-      border-radius: 8px;
-      background:
-        linear-gradient(145deg, rgba(7, 19, 46, 0.96), rgba(4, 10, 27, 0.98)),
-        linear-gradient(90deg, rgba(24, 215, 242, 0.05), transparent 45%, rgba(24, 215, 242, 0.04));
-      box-shadow: 0 0 0 1px rgba(24, 215, 242, 0.05), 0 20px 58px rgba(0, 0, 0, 0.24);
-    }
-    .module3-quick-actions-title {
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .module3-quick-actions-list {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 16px;
-      min-width: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .module3-quick-actions-list::-webkit-scrollbar {
-      height: 0;
-    }
-    .module3-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 42px;
-      min-width: 204px;
-      padding: 9px 14px;
-      max-width: 240px;
-      border: 1px solid rgba(119, 172, 255, 0.2);
-      border-radius: 8px;
-      color: var(--text);
-      background: linear-gradient(180deg, rgba(13, 26, 59, 0.82), rgba(6, 13, 32, 0.82));
-      text-align: center;
-      white-space: nowrap;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-    }
-    .module3-action:hover {
-      border-color: rgba(24, 215, 242, 0.42);
-      background: rgba(24, 215, 242, 0.08);
-    }
-    .module3-action.disabled {
-      cursor: not-allowed;
-      opacity: 0.52;
-      pointer-events: none;
-    }
-    .module3-action[hidden] {
-      display: none;
-    }
-    .module3-action-icon {
-      display: inline-grid;
-      place-items: center;
-      width: 20px;
-      height: 20px;
-      border: 1px solid rgba(24, 215, 242, 0.32);
-      border-radius: 8px;
-      color: var(--cyan);
-      background: rgba(24, 215, 242, 0.08);
-      flex: 0 0 auto;
-    }
-    .module3-quick-actions-more,
-    .module3-quick-actions-configure {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      padding: 9px 12px;
-      border-color: rgba(24, 215, 242, 0.32);
-      background: rgba(24, 215, 242, 0.08);
-      color: var(--text);
-      white-space: nowrap;
-    }
-    .module3-quick-actions-more[hidden] {
-      display: none;
-    }
-    .module3-quick-actions-configure {
-      width: 42px;
-      padding: 0;
-      font-weight: 800;
-    }
-    .module3-quick-actions-configure:hover {
-      border-color: rgba(24, 215, 242, 0.58);
-      box-shadow: 0 0 22px rgba(24, 215, 242, 0.16);
-    }
-    .module3-quick-action-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 90;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background: rgba(2, 7, 18, 0.72);
-      backdrop-filter: blur(10px);
-    }
-    .module3-quick-action-modal[hidden] {
-      display: none;
-    }
-    .module3-quick-action-dialog {
-      width: min(1080px, calc(100vw - 32px));
-      max-height: min(760px, calc(100vh - 48px));
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      border: 1px solid rgba(24, 215, 242, 0.28);
-      border-radius: 8px;
-      background: linear-gradient(145deg, rgba(7, 18, 44, 0.98), rgba(4, 10, 27, 0.98));
-      box-shadow: 0 26px 90px rgba(0, 0, 0, 0.5), 0 0 34px rgba(24, 215, 242, 0.1);
-    }
-    .module3-quick-action-modal-head,
-    .module3-quick-action-modal-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(119, 172, 255, 0.16);
-    }
-    .module3-quick-action-modal-footer {
-      border-top: 1px solid rgba(119, 172, 255, 0.16);
-      border-bottom: 0;
-    }
-    .module3-quick-action-modal-body {
-      overflow: auto;
-      padding: 14px 18px;
-    }
-    .module3-quick-action-limit-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .module3-quick-action-settings-list {
-      display: grid;
-      gap: 8px;
-    }
-    .module3-quick-action-setting {
-      display: grid;
-      grid-template-columns: minmax(260px, 1fr) 160px 150px 150px 96px;
-      gap: 12px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid rgba(119, 172, 255, 0.16);
-      border-radius: 8px;
-      background: rgba(6, 14, 34, 0.72);
-    }
-    .module3-quick-action-setting.pinned {
-      border-color: rgba(24, 215, 242, 0.38);
-      box-shadow: inset 0 0 0 1px rgba(24, 215, 242, 0.08), 0 0 24px rgba(24, 215, 242, 0.08);
-    }
-    .module3-quick-action-setting.disabled {
-      opacity: 0.64;
-    }
-    .module3-quick-action-setting-title {
-      display: grid;
-      gap: 4px;
-      min-width: 0;
-    }
-    .module3-quick-action-setting-title strong,
-    .module3-quick-action-setting-title small {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .module3-quick-action-setting-toggle {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .module3-quick-action-setting-toggle input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--cyan);
-    }
-    .module3-quick-action-setting input[type="number"] {
-      width: 84px;
-      min-height: 34px;
-      padding: 5px 8px;
-    }
-    .module3-quick-action-modal-message {
-      min-height: 20px;
-      color: #ffd28a;
-      font-size: 13px;
-    }
-    @media (max-width: 1180px) {
-      .module3-quick-action-setting {
-        grid-template-columns: minmax(220px, 1fr) 130px 130px;
-      }
-    }
     .control-shell {
       display: grid;
       grid-template-columns: clamp(248px, 15.5vw, 296px) minmax(0, 1fr);
@@ -395,6 +195,31 @@
         linear-gradient(145deg, rgba(7, 20, 48, 0.78), rgba(4, 10, 27, 0.88)),
         radial-gradient(circle at 90% 10%, rgba(24, 215, 242, 0.12), transparent 92px);
     }
+    .module3-nav-help form {
+      margin: 0;
+    }
+    .module3-doc-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(24, 215, 242, 0.34);
+      border-radius: 8px;
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.08);
+      font-weight: 700;
+    }
+    .module3-doc-button::after {
+      content: "↗";
+      color: #77c6ff;
+    }
+    .module3-doc-button:hover {
+      border-color: rgba(24, 215, 242, 0.58);
+      box-shadow: 0 0 22px rgba(24, 215, 242, 0.12);
+    }
     .module3-nav-footer {
       display: grid;
       gap: 6px;
@@ -420,49 +245,37 @@
       --card-accent: var(--cyan);
       position: relative;
       overflow: hidden;
-      min-height: 184px;
+      min-height: 164px;
       display: grid;
-      gap: 14px;
-      padding: 18px 16px 14px;
-      border: 1px solid rgba(119, 172, 255, 0.24);
+      gap: 10px;
+      padding: 16px 14px 13px;
+      border: 1px solid rgba(119, 172, 255, 0.26);
       border-radius: 8px;
       background:
-        linear-gradient(145deg, rgba(9, 27, 64, 0.82), rgba(4, 12, 31, 0.96)),
-        radial-gradient(circle at 88% 22%, color-mix(in srgb, var(--card-accent) 17%, transparent), transparent 96px);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 54px rgba(0, 0, 0, 0.2);
+        linear-gradient(145deg, rgba(9, 27, 64, 0.72), rgba(4, 12, 31, 0.96)),
+        radial-gradient(circle at 87% 20%, color-mix(in srgb, var(--card-accent) 12%, transparent), transparent 96px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 18px 54px rgba(0, 0, 0, 0.18);
     }
     .system-card::before {
-      content: "";
-      position: absolute;
-      top: 22px;
-      right: 18px;
-      width: 96px;
-      height: 64px;
-      opacity: 0.42;
-      background:
-        linear-gradient(150deg, transparent 0 46%, color-mix(in srgb, var(--card-accent) 60%, transparent) 47% 49%, transparent 50%),
-        linear-gradient(22deg, transparent 0 46%, color-mix(in srgb, var(--card-accent) 44%, transparent) 47% 48%, transparent 49%),
-        radial-gradient(circle at 22% 68%, var(--card-accent) 0 2px, transparent 3px),
-        radial-gradient(circle at 76% 24%, var(--card-accent) 0 2px, transparent 3px),
-        radial-gradient(circle at 90% 76%, var(--card-accent) 0 2px, transparent 3px);
+      content: none;
     }
     .system-card-atom {
       position: absolute;
-      top: 16px;
-      right: 24px;
-      width: 82px;
-      height: 66px;
+      top: 13px;
+      right: 17px;
+      width: 78px;
+      height: 58px;
       pointer-events: none;
-      opacity: 0.74;
-      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--card-accent) 28%, transparent));
+      opacity: 0.68;
+      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--card-accent) 34%, transparent));
     }
     .system-card-atom span {
       position: absolute;
-      left: 15px;
-      top: 22px;
-      width: 52px;
-      height: 20px;
-      border: 1px solid color-mix(in srgb, var(--card-accent) 64%, transparent);
+      left: 14px;
+      top: 20px;
+      width: 50px;
+      height: 18px;
+      border: 1px solid color-mix(in srgb, var(--card-accent) 62%, transparent);
       border-radius: 50%;
     }
     .system-card-atom span:nth-child(1) { transform: rotate(28deg); }
@@ -479,14 +292,14 @@
     .system-card-atom::before {
       width: 6px;
       height: 6px;
-      left: 38px;
-      top: 29px;
+      left: 36px;
+      top: 26px;
     }
     .system-card-atom::after {
       width: 4px;
       height: 4px;
       right: 7px;
-      top: 11px;
+      top: 9px;
     }
     .system-card[data-user-type="SUPPLIER"] { --card-accent: #8b5cf6; }
     .system-card[data-user-type="CUSTOMER"] { --card-accent: #7c9dff; }
@@ -494,15 +307,15 @@
     .system-card-head {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 13px;
       min-width: 0;
     }
     .system-card-icon {
       position: relative;
       display: inline-grid;
       place-items: center;
-      width: 52px;
-      height: 52px;
+      width: 46px;
+      height: 46px;
       border: 1px solid color-mix(in srgb, var(--card-accent) 34%, transparent);
       border-radius: 8px;
       color: var(--card-accent);
@@ -520,8 +333,8 @@
       box-sizing: border-box;
     }
     .system-card-icon--company::before {
-      width: 23px;
-      height: 29px;
+      width: 21px;
+      height: 27px;
       border: 2px solid currentColor;
       border-bottom-width: 3px;
       box-shadow: inset 7px 0 0 rgba(24, 215, 242, 0.1);
@@ -533,50 +346,50 @@
       box-shadow: -7px -7px 0 currentColor, 0 -7px 0 currentColor, 7px -7px 0 currentColor, -7px 2px 0 currentColor, 0 2px 0 currentColor, 7px 2px 0 currentColor;
     }
     .system-card-icon--supplier::before {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border: 2px solid currentColor;
       transform: rotate(30deg) skewY(-18deg);
       border-radius: 4px;
     }
     .system-card-icon--supplier::after {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       border-top: 2px solid currentColor;
       border-left: 2px solid currentColor;
       transform: translate(3px, -3px) rotate(30deg) skewY(-18deg);
       opacity: 0.72;
     }
     .system-card-icon--customer::before {
-      width: 13px;
-      height: 13px;
-      top: 13px;
-      left: 19px;
+      width: 12px;
+      height: 12px;
+      top: 12px;
+      left: 17px;
       border: 2px solid currentColor;
       border-radius: 50%;
       box-shadow: -12px 8px 0 -4px currentColor, 12px 8px 0 -4px currentColor;
     }
     .system-card-icon--customer::after {
-      width: 34px;
-      height: 17px;
-      left: 8px;
-      bottom: 10px;
+      width: 31px;
+      height: 16px;
+      left: 7px;
+      bottom: 9px;
       border: 2px solid currentColor;
       border-top: 0;
       border-radius: 0 0 18px 18px;
     }
     .system-card-icon--specialist::before {
-      width: 28px;
-      height: 17px;
-      top: 13px;
+      width: 26px;
+      height: 16px;
+      top: 12px;
       border: 2px solid currentColor;
       border-bottom: 0;
       border-radius: 18px 18px 0 0;
     }
     .system-card-icon--specialist::after {
-      width: 25px;
-      height: 23px;
-      bottom: 9px;
+      width: 23px;
+      height: 21px;
+      bottom: 8px;
       border: 2px solid currentColor;
       border-top: 3px solid currentColor;
       border-radius: 13px 13px 8px 8px;
@@ -590,12 +403,12 @@
     }
     .system-card-title {
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
     }
     .system-card strong {
       display: block;
-      margin-top: 4px;
-      font-size: 40px;
+      margin-top: 8px;
+      font-size: 36px;
       line-height: 1;
       overflow-wrap: anywhere;
     }
@@ -605,7 +418,7 @@
     .user-type-metrics {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 7px;
       margin-top: auto;
     }
     .system-card[data-has-moderation="false"] .user-type-metrics {
@@ -614,16 +427,19 @@
     .metric-pill {
       min-width: 0;
       overflow: hidden;
-      padding: 9px 10px;
+      min-height: 52px;
+      padding: 8px 9px;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 8px;
       background: rgba(5, 12, 30, 0.54);
     }
     .metric-pill span {
       min-width: 0;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      line-height: 1.16;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.12;
+      font-size: 9.5px;
     }
     .metric-pill span::before {
       content: "";
@@ -645,6 +461,7 @@
     }
     .metric-pill strong {
       margin: 0;
+      margin-top: 5px;
       font-size: 20px;
     }
     .system-registry-grid {
@@ -750,18 +567,29 @@
     }
     .registry-card {
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr);
       min-height: 270px;
-      padding: 18px;
+      padding: 20px 22px 22px;
       border-color: rgba(119, 172, 255, 0.2);
       background:
-        linear-gradient(145deg, rgba(9, 27, 64, 0.76), rgba(4, 12, 31, 0.94)),
-        radial-gradient(circle at 18% 42%, rgba(24, 215, 242, 0.08), transparent 130px);
+        linear-gradient(145deg, rgba(8, 25, 60, 0.78), rgba(4, 12, 31, 0.95)),
+        radial-gradient(circle at 34% 46%, rgba(24, 215, 242, 0.12), transparent 132px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 -1px 0 rgba(24, 215, 242, 0.08),
+        0 20px 56px rgba(0, 0, 0, 0.18);
     }
     .registry-card-head {
       display: flex;
       align-items: center;
       gap: 10px;
+      min-height: 28px;
+      min-width: 0;
+    }
+    .registry-card-head h3 {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .registry-card-icon {
       position: relative;
@@ -804,27 +632,40 @@
     }
     .registry-card-body {
       display: grid;
-      grid-template-columns: minmax(132px, 0.8fr) minmax(0, 1fr);
-      gap: 20px;
+      grid-template-columns: minmax(144px, 0.9fr) minmax(0, 1fr);
+      gap: 24px;
       align-items: center;
-      padding: 14px 0 12px;
+      padding: 16px 0 2px;
     }
     .registry-ring {
+      position: relative;
       display: grid;
       place-items: center;
       justify-self: center;
-      width: 138px;
+      width: 148px;
       aspect-ratio: 1;
       border-radius: 50%;
       background:
-        radial-gradient(circle at center, rgba(4, 10, 26, 0.94) 0 56%, transparent 57%),
-        conic-gradient(from -34deg, rgba(24, 215, 242, 0.95), rgba(0, 115, 255, 0.92) 68%, rgba(119, 172, 255, 0.16) 69% 100%);
-      box-shadow: 0 0 30px rgba(24, 215, 242, 0.18), inset 0 0 20px rgba(24, 215, 242, 0.08);
+        radial-gradient(circle at center, rgba(4, 10, 26, 0.96) 0 53%, transparent 54%),
+        conic-gradient(from -32deg, rgba(24, 215, 242, 1), rgba(0, 121, 255, 0.98) 64%, rgba(119, 172, 255, 0.13) 65% 100%);
+      box-shadow:
+        0 0 8px rgba(24, 215, 242, 0.45),
+        0 0 34px rgba(24, 215, 242, 0.3),
+        0 0 58px rgba(0, 121, 255, 0.16),
+        inset 0 0 24px rgba(24, 215, 242, 0.12);
       text-align: center;
+    }
+    .registry-ring::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(24, 215, 242, 0.1);
+      box-shadow: inset 0 0 28px rgba(24, 215, 242, 0.12);
     }
     .registry-ring strong {
       margin: 0;
-      font-size: 34px;
+      font-size: 36px;
       line-height: 1;
     }
     .registry-ring span {
@@ -832,10 +673,11 @@
       margin-top: 6px;
       color: var(--muted);
       font-size: 11px;
+      white-space: nowrap;
     }
     .registry-stats {
       display: grid;
-      gap: 14px;
+      gap: 16px;
     }
     .registry-stat {
       display: grid;
@@ -843,6 +685,7 @@
       gap: 10px;
       align-items: baseline;
       color: var(--muted);
+      min-width: 0;
     }
     .registry-stat strong {
       margin: 0;
@@ -852,47 +695,146 @@
     }
     .registry-stat.ok span { color: #77f2a8; }
     .registry-stat.info span { color: #54dfff; }
-    .registry-link {
+    .registry-stat span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #system-users {
+      overflow: hidden;
+      border-color: rgba(119, 172, 255, 0.22);
+      background:
+        linear-gradient(145deg, rgba(7, 18, 44, 0.78), rgba(4, 10, 27, 0.95)),
+        radial-gradient(circle at 70% 0, rgba(24, 215, 242, 0.06), transparent 340px);
+    }
+    #system-users .panel-head {
+      min-height: 50px;
+      padding: 17px 20px 8px;
+      border-bottom: 0;
+      background: transparent;
+    }
+    #system-users .panel-head h2 {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    #system-users .panel-head .muted {
+      display: none;
+    }
+    .system-users-manage-link {
       display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 34px;
+      gap: 18px;
       color: #54dfff;
-      font-size: 13px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .system-users-gear {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      color: #77c6ff;
+    }
+    .system-users-gear::before,
+    .system-users-gear::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .system-users-gear::before {
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 -7px 0 -5px currentColor, 0 7px 0 -5px currentColor, 7px 0 0 -5px currentColor, -7px 0 0 -5px currentColor;
+    }
+    .system-users-gear::after {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
     }
     .system-user-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      padding: 14px 14px 16px;
+      gap: 14px;
+      padding: 8px 16px 16px;
     }
     .system-user-card {
+      --system-user-accent: #54dfff;
       display: grid;
-      grid-template-columns: 54px minmax(0, 1fr) 1px minmax(116px, 0.42fr);
-      gap: 14px;
+      grid-template-columns: 54px minmax(0, 1fr) 1px minmax(126px, 0.34fr);
+      gap: 13px;
       align-items: center;
-      min-height: 132px;
-      padding: 16px;
-      border: 1px solid rgba(119, 172, 255, 0.17);
+      min-height: 130px;
+      padding: 16px 15px;
+      border: 1px solid rgba(119, 172, 255, 0.18);
       border-radius: 8px;
       background:
-        linear-gradient(145deg, rgba(11, 23, 54, 0.74), rgba(5, 12, 30, 0.9)),
-        linear-gradient(90deg, rgba(24, 215, 242, 0.04), transparent 44%);
+        linear-gradient(145deg, rgba(11, 25, 58, 0.72), rgba(5, 12, 30, 0.9)),
+        linear-gradient(90deg, color-mix(in srgb, var(--system-user-accent) 5%, transparent), transparent 44%);
+    }
+    .system-user-card[data-system-login="super-admin"] {
+      --system-user-accent: #9b6cff;
+    }
+    .system-user-card[data-system-login="moderator"] {
+      --system-user-accent: #f0a33c;
     }
     .system-user-card:nth-child(n+4) {
       display: none;
     }
     .system-user-avatar {
+      position: relative;
       display: inline-grid;
       place-items: center;
-      width: 50px;
-      height: 50px;
-      border: 1px solid rgba(24, 215, 242, 0.32);
+      width: 54px;
+      height: 54px;
+      border: 1px solid color-mix(in srgb, var(--system-user-accent) 46%, transparent);
       border-radius: 8px;
-      color: var(--cyan);
-      background: rgba(24, 215, 242, 0.08);
-      font-size: 25px;
+      color: var(--system-user-accent);
+      background: color-mix(in srgb, var(--system-user-accent) 12%, rgba(7, 14, 35, 0.78));
+      box-shadow: 0 0 22px color-mix(in srgb, var(--system-user-accent) 12%, transparent);
+      font-size: 0;
+    }
+    .system-user-avatar::before,
+    .system-user-avatar::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .system-user-avatar--user::before,
+    .system-user-avatar--moderator::before {
+      width: 16px;
+      height: 16px;
+      top: 12px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+    }
+    .system-user-avatar--user::after,
+    .system-user-avatar--moderator::after {
+      width: 28px;
+      height: 15px;
+      bottom: 11px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 17px 17px;
+    }
+    .system-user-avatar--shield::before {
+      width: 26px;
+      height: 30px;
+      border: 2px solid currentColor;
+      border-radius: 13px 13px 8px 8px;
+      clip-path: polygon(50% 0, 92% 17%, 82% 76%, 50% 100%, 18% 76%, 8% 17%);
+    }
+    .system-user-avatar--shield::after {
+      width: 7px;
+      height: 7px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 8px 0 -2px currentColor;
     }
     .system-user-main {
       display: grid;
@@ -903,17 +845,62 @@
       margin-top: 0;
     }
     .system-user-main h3 {
+      margin: 0;
+      color: var(--text);
       font-size: 16px;
+      font-weight: 600;
+      line-height: 1.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .system-user-main small,
     .system-user-last small {
       color: var(--muted);
     }
+    .system-user-main > .muted,
+    .system-user-main small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .system-user-purpose {
+      display: -webkit-box;
+      min-height: 34px;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      font-size: 12px;
+      line-height: 1.38;
+    }
+    .system-user-role-chip {
+      max-width: 178px;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: color-mix(in srgb, var(--system-user-accent) 78%, #ffffff);
+      border-color: color-mix(in srgb, var(--system-user-accent) 28%, transparent);
+      background: color-mix(in srgb, var(--system-user-accent) 14%, rgba(7, 14, 35, 0.72));
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 10.5px;
+    }
     .system-user-last {
       display: grid;
-      gap: 8px;
+      gap: 9px;
       justify-items: start;
       color: var(--muted);
+    }
+    .system-user-last > span:not(.chip) {
+      color: #c8d6f5;
+      font-size: 11.5px;
+      white-space: nowrap;
+    }
+    .system-user-last small {
+      font-size: 10px;
+      line-height: 1.2;
+      white-space: nowrap;
     }
     .system-user-separator {
       width: 1px;
@@ -922,10 +909,22 @@
     }
     .system-user-last .chip {
       align-self: end;
-      min-width: 100px;
+      min-width: 98px;
+      min-height: 34px;
       justify-content: center;
       border-radius: 8px;
       background: rgba(34, 197, 94, 0.14);
+      color: #77f2a8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .system-user-last .chip.ok::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #77f2a8;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.44);
     }
     .system-user-card.placeholder {
       opacity: 0.74;
@@ -1977,8 +1976,6 @@
     @media (max-width: 1366px) {
       main,
       .module3-shell { width: 100%; padding-top: 0; }
-      .module3-quick-actions { grid-template-columns: 1fr; gap: 10px; }
-      .module3-quick-actions-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .module3-action { white-space: normal; min-height: 42px; }
       .control-shell { grid-template-columns: 216px minmax(0, 1fr); }
       .panel-head { align-items: flex-start; flex-direction: column; }
@@ -1993,11 +1990,9 @@
     @media (max-width: 980px) {
       main,
       .module3-shell { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .module3-quick-actions, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
       .module3-nav { position: static; min-height: auto; }
-      .module3-quick-actions-title { white-space: normal; }
-      .module3-quick-actions-list { grid-template-columns: 1fr; }
       .control-main { padding: 14px; }
       .user-directory-summary { grid-template-columns: 1fr; }
       .profile-hero-layout,
@@ -2103,10 +2098,6 @@
     data-active-tab="{% if detail %}detail{% else %}overview{% endif %}"
   >
     {% set company_mode = overview.adminScope.isCompanyAdminMode %}
-    {% set fallback_quick_action_settings = detail.moduleQuickActionSettings if detail and detail.moduleQuickActionSettings is defined else {} %}
-    {% set quick_action_settings = overview.moduleQuickActionSettings|default(fallback_quick_action_settings, true) %}
-    {% set fallback_quick_actions = detail.moduleQuickActions if detail and detail.moduleQuickActions is defined else [] %}
-    {% set quick_actions = overview.moduleQuickActions|default(fallback_quick_actions, true) %}
     <div class="control-shell">
       <nav class="module3-nav" aria-label="Разделы Module №3" data-module3-sidebar>
         <div class="module3-nav-title">
@@ -2119,7 +2110,9 @@
         <div class="module3-nav-help">
           <strong>Нужна помощь?</strong>
           <span>Документация и поддержка по модулю.</span>
-          <span class="chip info">Открыть документацию</span>
+          <form method="get" action="/api/v1/admin/users-roles/view/docs">
+            <button class="module3-doc-button" type="submit">Открыть документацию</button>
+          </form>
         </div>
         <div class="module3-nav-footer">
           <span>ATOM — единая платформа управления строительством</span>
@@ -2128,107 +2121,6 @@
       </nav>
 
       <section class="control-main" data-module3-content>
-        <section
-          class="module3-quick-actions"
-          aria-label="Быстрые действия Module №3"
-          data-module3-quick-actions
-          data-quick-action-storage-key="{{ quick_action_settings.localStorageKey|default('atom:module3:quickActionSettings:v1') }}"
-          data-max-module-actions="{{ quick_action_settings.maxModuleActions|default(9) }}"
-          data-max-card-actions="{{ quick_action_settings.maxDashboardCardActions|default(3) }}"
-          data-source-module-code="{{ quick_action_settings.sourceModuleCode|default('MODULE_03_USERS_ROLES') }}"
-          data-storage-layer="{{ quick_action_settings.storageLayer|default('UserDashboardLayout.layout_settings.moduleQuickActions') }}"
-        >
-          <div class="module3-quick-actions-title">Быстрые действия</div>
-          <div class="module3-quick-actions-list">
-            {% for action in quick_actions %}
-            {% if action.visible %}
-            <a
-              class="module3-action {% if not action.enabled %}disabled{% endif %}"
-              href="{% if action.enabled and action.actionType == 'navigate' and action.target %}{{ action.target }}{% else %}#{% endif %}"
-              data-action-id="{{ action.id }}"
-              data-quick-action-code="{{ action.quickActionCode }}"
-              data-source-module-code="{{ action.sourceModuleCode }}"
-              data-action-code="{{ action.actionCode }}"
-              data-max-surface="{{ action.maxSurface }}"
-              data-action-type="{{ action.actionType }}"
-              data-permission-code="{{ action.permissionCode or '' }}"
-              data-feature-code="{{ action.featureCode or '' }}"
-              data-quick-action-target="{{ action.target or '' }}"
-              data-quick-action-enabled="{{ action.enabled }}"
-              {% if not action.enabled %}aria-disabled="true"{% endif %}
-              title="{{ action.description or action.label }}"
-            >
-              <span class="module3-action-icon" aria-hidden="true">{{ action.icon or '•' }}</span>
-              <span>{{ action.label }}</span>
-            </a>
-            {% endif %}
-            {% endfor %}
-          </div>
-          <div class="toolbar">
-            <button class="module3-quick-actions-more" type="button" data-module3-quick-actions-more hidden>Ещё</button>
-            <button class="module3-quick-actions-configure" type="button" data-module3-quick-actions-configure aria-label="Настроить быстрые действия" title="Настроить быстрые действия">⋯</button>
-          </div>
-        </section>
-
-        <section class="module3-quick-action-modal" data-module3-quick-action-modal hidden role="dialog" aria-modal="true" aria-labelledby="module3-quick-action-settings-title">
-          <div class="module3-quick-action-dialog">
-            <header class="module3-quick-action-modal-head">
-              <div>
-                <h2 id="module3-quick-action-settings-title">{{ quick_action_settings.title|default('Настроить быстрые действия') }}</h2>
-                <div class="muted">{{ quick_action_settings.localAdapterNote|default('Настройки быстрых действий Module №3.') }}</div>
-              </div>
-              <button class="btn" type="button" data-module3-quick-actions-close>Закрыть</button>
-            </header>
-            <div class="module3-quick-action-modal-body">
-              <div class="module3-quick-action-limit-row" aria-label="Лимиты быстрых действий">
-                <span class="chip info">В модуле: <strong data-module3-quick-actions-module-count>0</strong> / {{ quick_action_settings.maxModuleActions|default(9) }}</span>
-                <span class="chip info">На карточке Dashboard: <strong data-module3-quick-actions-card-count>0</strong> / {{ quick_action_settings.maxDashboardCardActions|default(3) }}</span>
-                <span class="chip" title="{{ quick_action_settings.storageLayer|default('UserDashboardLayout.layout_settings.moduleQuickActions') }}">UserDashboardLayout adapter</span>
-              </div>
-              <div class="module3-quick-action-modal-message" data-module3-quick-action-message aria-live="polite"></div>
-              <div class="module3-quick-action-settings-list">
-                {% for action in quick_action_settings.actions|default([], true) %}
-                <article
-                  class="module3-quick-action-setting {% if action.isModulePinnedByDefault %}pinned{% endif %} {% if not action.canPin %}disabled{% endif %}"
-                  data-quick-action-setting
-                  data-quick-action-code="{{ action.quickActionCode }}"
-                  data-action-id="{{ action.id }}"
-                  data-source-module-code="{{ action.sourceModuleCode }}"
-                  data-action-target="{{ action.target or '' }}"
-                  data-action-enabled="{{ action.canPin }}"
-                  data-default-module-pinned="{{ action.isModulePinnedByDefault }}"
-                  data-default-card-pinned="{{ action.isDashboardPinnedByDefault }}"
-                  data-default-order="{{ action.sortOrder }}"
-                  title="{{ action.unavailableReason or action.description or action.label }}"
-                >
-                  <div class="module3-quick-action-setting-title">
-                    <strong>{{ action.label }}</strong>
-                    <small>{{ action.description or action.unavailableReason or 'Действие Module №3' }}</small>
-                  </div>
-                  <span class="chip info">{{ action.sourceLabel }}</span>
-                  <label class="module3-quick-action-setting-toggle">
-                    <input type="checkbox" data-module3-quick-action-module-toggle {% if action.isModulePinnedByDefault %}checked{% endif %} {% if not action.canPin %}disabled{% endif %}>
-                    <span>В модуле</span>
-                  </label>
-                  <label class="module3-quick-action-setting-toggle">
-                    <input type="checkbox" data-module3-quick-action-card-toggle {% if action.isDashboardPinnedByDefault %}checked{% endif %} {% if not action.canPin %}disabled{% endif %}>
-                    <span>Dashboard</span>
-                  </label>
-                  <input type="number" min="1" max="{{ quick_action_settings.maxModuleActions|default(9) }}" value="{{ action.sortOrder }}" data-module3-quick-action-order {% if not action.canPin %}disabled{% endif %} aria-label="Порядок {{ action.label }}">
-                </article>
-                {% endfor %}
-              </div>
-            </div>
-            <footer class="module3-quick-action-modal-footer">
-              <span class="muted">Настройки сохраняются в локальный adapter. API сохранения можно подключить к тому же payload без изменения UI.</span>
-              <div class="toolbar">
-                <button class="btn" type="button" data-module3-quick-actions-reset>Сбросить</button>
-                <button class="btn" type="button" data-module3-quick-actions-save>Сохранить</button>
-              </div>
-            </footer>
-          </div>
-        </section>
-
         <section class="command-hero" id="overview">
           <div class="command-title">
             <h1>{% if company_mode %}Обзор компании{% else %}Обзор модуля{% endif %}</h1>
@@ -2259,12 +2151,12 @@
               </div>
               {% if widget.onModeration is defined %}
               <div class="metric-pill" data-metric="moderation">
-                <span title="На модерации">Модерация</span>
+                <span title="На модерации">На модерации</span>
                 <strong>{{ widget.onModeration }}</strong>
               </div>
               {% endif %}
               <div class="metric-pill" data-metric="blocked">
-                <span title="Заблокированные">Заблок.</span>
+                <span title="Заблокированные">Заблокированные</span>
                 <strong>{{ widget.blocked }}</strong>
               </div>
             </div>
@@ -2344,7 +2236,6 @@
                 {% endif %}
               </div>
             </div>
-            <a class="registry-link" href="/api/v1/admin/module-registry/view"><span>Открыть все модули</span><span aria-hidden="true">→</span></a>
           </div>
           <div class="bridge-card registry-card">
             <div class="registry-card-head">
@@ -2375,7 +2266,6 @@
                 {% endif %}
               </div>
             </div>
-            <a class="registry-link" href="#access-matrix"><span>Открыть все виджеты</span><span aria-hidden="true">→</span></a>
           </div>
         </section>
         </div>
@@ -2386,17 +2276,19 @@
               <h2 id="system-users-title">Системные пользователи</h2>
               <div class="muted">Ключевые технические и административные учетные записи Module №3.</div>
             </div>
+            <a class="system-users-manage-link" href="#users?system_user=true">
+              <span>Управление системными пользователями</span>
+              <span class="system-users-gear" aria-hidden="true"></span>
+            </a>
           </div>
           <div class="system-user-grid">
             {% for user in overview.systemUsers %}
-            <article class="system-user-card {% if user.isPlaceholder %}placeholder{% endif %}">
-              <span class="system-user-avatar" aria-hidden="true">{% if user.login == 'super-admin' %}◇{% elif user.login == 'moderator' %}♙{% else %}♜{% endif %}</span>
+            <article class="system-user-card {% if user.isPlaceholder %}placeholder{% endif %}" data-system-login="{{ user.login }}">
+              <span class="system-user-avatar {% if user.login == 'super-admin' %}system-user-avatar--shield{% elif user.login == 'moderator' %}system-user-avatar--moderator{% else %}system-user-avatar--user{% endif %}" aria-hidden="true"></span>
               <div class="system-user-main">
-                <h3>{{ user.login }}</h3>
-                <div class="muted">{{ user.displayName }}</div>
-                {% if user.email %}<small>{{ user.email }}</small>{% endif %}
+                <h3 title="{{ user.displayName }}{% if user.email %} · {{ user.email }}{% endif %}">{{ user.login }}</h3>
                 <div class="code-list">
-                  <span class="chip info">{{ user.roleTitle }}</span>
+                  <span class="chip info system-user-role-chip">{{ user.roleTitle }}</span>
                 </div>
                 <div class="muted system-user-purpose">{{ user.purpose }}</div>
               </div>
@@ -3911,7 +3803,7 @@
           <div class="panel-head">
             <div>
               <h2 id="cabinet-context-title">Кабинеты и контекст</h2>
-              <div class="muted">Карточка пользователя показывает Module №8 через adapter / DTO. Source of truth остается в MODULE_08_PARTNER_PORTAL.</div>
+              <div class="muted">Карточка пользователя показывает legacy draft cabinet context через adapter / DTO. MODULE_08_PARTNER_PORTAL не является финальной границей Module №8.</div>
             </div>
             <div class="toolbar">
               <span class="chip">MODULE_08_PARTNER_PORTAL</span>
@@ -3976,7 +3868,7 @@
                   </div>
                   {% endfor %}
                 {% else %}
-                <div class="muted">Связанные объекты placeholder: объект хранится в Module №7, а связи и visibility preview приходят из Module №8. Module №3 их не хранит.</div>
+                <div class="muted">Связанные объекты placeholder: объект хранится в Module №7, а связи и visibility preview приходят из будущего контура кабинетов. Module №3 их не хранит.</div>
                 {% endif %}
               </div>
             </div>
@@ -4017,7 +3909,7 @@
 
               <div class="bridge-card" id="module8-widget-recommendations">
                 <h3>Рекомендованные виджеты</h3>
-                <div class="muted">Module №3 разрешает widgetCode, Module №8 позже определяет уместность для активного кабинета.</div>
+                <div class="muted">Module №3 разрешает widgetCode, а отдельный кабинетный контур позже определяет уместность для активного кабинета.</div>
                 <div class="code-list">
                   {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedWidgetCodes %}
                   <span class="chip">{{ code }}</span>
@@ -4029,7 +3921,7 @@
 
               <div class="bridge-card" id="module8-quick-action-recommendations">
                 <h3>Рекомендованные быстрые действия</h3>
-                <div class="muted">Quick actions остаются permission-driven. Module №8 не выполняет бизнес-операции из этой панели.</div>
+                <div class="muted">Quick actions остаются permission-driven. Кабинетный контур не выполняет бизнес-операции из этой панели.</div>
                 <div class="code-list">
                   {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedQuickActionCodes %}
                   <span class="chip ok">{{ code }}</span>
@@ -4367,214 +4259,6 @@
       window.addEventListener("hashchange", syncTabs);
       document.addEventListener("DOMContentLoaded", syncTabs);
       syncTabs();
-    })();
-
-    (() => {
-      const root = document.querySelector("[data-module3-quick-actions]");
-      const modal = document.querySelector("[data-module3-quick-action-modal]");
-      if (!root || !modal) return;
-
-      const list = root.querySelector(".module3-quick-actions-list");
-      const configureButton = root.querySelector("[data-module3-quick-actions-configure]");
-      const moreButton = root.querySelector("[data-module3-quick-actions-more]");
-      const closeButton = modal.querySelector("[data-module3-quick-actions-close]");
-      const saveButton = modal.querySelector("[data-module3-quick-actions-save]");
-      const resetButton = modal.querySelector("[data-module3-quick-actions-reset]");
-      const message = modal.querySelector("[data-module3-quick-action-message]");
-      const moduleCount = modal.querySelector("[data-module3-quick-actions-module-count]");
-      const cardCount = modal.querySelector("[data-module3-quick-actions-card-count]");
-      const actionNodes = Array.from(root.querySelectorAll(".module3-action[data-action-id]"));
-      const settingRows = Array.from(modal.querySelectorAll("[data-quick-action-setting]"));
-      const storageKey = root.dataset.quickActionStorageKey || "atom:module3:quickActionSettings:v1";
-      const sourceModuleCode = root.dataset.sourceModuleCode || "MODULE_03_USERS_ROLES";
-      const storageLayer = root.dataset.storageLayer || "UserDashboardLayout.layout_settings.moduleQuickActions";
-      const maxModuleActions = Number(root.dataset.maxModuleActions || 9);
-      const maxCardActions = Number(root.dataset.maxCardActions || 3);
-      const parseBool = (value) => ["true", "True", "1", "yes"].includes(String(value));
-
-      const showMessage = (text) => {
-        if (!message) return;
-        message.textContent = text || "";
-      };
-
-      const readStateFromRows = () => settingRows.map((row, index) => {
-        const moduleToggle = row.querySelector("[data-module3-quick-action-module-toggle]");
-        const cardToggle = row.querySelector("[data-module3-quick-action-card-toggle]");
-        const orderInput = row.querySelector("[data-module3-quick-action-order]");
-        return {
-          quickActionCode: row.dataset.quickActionCode,
-          actionId: row.dataset.actionId,
-          sourceModuleCode: row.dataset.sourceModuleCode || sourceModuleCode,
-          isEnabled: parseBool(row.dataset.actionEnabled),
-          isPinnedInModule: Boolean(moduleToggle?.checked),
-          isPinnedOnModuleCard: Boolean(cardToggle?.checked),
-          sortOrder: Number(orderInput?.value || row.dataset.defaultOrder || index + 1),
-        };
-      });
-
-      const defaultState = () => settingRows.map((row, index) => ({
-        quickActionCode: row.dataset.quickActionCode,
-        actionId: row.dataset.actionId,
-        sourceModuleCode: row.dataset.sourceModuleCode || sourceModuleCode,
-        isEnabled: parseBool(row.dataset.actionEnabled),
-        isPinnedInModule: parseBool(row.dataset.defaultModulePinned),
-        isPinnedOnModuleCard: parseBool(row.dataset.defaultCardPinned),
-        sortOrder: Number(row.dataset.defaultOrder || index + 1),
-      }));
-
-      const normalizeState = (items) => {
-        const defaults = defaultState();
-        const byCode = new Map((items || []).map((item) => [item.quickActionCode, item]));
-        const normalized = defaults.map((item) => {
-          const saved = byCode.get(item.quickActionCode) || {};
-          return {
-            ...item,
-            isPinnedInModule: item.isEnabled ? Boolean(saved.isPinnedInModule ?? item.isPinnedInModule) : false,
-            isPinnedOnModuleCard: item.isEnabled ? Boolean(saved.isPinnedOnModuleCard ?? item.isPinnedOnModuleCard) : false,
-            sortOrder: Number(saved.sortOrder || item.sortOrder),
-          };
-        });
-        return normalized.some((item) => item.isEnabled && item.isPinnedInModule) ? normalized : defaults;
-      };
-
-      const loadState = () => {
-        try {
-          const raw = window.localStorage.getItem(storageKey);
-          if (!raw) return defaultState();
-          const parsed = JSON.parse(raw);
-          return normalizeState(parsed.actions || parsed.preferences || []);
-        } catch (_error) {
-          return defaultState();
-        }
-      };
-
-      let state = normalizeState(loadState());
-
-      const writeRows = () => {
-        const byCode = new Map(state.map((item) => [item.quickActionCode, item]));
-        settingRows.forEach((row) => {
-          const item = byCode.get(row.dataset.quickActionCode);
-          if (!item) return;
-          const moduleToggle = row.querySelector("[data-module3-quick-action-module-toggle]");
-          const cardToggle = row.querySelector("[data-module3-quick-action-card-toggle]");
-          const orderInput = row.querySelector("[data-module3-quick-action-order]");
-          if (moduleToggle) moduleToggle.checked = Boolean(item.isPinnedInModule);
-          if (cardToggle) cardToggle.checked = Boolean(item.isPinnedOnModuleCard);
-          if (orderInput) orderInput.value = String(item.sortOrder);
-          row.classList.toggle("pinned", Boolean(item.isPinnedInModule || item.isPinnedOnModuleCard));
-        });
-      };
-
-      const updateStateFromRows = () => {
-        state = normalizeState(readStateFromRows());
-      };
-
-      const enforceLimits = (changedInput) => {
-        updateStateFromRows();
-        const modulePinned = state.filter((item) => item.isEnabled && item.isPinnedInModule).length;
-        const cardPinned = state.filter((item) => item.isEnabled && item.isPinnedOnModuleCard).length;
-        if (modulePinned > maxModuleActions) {
-          if (changedInput) changedInput.checked = false;
-          showMessage("Внутри модуля можно закрепить не больше 9 быстрых действий.");
-          updateStateFromRows();
-          return false;
-        }
-        if (cardPinned > maxCardActions) {
-          if (changedInput) changedInput.checked = false;
-          showMessage("На карточке модуля можно вывести не больше 3 быстрых действий.");
-          updateStateFromRows();
-          return false;
-        }
-        showMessage("");
-        return true;
-      };
-
-      const applyState = () => {
-        const byId = new Map(state.map((item) => [item.actionId, item]));
-        const orderedActions = [...actionNodes].sort((a, b) => {
-          const left = byId.get(a.dataset.actionId)?.sortOrder || 1000;
-          const right = byId.get(b.dataset.actionId)?.sortOrder || 1000;
-          return left - right || String(a.dataset.actionId).localeCompare(String(b.dataset.actionId));
-        });
-        orderedActions.forEach((node) => list?.appendChild(node));
-        let visibleCount = 0;
-        let overflowCount = 0;
-        orderedActions.forEach((node) => {
-          const item = byId.get(node.dataset.actionId);
-          const visible = Boolean(item?.isEnabled && item?.isPinnedInModule);
-          const fits = visible && visibleCount < maxModuleActions;
-          node.hidden = !fits;
-          if (fits) visibleCount += 1;
-          if (visible && !fits) overflowCount += 1;
-        });
-        if (moreButton) {
-          moreButton.hidden = overflowCount === 0;
-          moreButton.textContent = overflowCount ? `Ещё ${overflowCount}` : "Ещё";
-        }
-        if (moduleCount) moduleCount.textContent = String(state.filter((item) => item.isEnabled && item.isPinnedInModule).length);
-        if (cardCount) cardCount.textContent = String(state.filter((item) => item.isEnabled && item.isPinnedOnModuleCard).length);
-        writeRows();
-      };
-
-      const saveState = () => {
-        enforceLimits();
-        const payload = {
-          version: 1,
-          storageLayer,
-          sourceModuleCode,
-          updatedAt: new Date().toISOString(),
-          actions: state.map(({ quickActionCode, sourceModuleCode, isPinnedInModule, isPinnedOnModuleCard, sortOrder }) => ({
-            quickActionCode,
-            sourceModuleCode,
-            isPinnedInModule,
-            isPinnedOnModuleCard,
-            sortOrder,
-          })),
-        };
-        window.localStorage.setItem(storageKey, JSON.stringify(payload));
-        showMessage("Настройки быстрых действий сохранены.");
-        applyState();
-      };
-
-      settingRows.forEach((row) => {
-        row.addEventListener("change", (event) => {
-          if (event.target.matches("[data-module3-quick-action-module-toggle], [data-module3-quick-action-card-toggle]")) {
-            enforceLimits(event.target);
-          } else {
-            updateStateFromRows();
-          }
-          applyState();
-        });
-        row.addEventListener("input", (event) => {
-          if (!event.target.matches("[data-module3-quick-action-order]")) return;
-          updateStateFromRows();
-          applyState();
-        });
-      });
-
-      configureButton?.addEventListener("click", () => {
-        modal.hidden = false;
-        showMessage("");
-      });
-      moreButton?.addEventListener("click", () => {
-        modal.hidden = false;
-        showMessage("");
-      });
-      closeButton?.addEventListener("click", () => {
-        modal.hidden = true;
-      });
-      modal.addEventListener("click", (event) => {
-        if (event.target === modal) modal.hidden = true;
-      });
-      resetButton?.addEventListener("click", () => {
-        window.localStorage.removeItem(storageKey);
-        state = defaultState();
-        showMessage("Настройки сброшены к значениям Module №3.");
-        applyState();
-      });
-      saveButton?.addEventListener("click", saveState);
-
-      applyState();
     })();
 
     (() => {

@@ -21,7 +21,8 @@ def test_partner_portal_settings_ui_is_cabinet_settings_not_second_dashboard():
     assert "Настройки видимости" in html
     assert "Настройки предложений" in html
     assert "Настройки рабочего экрана" in html
-    assert "MODULE_08_PARTNER_PORTAL" in html
+    assert "PARTICIPANT_CABINET_CONTEXT" in html
+    assert "legacy source: MODULE_08_PARTNER_PORTAL" in html
     assert "без Dashboard-дубля" in html
     assert "atom-map" not in html
     assert "dashboard-grid" not in html

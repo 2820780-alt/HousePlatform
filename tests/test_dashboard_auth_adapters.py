@@ -46,7 +46,7 @@ def test_dashboard_user_context_mock_uses_module_codes_and_region_registry_data(
     assert context.activeCabinetType == "ADMIN"
     assert "MODULE_01_MATERIAL_HUB" in context.allowedModuleCodes
     assert "MODULE_02_KNOWLEDGE_BASE" in context.allowedModuleCodes
-    assert "DASHBOARD_CONFIGURE" in context.allowedActionCodes
+    assert context.allowedActionCodes == []
     assert context.favoriteModuleCodes == ["MODULE_01_MATERIAL_HUB", "MODULE_11_ANALYTICS"]
     assert context.dashboardLayout["widgets"][1]["moduleCode"] == "MODULE_11_ANALYTICS"
     assert context.dashboardLayout["widgets"][1]["legacyModuleCode"] == "MODULE_14_PRICE_HISTORY"
@@ -73,7 +73,7 @@ def test_dashboard_permission_helpers_work_over_mock_context():
     assert not can_access_module(context, "MODULE_99_UNKNOWN")
     assert can_access_widget(context, "KPI:Материалы")
     assert can_use_feature(context, "DASHBOARD_PERSONALIZE")
-    assert can_use_action(context, "DASHBOARD_CONFIGURE")
+    assert not can_use_action(context, "DASHBOARD_CONFIGURE")
     assert not can_use_action(context, "UNKNOWN_ACTION")
     assert can_edit_dashboard_layout(context)
     assert can_see_planned_modules(context)
@@ -119,8 +119,8 @@ def test_preview_role_changes_effective_access_without_changing_real_role():
     assert context.previewRoleCode == "SUPPLIER"
     assert context.effectiveRoleCode == "SUPPLIER"
     assert context.activeCabinetType == "SUPPLIER"
-    assert "MODULE_09_TENDERS" in context.allowedModuleCodes
+    assert "MODULE_09_PROCUREMENT" in context.allowedModuleCodes
     assert "MODULE_11_ANALYTICS" not in context.allowedModuleCodes
-    assert can_use_action(context, "SUPPLIER_PRICE_UPLOAD")
+    assert not can_use_action(context, "SUPPLIER_PRICE_UPLOAD")
     assert not can_see_planned_modules(context)
     assert context.to_template_dict()["canPreviewDashboardRoles"] is True

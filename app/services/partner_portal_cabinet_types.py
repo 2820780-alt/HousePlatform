@@ -98,11 +98,7 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
             "OBJECT_STORAGE_BLOCK",
             "PROCUREMENT_BLOCK",
         ],
-        quickActions=[
-            "CUSTOMER_OBJECT_CREATE",
-            "CUSTOMER_ESTIMATE_REQUEST",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-        ],
+        quickActions=[],
         futureBlocks=[
             "PRICE_ANALYTICS_BLOCK",
             "VISIBILITY_SETTINGS_BLOCK",
@@ -116,7 +112,6 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
         mainFocus="Прайсы, заявки, обновление цен и предложения поставщика.",
         recommendedModules=[
             "MODULE_01_MATERIAL_HUB",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_09_PROCUREMENT",
             "MODULE_10_MARKETPLACE",
             "MODULE_11_ANALYTICS",
@@ -130,11 +125,7 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
             "SUPPLY_REGIONS_BLOCK",
             "SUPPLIER_ACTIVE_OBJECTS_BLOCK",
         ],
-        quickActions=[
-            "SUPPLIER_PRICE_UPLOAD",
-            "SUPPLIER_PRICE_UPDATE",
-            "SUPPLIER_OFFER_CREATE",
-        ],
+        quickActions=[],
         futureBlocks=[
             "DEMAND_ANALYTICS_BLOCK",
             "MARKETPLACE_BLOCK",
@@ -152,7 +143,6 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
             "MODULE_04_WORKS_COSTS",
             "MODULE_05_ESTIMATE_ENGINE",
             "MODULE_07_DIGITAL_HOUSE",
-            "MODULE_08_PARTNER_PORTAL",
             "MODULE_09_PROCUREMENT",
             "MODULE_11_ANALYTICS",
             "MODULE_13_PROJECT_COLLABORATION",
@@ -167,11 +157,7 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
             "COMPANY_REQUESTS_BLOCK",
             "CABINET_DOCUMENTS_BLOCK",
         ],
-        quickActions=[
-            "WORK_RATE_OPEN",
-            "PROJECT_TASKS_OPEN",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-        ],
+        quickActions=[],
         futureBlocks=[
             "CONTRACTS_BLOCK",
             "FINANCE_BLOCK",
@@ -207,11 +193,7 @@ CABINET_TYPE_DEFINITIONS: tuple[CabinetTypeDefinition, ...] = (
             "ESTIMATE_AUDIT_BLOCK",
             "SPECIALIST_TASKS_BLOCK",
         ],
-        quickActions=[
-            "ESTIMATE_OPEN",
-            "MATERIAL_CLASSIFICATION_FIX",
-            "DOCUMENT_LIST_OPEN",
-        ],
+        quickActions=[],
         futureBlocks=[
             "CABINET_DOCUMENTS_BLOCK",
             "DOCUMENTS_BLOCK",

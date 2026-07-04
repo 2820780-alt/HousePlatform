@@ -46,7 +46,7 @@ async def load_supplier_workspace_summary(db: AsyncSession) -> dict:
         "parsing_errors_total": await _sum_supplier_upload_errors(db),
         "future_module8_link": {
             "source_module_code": "MODULE_01_MATERIAL_HUB",
-            "target_module_code": "MODULE_08_PARTNER_PORTAL",
+            "target_module_code": "PARTICIPANT_CABINET_CONTEXT",
             "fields": [
                 "supplier_account_id",
                 "account_link_status",
@@ -55,7 +55,7 @@ async def load_supplier_workspace_summary(db: AsyncSession) -> dict:
                 "sync_status",
                 "last_synced_at",
             ],
-            "note": "Module 01 prepares link metadata only; Module 08 remains source of truth for cabinets.",
+            "note": "Module 01 prepares link metadata only; participant cabinets are a separate future contour.",
         },
         "archive_policy": "Suppliers and sources must be archived or blocked instead of deleted when linked data exists.",
     }

@@ -19,6 +19,10 @@ def test_role_access_matrix_uses_module_codes_not_module_numbers():
     assert all(rule["accessLevel"] in AccessLevel._value2member_map_ for rule in matrix)
     assert all(rule["accessScope"] in AccessScope._value2member_map_ for rule in matrix)
     assert "MODULE_14_PRICE_HISTORY" not in {rule["moduleCode"] for rule in matrix}
+    assert "MODULE_08_PROCUREMENT" not in {rule["moduleCode"] for rule in matrix}
+    assert "MODULE_08_PARTNER_PORTAL" not in {rule["moduleCode"] for rule in matrix}
+    assert "MODULE_09_TENDERS" not in {rule["moduleCode"] for rule in matrix}
+    assert "MODULE_09_PROCUREMENT" in {rule["moduleCode"] for rule in matrix}
 
 
 def test_super_admin_gets_admin_global_for_all_active_starter_modules():

@@ -19,7 +19,7 @@ FULL_SPECIALIST_ACCESS = {
         "MODULE_05_ESTIMATE_ENGINE",
         "MODULE_06_ESTIMATE_AUDIT",
         "MODULE_07_DIGITAL_HOUSE",
-        "MODULE_08_PARTNER_PORTAL",
+        "PARTICIPANT_CABINET_CONTEXT",
         "MODULE_09_PROCUREMENT",
         "MODULE_13_PROJECT_COLLABORATION",
         "MODULE_19_CONSTRUCTOR_LITE",
@@ -51,11 +51,7 @@ FULL_SPECIALIST_ACCESS = {
         "materials-kpi",
         "project-collaboration-activity",
     ],
-    "allowedQuickActionCodes": [
-        "ESTIMATE_OPEN",
-        "DOCUMENT_LIST_OPEN",
-        "DASHBOARD_CONFIGURE",
-    ],
+    "allowedQuickActionCodes": [],
 }
 
 
@@ -179,7 +175,7 @@ def test_specialist_cabinet_filters_blocks_through_module3_access_context():
         "allowedModuleCodes": ["MODULE_01_MATERIAL_HUB", "MODULE_04_WORKS_COSTS"],
         "allowedFeatureCodes": ["MATERIALS", "WORKS_COSTS"],
         "allowedWidgetCodes": [],
-        "allowedQuickActionCodes": ["DASHBOARD_CONFIGURE"],
+        "allowedQuickActionCodes": [],
     }
     cabinet = get_specialist_cabinet_template(
         specialization_code="ESTIMATOR",

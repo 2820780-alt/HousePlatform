@@ -48,7 +48,8 @@ def test_access_context_helpers_check_module_widget_and_quick_action_access_with
     assert not context.canViewModule("MODULE_03_USERS_ROLES")
     assert context.canViewWidget("materials-kpi")
     assert not context.canViewWidget("price-dynamics")
-    assert context.canRunQuickAction("SUPPLIER_PRICE_UPLOAD")
+    assert context.allowedQuickActionCodes == []
+    assert not context.canRunQuickAction("SUPPLIER_PRICE_UPLOAD")
     assert not context.canRunQuickAction("SOURCE_TASK_CREATE")
 
 

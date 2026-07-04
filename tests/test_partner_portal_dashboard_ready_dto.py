@@ -20,7 +20,7 @@ MODULE8_CONTEXT = {
             "MODULE_09_PROCUREMENT",
             "MODULE_10_MARKETPLACE",
             "MODULE_11_ANALYTICS",
-            "MODULE_08_PARTNER_PORTAL",
+            "PARTICIPANT_CABINET_CONTEXT",
         ],
         "allowedFeatureCodes": [
             "CUSTOMER_OBJECTS",
@@ -39,12 +39,7 @@ MODULE8_CONTEXT = {
             "procurement-requests",
             "price-dynamics",
         ],
-        "allowedQuickActionCodes": [
-            "CUSTOMER_OBJECT_CREATE",
-            "CUSTOMER_ESTIMATE_REQUEST",
-            "CUSTOMER_PROCUREMENT_REQUEST",
-            "DASHBOARD_CONFIGURE",
-        ],
+        "allowedQuickActionCodes": [],
     },
     "availableCabinets": [
         {
@@ -85,12 +80,7 @@ def test_dashboard_ready_dto_uses_module8_context_without_dashboard_edits():
     assert dto["mainFocus"]
     assert "OBJECT_IMAGE_BLOCK" in dto["primaryBlocks"]
     assert "ESTIMATE_AUDIT_BLOCK" in dto["secondaryBlocks"]
-    assert [item["quickActionCode"] for item in dto["quickActions"]] == [
-        "CUSTOMER_OBJECT_CREATE",
-        "CUSTOMER_ESTIMATE_REQUEST",
-        "CUSTOMER_PROCUREMENT_REQUEST",
-        "DASHBOARD_CONFIGURE",
-    ]
+    assert dto["quickActions"] == []
     assert any(item["widgetCode"] == "estimate-summary" for item in dto["widgetPreferences"])
     assert "businessPayload" not in dto
 

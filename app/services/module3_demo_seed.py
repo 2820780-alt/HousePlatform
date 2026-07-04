@@ -780,7 +780,6 @@ def _demo_access_template_for_user(spec: Module3DemoUserSpec) -> Module3DemoAcce
 def _runtime_module_code(module_code: str) -> str:
     aliases = {
         "MODULE_05_ESTIMATE_ENGINE": "MODULE_05_ESTIMATES",
-        "MODULE_09_PROCUREMENT": "MODULE_08_PROCUREMENT",
     }
     return aliases.get(module_code, module_code)
 
@@ -841,7 +840,7 @@ def _demo_access_templates() -> tuple[Module3DemoAccessTemplateSpec, ...]:
             moduleAccess=(
                 module("MODULE_05_ESTIMATE_ENGINE", "VIEW", "OWN", runtimeModuleCode="MODULE_05_ESTIMATES"),
                 module("MODULE_07_DIGITAL_HOUSE", "VIEW", "OWN"),
-                module("MODULE_09_PROCUREMENT", "VIEW", "OWN", runtimeModuleCode="MODULE_08_PROCUREMENT"),
+                module("MODULE_09_PROCUREMENT", "VIEW", "OWN"),
                 module("MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
             ),
             widgetAccess=(
@@ -857,14 +856,12 @@ def _demo_access_templates() -> tuple[Module3DemoAccessTemplateSpec, ...]:
             "Поставщики",
             moduleAccess=(
                 module("MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
-                module("MODULE_08_PARTNER_PORTAL", "VIEW", "OWN"),
-                module("MODULE_09_PROCUREMENT", "VIEW", "LIMITED", runtimeModuleCode="MODULE_08_PROCUREMENT", isLimited=True),
+                module("MODULE_09_PROCUREMENT", "VIEW", "LIMITED", isLimited=True),
                 module("MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
             ),
             widgetAccess=(
                 widget("materials-kpi", "MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
                 widget("source-health", "MODULE_01_MATERIAL_HUB", "VIEW", "LIMITED", isLimited=True),
-                widget("partner-tender-invites", "MODULE_08_PARTNER_PORTAL", "VIEW", "OWN"),
                 widget("price-dynamics", "MODULE_11_ANALYTICS", "VIEW", "LIMITED", isLimited=True),
             ),
             deniedModuleCodes=("MODULE_03_USERS_ROLES", "MODULE_03_ACCESS_MATRIX"),

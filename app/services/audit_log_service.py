@@ -660,11 +660,12 @@ def record_module8_context_adapter_read(
             workspaceId=_string_or_none(workspace_id),
             moduleCode="MODULE_08_PARTNER_PORTAL",
             canonicalModuleCode="MODULE_08_PARTNER_PORTAL",
-            reason=reason or "Module 03 Admin UI read Module 08 cabinet context through adapter/DTO.",
+            reason=reason or "Module 03 Admin UI read legacy draft cabinet context through adapter/DTO.",
             entityType="Module8CabinetAdminPreviewDTO",
             entityId=active_cabinet_id,
             metadata={
                 "sourceModuleCode": "MODULE_08_PARTNER_PORTAL",
+                "moduleBoundaryStatus": "LEGACY_DRAFT_BOUNDARY",
                 "activeRegionCode": active_region_code,
                 "activeCabinetType": active_cabinet_type,
                 "isMock": is_mock,

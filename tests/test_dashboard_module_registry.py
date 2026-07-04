@@ -17,6 +17,45 @@ def test_price_history_legacy_module_resolves_to_analytics_feature():
     assert is_module_available_for_dashboard("MODULE_14_PRICE_HISTORY") is False
 
 
+def test_module_map_uses_new_constitution_for_modules_8_to_11():
+    module8 = get_dashboard_module_registry_item("MODULE_08_TARIFFS")
+    old_procurement = get_dashboard_module_registry_item("MODULE_08_PROCUREMENT")
+    procurement = get_dashboard_module_registry_item("MODULE_09_PROCUREMENT")
+    old_tenders = get_dashboard_module_registry_item("MODULE_09_TENDERS")
+    marketplace = get_dashboard_module_registry_item("MODULE_10_MARKETPLACE")
+    analytics = get_dashboard_module_registry_item("MODULE_11_ANALYTICS")
+
+    assert module8 is not None
+    assert module8.status == "planned"
+    assert module8.displayNumber == 8
+    assert module8.isAvailableForDashboard is False
+    assert module8.isBillingEligible is True
+    assert "TARIFF_LIMITS" in module8.expectedFeatureCodes
+
+    assert old_procurement is not None
+    assert old_procurement.status == "deprecated"
+    assert old_procurement.displayNumber is None
+    assert get_canonical_module_code("MODULE_08_PROCUREMENT") == "MODULE_09_PROCUREMENT"
+    assert is_module_available_for_dashboard("MODULE_08_PROCUREMENT") is False
+
+    assert procurement is not None
+    assert procurement.displayNumber == 9
+    assert procurement.title == "Закупки"
+    assert "PROCUREMENT_REQUESTS" in procurement.featureCodes
+    assert old_tenders is not None
+    assert old_tenders.status == "deprecated"
+    assert get_canonical_module_code("MODULE_09_TENDERS") == "MODULE_09_PROCUREMENT"
+
+    assert marketplace is not None
+    assert marketplace.title == "Витрина"
+    assert analytics is not None
+    assert "PRICE_DYNAMICS" in analytics.featureCodes
+
+
+def test_partner_portal_is_not_final_module8_registry_boundary():
+    assert get_dashboard_module_registry_item("MODULE_08_PARTNER_PORTAL") is None
+
+
 def test_constructor_lite_legacy_module_14_resolves_to_module_19():
     legacy_constructor = get_dashboard_module_registry_item("MODULE_14_CONSTRUCTOR_LITE")
     canonical_constructor = get_dashboard_module_registry_item("MODULE_19_CONSTRUCTOR_LITE")
