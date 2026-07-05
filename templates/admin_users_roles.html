@@ -1579,8 +1579,8 @@
     }
     .bulk-access-panel {
       display: grid;
-      gap: 12px;
-      padding: 14px;
+      gap: 10px;
+      padding: 12px 14px;
       border: 1px solid rgba(24, 215, 242, 0.18);
       border-radius: 8px;
       background:
@@ -1598,10 +1598,15 @@
       margin: 0 0 4px;
       font-size: 14px;
     }
+    .bulk-access-panel-head .muted {
+      max-width: 760px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
     .bulk-access-controls {
       display: grid;
-      grid-template-columns: minmax(150px, 0.9fr) minmax(150px, 0.9fr) minmax(142px, 0.8fr) auto auto;
-      gap: 10px;
+      grid-template-columns: minmax(150px, 0.9fr) minmax(150px, 0.9fr) minmax(142px, 0.8fr) minmax(118px, auto) minmax(158px, auto);
+      gap: 8px;
       align-items: end;
     }
     .bulk-access-controls label {
@@ -1618,9 +1623,23 @@
       background: rgba(5, 12, 30, 0.66);
     }
     .bulk-access-status {
-      min-height: 30px;
+      min-height: 28px;
+      padding: 7px 10px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
       color: var(--muted);
+      background: rgba(5, 12, 30, 0.36);
       font-size: 12px;
+      line-height: 1.35;
+    }
+    .bulk-access-preview-btn {
+      border-color: rgba(24, 215, 242, 0.42);
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.11);
+    }
+    .bulk-access-apply-btn:disabled {
+      opacity: 0.46;
+      cursor: not-allowed;
     }
     .entity-table a {
       color: var(--text);
@@ -3447,7 +3466,7 @@
                   <h4>Массовое назначение доступа</h4>
                   <div class="muted">Изменяет видимые ячейки матрицы перед сохранением. Сначала сделайте предпросмотр, затем примените изменения и сохраните.</div>
                 </div>
-                <span class="chip warn">изменения не применены</span>
+                <span class="chip warn" data-bulk-state>выберите параметры</span>
               </div>
               <div class="bulk-access-controls">
                 <label>
@@ -3472,11 +3491,10 @@
                   <select data-bulk-action>
                     <option value="ALLOW">Открыть доступ</option>
                     <option value="DENY">Закрыть доступ</option>
-                    <option value="RESET">Вернуть исходное</option>
                   </select>
                 </label>
-                <button class="btn" type="button" data-bulk-preview>Предпросмотр</button>
-                <button class="btn" type="button" data-bulk-apply disabled>Применить к матрице</button>
+                <button class="btn bulk-access-preview-btn" type="button" data-bulk-preview>Предпросмотр</button>
+                <button class="btn bulk-access-apply-btn" type="button" data-bulk-apply disabled>Применить к матрице</button>
               </div>
               <div class="bulk-access-status" data-bulk-status>Выберите параметры и нажмите предпросмотр.</div>
             </section>
@@ -4745,6 +4763,7 @@
       const bulkPreview = matrix.querySelector("[data-bulk-preview]");
       const bulkApply = matrix.querySelector("[data-bulk-apply]");
       const bulkStatus = matrix.querySelector("[data-bulk-status]");
+      const bulkState = matrix.querySelector("[data-bulk-state]");
       const toggleAll = matrix.querySelector("[data-access-toggle-all]");
       const saveButton = matrix.querySelector("[data-access-save]");
       const resetButton = matrix.querySelector("[data-access-reset]");
@@ -4753,6 +4772,12 @@
       const collapsed = new Set();
       let currentBulkAction = null;
       let lastBulkPreview = null;
+
+      const setBulkState = (label, tone = "warn") => {
+        if (!bulkState) return;
+        bulkState.textContent = label;
+        bulkState.className = `chip ${tone}`;
+      };
 
       const originalValue = (checkbox) => checkbox.dataset.original === "true";
       const isDirty = () => checks.some((checkbox) => checkbox.checked !== originalValue(checkbox));
@@ -4843,6 +4868,8 @@
       const buildBulkPreview = () => {
         const targets = bulkTargets();
         const changes = targets.filter((checkbox) => checkbox.checked !== bulkDesiredValue(checkbox));
+        const moduleChangeCount = changes.filter((checkbox) => checkbox.dataset.rowType === "MODULE").length;
+        const widgetChangeCount = changes.filter((checkbox) => checkbox.dataset.rowType === "WIDGET").length;
         const actionLabel = bulkAction?.selectedOptions?.[0]?.textContent || "Открыть доступ";
         const userTypeLabel = selectedBulkUserTypeLabel();
         const scopeLabel = bulkRowScope?.selectedOptions?.[0]?.textContent || "Модули и виджеты";
@@ -4855,12 +4882,15 @@
           rowScopeLabel: scopeLabel,
           targetCount: targets.length,
           changeCount: changes.length,
+          moduleChangeCount,
+          widgetChangeCount,
         };
         if (bulkStatus) {
           bulkStatus.textContent = changes.length
-            ? `${actionLabel}: будет изменено ${changes.length} из ${targets.length} доступных ячеек (${userTypeLabel}, ${scopeLabel}).`
+            ? `${actionLabel}: модули ${moduleChangeCount}, виджеты ${widgetChangeCount}; типы: ${userTypeLabel}; область: ${scopeLabel}. Примените к матрице и сохраните.`
             : `Изменений нет: выбранные ${targets.length} ячеек уже соответствуют действию.`;
         }
+        setBulkState(changes.length ? "предпросмотр готов" : "нет изменений", changes.length ? "ok" : "warn");
         if (bulkApply) bulkApply.disabled = changes.length === 0;
       };
 
@@ -4868,6 +4898,7 @@
         lastBulkPreview = null;
         if (bulkApply) bulkApply.disabled = true;
         if (bulkStatus) bulkStatus.textContent = "Выберите параметры и нажмите предпросмотр.";
+        setBulkState("выберите параметры", "warn");
       };
 
       const applyFilters = () => {
@@ -4988,6 +5019,7 @@
         updateDirtyState();
         if (bulkStatus && lastBulkPreview) {
           bulkStatus.textContent = `${lastBulkPreview.actionLabel}: применено к матрице. Проверьте изменения и сохраните.`;
+          setBulkState("требует сохранения", "warn");
         }
         if (bulkApply) bulkApply.disabled = true;
       });
