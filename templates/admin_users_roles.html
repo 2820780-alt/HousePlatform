@@ -561,6 +561,39 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .column-resizer {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      z-index: 8;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      touch-action: none;
+    }
+    .column-resizer::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      left: 3px;
+      width: 1px;
+      border-radius: 999px;
+      background: rgba(24, 215, 242, 0.18);
+      opacity: 0;
+      transition: opacity 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+    }
+    th:hover > .column-resizer::after,
+    .column-resizer:hover::after,
+    body.table-column-resizing .column-resizer::after {
+      opacity: 1;
+      background: rgba(24, 215, 242, 0.72);
+      box-shadow: 0 0 10px rgba(24, 215, 242, 0.45);
+    }
+    body.table-column-resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
     .history-kind-icon {
       position: relative;
       display: inline-grid;
@@ -2330,7 +2363,7 @@
             <a class="overview-history-link" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
           </div>
           <div class="overview-history-table">
-            <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
+            <table class="entity-table overview-history-entity-table" data-resizable-table aria-label="История изменений Module №3">
               <colgroup>
                 <col style="width: 44px">
                 <col style="width: 118px">
@@ -4804,6 +4837,62 @@
       syncDependencies();
       applyFilters();
       updateDirtyState();
+    })();
+  </script>
+  <script>
+    (() => {
+      const initResizableColumns = (table, storageKey) => {
+        if (!table) return;
+        const cols = Array.from(table.querySelectorAll("colgroup col"));
+        const headerCells = Array.from(table.querySelectorAll("thead tr:first-child th"));
+        if (!cols.length || !headerCells.length) return;
+
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          saved.forEach((width, index) => {
+            if (cols[index] && Number.isFinite(width)) cols[index].style.width = `${width}px`;
+          });
+        } catch (_) {}
+
+        const saveWidths = () => {
+          const widths = cols.map((col) => Math.round(col.getBoundingClientRect().width));
+          try { localStorage.setItem(storageKey, JSON.stringify(widths)); } catch (_) {}
+        };
+
+        headerCells.forEach((cell, index) => {
+          const col = cols[index];
+          if (!col || cell.querySelector(".column-resizer")) return;
+          const grip = document.createElement("span");
+          grip.className = "column-resizer";
+          grip.setAttribute("aria-hidden", "true");
+          cell.appendChild(grip);
+
+          grip.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const startX = event.clientX;
+            const startWidth = col.getBoundingClientRect().width || cell.getBoundingClientRect().width;
+            const minWidth = index === 0 ? 40 : 88;
+            document.body.classList.add("table-column-resizing");
+
+            const onMove = (moveEvent) => {
+              const nextWidth = Math.max(minWidth, Math.round(startWidth + moveEvent.clientX - startX));
+              col.style.width = `${nextWidth}px`;
+            };
+            const onUp = () => {
+              document.body.classList.remove("table-column-resizing");
+              window.removeEventListener("pointermove", onMove);
+              window.removeEventListener("pointerup", onUp);
+              saveWidths();
+            };
+
+            window.addEventListener("pointermove", onMove);
+            window.addEventListener("pointerup", onUp, { once: true });
+          });
+        });
+      };
+
+      initResizableColumns(document.querySelector(".overview-history-entity-table"), "module3-overview-history-widths");
     })();
   </script>
 </body>
