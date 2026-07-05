@@ -19,6 +19,7 @@ from app.services.admin_user_role_management import (
     get_user_role_admin_detail,
     get_user_role_admin_history,
     get_user_role_admin_overview,
+    moderate_company_workspace,
     revoke_company_admin,
     save_user_type_access_matrix_changes,
     set_company_employee_module_access,
@@ -267,6 +268,24 @@ async def admin_set_user_widget_access(
         status_code=303,
     )
 
+
+@router.post("/workspaces/{workspace_id}/moderation")
+async def admin_moderate_company_workspace(
+    workspace_id: UUID,
+    db: DBSession,
+    decision: str = Form(...),
+):
+    await moderate_company_workspace(
+        db,
+        actor=_dev_actor(),
+        workspace_id=workspace_id,
+        decision=decision,
+    )
+    await db.commit()
+    return RedirectResponse(
+        "/api/v1/admin/users-roles/view#verification-queue",
+        status_code=303,
+    )
 
 @router.post("/access-matrix")
 async def admin_save_user_type_access_matrix(

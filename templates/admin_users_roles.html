@@ -758,6 +758,83 @@
       flex-wrap: wrap;
       gap: 6px;
       margin-top: 8px;
+    }    .verification-queue-row {
+      grid-template-columns: 46px minmax(0, 1fr) minmax(246px, auto);
+      gap: 12px;
+      align-items: center;
+      min-height: 78px;
+    }
+    .verification-queue-row[data-company-type="SUPPLIER"],
+    .verification-queue-row[data-company-type="MATERIAL_SUPPLIER"] {
+      --card-accent: #8b5cf6;
+    }
+    .verification-queue-row[data-company-type="CONSTRUCTION_COMPANY"],
+    .verification-queue-row[data-company-type="CONTRACTOR"],
+    .verification-queue-row[data-company-type="ORGANIZATION"] {
+      --card-accent: #18d7f2;
+    }
+    .verification-queue-company {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+    .verification-queue-company strong,
+    .verification-queue-company span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .verification-queue-company strong {
+      color: var(--text);
+      font-size: 15px;
+    }
+    .verification-queue-company span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .verification-queue-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      min-width: 246px;
+    }
+    .verification-queue-actions form {
+      margin: 0;
+    }
+    .verification-queue-actions form:last-child {
+      grid-column: 1 / -1;
+    }
+    .verification-action-btn {
+      width: 100%;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(24, 215, 242, 0.28);
+      border-radius: 7px;
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.08);
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .verification-action-btn:hover {
+      border-color: rgba(24, 215, 242, 0.62);
+      background: rgba(24, 215, 242, 0.15);
+    }
+    .verification-action-btn--accept {
+      border-color: rgba(34, 197, 94, 0.34);
+      color: #35f0a0;
+      background: rgba(34, 197, 94, 0.08);
+    }
+    .verification-action-btn--reject {
+      border-color: rgba(255, 59, 127, 0.42);
+      color: #ff6d8e;
+      background: rgba(255, 59, 127, 0.08);
+    }
+    .verification-action-btn--defer {
+      border-color: rgba(245, 158, 11, 0.34);
+      color: #ffd28a;
+      background: rgba(245, 158, 11, 0.08);
     }
     .history-action-icon {
       display: inline-grid;
@@ -2317,40 +2394,45 @@
           </div>
         </section>
 
-        <section class="panel" id="verification-queue" aria-labelledby="verification-queue-title">
+                <section class="panel" id="verification-queue" aria-labelledby="verification-queue-title">
           <div class="panel-head">
             <div>
-              <h2 id="verification-queue-title">Очередь проверки</h2>
+              <h2 id="verification-queue-title">ОЧЕРЕДЬ НА МОДЕРАЦИЮ</h2>
             </div>
-            <div class="code-list">
-              <span class="chip">{{ verification_queue.summary.total if verification_queue else 0 }} задач</span>
-              {% if verification_queue and verification_queue.summary.high %}
-              <span class="chip danger">{{ verification_queue.summary.high }} важно</span>
-              {% endif %}
-            </div>
+            <span class="chip">{{ verification_queue.summary.total if verification_queue else 0 }}</span>
           </div>
           <div class="verification-queue-scroll">
             {% if verification_queue and verification_queue["items"] %}
             {% for item in verification_queue["items"] %}
-            <a class="permission-row verification-queue-row" href="{{ item.target }}">
-              <span class="verification-queue-icon" aria-hidden="true"></span>
-              <div class="verification-queue-text">
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.subject }}</small>
-                <small>{{ item.description }}</small>
-                {% if item.meta %}
-                <div class="verification-queue-meta">
-                  {% for meta in item.meta %}
-                  <span class="chip">{{ meta }}</span>
-                  {% endfor %}
-                </div>
+            <div class="permission-row verification-queue-row" data-company-type="{{ item.companyType }}">
+              <span class="system-card-icon {% if item.companyType in ['SUPPLIER', 'MATERIAL_SUPPLIER'] %}system-card-icon--supplier{% else %}system-card-icon--company{% endif %}" aria-hidden="true"></span>
+              <div class="verification-queue-company">
+                <strong title="{{ item.subject }}">{{ item.subject }}</strong>
+                <span title="{{ item.companyTypeLabel }}">{{ item.companyTypeLabel }}</span>
+                {% if item.companyInn or item.companyContact %}
+                <span title="{% if item.companyInn %}ИНН {{ item.companyInn }}{% endif %}{% if item.companyInn and item.companyContact %} · {% endif %}{% if item.companyContact %}{{ item.companyContact }}{% endif %}">
+                  {% if item.companyInn %}ИНН {{ item.companyInn }}{% endif %}{% if item.companyInn and item.companyContact %} · {% endif %}{% if item.companyContact %}{{ item.companyContact }}{% endif %}
+                </span>
                 {% endif %}
               </div>
-              <span class="chip {{ item.tone }}">{{ item.priorityLabel }}</span>
-            </a>
+              <div class="verification-queue-actions" aria-label="Действия модерации">
+                <form method="post" action="{{ item.acceptAction }}">
+                  <input type="hidden" name="decision" value="accept">
+                  <button class="verification-action-btn verification-action-btn--accept" type="submit">Принять</button>
+                </form>
+                <form method="post" action="{{ item.rejectAction }}">
+                  <input type="hidden" name="decision" value="reject">
+                  <button class="verification-action-btn verification-action-btn--reject" type="submit">Отклонить</button>
+                </form>
+                <form method="post" action="{{ item.deferAction }}">
+                  <input type="hidden" name="decision" value="defer">
+                  <button class="verification-action-btn verification-action-btn--defer" type="submit">Отложить</button>
+                </form>
+              </div>
+            </div>
             {% endfor %}
             {% else %}
-            <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь проверки пуста.' }}</div>
+            <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь на модерацию пуста.' }}</div>
             {% endif %}
           </div>
         </section>

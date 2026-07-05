@@ -137,6 +137,7 @@ ACCESS_MATRIX_USER_TYPE_COLUMNS: tuple[dict[str, str], ...] = (
 MODULE3_AUDIT_ACTION_LABELS: dict[str, str] = {
     "user_created": "Создание пользователя",
     "company_created": "Создание компании",
+    "company_moderation_decision": "Решение модерации компании",
     "user_updated": "Изменение пользователя",
     "user_disabled": "Блокировка",
     "user_enabled": "Разблокировка",
@@ -918,84 +919,42 @@ def verification_queue_summary(users: list[User], workspaces: list[Workspace]) -
     items: list[dict[str, Any]] = []
 
     for workspace in workspaces:
-        if not _is_company_workspace(workspace):
+        if not _is_company_workspace(workspace) or not _workspace_is_on_moderation(workspace):
             continue
         company = company_summary(workspace)
-        target = _company_primary_user_card_url(_company_primary_user(workspace)) or "#companies"
-        if _workspace_is_on_moderation(workspace):
-            items.append(
-                _verification_queue_item(
-                    kind="COMPANY_REVIEW",
-                    priority="high",
-                    title="Компания на проверке",
-                    subject=company["title"],
-                    description="Проверьте данные компании, регион и назначенного администратора.",
-                    target=target,
-                    meta=[company["type"], company["status"]],
-                )
+        workspace_id = str(_workspace_id(workspace) or company["id"])
+        settings = _dict_value(_get_value(workspace, "settings"))
+        company_inn = str(
+            _get_value(workspace, "organizationId")
+            or _get_value(workspace, "organization_id")
+            or settings.get("inn")
+            or settings.get("taxId")
+            or ""
+        ).strip()
+        company_contact = str(
+            settings.get("contact")
+            or settings.get("contactEmail")
+            or settings.get("email")
+            or settings.get("phone")
+            or settings.get("contactPhone")
+            or ""
+        ).strip()
+        items.append(
+            _verification_queue_item(
+                kind="COMPANY_REVIEW",
+                priority="high",
+                title=company["title"],
+                subject=company["title"],
+                description="",
+                target="#verification-queue",
+                meta=[_company_moderation_type_label(company["type"])],
+                workspace_id=workspace_id,
+                company_type=company["type"],
+                company_type_label=_company_moderation_type_label(company["type"]),
+                company_inn=company_inn,
+                company_contact=company_contact,
             )
-        if company["adminCount"] == 0:
-            items.append(
-                _verification_queue_item(
-                    kind="COMPANY_ADMIN_MISSING",
-                    priority="normal",
-                    title="Нет администратора компании",
-                    subject=company["title"],
-                    description="Назначьте ответственного пользователя внутри компании.",
-                    target=target,
-                    meta=[company["type"], "admin не назначен"],
-                )
-            )
-
-        for member in _safe_iterable(workspace.members):
-            status = _status_value(_get_value(member, "status"))
-            if status not in {"pending", "moderation", "review", "on_moderation", "pending_review", "invited", "invite_sent"}:
-                continue
-            user = _get_value(member, "user")
-            user_id = _get_value(user, "id") or _get_value(member, "user_id")
-            items.append(
-                _verification_queue_item(
-                    kind="COMPANY_MEMBER_REVIEW",
-                    priority="normal",
-                    title="Сотрудник ожидает проверки",
-                    subject=_get_value(user, "name") or _get_value(user, "email") or str(user_id),
-                    description="Проверьте роль сотрудника в компании и активируйте связь.",
-                    target=f"/api/v1/admin/users-roles/view/users/{user_id}" if user_id else "#company-employees",
-                    meta=[workspace.title, role_label(_get_value(member, "roleCode"))],
-                )
-            )
-
-    for user in users:
-        if _is_system_user_for_directory(user):
-            continue
-        status = _status_value(_get_value(user, "status"))
-        target = f"/api/v1/admin/users-roles/view/users/{_get_value(user, 'id')}"
-        subject = _get_value(user, "name") or _get_value(user, "email") or str(_get_value(user, "id"))
-        if status in {"pending", "moderation", "review", "on_moderation", "pending_review", "invited", "invite_sent"}:
-            items.append(
-                _verification_queue_item(
-                    kind="USER_REVIEW",
-                    priority="normal",
-                    title="Пользователь ожидает проверки",
-                    subject=subject,
-                    description="Проверьте выбранную роль и контактные данные пользователя.",
-                    target=target,
-                    meta=[_directory_status_label(status, "not_blocked")],
-                )
-            )
-            continue
-        if _user_is_active(user) and not active_role_codes_for_user(user):
-            items.append(
-                _verification_queue_item(
-                    kind="ROLE_MISSING",
-                    priority="normal",
-                    title="Не выбрана роль",
-                    subject=subject,
-                    description="Роль должна прийти из регистрации; администратор может назначить роль вручную.",
-                    target=target,
-                    meta=["роль не задана"],
-                )
-            )
+        )
 
     priority_order = {"high": 0, "normal": 1, "low": 2}
     items.sort(key=lambda item: (priority_order.get(item["priority"], 9), item["subject"].lower()))
@@ -1010,9 +969,18 @@ def verification_queue_summary(users: list[User], workspaces: list[Workspace]) -
         "items": visible_items,
         "allItems": items,
         "byKind": _verification_queue_kind_counts(items),
-        "emptyState": "Очередь проверки пуста: новых компаний, пользователей и ролей на подтверждение нет.",
-        "roleModelNote": "Основная роль приходит из регистрации, дополнительные роли и роли в компании учитываются как контекст пользователя; доступы задаются на вкладке «Доступы».",
+        "emptyState": "Очередь на модерацию пуста.",
+        "roleModelNote": "Модерация подтверждает право официального представителя создать кабинет компании или поставщика.",
     }
+
+
+def _company_moderation_type_label(value: Any) -> str:
+    normalized = str(value or "").strip().upper()
+    if normalized in {"SUPPLIER", "MATERIAL_SUPPLIER"}:
+        return "Поставщик"
+    if normalized in {"CONSTRUCTION_COMPANY", "CONTRACTOR", "ORGANIZATION"}:
+        return "Строительная компания"
+    return "Компания"
 
 
 def _verification_queue_item(
@@ -1024,6 +992,11 @@ def _verification_queue_item(
     description: str,
     target: str,
     meta: list[Any] | None = None,
+    workspace_id: str | None = None,
+    company_type: str | None = None,
+    company_type_label: str | None = None,
+    company_inn: str | None = None,
+    company_contact: str | None = None,
 ) -> dict[str, Any]:
     priority_label = "Важно" if priority == "high" else "Проверить"
     return {
@@ -1036,6 +1009,14 @@ def _verification_queue_item(
         "description": description,
         "target": target,
         "meta": [str(item) for item in (meta or []) if item not in {None, ""}],
+        "workspaceId": workspace_id,
+        "companyType": company_type,
+        "companyTypeLabel": company_type_label or _company_moderation_type_label(company_type),
+        "companyInn": company_inn,
+        "companyContact": company_contact,
+        "acceptAction": f"/api/v1/admin/users-roles/view/workspaces/{workspace_id}/moderation" if workspace_id else "#",
+        "rejectAction": f"/api/v1/admin/users-roles/view/workspaces/{workspace_id}/moderation" if workspace_id else "#",
+        "deferAction": f"/api/v1/admin/users-roles/view/workspaces/{workspace_id}/moderation" if workspace_id else "#",
     }
 
 
@@ -1363,6 +1344,55 @@ async def assign_workspace_to_user(
     await db.flush()
     return member
 
+
+async def moderate_company_workspace(
+    db: AsyncSession,
+    *,
+    actor: Any,
+    workspace_id: UUID,
+    decision: str,
+) -> Workspace:
+    require_user_role_admin(actor)
+    workspace = await _get_workspace(db, workspace_id)
+    if not _is_company_workspace(workspace):
+        raise ValidationError("Модерация доступна только для кабинета компании или поставщика.")
+    normalized_decision = str(decision or "").strip().lower()
+    decision_map = {
+        "accept": ("ACTIVE", True, "Компания принята"),
+        "reject": ("REJECTED", False, "Компания отклонена"),
+        "defer": ("DEFERRED", False, "Проверка отложена"),
+    }
+    if normalized_decision not in decision_map:
+        raise ValidationError("Неизвестное решение модерации.")
+
+    old_status = workspace.status
+    old_active = workspace.is_active
+    new_status, new_active, decision_label = decision_map[normalized_decision]
+    workspace.status = new_status
+    workspace.is_active = new_active
+    workspace.updated_at = datetime.utcnow()
+
+    await write_audit_event(
+        db,
+        "company_moderation_decision",
+        actor_user_id=_get_value(actor, "id"),
+        workspace_id=workspace.id,
+        module_code="MODULE_03_USERS_ROLES",
+        canonical_module_code="MODULE_03_USERS_ROLES",
+        old_value={"status": old_status, "isActive": old_active},
+        new_value={"status": new_status, "isActive": new_active, "moderationDecision": normalized_decision},
+        reason=decision_label,
+        entity_type="Workspace",
+        entity_id=workspace.id,
+        metadata={
+            "workspaceTitle": workspace.title,
+            "workspaceType": workspace.type,
+            "workspaceTypeLabel": _company_moderation_type_label(workspace.type),
+            "moderationAction": normalized_decision,
+        },
+    )
+    await db.flush()
+    return workspace
 
 async def assign_company_admin(
     db: AsyncSession,
@@ -3269,6 +3299,17 @@ def _module3_specific_action_label(row: dict[str, Any]) -> str:
         return "Компания добавлена"
     if action_type in {"role_changed", "user_role_assigned", "company_employee_role_changed"}:
         return "Роль изменена"
+    if action_type == "company_moderation_decision":
+        new_value = row.get("newValue") if isinstance(row.get("newValue"), dict) else {}
+        decision = str(new_value.get("moderationDecision") or "").lower()
+        if decision == "accept":
+            return "Компания принята"
+        if decision == "reject":
+            return "Компания отклонена"
+        if decision == "defer":
+            return "Проверка отложена"
+        return "Решение модерации"
+
     if action_type == "bulk_access_assigned":
         return "Доступ назначен"
     if action_type == "user_dashboard_layout_changed":
@@ -3959,7 +4000,7 @@ def _workspace_is_blocked(workspace: Workspace | dict[str, Any]) -> bool:
 
 def _workspace_is_on_moderation(workspace: Workspace | dict[str, Any]) -> bool:
     status = _enum_value(_get_value(workspace, "status")).upper()
-    return status in {"ON_MODERATION", "MODERATION", "PENDING", "PENDING_REVIEW", "NEEDS_REVIEW"}
+    return status in {"ON_MODERATION", "MODERATION", "PENDING", "PENDING_REVIEW", "NEEDS_REVIEW", "DEFERRED"}
 
 
 def _user_has_any_role(user: User, role_codes: set[str]) -> bool:
