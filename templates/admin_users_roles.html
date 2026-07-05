@@ -701,234 +701,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    #system-users {
-      overflow: hidden;
-      border-color: rgba(119, 172, 255, 0.22);
-      background:
-        linear-gradient(145deg, rgba(7, 18, 44, 0.78), rgba(4, 10, 27, 0.95)),
-        radial-gradient(circle at 70% 0, rgba(24, 215, 242, 0.06), transparent 340px);
-    }
-    #system-users .panel-head {
-      min-height: 50px;
-      padding: 17px 20px 8px;
-      border-bottom: 0;
-      background: transparent;
-    }
-    #system-users .panel-head h2 {
-      font-size: 18px;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-    #system-users .panel-head .muted {
-      display: none;
-    }
-    .system-users-manage-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 18px;
-      color: #54dfff;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .system-users-gear {
-      position: relative;
-      display: inline-grid;
-      place-items: center;
-      width: 26px;
-      height: 26px;
-      color: #77c6ff;
-    }
-    .system-users-gear::before,
-    .system-users-gear::after {
-      content: "";
-      position: absolute;
-      box-sizing: border-box;
-    }
-    .system-users-gear::before {
-      width: 16px;
-      height: 16px;
-      border: 2px solid currentColor;
-      border-radius: 50%;
-      box-shadow: 0 -7px 0 -5px currentColor, 0 7px 0 -5px currentColor, 7px 0 0 -5px currentColor, -7px 0 0 -5px currentColor;
-    }
-    .system-users-gear::after {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-    .system-user-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      padding: 8px 16px 16px;
-    }
-    .system-user-card {
-      --system-user-accent: #54dfff;
-      display: grid;
-      grid-template-columns: 54px minmax(0, 1fr) 1px minmax(126px, 0.34fr);
-      gap: 13px;
-      align-items: center;
-      min-height: 130px;
-      padding: 16px 15px;
-      border: 1px solid rgba(119, 172, 255, 0.18);
-      border-radius: 8px;
-      background:
-        linear-gradient(145deg, rgba(11, 25, 58, 0.72), rgba(5, 12, 30, 0.9)),
-        linear-gradient(90deg, color-mix(in srgb, var(--system-user-accent) 5%, transparent), transparent 44%);
-    }
-    .system-user-card[data-system-login="super-admin"] {
-      --system-user-accent: #9b6cff;
-    }
-    .system-user-card[data-system-login="moderator"] {
-      --system-user-accent: #f0a33c;
-    }
-    .system-user-card:nth-child(n+4) {
-      display: none;
-    }
-    .system-user-avatar {
-      position: relative;
-      display: inline-grid;
-      place-items: center;
-      width: 54px;
-      height: 54px;
-      border: 1px solid color-mix(in srgb, var(--system-user-accent) 46%, transparent);
-      border-radius: 8px;
-      color: var(--system-user-accent);
-      background: color-mix(in srgb, var(--system-user-accent) 12%, rgba(7, 14, 35, 0.78));
-      box-shadow: 0 0 22px color-mix(in srgb, var(--system-user-accent) 12%, transparent);
-      font-size: 0;
-    }
-    .system-user-avatar::before,
-    .system-user-avatar::after {
-      content: "";
-      position: absolute;
-      box-sizing: border-box;
-    }
-    .system-user-avatar--user::before,
-    .system-user-avatar--moderator::before {
-      width: 16px;
-      height: 16px;
-      top: 12px;
-      border: 2px solid currentColor;
-      border-radius: 50%;
-    }
-    .system-user-avatar--user::after,
-    .system-user-avatar--moderator::after {
-      width: 28px;
-      height: 15px;
-      bottom: 11px;
-      border: 2px solid currentColor;
-      border-top: 0;
-      border-radius: 0 0 17px 17px;
-    }
-    .system-user-avatar--shield::before {
-      width: 26px;
-      height: 30px;
-      border: 2px solid currentColor;
-      border-radius: 13px 13px 8px 8px;
-      clip-path: polygon(50% 0, 92% 17%, 82% 76%, 50% 100%, 18% 76%, 8% 17%);
-    }
-    .system-user-avatar--shield::after {
-      width: 7px;
-      height: 7px;
-      border: 2px solid currentColor;
-      border-radius: 50%;
-      box-shadow: 0 8px 0 -2px currentColor;
-    }
-    .system-user-main {
-      display: grid;
-      gap: 7px;
-      min-width: 0;
-    }
-    .system-user-main .code-list {
-      margin-top: 0;
-    }
-    .system-user-main h3 {
-      margin: 0;
-      color: var(--text);
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 1.1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .system-user-main small,
-    .system-user-last small {
-      color: var(--muted);
-    }
-    .system-user-main > .muted,
-    .system-user-main small {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 12px;
-    }
-    .system-user-purpose {
-      display: -webkit-box;
-      min-height: 34px;
-      overflow: hidden;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      font-size: 12px;
-      line-height: 1.38;
-    }
-    .system-user-role-chip {
-      max-width: 178px;
-      min-height: 26px;
-      padding: 4px 8px;
-      border-radius: 8px;
-      color: color-mix(in srgb, var(--system-user-accent) 78%, #ffffff);
-      border-color: color-mix(in srgb, var(--system-user-accent) 28%, transparent);
-      background: color-mix(in srgb, var(--system-user-accent) 14%, rgba(7, 14, 35, 0.72));
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 10.5px;
-    }
-    .system-user-last {
-      display: grid;
-      gap: 9px;
-      justify-items: start;
-      color: var(--muted);
-    }
-    .system-user-last > span:not(.chip) {
-      color: #c8d6f5;
-      font-size: 11.5px;
-      white-space: nowrap;
-    }
-    .system-user-last small {
-      font-size: 10px;
-      line-height: 1.2;
-      white-space: nowrap;
-    }
-    .system-user-separator {
-      width: 1px;
-      height: 78px;
-      background: linear-gradient(180deg, transparent, rgba(119, 172, 255, 0.2), transparent);
-    }
-    .system-user-last .chip {
-      align-self: end;
-      min-width: 98px;
-      min-height: 34px;
-      justify-content: center;
-      border-radius: 8px;
-      background: rgba(34, 197, 94, 0.14);
-      color: #77f2a8;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .system-user-last .chip.ok::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #77f2a8;
-      box-shadow: 0 0 10px rgba(34, 197, 94, 0.44);
-    }
-    .system-user-card.placeholder {
-      opacity: 0.74;
-    }
     .relationship-strip {
       display: flex;
       flex-wrap: wrap;
@@ -1367,6 +1139,51 @@
       display: grid;
       gap: 12px;
       margin-top: 12px;
+    }
+    .bulk-access-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid rgba(24, 215, 242, 0.18);
+      border-radius: 8px;
+      background:
+        linear-gradient(145deg, rgba(7, 20, 48, 0.72), rgba(4, 10, 27, 0.9)),
+        linear-gradient(90deg, rgba(24, 215, 242, 0.04), transparent 46%);
+    }
+    .bulk-access-panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .bulk-access-panel-head h4 {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+    .bulk-access-controls {
+      display: grid;
+      grid-template-columns: minmax(160px, 0.9fr) minmax(160px, 0.9fr) minmax(150px, 0.8fr) auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .bulk-access-controls label {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .bulk-access-controls select {
+      width: 100%;
+      min-height: 40px;
+      border-color: rgba(119, 172, 255, 0.2);
+      background: rgba(5, 12, 30, 0.66);
+    }
+    .bulk-access-status {
+      min-height: 30px;
+      color: var(--muted);
+      font-size: 12px;
     }
     .entity-table a {
       color: var(--text);
@@ -1972,6 +1789,7 @@
       .system-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .detail-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .overview-dashboard-grid { grid-template-columns: 1fr; }
+      .bulk-access-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 1366px) {
       main,
@@ -1986,11 +1804,12 @@
       .profile-hero-layout .toolbar { grid-column: 1 / -1; }
       .profile-avatar { width: 112px; height: 112px; }
       .profile-meta-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bulk-access-controls { grid-template-columns: 1fr; }
     }
     @media (max-width: 980px) {
       main,
       .module3-shell { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .system-grid, .system-registry-grid, .system-user-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .system-grid, .system-registry-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
       .module3-nav { position: static; min-height: auto; }
       .control-main { padding: 14px; }
@@ -2164,6 +1983,45 @@
           {% endfor %}
         </div>
 
+        {% set verification_queue = overview.verificationQueue if overview.verificationQueue is defined else none %}
+        <section class="panel overview-only" id="verification-queue" aria-labelledby="verification-queue-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="verification-queue-title">Очередь проверки</h2>
+              <div class="muted">Новые или спорные участники, где администратору нужно подтвердить компанию, роль или связь сотрудника.</div>
+            </div>
+            <div class="code-list">
+              <span class="chip">{{ verification_queue.summary.total if verification_queue else 0 }} задач</span>
+              {% if verification_queue and verification_queue.summary.high %}
+              <span class="chip danger">{{ verification_queue.summary.high }} важно</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="user-list">
+            {% if verification_queue and verification_queue.items %}
+            {% for item in verification_queue.items %}
+            <a class="permission-row" href="{{ item.target }}">
+              <div>
+                <strong>{{ item.title }} · {{ item.subject }}</strong>
+                <small>{{ item.description }}</small>
+                {% if item.meta %}
+                <div class="code-list">
+                  {% for meta in item.meta %}
+                  <span class="chip">{{ meta }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              <span class="chip {{ item.tone }}">{{ item.priorityLabel }}</span>
+            </a>
+            {% endfor %}
+            <div class="muted">{{ verification_queue.roleModelNote }}</div>
+            {% else %}
+            <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь проверки пуста.' }}</div>
+            {% endif %}
+          </div>
+        </section>
+
         <div class="overview-dashboard-grid overview-only">
         <section class="panel" aria-labelledby="overview-history-title">
           <div class="panel-head">
@@ -2171,6 +2029,7 @@
               <h2 id="overview-history-title">История изменений</h2>
               <div class="muted">Короткая лента последних изменений доступа и пользователей.</div>
             </div>
+            <a class="chip info" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
           </div>
           <div class="overview-history-table">
             <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
@@ -2269,39 +2128,6 @@
           </div>
         </section>
         </div>
-
-        <section class="panel overview-only" id="system-users" aria-labelledby="system-users-title" aria-label="Системные пользователи: platform-admin, super-admin, moderator, support-admin">
-          <div class="panel-head">
-            <div>
-              <h2 id="system-users-title">Системные пользователи</h2>
-              <div class="muted">Ключевые технические и административные учетные записи Module №3.</div>
-            </div>
-            <a class="system-users-manage-link" href="#users?system_user=true">
-              <span>Управление системными пользователями</span>
-              <span class="system-users-gear" aria-hidden="true"></span>
-            </a>
-          </div>
-          <div class="system-user-grid">
-            {% for user in overview.systemUsers %}
-            <article class="system-user-card {% if user.isPlaceholder %}placeholder{% endif %}" data-system-login="{{ user.login }}">
-              <span class="system-user-avatar {% if user.login == 'super-admin' %}system-user-avatar--shield{% elif user.login == 'moderator' %}system-user-avatar--moderator{% else %}system-user-avatar--user{% endif %}" aria-hidden="true"></span>
-              <div class="system-user-main">
-                <h3 title="{{ user.displayName }}{% if user.email %} · {{ user.email }}{% endif %}">{{ user.login }}</h3>
-                <div class="code-list">
-                  <span class="chip info system-user-role-chip">{{ user.roleTitle }}</span>
-                </div>
-                <div class="muted system-user-purpose">{{ user.purpose }}</div>
-              </div>
-              <span class="system-user-separator" aria-hidden="true"></span>
-              <div class="system-user-last">
-                <small>Последняя активность</small>
-                <span title="{{ user.lastActivity }}">{{ user.lastActivityCompact or user.lastActivity }}</span>
-                <span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.statusLabel }}</span>
-              </div>
-            </article>
-            {% endfor %}
-          </div>
-        </section>
 
         {% if not company_mode %}
         <section class="panel" id="settings" aria-labelledby="settings-title">
@@ -3162,6 +2988,45 @@
                 <button class="btn" type="button" data-access-collapse-all>Свернуть все</button>
               </div>
             </div>
+            <section class="bulk-access-panel" aria-label="Массовое назначение доступа">
+              <div class="bulk-access-panel-head">
+                <div>
+                  <h4>Массовое назначение доступа</h4>
+                  <div class="muted">Изменяет видимые ячейки матрицы перед сохранением. Сначала сделайте предпросмотр, затем примените изменения и сохраните.</div>
+                </div>
+                <span class="chip warn">требует сохранения</span>
+              </div>
+              <div class="bulk-access-controls">
+                <label>
+                  <span>Тип пользователей</span>
+                  <select data-bulk-user-type>
+                    <option value="">Все видимые типы</option>
+                    {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  <span>Что изменить</span>
+                  <select data-bulk-row-scope>
+                    <option value="ALL">Модули и виджеты</option>
+                    <option value="MODULE">Только модули</option>
+                    <option value="WIDGET">Только виджеты</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Действие</span>
+                  <select data-bulk-action>
+                    <option value="ALLOW">Открыть доступ</option>
+                    <option value="DENY">Закрыть доступ</option>
+                    <option value="RESET">Вернуть исходное</option>
+                  </select>
+                </label>
+                <button class="btn" type="button" data-bulk-preview>Предпросмотр</button>
+                <button class="btn" type="button" data-bulk-apply disabled>Применить к матрице</button>
+              </div>
+              <div class="bulk-access-status" data-bulk-status>Выберите параметры и нажмите предпросмотр.</div>
+            </section>
             <div class="table-wrap">
               <table class="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
                 <thead>
@@ -3281,7 +3146,7 @@
                 <span class="chip {% if detail.profileCard.header.blockLabel == 'Без блокировки' %}ok{% else %}danger{% endif %}">{{ detail.profileCard.header.blockLabel }}</span>
               </div>
             </div>
-            <div class="toolbar" aria-label="Действия карточки: Редактировать; Заблокировать или Разблокировать; Назначить доступ">
+            <div class="toolbar" aria-label="Действия карточки: Редактировать доступы; Заблокировать или Разблокировать; Назначить доступ">
               {% for action in detail.profileCard.header.actions %}
               <a class="btn {% if action.tone == 'danger' %}danger{% endif %}" href="{{ action.target }}" data-profile-action="{{ action.id }}">{{ action.label }}</a>
               {% endfor %}
@@ -4421,6 +4286,12 @@
       const search = matrix.querySelector("[data-access-matrix-search]");
       const statusFilter = matrix.querySelector("[data-access-matrix-status]");
       const userTypeFilter = matrix.querySelector("[data-access-matrix-user-type]");
+      const bulkUserType = matrix.querySelector("[data-bulk-user-type]");
+      const bulkRowScope = matrix.querySelector("[data-bulk-row-scope]");
+      const bulkAction = matrix.querySelector("[data-bulk-action]");
+      const bulkPreview = matrix.querySelector("[data-bulk-preview]");
+      const bulkApply = matrix.querySelector("[data-bulk-apply]");
+      const bulkStatus = matrix.querySelector("[data-bulk-status]");
       const expandAll = matrix.querySelector("[data-access-expand-all]");
       const collapseAll = matrix.querySelector("[data-access-collapse-all]");
       const saveButton = matrix.querySelector("[data-access-save]");
@@ -4428,6 +4299,8 @@
       const statusText = matrix.querySelector("[data-access-save-status]");
       const payload = matrix.querySelector("[data-access-matrix-payload]");
       const collapsed = new Set();
+      let currentBulkAction = null;
+      let lastBulkPreview = null;
 
       const originalValue = (checkbox) => checkbox.dataset.original === "true";
       const isDirty = () => checks.some((checkbox) => checkbox.checked !== originalValue(checkbox));
@@ -4467,6 +4340,82 @@
         checks
           .filter((checkbox) => checkbox.dataset.rowType === "MODULE")
           .forEach(applyModuleDependency);
+      };
+
+      const bulkDesiredValue = (checkbox) => {
+        const action = bulkAction?.value || "ALLOW";
+        if (action === "DENY") return false;
+        if (action === "RESET") return originalValue(checkbox);
+        return true;
+      };
+
+      const selectedBulkUserType = () => bulkUserType?.value || userTypeFilter?.value || "";
+      const selectedBulkUserTypeLabel = () => {
+        if (bulkUserType?.value) return bulkUserType.selectedOptions?.[0]?.textContent || bulkUserType.value;
+        if (userTypeFilter?.value) return userTypeFilter.selectedOptions?.[0]?.textContent || userTypeFilter.value;
+        return "Все видимые типы";
+      };
+
+      const moduleWillBeAllowed = (moduleRowId, userTypeCode) => {
+        const moduleCheckbox = matchingModuleCheckbox(moduleRowId, userTypeCode);
+        if (!moduleCheckbox) return false;
+        const row = moduleCheckbox.closest("[data-access-row]");
+        const rowScope = bulkRowScope?.value || "ALL";
+        const userType = selectedBulkUserType();
+        const moduleIsInBulkScope = (
+          row &&
+          !row.hidden &&
+          moduleCheckbox.dataset.systemDisabled !== "true" &&
+          (!userType || moduleCheckbox.dataset.userTypeCode === userType) &&
+          (rowScope === "ALL" || rowScope === "MODULE")
+        );
+        return moduleIsInBulkScope ? bulkDesiredValue(moduleCheckbox) : moduleCheckbox.checked;
+      };
+
+      const bulkTargets = () => {
+        const selectedUserType = selectedBulkUserType();
+        const rowScope = bulkRowScope?.value || "ALL";
+        return checks.filter((checkbox) => {
+          const row = checkbox.closest("[data-access-row]");
+          if (!row || row.hidden) return false;
+          if (checkbox.dataset.systemDisabled === "true") return false;
+          if (selectedUserType && checkbox.dataset.userTypeCode !== selectedUserType) return false;
+          if (rowScope !== "ALL" && checkbox.dataset.rowType !== rowScope) return false;
+          if (checkbox.dataset.rowType === "WIDGET" && bulkDesiredValue(checkbox)) {
+            return moduleWillBeAllowed(checkbox.dataset.parentId, checkbox.dataset.userTypeCode);
+          }
+          return true;
+        });
+      };
+
+      const buildBulkPreview = () => {
+        const targets = bulkTargets();
+        const changes = targets.filter((checkbox) => checkbox.checked !== bulkDesiredValue(checkbox));
+        const actionLabel = bulkAction?.selectedOptions?.[0]?.textContent || "Открыть доступ";
+        const userTypeLabel = selectedBulkUserTypeLabel();
+        const scopeLabel = bulkRowScope?.selectedOptions?.[0]?.textContent || "Модули и виджеты";
+        lastBulkPreview = {
+          action: bulkAction?.value || "ALLOW",
+          actionLabel,
+          userTypeCode: bulkUserType?.value || null,
+          userTypeLabel,
+          rowScope: bulkRowScope?.value || "ALL",
+          rowScopeLabel: scopeLabel,
+          targetCount: targets.length,
+          changeCount: changes.length,
+        };
+        if (bulkStatus) {
+          bulkStatus.textContent = changes.length
+            ? `${actionLabel}: будет изменено ${changes.length} из ${targets.length} доступных ячеек (${userTypeLabel}, ${scopeLabel}).`
+            : `Изменений нет: выбранные ${targets.length} ячеек уже соответствуют действию.`;
+        }
+        if (bulkApply) bulkApply.disabled = changes.length === 0;
+      };
+
+      const resetBulkPreview = () => {
+        lastBulkPreview = null;
+        if (bulkApply) bulkApply.disabled = true;
+        if (bulkStatus) bulkStatus.textContent = "Выберите параметры и нажмите предпросмотр.";
       };
 
       const applyFilters = () => {
@@ -4514,7 +4463,7 @@
           title: row.querySelector("strong")?.textContent?.trim() || "",
           order: rows.indexOf(row),
         }));
-        return { changes, rows: serializedRows };
+        return { changes, rows: serializedRows, bulkAction: currentBulkAction };
       };
 
       checks.forEach((checkbox) => {
@@ -4561,13 +4510,39 @@
         applyFilters();
       });
       [search, statusFilter, userTypeFilter].forEach((control) => {
-        control?.addEventListener("input", applyFilters);
-        control?.addEventListener("change", applyFilters);
+        control?.addEventListener("input", () => {
+          applyFilters();
+          resetBulkPreview();
+        });
+        control?.addEventListener("change", () => {
+          applyFilters();
+          resetBulkPreview();
+        });
+      });
+      [bulkUserType, bulkRowScope, bulkAction].forEach((control) => {
+        control?.addEventListener("change", resetBulkPreview);
+      });
+      bulkPreview?.addEventListener("click", buildBulkPreview);
+      bulkApply?.addEventListener("click", () => {
+        if (!lastBulkPreview) buildBulkPreview();
+        const targets = bulkTargets();
+        targets.forEach((checkbox) => {
+          checkbox.checked = bulkDesiredValue(checkbox);
+        });
+        syncDependencies();
+        currentBulkAction = lastBulkPreview;
+        updateDirtyState();
+        if (bulkStatus && lastBulkPreview) {
+          bulkStatus.textContent = `${lastBulkPreview.actionLabel}: применено к матрице. Проверьте изменения и сохраните.`;
+        }
+        if (bulkApply) bulkApply.disabled = true;
       });
       resetButton?.addEventListener("click", () => {
         checks.forEach((checkbox) => {
           checkbox.checked = originalValue(checkbox);
         });
+        currentBulkAction = null;
+        resetBulkPreview();
         syncDependencies();
         updateDirtyState();
       });

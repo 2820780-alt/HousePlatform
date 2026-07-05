@@ -59,6 +59,7 @@ from app.services.admin_user_role_management import (
     user_profile_card_summary,
     user_summary,
     user_type_summary_widgets,
+    verification_queue_summary,
     widget_access_rows_for_user,
     widget_registry_overview_summary,
     workspace_panel_summary,
@@ -674,16 +675,15 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Заказчики" in html
     assert "Специалисты" in html
     assert "История изменений" in html
+    assert "Очередь проверки" in html
     assert "Создание пользователя" in html
     assert "Модули в системе" in html
     assert "24" in html
     assert "Виджеты в системе" in html
     assert "156" in html
-    assert "Системные пользователи" in html
-    assert "platform-admin" in html
-    assert "super-admin" in html
-    assert "moderator" in html
-    assert "support-admin" in html
+    assert "Открыть полную историю" in html
+    assert "Системные пользователи" not in html
+    assert "Управление системными пользователями" not in html
     assert "Summary chips по типам пользователей" in html
     assert "Поиск по ФИО, компании, email, телефону, ИНН / ID" in html
     assert "Фильтр по типу пользователя" in html
@@ -1010,6 +1010,26 @@ def test_module3_overview_widgets_summarize_user_types_registry_and_system_users
     assert all("roleTitle" in card for card in system_cards)
 
 
+def test_verification_queue_summary_tracks_review_items_without_changing_permissions():
+    company = _company_workspace()
+    company.status = "PENDING_REVIEW"
+    company.is_active = True
+    company.members = []
+    user_without_role = _user(UserRole.CUSTOMER)
+    user_without_role.role = None
+    user_without_role.status = UserStatus.ACTIVE
+    user_without_role.role_assignments = []
+    user_without_role.workspace_members = []
+
+    queue = verification_queue_summary([user_without_role], [company])
+    kinds = {item["kind"] for item in queue["allItems"]}
+
+    assert queue["summary"]["total"] == 3
+    assert queue["summary"]["high"] == 1
+    assert {"COMPANY_REVIEW", "COMPANY_ADMIN_MISSING", "ROLE_MISSING"} <= kinds
+    assert "Основная роль приходит из регистрации" in queue["roleModelNote"]
+
+
 def test_user_directory_rows_expose_search_filter_sort_and_card_links():
     customer = _user(UserRole.CUSTOMER)
     customer.status = UserStatus.ACTIVE
@@ -1102,7 +1122,7 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
     assert card["header"]["assignedManager"] == "Сидоров И. И."
     assert card["header"]["blockLabel"] == "Без блокировки"
     assert [action["label"] for action in card["header"]["actions"]] == [
-        "Редактировать",
+        "Редактировать доступы",
         "Заблокировать",
         "Назначить доступ",
     ]
@@ -1137,7 +1157,9 @@ def test_admin_users_roles_view_route_is_registered():
     assert "/admin/users-roles/view/access" in paths
     assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/history" in paths
+    assert "/admin/users-roles/view/history/full" in paths
     assert "/admin/users-roles/view/settings" in paths
+    assert "/admin/users-roles/view/docs" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
     assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
@@ -1179,7 +1201,7 @@ def test_module3_tab_routes_redirect_to_hash_based_shell():
         "/api/v1/admin/users-roles/view/users": "/api/v1/admin/users-roles/view#users",
         "/api/v1/admin/users-roles/view/access": "/api/v1/admin/users-roles/view#access-matrix",
         "/api/v1/admin/users-roles/view/access-matrix": "/api/v1/admin/users-roles/view#access-matrix",
-        "/api/v1/admin/users-roles/view/history": "/api/v1/admin/users-roles/view#audit-log",
+        "/api/v1/admin/users-roles/view/history/full": "/api/v1/admin/users-roles/view/history",
         "/api/v1/admin/users-roles/view/settings": "/api/v1/admin/users-roles/view#settings",
     }
 
@@ -1187,6 +1209,24 @@ def test_module3_tab_routes_redirect_to_hash_based_shell():
         response = client.get(path, follow_redirects=False)
         assert response.status_code == 307
         assert response.headers["location"] == location
+
+
+def test_module3_history_page_template_has_required_audit_fields():
+    template = open("templates/admin_users_roles_history.html", encoding="utf-8").read()
+
+    assert "История изменений" in template
+    assert "Дата и время" in template
+    assert "Администратор" in template
+    assert "Действие" in template
+    assert "Объект" in template
+    assert "Старое значение" in template
+    assert "Новое значение" in template
+    assert "Причина / детали" in template
+    assert "Модуль / виджет" in template
+    assert "Статус" in template
+    assert "data-history-search" in template
+    assert "business-payload" in template
+    assert "Вернуться в Module №3" in template
 
 
 def test_admin_users_roles_template_has_sprint8_responsive_contracts():
@@ -1260,6 +1300,8 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Заблокированные" in overview
     assert "На модерации" in overview
     assert "История изменений" in overview
+    assert "Очередь проверки" in overview
+    assert "Новые или спорные участники" in overview
     assert "Дата и время" in overview
     assert "Кто изменил" in overview
     assert "Действие" in overview
@@ -1272,11 +1314,9 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "{{ item.detailsText or item.result }}" in overview
     assert "Модули в системе" in overview
     assert "Виджеты в системе" in overview
-    assert "Системные пользователи" in overview
-    assert "platform-admin" in overview
-    assert "super-admin" in overview
-    assert "moderator" in overview
-    assert "Последняя активность" in overview
+    assert "Открыть полную историю" in overview
+    assert "Системные пользователи" not in overview
+    assert "Управление системными пользователями" not in overview
     assert "MODULE_03_USERS_ROLES · unified admin panel" not in overview
     assert "Роли, доступы и кабинетный контекст" not in overview
     assert "Единая системная панель управления" not in overview
@@ -1310,7 +1350,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'quickActionFilter = "without_company"' in template
     assert 'quickActionFilter = "without_type"' in template
     assert 'params.get("focus") === "search"' in template
-    assert 'id="system-users"' in template
+    assert 'id="system-users"' not in template
     assert "МОДУЛЬ №3" in nav
     assert "Обзор модуля" in nav
     assert "Пользователи" in nav
@@ -1410,6 +1450,13 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Тип пользователя" in users_section
     assert "Развернуть все" in users_section
     assert "Свернуть все" in users_section
+    assert "Массовое назначение доступа" in users_section
+    assert "Предпросмотр" in users_section
+    assert "Применить к матрице" in users_section
+    assert "data-bulk-user-type" in users_section
+    assert "data-bulk-row-scope" in users_section
+    assert "data-bulk-action" in users_section
+    assert "bulkAction: currentBulkAction" in template
     assert "Сохранить изменения" in users_section
     assert "Сбросить" in users_section
     assert "нет изменений; есть несохраненные изменения; сохранение; ошибка сохранения; успешно сохранено" in users_section
@@ -1460,6 +1507,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Назначенный менеджер" in template
     assert 'data-profile-action="{{ action.id }}"' in template
     assert "{{ action.label }}" in template
+    assert "Редактировать доступы" in template
     assert "Заблокировать" in template
     assert "Разблокировать" in template
     assert "Назначить доступ" in template

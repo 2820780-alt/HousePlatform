@@ -914,6 +914,149 @@ def user_directory_filter_options(rows: list[dict[str, Any]]) -> dict[str, list[
     }
 
 
+def verification_queue_summary(users: list[User], workspaces: list[Workspace]) -> dict[str, Any]:
+    items: list[dict[str, Any]] = []
+
+    for workspace in workspaces:
+        if not _is_company_workspace(workspace):
+            continue
+        company = company_summary(workspace)
+        target = _company_primary_user_card_url(_company_primary_user(workspace)) or "#companies"
+        if _workspace_is_on_moderation(workspace):
+            items.append(
+                _verification_queue_item(
+                    kind="COMPANY_REVIEW",
+                    priority="high",
+                    title="Компания на проверке",
+                    subject=company["title"],
+                    description="Проверьте данные компании, регион и назначенного администратора.",
+                    target=target,
+                    meta=[company["type"], company["status"]],
+                )
+            )
+        if company["adminCount"] == 0:
+            items.append(
+                _verification_queue_item(
+                    kind="COMPANY_ADMIN_MISSING",
+                    priority="normal",
+                    title="Нет администратора компании",
+                    subject=company["title"],
+                    description="Назначьте ответственного пользователя внутри компании.",
+                    target=target,
+                    meta=[company["type"], "admin не назначен"],
+                )
+            )
+
+        for member in _safe_iterable(workspace.members):
+            status = _status_value(_get_value(member, "status"))
+            if status not in {"pending", "moderation", "review", "on_moderation", "pending_review", "invited", "invite_sent"}:
+                continue
+            user = _get_value(member, "user")
+            user_id = _get_value(user, "id") or _get_value(member, "user_id")
+            items.append(
+                _verification_queue_item(
+                    kind="COMPANY_MEMBER_REVIEW",
+                    priority="normal",
+                    title="Сотрудник ожидает проверки",
+                    subject=_get_value(user, "name") or _get_value(user, "email") or str(user_id),
+                    description="Проверьте роль сотрудника в компании и активируйте связь.",
+                    target=f"/api/v1/admin/users-roles/view/users/{user_id}" if user_id else "#company-employees",
+                    meta=[workspace.title, role_label(_get_value(member, "roleCode"))],
+                )
+            )
+
+    for user in users:
+        if _is_system_user_for_directory(user):
+            continue
+        status = _status_value(_get_value(user, "status"))
+        target = f"/api/v1/admin/users-roles/view/users/{_get_value(user, 'id')}"
+        subject = _get_value(user, "name") or _get_value(user, "email") or str(_get_value(user, "id"))
+        if status in {"pending", "moderation", "review", "on_moderation", "pending_review", "invited", "invite_sent"}:
+            items.append(
+                _verification_queue_item(
+                    kind="USER_REVIEW",
+                    priority="normal",
+                    title="Пользователь ожидает проверки",
+                    subject=subject,
+                    description="Проверьте выбранную роль и контактные данные пользователя.",
+                    target=target,
+                    meta=[_directory_status_label(status, "not_blocked")],
+                )
+            )
+            continue
+        if _user_is_active(user) and not active_role_codes_for_user(user):
+            items.append(
+                _verification_queue_item(
+                    kind="ROLE_MISSING",
+                    priority="normal",
+                    title="Не выбрана роль",
+                    subject=subject,
+                    description="Роль должна прийти из регистрации; администратор может назначить роль вручную.",
+                    target=target,
+                    meta=["роль не задана"],
+                )
+            )
+
+    priority_order = {"high": 0, "normal": 1, "low": 2}
+    items.sort(key=lambda item: (priority_order.get(item["priority"], 9), item["subject"].lower()))
+    visible_items = items[:6]
+    return {
+        "summary": {
+            "total": len(items),
+            "visible": len(visible_items),
+            "high": len([item for item in items if item["priority"] == "high"]),
+            "normal": len([item for item in items if item["priority"] == "normal"]),
+        },
+        "items": visible_items,
+        "allItems": items,
+        "byKind": _verification_queue_kind_counts(items),
+        "emptyState": "Очередь проверки пуста: новых компаний, пользователей и ролей на подтверждение нет.",
+        "roleModelNote": "Основная роль приходит из регистрации, дополнительные роли и роли в компании учитываются как контекст пользователя; доступы задаются на вкладке «Доступы».",
+    }
+
+
+def _verification_queue_item(
+    *,
+    kind: str,
+    priority: str,
+    title: str,
+    subject: str,
+    description: str,
+    target: str,
+    meta: list[Any] | None = None,
+) -> dict[str, Any]:
+    priority_label = "Важно" if priority == "high" else "Проверить"
+    return {
+        "kind": kind,
+        "priority": priority,
+        "priorityLabel": priority_label,
+        "tone": "danger" if priority == "high" else "warn",
+        "title": title,
+        "subject": subject,
+        "description": description,
+        "target": target,
+        "meta": [str(item) for item in (meta or []) if item not in {None, ""}],
+    }
+
+
+def _verification_queue_kind_counts(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    labels = {
+        "COMPANY_REVIEW": "компании на проверке",
+        "COMPANY_ADMIN_MISSING": "нет администратора",
+        "COMPANY_MEMBER_REVIEW": "сотрудники на проверке",
+        "USER_REVIEW": "пользователи на проверке",
+        "ROLE_MISSING": "роль не выбрана",
+    }
+    counts: dict[str, int] = {}
+    for item in items:
+        kind = item.get("kind") or ""
+        counts[kind] = counts.get(kind, 0) + 1
+    return [
+        {"kind": kind, "label": labels.get(kind, kind), "count": count}
+        for kind, count in sorted(counts.items(), key=lambda value: labels.get(value[0], value[0]))
+    ]
+
+
 async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str, Any]:
     require_user_role_admin(actor)
     admin_scope = admin_scope_for_actor(actor)
@@ -948,6 +1091,7 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "userDirectoryRows": directory_rows,
         "userDirectoryChips": user_directory_summary_chips(directory_rows),
         "userDirectoryFilters": user_directory_filter_options(directory_rows),
+        "verificationQueue": verification_queue_summary(users, workspaces),
         "workspacePanel": workspace_panel_summary(workspaces, recent_history=recent_history),
         "roleGroupPanel": role_group_panel_summary(
             roles,
@@ -966,6 +1110,36 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "auditPanel": audit_panel_summary(recent_history),
         "settingsPanel": settings_panel_summary(admin_scope),
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
+    }
+
+
+async def get_user_role_admin_history(
+    db: AsyncSession,
+    actor: Any,
+    *,
+    limit: int = 200,
+) -> dict[str, Any]:
+    require_user_role_admin(actor)
+    admin_scope = admin_scope_for_actor(actor)
+    history = await _load_recent_access_history(
+        db,
+        workspace_ids=_workspace_uuid_scope(admin_scope),
+        limit=limit,
+    )
+    history = _filter_history_for_admin_scope(history, admin_scope)
+    return {
+        "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
+        "adminScope": admin_scope,
+        "auditPanel": audit_panel_summary(history),
+        "fieldDescriptions": [
+            {"label": "Дата и время", "description": "Момент записи события в AuditLog."},
+            {"label": "Администратор", "description": "Кто выполнил изменение или системный источник события."},
+            {"label": "Действие", "description": "Тип операции: изменение роли, доступа, модуля, виджета или статуса."},
+            {"label": "Объект", "description": "Пользователь, компания, модуль, виджет или роль, к которым относится событие."},
+            {"label": "Старое / новое значение", "description": "Фиксация изменения без записи бизнес-payload."},
+            {"label": "Причина", "description": "Комментарий администратора или системное объяснение изменения."},
+            {"label": "Статус", "description": "Результат выполнения события."},
+        ],
     }
 
 
@@ -1659,10 +1833,10 @@ def user_profile_card_summary(
 def _profile_header_actions(is_blocked: bool) -> list[dict[str, Any]]:
     return [
         {
-            "id": "edit-profile",
-            "label": "Редактировать",
-            "actionType": "modal",
-            "target": "#user-general-info",
+            "id": "edit-access",
+            "label": "Редактировать доступы",
+            "actionType": "navigate",
+            "target": "#access-matrix-detail",
             "enabled": True,
             "tone": "default",
         },
@@ -3770,6 +3944,7 @@ async def save_user_type_access_matrix_changes(
     payload = matrix_payload or {}
     rows = payload.get("rows") if isinstance(payload, dict) else None
     changes = payload.get("changes") if isinstance(payload, dict) else None
+    bulk_action = payload.get("bulkAction") if isinstance(payload, dict) else None
     return await write_audit_event(
         db,
         AuditLogType.MODULE_ACCESS_CHANGED,
@@ -3782,6 +3957,7 @@ async def save_user_type_access_matrix_changes(
         new_value={
             "rows": rows if isinstance(rows, list) else [],
             "changes": changes if isinstance(changes, list) else [],
+            "bulkAction": bulk_action if isinstance(bulk_action, dict) else None,
         },
         metadata={
             "viewModelOnly": True,
@@ -3789,6 +3965,7 @@ async def save_user_type_access_matrix_changes(
             "historyWritten": True,
             "rowCount": len(rows) if isinstance(rows, list) else 0,
             "changeCount": len(changes) if isinstance(changes, list) else 0,
+            "bulkActionUsed": bool(bulk_action),
         },
     )
 
@@ -4027,7 +4204,12 @@ async def _load_user_history(db: AsyncSession, user_id: UUID) -> list[AuditLog]:
     return list(result.scalars().all())
 
 
-async def _load_recent_access_history(db: AsyncSession, *, workspace_ids: list[UUID] | None = None) -> list[AuditLog]:
+async def _load_recent_access_history(
+    db: AsyncSession,
+    *,
+    workspace_ids: list[UUID] | None = None,
+    limit: int = 6,
+) -> list[AuditLog]:
     filters = [
         AuditLog.action_type.in_(
             [
@@ -4051,7 +4233,7 @@ async def _load_recent_access_history(db: AsyncSession, *, workspace_ids: list[U
         .options(selectinload(AuditLog.user))
         .where(*filters)
         .order_by(desc(AuditLog.created_at))
-        .limit(6)
+        .limit(limit)
     )
     return list(result.scalars().all())
 

@@ -17,6 +17,7 @@ from app.services.admin_user_role_management import (
     assign_workspace_to_user,
     disable_user_account,
     get_user_role_admin_detail,
+    get_user_role_admin_history,
     get_user_role_admin_overview,
     revoke_company_admin,
     save_user_type_access_matrix_changes,
@@ -62,14 +63,41 @@ async def admin_access_matrix_tab_redirect():
     return RedirectResponse("/api/v1/admin/users-roles/view#access-matrix", status_code=307)
 
 
-@router.get("/history")
-async def admin_history_tab_redirect():
-    return RedirectResponse("/api/v1/admin/users-roles/view#audit-log", status_code=307)
+@router.get("/history", response_class=HTMLResponse)
+async def admin_history_view(request: Request, db: DBSession):
+    actor = _dev_actor()
+    history_page = await get_user_role_admin_history(db, actor)
+    return templates.TemplateResponse(
+        request,
+        "admin_users_roles_history.html",
+        {
+            "historyPage": history_page,
+            "atom_topbar_current_block": "Модуль №3: История изменений",
+            "atom_topbar_profile_name": "Admin",
+        },
+    )
+
+
+@router.get("/history/full")
+async def admin_history_full_redirect():
+    return RedirectResponse("/api/v1/admin/users-roles/view/history", status_code=307)
 
 
 @router.get("/settings")
 async def admin_settings_tab_redirect():
     return RedirectResponse("/api/v1/admin/users-roles/view#settings", status_code=307)
+
+
+@router.get("/docs", response_class=HTMLResponse)
+async def admin_users_roles_docs_view(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "admin_users_roles_docs.html",
+        {
+            "atom_topbar_current_block": "Модуль №3: Документация",
+            "atom_topbar_profile_name": "Admin",
+        },
+    )
 
 
 @router.get("/users/{user_id}", response_class=HTMLResponse)
