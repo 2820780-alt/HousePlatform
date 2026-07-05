@@ -1301,20 +1301,25 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "На модерации" in overview
     assert "История изменений" in overview
     assert "Очередь проверки" in overview
-    assert "Новые или спорные участники" in overview
+    assert overview.index("История изменений") < overview.index("Очередь проверки")
+    assert "Новые или спорные участники" not in overview
+    assert "Короткая лента последних изменений доступа и пользователей" not in overview
     assert "Дата и время" in overview
     assert "Кто изменил" in overview
     assert "Действие" in overview
     assert "Объект" in overview
     assert "Детали" in overview
-    assert "{{ item.timestamp }}" in overview
-    assert "{{ item.actorName }}" in overview
-    assert "{{ item.action }}" in overview
-    assert "{{ item.objectName or item.objectTypeCode }}" in overview
-    assert "{{ item.detailsText or item.result }}" in overview
+    assert "{{ item.displayTimestampShort or item.timestampCompact or item.timestamp }}" in overview
+    assert "{{ item.displayActor or item.actorName }}" in overview
+    assert "{{ item.displayAction or item.action }}" in overview
+    assert "{{ item.displayObject or item.objectName or item.displayObjectType }}" in overview
+    assert "{{ item.displayDetails or item.detailsText or item.displayResult }}" in overview
+    assert "verification-queue-scroll" in overview
+    assert "scrollbar-width: none" in template
     assert "Модули в системе" in overview
     assert "Виджеты в системе" in overview
     assert "Открыть полную историю" in overview
+    assert "Инструкция по модулю" in nav
     assert "Системные пользователи" not in overview
     assert "Управление системными пользователями" not in overview
     assert "MODULE_03_USERS_ROLES · unified admin panel" not in overview
@@ -1351,7 +1356,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'quickActionFilter = "without_type"' in template
     assert 'params.get("focus") === "search"' in template
     assert 'id="system-users"' not in template
-    assert "МОДУЛЬ №3" in nav
+    assert "МОДУЛЬ №3" not in nav
     assert "Обзор модуля" in nav
     assert "Пользователи" in nav
     assert "Доступы" in nav

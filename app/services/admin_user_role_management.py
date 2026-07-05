@@ -3181,6 +3181,7 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
             "module3Entry": module3_entry,
         }
     )
+    summary.update(_module3_audit_display_fields(summary, module3_entry))
     return summary
 
 
@@ -3201,6 +3202,134 @@ def module3_audit_log_entry(row: dict[str, Any]) -> dict[str, Any]:
         "objectName": str(object_name or ""),
         "details": details_text,
     }
+
+
+def _module3_audit_display_fields(row: dict[str, Any], entry: dict[str, Any]) -> dict[str, str]:
+    module_label, widget_label = _module3_module_widget_display_label(row)
+    return {
+        "displayTimestamp": _reference_datetime_label(row.get("createdAt") or entry.get("timestamp")),
+        "displayTimestampShort": _compact_datetime_label(row.get("createdAt") or entry.get("timestamp")),
+        "displayActor": _module3_actor_display_label(entry.get("actorName") or row.get("actor")),
+        "displayAction": str(entry.get("action") or row.get("actionType") or "Изменение"),
+        "displayObject": _module3_object_display_label(row, entry),
+        "displayObjectType": _module3_object_type_display_label(entry.get("objectType") or row.get("objectType")),
+        "displayDetails": _module3_overview_details_label(row, entry),
+        "displayOldValue": _module3_value_display_label(row.get("oldValue")),
+        "displayNewValue": _module3_value_display_label(row.get("newValue")),
+        "displayModule": module_label,
+        "displayWidget": widget_label,
+        "displayModuleWidget": " / ".join(part for part in (module_label, widget_label) if part) or "—",
+        "displayResult": _module3_result_display_label(row.get("result")),
+    }
+
+
+def _module3_actor_display_label(value: Any) -> str:
+    label = str(value or "").strip()
+    if not label or label.lower() in {"system/dev", "system", "dev"}:
+        return "Admin"
+    if "@" in label:
+        return label.split("@", 1)[0]
+    return label
+
+
+def _module3_object_display_label(row: dict[str, Any], entry: dict[str, Any]) -> str:
+    widget_code = row.get("widgetCode")
+    if widget_code:
+        widget = get_widget_registry_item(str(widget_code))
+        return str(_get_value(widget, "title") or widget_code)
+    module_code = row.get("moduleCode")
+    if module_code:
+        module = get_dashboard_module_registry_item(str(module_code))
+        return str(_get_value(module, "title") or module_code)
+    object_name = str(entry.get("objectName") or row.get("subjectLabel") or "").strip()
+    if object_name and object_name.upper() not in {"USER", "COMPANY", "MODULE", "WIDGET", "ACCESS", "SYSTEM_USER"}:
+        return object_name
+    return _module3_object_type_display_label(entry.get("objectType") or row.get("objectType"))
+
+
+def _module3_object_type_display_label(value: Any) -> str:
+    labels = {
+        "USER": "Пользователь",
+        "COMPANY": "Компания",
+        "MODULE": "Модуль",
+        "WIDGET": "Виджет",
+        "ACCESS": "Доступ",
+        "SYSTEM_USER": "Системный пользователь",
+    }
+    raw = str(value or "").strip()
+    return labels.get(raw.upper(), raw or "Объект")
+
+
+def _module3_module_widget_display_label(row: dict[str, Any]) -> tuple[str, str]:
+    module_label = ""
+    widget_label = ""
+    module_code = row.get("moduleCode")
+    widget_code = row.get("widgetCode")
+    if module_code:
+        module = get_dashboard_module_registry_item(str(module_code))
+        module_label = str(_get_value(module, "title") or module_code)
+    if widget_code:
+        widget = get_widget_registry_item(str(widget_code))
+        widget_label = str(_get_value(widget, "title") or widget_code)
+    return module_label, widget_label
+
+
+def _module3_overview_details_label(row: dict[str, Any], entry: dict[str, Any]) -> str:
+    reason = str(row.get("reason") or row.get("comment") or "").strip()
+    if reason:
+        return _module3_compact_text(reason, limit=110)
+    new_value = row.get("newValue")
+    if new_value is not None and new_value != "":
+        return f"Новое значение: {_module3_value_display_label(new_value)}"
+    details = str(entry.get("details") or "").strip()
+    if details and details.upper() != "SUCCESS":
+        return _module3_compact_text(details, limit=110)
+    return _module3_result_display_label(row.get("result"))
+
+
+def _module3_value_display_label(value: Any) -> str:
+    if value is None or value == "":
+        return "—"
+    if isinstance(value, bool):
+        return "Разрешено" if value else "Запрещено"
+    if isinstance(value, list):
+        return f"{len(value)} изменений"
+    if isinstance(value, dict):
+        if "accessLevel" in value:
+            return _access_level_label(str(value.get("accessLevel") or ""))
+        if "enabled" in value:
+            return "Разрешено" if value.get("enabled") else "Запрещено"
+        return f"{len(value)} поля"
+    return _module3_compact_text(str(value), limit=120)
+
+
+def _access_level_label(value: str) -> str:
+    labels = {
+        "NONE": "Нет доступа",
+        "READ": "Просмотр",
+        "WRITE": "Редактирование",
+        "ADMIN": "Администрирование",
+        "OWNER": "Владелец",
+        "ALLOWED": "Разрешено",
+        "DENIED": "Запрещено",
+    }
+    return labels.get(value.upper(), value or "—")
+
+
+def _module3_result_display_label(value: Any) -> str:
+    raw = str(value or "").strip().upper()
+    if raw in {"", "SUCCESS", "OK"}:
+        return "Успешно"
+    if raw in {"FAILED", "ERROR"}:
+        return "Ошибка"
+    return str(value)
+
+
+def _module3_compact_text(value: str, *, limit: int) -> str:
+    text = " ".join(str(value).split())
+    if len(text) <= limit:
+        return text
+    return f"{text[: max(0, limit - 1)].rstrip()}…"
 
 
 def _module3_object_type_code(row: dict[str, Any]) -> str:

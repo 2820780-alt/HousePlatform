@@ -24,7 +24,7 @@
       margin: 0;
       min-height: 100vh;
       color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
       background:
         radial-gradient(circle at 72% -90px, rgba(24, 215, 242, 0.1), transparent 430px),
         linear-gradient(180deg, rgba(5, 13, 34, 0.94), rgba(3, 8, 21, 0.98) 58%, #030816),
@@ -206,14 +206,22 @@
     .table-wrap {
       max-width: 100%;
       overflow-x: auto;
+      overflow-y: auto;
+      max-height: 520px;
+      scrollbar-width: none;
       border: 1px solid var(--line-soft);
       border-radius: 8px;
       background: rgba(5, 12, 30, 0.36);
     }
+    .table-wrap::-webkit-scrollbar,
+    .value-box::-webkit-scrollbar {
+      display: none;
+    }
     .history-table {
       width: 100%;
-      min-width: 1280px;
+      min-width: 1180px;
       border-collapse: collapse;
+      table-layout: fixed;
       font-size: 12px;
     }
     .history-table th,
@@ -222,6 +230,8 @@
       border-bottom: 1px solid rgba(119, 172, 255, 0.14);
       vertical-align: top;
       text-align: left;
+      overflow-wrap: anywhere;
+      word-break: normal;
     }
     .history-table th {
       color: var(--muted);
@@ -239,18 +249,21 @@
       margin-top: 4px;
       color: var(--muted);
       line-height: 1.35;
+      overflow-wrap: anywhere;
     }
     .value-box {
       display: block;
       max-width: 260px;
       max-height: 96px;
       overflow: auto;
+      scrollbar-width: none;
       padding: 8px;
       border: 1px solid rgba(119, 172, 255, 0.14);
       border-radius: 8px;
       color: #d8e8ff;
       background: rgba(3, 8, 21, 0.48);
-      white-space: pre-wrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .empty {
       padding: 18px;
@@ -304,7 +317,6 @@
   <main class="history-shell">
     <aside class="history-sidebar" aria-label="История Module №3">
       <div class="history-sidebar-title">
-        <span>МОДУЛЬ №3</span>
         <strong>Пользователи и роли</strong>
       </div>
       <a href="/api/v1/admin/users-roles/view"><span class="history-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
@@ -320,7 +332,7 @@
     <section class="history-main">
       <section class="history-hero">
         <h1>История изменений</h1>
-        <p class="muted">Полная проверочная страница Module №3: кто изменил, когда изменил, что изменил, для какого объекта, старое и новое значение, причина и результат.</p>
+        <p class="muted">Журнал решений администратора: дата, автор, действие, объект, старое и новое значение, причина и результат.</p>
       </section>
 
       <section class="history-summary" aria-label="Сводка истории">
@@ -346,7 +358,6 @@
         <div class="history-card-head">
           <div>
             <h2 id="history-table-title">Таблица изменений</h2>
-            <div class="muted">Записи отсортированы от новых к старым. Массовые операции сохраняются как единое событие с перечнем измененных ячеек.</div>
           </div>
           <a class="chip" href="/api/v1/admin/users-roles/view#overview">Вернуться в Module №3</a>
         </div>
@@ -379,6 +390,17 @@
         </div>
         <div class="table-wrap">
           <table class="history-table">
+            <colgroup>
+              <col style="width: 116px">
+              <col style="width: 132px">
+              <col style="width: 150px">
+              <col style="width: 160px">
+              <col style="width: 124px">
+              <col style="width: 124px">
+              <col>
+              <col style="width: 160px">
+              <col style="width: 96px">
+            </colgroup>
             <thead>
               <tr>
                 <th>Дата и время</th>
@@ -396,39 +418,37 @@
               {% for item in historyPage.auditPanel.rows %}
               <tr
                 data-history-row
-                data-search="{{ (item.actor ~ ' ' ~ item.actorName ~ ' ' ~ item.actionType ~ ' ' ~ item.action ~ ' ' ~ item.subjectLabel ~ ' ' ~ item.objectName ~ ' ' ~ item.moduleCode ~ ' ' ~ item.widgetCode ~ ' ' ~ item.reason ~ ' ' ~ item.detailsText)|lower }}"
+                data-search="{{ (item.displayActor ~ ' ' ~ item.displayAction ~ ' ' ~ item.displayObject ~ ' ' ~ item.displayModuleWidget ~ ' ' ~ item.reason ~ ' ' ~ item.displayDetails)|lower }}"
                 data-author="{{ item.actor }}"
                 data-action="{{ item.actionType }}"
                 data-module="{{ item.moduleCode or '' }}"
                 data-object="{{ item.objectType }}"
               >
                 <td>
-                  <strong>{{ item.timestampCompact or item.createdAt }}</strong>
-                  <small>{{ item.createdAt }}</small>
+                  <strong>{{ item.displayTimestampShort or item.timestampCompact or item.createdAt }}</strong>
+                  <small>{{ item.displayTimestamp or item.timestampReference }}</small>
                 </td>
                 <td>
-                  <strong>{{ item.actorName or item.actor }}</strong>
-                  <small>actorId: {{ item.actorUserId or 'system/dev' }}</small>
+                  <strong>{{ item.displayActor or item.actorName or item.actor }}</strong>
                 </td>
                 <td>
-                  <strong>{{ item.action or item.actionType }}</strong>
-                  <small>{{ item.actionType }}</small>
+                  <strong>{{ item.displayAction or item.action or item.actionType }}</strong>
                 </td>
                 <td>
-                  <strong>{{ item.objectName or item.subjectLabel }}</strong>
-                  <small>{{ item.objectType }} · {{ item.entityId or item.targetUserId or item.workspaceId or '—' }}</small>
+                  <strong>{{ item.displayObject or item.objectName or item.subjectLabel }}</strong>
+                  <small>{{ item.displayObjectType or item.objectTypeCode or item.objectType }}</small>
                 </td>
-                <td><span class="value-box">{{ item.oldValue or '—' }}</span></td>
-                <td><span class="value-box">{{ item.newValue or '—' }}</span></td>
+                <td><span class="value-box">{{ item.displayOldValue or '—' }}</span></td>
+                <td><span class="value-box">{{ item.displayNewValue or '—' }}</span></td>
                 <td>
-                  <span>{{ item.reason or 'Причина не указана' }}</span>
-                  <small>{{ item.detailsText or item.comment or '—' }}</small>
+                  <span>{{ item.reason or item.displayDetails or 'Причина не указана' }}</span>
+                  <small>{{ item.displayDetails or item.comment or '—' }}</small>
                 </td>
                 <td>
-                  <span>{{ item.moduleCode or '—' }}</span>
-                  <small>{{ item.widgetCode or item.featureCode or 'виджет не указан' }}</small>
+                  <span>{{ item.displayModule or '—' }}</span>
+                  {% if item.displayWidget %}<small>{{ item.displayWidget }}</small>{% endif %}
                 </td>
-                <td><span class="chip {% if item.result == 'SUCCESS' %}ok{% else %}danger{% endif %}">{{ item.result }}</span></td>
+                <td><span class="chip {% if item.result == 'SUCCESS' %}ok{% else %}danger{% endif %}">{{ item.displayResult }}</span></td>
               </tr>
               {% else %}
               <tr data-history-empty>

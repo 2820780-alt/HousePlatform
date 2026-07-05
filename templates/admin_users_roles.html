@@ -27,7 +27,7 @@
       margin: 0;
       min-height: 100vh;
       color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
       background:
         radial-gradient(circle at 70% -80px, rgba(24, 215, 242, 0.1), transparent 420px),
         linear-gradient(180deg, rgba(5, 13, 34, 0.92), rgba(3, 8, 21, 0.98) 58%, #030816),
@@ -84,6 +84,11 @@
     .chip.ok { border-color: rgba(34, 197, 94, 0.35); color: #9ef0bd; }
     .chip.warn { border-color: rgba(245, 158, 11, 0.42); color: #ffd28a; }
     .chip.danger { border-color: rgba(255, 59, 127, 0.42); color: #ff9fbe; }
+    .chip.info {
+      border-color: rgba(24, 215, 242, 0.38);
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.08);
+    }
     .command-hero {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -481,49 +486,35 @@
     }
     .overview-history-table {
       padding: 0 14px 14px;
-      overflow: hidden;
+      max-height: 286px;
+      overflow-x: auto;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .overview-history-table::-webkit-scrollbar,
+    .verification-queue-scroll::-webkit-scrollbar {
+      display: none;
     }
     .overview-history-entity-table {
-      min-width: 0 !important;
+      min-width: 720px !important;
       table-layout: fixed;
-      font-size: 11.5px;
+      font-size: 12px;
     }
     .overview-history-entity-table th,
     .overview-history-entity-table td {
       padding: 8px;
       overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.28;
+      overflow-wrap: anywhere;
+      vertical-align: top;
+      white-space: normal;
+    }
+    .overview-history-entity-table th {
       white-space: nowrap;
     }
     .overview-history-entity-table .overview-history-icon-cell {
-      width: 34px;
+      width: 36px;
       text-align: center;
-    }
-    .overview-history-entity-table th:nth-child(2),
-    .overview-history-entity-table td:nth-child(2) {
-      width: 96px;
-    }
-    .overview-history-entity-table th:nth-child(3),
-    .overview-history-entity-table td:nth-child(3) {
-      width: 128px;
-    }
-    .overview-history-entity-table th:nth-child(4),
-    .overview-history-entity-table td:nth-child(4) {
-      width: 118px;
-    }
-    .overview-history-entity-table th:nth-child(5),
-    .overview-history-entity-table td:nth-child(5) {
-      width: 128px;
-    }
-    .overview-history-entity-table td:last-child {
-      width: 28px;
-      text-align: center;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .overview-history-entity-table td:nth-last-child(2) {
-      white-space: normal;
-      overflow-wrap: anywhere;
     }
     .overview-history-entity-table .chip {
       max-width: 100%;
@@ -531,6 +522,55 @@
       padding: 3px 7px;
       white-space: normal;
       overflow-wrap: anywhere;
+    }
+    .overview-history-entity-table strong,
+    .verification-queue-text strong {
+      display: block;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .overview-history-entity-table small,
+    .verification-queue-text small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .verification-queue-scroll {
+      display: grid;
+      gap: 8px;
+      max-height: 286px;
+      overflow-y: auto;
+      padding-right: 2px;
+      scrollbar-width: none;
+    }
+    .verification-queue-row {
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      align-items: start;
+    }
+    .verification-queue-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(24, 215, 242, 0.34);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+      box-shadow: 0 0 18px rgba(24, 215, 242, 0.08);
+    }
+    .verification-queue-icon::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+    }
+    .verification-queue-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
     }
     .history-action-icon {
       display: inline-grid;
@@ -1920,7 +1960,6 @@
     <div class="control-shell">
       <nav class="module3-nav" aria-label="Разделы Module №3" data-module3-sidebar>
         <div class="module3-nav-title">
-          <small>МОДУЛЬ №3</small>
           <strong>Пользователи и роли</strong>
         </div>
         <a class="active" href="#overview" data-module3-tab-link="overview"><span class="module3-nav-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
@@ -1930,7 +1969,7 @@
           <strong>Нужна помощь?</strong>
           <span>Документация и поддержка по модулю.</span>
           <form method="get" action="/api/v1/admin/users-roles/view/docs">
-            <button class="module3-doc-button" type="submit">Открыть документацию</button>
+            <button class="module3-doc-button" type="submit">Инструкция по модулю</button>
           </form>
         </div>
         <div class="module3-nav-footer">
@@ -1983,56 +2022,24 @@
           {% endfor %}
         </div>
 
-        {% set verification_queue = overview.verificationQueue if overview.verificationQueue is defined else none %}
-        <section class="panel overview-only" id="verification-queue" aria-labelledby="verification-queue-title">
-          <div class="panel-head">
-            <div>
-              <h2 id="verification-queue-title">Очередь проверки</h2>
-              <div class="muted">Новые или спорные участники, где администратору нужно подтвердить компанию, роль или связь сотрудника.</div>
-            </div>
-            <div class="code-list">
-              <span class="chip">{{ verification_queue.summary.total if verification_queue else 0 }} задач</span>
-              {% if verification_queue and verification_queue.summary.high %}
-              <span class="chip danger">{{ verification_queue.summary.high }} важно</span>
-              {% endif %}
-            </div>
-          </div>
-          <div class="user-list">
-            {% if verification_queue and verification_queue.items %}
-            {% for item in verification_queue.items %}
-            <a class="permission-row" href="{{ item.target }}">
-              <div>
-                <strong>{{ item.title }} · {{ item.subject }}</strong>
-                <small>{{ item.description }}</small>
-                {% if item.meta %}
-                <div class="code-list">
-                  {% for meta in item.meta %}
-                  <span class="chip">{{ meta }}</span>
-                  {% endfor %}
-                </div>
-                {% endif %}
-              </div>
-              <span class="chip {{ item.tone }}">{{ item.priorityLabel }}</span>
-            </a>
-            {% endfor %}
-            <div class="muted">{{ verification_queue.roleModelNote }}</div>
-            {% else %}
-            <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь проверки пуста.' }}</div>
-            {% endif %}
-          </div>
-        </section>
-
         <div class="overview-dashboard-grid overview-only">
         <section class="panel" aria-labelledby="overview-history-title">
           <div class="panel-head">
             <div>
               <h2 id="overview-history-title">История изменений</h2>
-              <div class="muted">Короткая лента последних изменений доступа и пользователей.</div>
             </div>
             <a class="chip info" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
           </div>
           <div class="overview-history-table">
             <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
+              <colgroup>
+                <col style="width: 36px">
+                <col style="width: 108px">
+                <col style="width: 124px">
+                <col style="width: 142px">
+                <col style="width: 148px">
+                <col>
+              </colgroup>
               <thead>
                 <tr>
                   <th class="overview-history-icon-cell" aria-label="Тип события"></th>
@@ -2041,23 +2048,21 @@
                   <th>Действие</th>
                   <th>Объект</th>
                   <th>Детали</th>
-                  <th aria-label="Меню"></th>
                 </tr>
               </thead>
               <tbody>
                 {% for item in overview.recentAccessHistory[:6] %}
                 <tr>
                   <td class="overview-history-icon-cell"><span class="history-action-icon" data-kind="{% if 'Заблок' in item.action %}blocked{% elif 'Создан' in item.action %}created{% else %}changed{% endif %}" aria-hidden="true"></span></td>
-                  <td title="{{ item.timestamp }}">{{ item.timestampCompact or item.timestamp }}</td>
-                  <td>{{ item.actorName }}</td>
-                  <td><span class="chip info">{{ item.action }}</span></td>
-                  <td>{{ item.objectName or item.objectTypeCode }}</td>
-                  <td>{{ item.detailsText or item.result }}</td>
-                  <td aria-label="Действия">⋮</td>
+                  <td title="{{ item.displayTimestamp or item.timestampReference or item.timestamp }}">{{ item.displayTimestampShort or item.timestampCompact or item.timestamp }}</td>
+                  <td title="{{ item.displayActor or item.actorName }}">{{ item.displayActor or item.actorName }}</td>
+                  <td><span class="chip info">{{ item.displayAction or item.action }}</span></td>
+                  <td title="{{ item.displayObject or item.objectName }}">{{ item.displayObject or item.objectName or item.displayObjectType }}</td>
+                  <td title="{{ item.displayDetails or item.detailsText }}">{{ item.displayDetails or item.detailsText or item.displayResult }}</td>
                 </tr>
                 {% else %}
                 <tr>
-                  <td colspan="7"><div class="empty">Изменений доступа пока нет.</div></td>
+                  <td colspan="6"><div class="empty">Изменений доступа пока нет.</div></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -2128,6 +2133,45 @@
           </div>
         </section>
         </div>
+
+        {% set verification_queue = overview.verificationQueue if overview.verificationQueue is defined else none %}
+        <section class="panel overview-only" id="verification-queue" aria-labelledby="verification-queue-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="verification-queue-title">Очередь проверки</h2>
+            </div>
+            <div class="code-list">
+              <span class="chip">{{ verification_queue.summary.total if verification_queue else 0 }} задач</span>
+              {% if verification_queue and verification_queue.summary.high %}
+              <span class="chip danger">{{ verification_queue.summary.high }} важно</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="verification-queue-scroll">
+            {% if verification_queue and verification_queue["items"] %}
+            {% for item in verification_queue["items"] %}
+            <a class="permission-row verification-queue-row" href="{{ item.target }}">
+              <span class="verification-queue-icon" aria-hidden="true"></span>
+              <div class="verification-queue-text">
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.subject }}</small>
+                <small>{{ item.description }}</small>
+                {% if item.meta %}
+                <div class="verification-queue-meta">
+                  {% for meta in item.meta %}
+                  <span class="chip">{{ meta }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              <span class="chip {{ item.tone }}">{{ item.priorityLabel }}</span>
+            </a>
+            {% endfor %}
+            {% else %}
+            <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь проверки пуста.' }}</div>
+            {% endif %}
+          </div>
+        </section>
 
         {% if not company_mode %}
         <section class="panel" id="settings" aria-labelledby="settings-title">
