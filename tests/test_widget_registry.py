@@ -33,6 +33,17 @@ def test_price_dynamics_widget_is_analytics_feature_with_legacy_module_alias():
     assert widget.isMock is True
 
 
+def test_module10_widget_registry_exposes_project_catalog_planned_context():
+    widget = get_widget_registry_item("project-catalog")
+
+    assert widget is not None
+    assert widget.title == "Каталог проектов"
+    assert widget.sourceModuleCode == "MODULE_10_MARKETPLACE"
+    assert widget.canonicalModuleCode == "MODULE_10_MARKETPLACE"
+    assert widget.featureCode == "PROJECT_CATALOG"
+    assert widget.status == "PLANNED"
+
+
 def test_widget_registry_filters_available_widgets_by_module_widget_and_feature_access():
     profile = {
         "roleCode": "ANALYST",

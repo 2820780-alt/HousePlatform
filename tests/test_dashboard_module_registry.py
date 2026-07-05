@@ -12,6 +12,17 @@ from app.services.dashboard_module_registry import (
 
 
 def test_price_history_legacy_module_resolves_to_analytics_feature():
+    price_history = get_dashboard_module_registry_item("MODULE_14_PRICE_HISTORY")
+
+    assert price_history is not None
+    assert price_history.status == "merged"
+    assert price_history.title == "Динамика цен (legacy alias)"
+    assert price_history.canonicalModuleCode == "MODULE_11_ANALYTICS"
+    assert price_history.mergedIntoModuleCode == "MODULE_11_ANALYTICS"
+    assert price_history.isVisibleInSidebar is False
+    assert price_history.isVisibleOnAtomMap is False
+    assert price_history.isAvailableForDashboard is False
+    assert "PRICE_DYNAMICS" in price_history.featureCodes
     assert get_canonical_module_code("MODULE_14_PRICE_HISTORY") == "MODULE_11_ANALYTICS"
     assert resolve_module_route("MODULE_14_PRICE_HISTORY") == "/modules/analytics?section=price-dynamics"
     assert is_module_available_for_dashboard("MODULE_14_PRICE_HISTORY") is False
@@ -48,6 +59,9 @@ def test_module_map_uses_new_constitution_for_modules_8_to_11():
 
     assert marketplace is not None
     assert marketplace.title == "Витрина"
+    assert "PROJECT_CATALOG" in marketplace.expectedFeatureCodes
+    assert "project-catalog" in marketplace.widgetCodes
+    assert "MVP" not in marketplace.description
     assert analytics is not None
     assert "PRICE_DYNAMICS" in analytics.featureCodes
 
@@ -73,6 +87,7 @@ def test_constructor_lite_legacy_module_14_resolves_to_module_19():
     assert price_history is not None
     assert price_history.status == "merged"
     assert price_history.canonicalModuleCode == "MODULE_11_ANALYTICS"
+    assert price_history.isAvailableForDashboard is False
 
 
 def test_construction_groups_are_deprecated_material_hub_feature_alias():

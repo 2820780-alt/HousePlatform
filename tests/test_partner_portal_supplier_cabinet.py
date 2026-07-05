@@ -29,7 +29,7 @@ FULL_SUPPLIER_ACCESS = {
         "CABINET_DOCUMENTS",
         "SUPPLIER_ACTIVE_OBJECTS",
         "DEMAND_ANALYTICS",
-        "MARKETPLACE_OFFERS",
+        "PROJECT_CATALOG",
     ],
     "allowedWidgetCodes": [
         "materials-kpi",
@@ -76,7 +76,7 @@ def test_supplier_cabinet_template_has_requested_focus_roles_and_blocks():
         "Документы",
         "Объекты в работе",
         "Аналитика спроса",
-        "Витрина",
+        "Каталог проектов",
     ]
     assert cabinet["dashboardPreset"]["presetCode"] == "SupplierDashboardPreset"
 
@@ -130,3 +130,4 @@ def test_supplier_cabinet_context_links_organization_without_owning_business_dat
     assert "SupplierPrice" not in cabinet
     assert "Procurement" not in cabinet
     assert "MarketplaceOffer" not in cabinet
+    assert "marketplace" not in cabinet["compatibilityNote"].lower()

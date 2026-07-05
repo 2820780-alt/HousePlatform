@@ -301,12 +301,12 @@ CABINET_BLOCK_CATALOG: tuple[CabinetBlockDefinition, ...] = (
     CabinetBlockDefinition(
         blockCode="MARKETPLACE_BLOCK",
         sourceModuleCode="MODULE_10_MARKETPLACE",
-        featureCode="MARKETPLACE_OFFERS",
-        userTitle="Витрина",
-        description="Предложения поставщика в витрине. Технический код остается MODULE_10_MARKETPLACE.",
+        featureCode="PROJECT_CATALOG",
+        userTitle="Каталог проектов",
+        description="Будущий режим витрины: карточки проектов и связанные предложения. Технический код остается MODULE_10_MARKETPLACE.",
         allowedCabinetTypes=[MATERIAL_SUPPLIER],
         allowedBusinessRoles=["SUPPLIER", "SUPPLIER_OWNER", "SUPPLIER_ADMIN", "SALES_MANAGER"],
-        requiresPermission=_requires("MODULE_10_MARKETPLACE", feature_code="MARKETPLACE_OFFERS"),
+        requiresPermission=_requires("MODULE_10_MARKETPLACE", feature_code="PROJECT_CATALOG"),
         isFuture=True,
     ),
     CabinetBlockDefinition(

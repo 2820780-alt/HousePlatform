@@ -753,7 +753,7 @@ CABINET_DASHBOARD_PRESETS: tuple[CabinetDashboardPresetDefinition, ...] = (
         recommendedWidgetCodes=[
             "materials-kpi",
             "procurement-requests",
-            "marketplace-cart",
+            "project-catalog",
             "price-dynamics",
         ],
         recommendedQuickActionCodes=[],

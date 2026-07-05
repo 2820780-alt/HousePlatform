@@ -160,7 +160,7 @@ AI
 
 Основание: `Module_15_ConstructionGroups_v1.0`.
 
-## Этап 9. История и динамика цен
+## Этап 9. Аналитика и динамика цен
 
 Статус: стартует параллельно с накоплением `PriceHistory`.
 
@@ -177,7 +177,7 @@ AI
 - график категории материалов;
 - учет наличия, если источник передает эти данные.
 
-Основание: `Module_14_PriceDynamics_v1.0`.
+Основание: `Module_11_Analytics_v1.0`; `Module_14_PriceDynamics_v1.0` оставлен только как legacy alias note для `MODULE_14_PRICE_HISTORY -> MODULE_11_ANALYTICS / PRICE_DYNAMICS`.
 
 ## Этап 10. Личный кабинет
 

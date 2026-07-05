@@ -42,6 +42,7 @@ SUPPLIER_BLOCK_TITLES = {
     "SUPPLIER_PRICE_LIST_BLOCK": "Прайсы",
     "SUPPLIER_REQUESTS_BLOCK": "Заявки",
     "DEMAND_ANALYTICS_BLOCK": "Аналитика спроса",
+    "MARKETPLACE_BLOCK": "Каталог проектов",
 }
 
 
@@ -87,7 +88,8 @@ class SupplierCabinetDTO:
     isMock: bool = True
     compatibilityNote: str = (
         "SupplierCabinet belongs to Module 08 as cabinet context. Prices stay in Module 1, "
-        "requests/procurement in Module 9, marketplace in Module 10, demand analytics in Module 11."
+        "requests/procurement in Module 9, vitrina project catalog context in Module 10, "
+        "demand analytics in Module 11."
     )
 
     def to_dict(self) -> dict[str, Any]:

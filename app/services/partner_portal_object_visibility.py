@@ -64,7 +64,7 @@ class ObjectOfferSettingsDTO:
     privacyMode: str = "OPT_IN"
     boundaryNote: str = (
         "Offer settings only prepare offer visibility and contact policy. Module 08 does not create "
-        "deals, commercial proposals, procurement, marketplace offers or negotiations."
+        "deals, commercial proposals, procurement, vitrina project catalog cards or negotiations."
     )
 
     def to_dict(self) -> dict[str, Any]:
