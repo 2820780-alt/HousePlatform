@@ -1541,7 +1541,7 @@
     }
     .access-filter-row {
       display: grid;
-      grid-template-columns: minmax(280px, 1fr) minmax(174px, 0.45fr) minmax(174px, 0.45fr) auto auto;
+      grid-template-columns: minmax(320px, 1fr) minmax(190px, 0.42fr) minmax(190px, 0.42fr) auto;
       gap: 10px;
       align-items: end;
       padding: 0;
@@ -1549,10 +1549,17 @@
     }
     .access-filter-row label {
       display: grid;
-      gap: 6px;
       min-width: 0;
       color: var(--muted);
       font-size: 12px;
+    }
+    .access-filter-row label > span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
     .access-filter-row input,
     .access-filter-row select {
@@ -3416,7 +3423,7 @@
                 <label>
                   <span>Статус модуля</span>
                   <select data-access-matrix-status>
-                    <option value="">Все</option>
+                    <option value="">Статус модуля: Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.statusOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
@@ -3425,14 +3432,13 @@
                 <label>
                   <span>Тип пользователя</span>
                   <select data-access-matrix-user-type>
-                    <option value="">Все</option>
+                    <option value="">Тип пользователя: Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
                   </select>
                 </label>
-                <button class="btn" type="button" data-access-expand-all>Развернуть все</button>
-                <button class="btn" type="button" data-access-collapse-all>Свернуть все</button>
+                <button class="btn" type="button" data-access-toggle-all>Развернуть все</button>
               </div>
             </div>
             <section class="bulk-access-panel" aria-label="Массовое назначение доступа">
@@ -4739,8 +4745,7 @@
       const bulkPreview = matrix.querySelector("[data-bulk-preview]");
       const bulkApply = matrix.querySelector("[data-bulk-apply]");
       const bulkStatus = matrix.querySelector("[data-bulk-status]");
-      const expandAll = matrix.querySelector("[data-access-expand-all]");
-      const collapseAll = matrix.querySelector("[data-access-collapse-all]");
+      const toggleAll = matrix.querySelector("[data-access-toggle-all]");
       const saveButton = matrix.querySelector("[data-access-save]");
       const resetButton = matrix.querySelector("[data-access-reset]");
       const statusText = matrix.querySelector("[data-access-save-status]");
@@ -4938,23 +4943,25 @@
             collapsed.add(rowId);
             toggle.textContent = "›";
           }
+          if (toggleAll) toggleAll.textContent = collapsed.size > 0 ? "Развернуть все" : "Свернуть все";
           applyFilters();
         });
       });
 
-      expandAll?.addEventListener("click", () => {
-        collapsed.clear();
+      const setAllRowsExpanded = (expanded) => {
+        if (expanded) {
+          collapsed.clear();
+        } else {
+          rows.filter((row) => row.dataset.rowType === "MODULE").forEach((row) => collapsed.add(row.dataset.rowId || ""));
+        }
         matrix.querySelectorAll("[data-row-toggle]").forEach((toggle) => {
-          toggle.textContent = "⌄";
+          toggle.textContent = expanded ? "⌄" : "›";
         });
+        if (toggleAll) toggleAll.textContent = expanded ? "Свернуть все" : "Развернуть все";
         applyFilters();
-      });
-      collapseAll?.addEventListener("click", () => {
-        rows.filter((row) => row.dataset.rowType === "MODULE").forEach((row) => collapsed.add(row.dataset.rowId || ""));
-        matrix.querySelectorAll("[data-row-toggle]").forEach((toggle) => {
-          toggle.textContent = "›";
-        });
-        applyFilters();
+      };
+      toggleAll?.addEventListener("click", () => {
+        setAllRowsExpanded(collapsed.size > 0);
       });
       [search, statusFilter, userTypeFilter].forEach((control) => {
         control?.addEventListener("input", () => {
