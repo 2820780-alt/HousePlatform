@@ -19,6 +19,7 @@
       --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body,
     body[data-atom-page] {
       margin: 0;
@@ -113,6 +114,13 @@
         linear-gradient(145deg, rgba(7, 20, 48, 0.78), rgba(4, 10, 27, 0.88)),
         radial-gradient(circle at 90% 10%, rgba(24, 215, 242, 0.12), transparent 92px);
     }
+    .history-hero,
+    .history-summary,
+    .history-card-head,
+    .history-filters,
+    .history-card[aria-labelledby="history-fields-title"] {
+      display: none !important;
+    }
     .history-main {
       display: grid;
       gap: 16px;
@@ -175,6 +183,156 @@
     }
     .chip.ok { border-color: rgba(34, 197, 94, 0.35); color: #9ef0bd; }
     .chip.danger { border-color: rgba(255, 59, 127, 0.42); color: #ff9fbe; }
+    .history-action-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(24, 215, 242, 0.28);
+      border-radius: 7px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+    }
+    .history-action-icon::before {
+      content: "";
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid currentColor;
+      border-radius: 3px;
+      box-shadow: inset 0 0 0 2px rgba(24, 215, 242, 0.08);
+    }
+    .history-action-icon[data-kind="blocked"] {
+      border-color: rgba(255, 59, 127, 0.34);
+      color: #ff6d8e;
+      background: rgba(255, 59, 127, 0.08);
+    }
+    .history-action-icon[data-kind="created"] {
+      border-color: rgba(34, 197, 94, 0.34);
+      color: #4ee995;
+      background: rgba(34, 197, 94, 0.08);
+    }
+    .history-kind-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(24, 215, 242, 0.34);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+      box-shadow: 0 0 18px rgba(24, 215, 242, 0.08);
+    }
+    .history-kind-icon::before,
+    .history-kind-icon::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .history-kind-icon { position: relative; }
+    .history-kind-icon--user::before {
+      width: 11px;
+      height: 11px;
+      top: 6px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+    }
+    .history-kind-icon--user::after {
+      width: 18px;
+      height: 9px;
+      bottom: 5px;
+      border: 1.5px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 12px 12px;
+    }
+    .history-kind-icon--module::before {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid currentColor;
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+    .history-kind-icon--widget::before {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid currentColor;
+      border-radius: 4px;
+      box-shadow: inset 6px 0 0 rgba(24, 215, 242, 0.12);
+    }
+    .history-kind-icon--company::before {
+      width: 15px;
+      height: 18px;
+      border: 1.5px solid currentColor;
+      border-bottom-width: 2px;
+    }
+    .history-kind-icon--company::after {
+      width: 3px;
+      height: 3px;
+      background: currentColor;
+      box-shadow: -5px -5px 0 currentColor, 0 -5px 0 currentColor, 5px -5px 0 currentColor, -5px 3px 0 currentColor, 0 3px 0 currentColor, 5px 3px 0 currentColor;
+    }
+    .history-kind-icon--access::before {
+      width: 15px;
+      height: 18px;
+      border: 1.5px solid currentColor;
+      border-radius: 9px 9px 7px 7px;
+    }
+    .history-kind-icon--access::after {
+      width: 7px;
+      height: 5px;
+      top: 7px;
+      border: 1.5px solid currentColor;
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+    }
+    .history-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.22);
+      border-radius: 7px;
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.08);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-pill::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .history-pill--ok {
+      border-color: rgba(34, 197, 94, 0.26);
+      color: #35f0a0;
+      background: rgba(34, 197, 94, 0.08);
+    }
+    .history-pill--warn {
+      border-color: rgba(245, 158, 11, 0.34);
+      color: #ffd28a;
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .history-pill--danger {
+      border-color: rgba(255, 59, 127, 0.42);
+      color: #ff6d8e;
+      background: rgba(255, 59, 127, 0.08);
+    }
+    .history-action--created { color: #28e58c; }
+    .history-action--blocked { color: #ff6d8e; }
+    .history-action--changed { color: #25c8ff; }
+    .history-action--access { color: #a78bfa; }
+    .history-menu-cell {
+      width: 28px;
+      color: #86a3cf;
+      text-align: center;
+      letter-spacing: 1px;
+    }
     .history-card {
       display: grid;
       gap: 12px;
@@ -205,9 +363,9 @@
     }
     .table-wrap {
       max-width: 100%;
-      overflow-x: auto;
+      overflow-x: hidden;
       overflow-y: auto;
-      max-height: 520px;
+      max-height: calc(100vh - 132px);
       scrollbar-width: none;
       border: 1px solid var(--line-soft);
       border-radius: 8px;
@@ -219,7 +377,7 @@
     }
     .history-table {
       width: 100%;
-      min-width: 1180px;
+      min-width: 0;
       border-collapse: collapse;
       table-layout: fixed;
       font-size: 12px;
@@ -233,10 +391,45 @@
       overflow-wrap: anywhere;
       word-break: normal;
     }
+    .history-table th[data-history-sort] {
+      cursor: pointer;
+      user-select: none;
+    }
+    .history-table th[data-history-sort]::after {
+      content: "↕";
+      margin-left: 7px;
+      color: rgba(119, 172, 255, 0.7);
+      font-size: 11px;
+    }
+    .history-table th[data-sort-direction="asc"]::after { content: "↑"; }
+    .history-table th[data-sort-direction="desc"]::after { content: "↓"; }
+    .history-filter-row th {
+      top: 37px;
+      padding: 7px 8px;
+      background: rgba(5, 14, 34, 0.96);
+    }
+    .history-column-filter {
+      width: 100%;
+      min-height: 28px;
+      padding: 0 8px;
+      border: 1px solid rgba(119, 172, 255, 0.18);
+      border-radius: 7px;
+      color: #d8e8ff;
+      background: rgba(3, 8, 21, 0.66);
+      font-size: 11px;
+    }
     .history-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
       color: var(--muted);
       font-weight: 700;
       background: rgba(10, 25, 56, 0.72);
+    }
+    .history-table .history-filter-row th {
+      top: 37px;
+      z-index: 3;
+      background: rgba(5, 14, 34, 0.96);
     }
     .history-table tr:last-child td {
       border-bottom: 0;
@@ -307,7 +500,14 @@
         top: 0;
         min-height: auto;
       }
-      .history-main { padding: 14px; }
+      .history-hero,
+    .history-summary,
+    .history-card-head,
+    .history-filters,
+    .history-card[aria-labelledby="history-fields-title"] {
+      display: none !important;
+    }
+    .history-main { padding: 14px; }
     }
   </style>
   {% include "_atom_ui_standards.html" %}
@@ -330,12 +530,12 @@
     </aside>
 
     <section class="history-main">
-      <section class="history-hero">
+      <section class="history-hero" hidden>
         <h1>История изменений</h1>
         <p class="muted">Журнал решений администратора: дата, автор, действие, объект, старое и новое значение, причина и результат.</p>
       </section>
 
-      <section class="history-summary" aria-label="Сводка истории">
+      <section class="history-summary" aria-label="Сводка истории" hidden>
         <div class="summary-item">
           <span>Всего записей</span>
           <strong>{{ historyPage.auditPanel.summary.total }}</strong>
@@ -355,13 +555,8 @@
       </section>
 
       <section class="history-card" aria-labelledby="history-table-title">
-        <div class="history-card-head">
-          <div>
-            <h2 id="history-table-title">Таблица изменений</h2>
-          </div>
-          <a class="chip" href="/api/v1/admin/users-roles/view#overview">Вернуться в Module №3</a>
-        </div>
-        <div class="history-filters" aria-label="Фильтры истории изменений">
+        <div class="history-card-head" hidden></div>
+        <div class="history-filters" aria-label="Фильтры истории изменений" hidden>
           <input type="search" placeholder="Поиск по администратору, объекту, модулю или причине" data-history-search>
           <select data-history-author aria-label="Фильтр по администратору">
             <option value="">Все администраторы</option>
@@ -391,79 +586,70 @@
         <div class="table-wrap">
           <table class="history-table">
             <colgroup>
-              <col style="width: 116px">
+              <col style="width: 44px">
               <col style="width: 132px">
-              <col style="width: 150px">
-              <col style="width: 160px">
-              <col style="width: 124px">
-              <col style="width: 124px">
+              <col style="width: 180px">
+              <col style="width: 170px">
+              <col style="width: 190px">
               <col>
-              <col style="width: 160px">
-              <col style="width: 96px">
             </colgroup>
             <thead>
               <tr>
-                <th>Дата и время</th>
-                <th>Администратор</th>
-                <th>Действие</th>
-                <th>Объект</th>
-                <th>Старое значение</th>
-                <th>Новое значение</th>
-                <th>Причина / детали</th>
-                <th>Модуль / виджет</th>
-                <th>Статус</th>
+                <th aria-label="Тип"></th>
+                <th data-history-sort="date">Дата и время</th>
+                <th data-history-sort="actor">Пользователь</th>
+                <th data-history-sort="action">Действие</th>
+                <th data-history-sort="object">Что изменено</th>
+                <th data-history-sort="details">Детали</th>
+              </tr>
+              <tr class="history-filter-row">
+                <th></th>
+                <th><input class="history-column-filter" data-history-column-filter="date" placeholder="05.07"></th>
+                <th><input class="history-column-filter" data-history-column-filter="actor" placeholder="Кто изменил"></th>
+                <th><input class="history-column-filter" data-history-column-filter="action" placeholder="Действие"></th>
+                <th><input class="history-column-filter" data-history-column-filter="object" placeholder="Модуль / виджет"></th>
+                <th><input class="history-column-filter" data-history-column-filter="details" placeholder="Пользователь"></th>
               </tr>
             </thead>
             <tbody>
               {% for item in historyPage.auditPanel.rows %}
+              {% set raw_action = item.displayAction or item.action or item.actionType or '' %}
+              {% set raw_action_lower = raw_action|lower %}
+              {% set action_label = 'Блокировка' if 'блок' in raw_action_lower else ('Доступ добавлен' if 'включ' in raw_action_lower or 'создан' in raw_action_lower or 'добав' in raw_action_lower else ('Доступ ограничен' if 'отключ' in raw_action_lower or 'огранич' in raw_action_lower else ('Доступ изменен' if 'доступ' in raw_action_lower else raw_action))) %}
+              {% set object_label = item.displayObjectType or item.objectTypeCode or item.objectType or 'Объект' %}
+              {% set details_label = item.displaySubjectName or item.targetUserName or item.workspaceName or item.objectName or 'Системная матрица' %}
               <tr
                 data-history-row
-                data-search="{{ (item.displayActor ~ ' ' ~ item.displayAction ~ ' ' ~ item.displayObject ~ ' ' ~ item.displayModuleWidget ~ ' ' ~ item.reason ~ ' ' ~ item.displayDetails)|lower }}"
-                data-author="{{ item.actor }}"
-                data-action="{{ item.actionType }}"
-                data-module="{{ item.moduleCode or '' }}"
-                data-object="{{ item.objectType }}"
+                data-search="{{ (item.displayActor ~ ' ' ~ action_label ~ ' ' ~ object_label ~ ' ' ~ details_label)|lower }}"
+                data-date="{{ item.displayTimestampShort or item.timestampCompact or item.createdAt }}"
+                data-actor="{{ item.displayActor or item.actorName or item.actor }}"
+                data-action="{{ action_label }}"
+                data-object="{{ object_label }}"
+                data-details="{{ details_label }}"
               >
-                <td>
-                  <strong>{{ item.displayTimestampShort or item.timestampCompact or item.createdAt }}</strong>
-                  <small>{{ item.displayTimestamp or item.timestampReference }}</small>
+                <td><span class="history-kind-icon history-kind-icon--{% if item.objectTypeCode == 'WIDGET' %}widget{% elif item.objectTypeCode == 'MODULE' %}module{% elif item.objectTypeCode == 'COMPANY' %}company{% elif item.objectTypeCode == 'ACCESS' %}access{% else %}user{% endif %}" aria-hidden="true"></span></td>
+                <td title="{{ item.displayTimestamp or item.timestampReference or item.createdAt }}">{{ item.displayTimestampShort or item.timestampCompact or item.createdAt }}</td>
+                <td title="{{ item.displayActor or item.actorName or item.actor }}">{{ item.displayActor or item.actorName or item.actor }}</td>
+                <td title="{{ action_label }}">
+                  <span class="history-pill {% if 'Блок' in item.displayAction or 'огранич' in (item.displayAction|lower) or 'Отключ' in item.displayAction %}history-pill--danger{% elif 'добав' in (item.displayAction|lower) or 'Включ' in item.displayAction or 'Создан' in item.displayAction or 'Создание' in item.displayAction %}history-pill--ok{% else %}history-pill--warn{% endif %}">{{ action_label }}</span>
                 </td>
-                <td>
-                  <strong>{{ item.displayActor or item.actorName or item.actor }}</strong>
-                </td>
-                <td>
-                  <strong>{{ item.displayAction or item.action or item.actionType }}</strong>
-                </td>
-                <td>
-                  <strong>{{ item.displayObject or item.objectName or item.subjectLabel }}</strong>
-                  <small>{{ item.displayObjectType or item.objectTypeCode or item.objectType }}</small>
-                </td>
-                <td><span class="value-box">{{ item.displayOldValue or '—' }}</span></td>
-                <td><span class="value-box">{{ item.displayNewValue or '—' }}</span></td>
-                <td>
-                  <span>{{ item.reason or item.displayDetails or 'Причина не указана' }}</span>
-                  <small>{{ item.displayDetails or item.comment or '—' }}</small>
-                </td>
-                <td>
-                  <span>{{ item.displayModule or '—' }}</span>
-                  {% if item.displayWidget %}<small>{{ item.displayWidget }}</small>{% endif %}
-                </td>
-                <td><span class="chip {% if item.result == 'SUCCESS' %}ok{% else %}danger{% endif %}">{{ item.displayResult }}</span></td>
+                <td title="{{ object_label }}"><span class="history-pill">{{ object_label }}</span></td>
+                <td title="{{ details_label }}">{{ details_label }}</td>
               </tr>
               {% else %}
               <tr data-history-empty>
-                <td colspan="9"><div class="empty">История изменений Module №3 пока пуста.</div></td>
+                <td colspan="6"><div class="empty">История изменений Module №3 пока пуста.</div></td>
               </tr>
               {% endfor %}
               <tr data-history-filter-empty hidden>
-                <td colspan="9"><div class="empty">По выбранным фильтрам записей нет.</div></td>
+                <td colspan="6"><div class="empty">По выбранным фильтрам записей нет.</div></td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <section class="history-card" aria-labelledby="history-fields-title">
+      <section class="history-card" aria-labelledby="history-fields-title" hidden>
         <div class="history-card-head">
           <div>
             <h2 id="history-fields-title">Важные поля</h2>
@@ -483,36 +669,54 @@
   </main>
   <script>
     (() => {
+      const tbody = document.querySelector(".history-table tbody");
       const rows = Array.from(document.querySelectorAll("[data-history-row]"));
-      const search = document.querySelector("[data-history-search]");
-      const author = document.querySelector("[data-history-author]");
-      const action = document.querySelector("[data-history-action]");
-      const module = document.querySelector("[data-history-module]");
-      const object = document.querySelector("[data-history-object]");
+      const filters = Array.from(document.querySelectorAll("[data-history-column-filter]"));
+      const sortHeaders = Array.from(document.querySelectorAll("[data-history-sort]"));
       const empty = document.querySelector("[data-history-filter-empty]");
-      const value = (control) => control?.value || "";
+      let sortState = { key: "date", direction: "desc" };
+
+      const normalize = (value) => String(value || "").trim().toLowerCase();
 
       const applyFilters = () => {
-        const query = (search?.value || "").trim().toLowerCase();
+        const activeFilters = filters
+          .map((control) => ({ key: control.dataset.historyColumnFilter, value: normalize(control.value) }))
+          .filter((item) => item.value);
         let visibleCount = 0;
         rows.forEach((row) => {
-          const visible = (
-            (!query || (row.dataset.search || "").includes(query)) &&
-            (!value(author) || row.dataset.author === value(author)) &&
-            (!value(action) || row.dataset.action === value(action)) &&
-            (!value(module) || row.dataset.module === value(module)) &&
-            (!value(object) || row.dataset.object === value(object))
-          );
+          const visible = activeFilters.every((filter) => normalize(row.dataset[filter.key]).includes(filter.value));
           row.hidden = !visible;
           if (visible) visibleCount += 1;
         });
         if (empty) empty.hidden = visibleCount !== 0;
       };
 
-      [search, author, action, module, object].forEach((control) => {
-        control?.addEventListener("input", applyFilters);
-        control?.addEventListener("change", applyFilters);
+      const applySort = () => {
+        if (!tbody) return;
+        const sortedRows = [...rows].sort((left, right) => {
+          const a = normalize(left.dataset[sortState.key]);
+          const b = normalize(right.dataset[sortState.key]);
+          return sortState.direction === "asc" ? a.localeCompare(b, "ru") : b.localeCompare(a, "ru");
+        });
+        sortedRows.forEach((row) => tbody.appendChild(row));
+        sortHeaders.forEach((header) => {
+          header.dataset.sortDirection = header.dataset.historySort === sortState.key ? sortState.direction : "";
+        });
+      };
+
+      filters.forEach((control) => control.addEventListener("input", applyFilters));
+      sortHeaders.forEach((header) => {
+        header.addEventListener("click", () => {
+          const key = header.dataset.historySort;
+          sortState = {
+            key,
+            direction: sortState.key === key && sortState.direction === "asc" ? "desc" : "asc",
+          };
+          applySort();
+          applyFilters();
+        });
       });
+      applySort();
       applyFilters();
     })();
   </script>

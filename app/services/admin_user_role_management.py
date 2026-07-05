@@ -1072,7 +1072,12 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
     access_distribution_panel = access_distribution_panel_summary(pending_items)
     summary = _overview_summary(users, workspaces, recent_history, pending_items=pending_items)
     directory_rows = user_directory_rows(users, workspaces)
-    recent_history_rows = [audit_log_summary(item) for item in recent_history]
+    history_users_by_id = _module3_user_name_lookup(users)
+    history_workspaces_by_id = _module3_workspace_name_lookup(workspaces)
+    recent_history_rows = [
+        audit_log_summary(item, users_by_id=history_users_by_id, workspaces_by_id=history_workspaces_by_id)
+        for item in recent_history
+    ]
     if not recent_history_rows:
         recent_history_rows = demo_recent_access_history_summaries(users, workspaces)
     return {
@@ -1107,7 +1112,8 @@ async def get_user_role_admin_overview(db: AsyncSession, actor: Any) -> dict[str
         "moduleQuickActions": module3_quick_actions(admin_scope=admin_scope, detail_mode=False),
         "moduleQuickActionSettings": module3_quick_action_settings(admin_scope=admin_scope, detail_mode=False),
         "recentAccessHistory": recent_history_rows,
-        "auditPanel": audit_panel_summary(recent_history),
+        "historyTotal": len(recent_history_rows),
+        "auditPanel": audit_panel_summary(recent_history, users=users, workspaces=workspaces),
         "settingsPanel": settings_panel_summary(admin_scope),
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
     }
@@ -1121,6 +1127,8 @@ async def get_user_role_admin_history(
 ) -> dict[str, Any]:
     require_user_role_admin(actor)
     admin_scope = admin_scope_for_actor(actor)
+    users = _filter_users_for_admin_scope(await _load_users(db), admin_scope)
+    workspaces = _filter_workspaces_for_admin_scope(await _load_workspaces(db), admin_scope)
     history = await _load_recent_access_history(
         db,
         workspace_ids=_workspace_uuid_scope(admin_scope),
@@ -1130,7 +1138,7 @@ async def get_user_role_admin_history(
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
         "adminScope": admin_scope,
-        "auditPanel": audit_panel_summary(history),
+        "auditPanel": audit_panel_summary(history, users=users, workspaces=workspaces),
         "fieldDescriptions": [
             {"label": "Дата и время", "description": "Момент записи события в AuditLog."},
             {"label": "Администратор", "description": "Кто выполнил изменение или системный источник события."},
@@ -1235,7 +1243,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
         "history": [audit_log_summary(item) for item in history],
         "changeHistory": change_history_for_admin_panel(history, user_data),
-        "auditPanel": audit_panel_summary(history),
+        "auditPanel": audit_panel_summary(history, users=users, workspaces=workspaces),
         "settingsPanel": settings_panel_summary(admin_scope),
         "canDisable": can_disable_user(actor, user),
         "disableConfirmation": DISABLE_CONFIRMATION,
@@ -3127,7 +3135,12 @@ def _state_definition(code: str) -> dict[str, str]:
     }
 
 
-def audit_log_summary(item: AuditLog) -> dict[str, Any]:
+def audit_log_summary(
+    item: AuditLog,
+    *,
+    users_by_id: dict[str, str] | None = None,
+    workspaces_by_id: dict[str, str] | None = None,
+) -> dict[str, Any]:
     details = item.details or {}
     entity_type = _details_value(details, "entityType") or item.entity_type
     entity_id = _details_value(details, "entityId") or str(item.entity_id or "")
@@ -3165,7 +3178,11 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
         "subjectLabel": subject_label,
         "details": details,
     }
-    module3_entry = module3_audit_log_entry(summary)
+    module3_entry = module3_audit_log_entry(
+        summary,
+        users_by_id=users_by_id,
+        workspaces_by_id=workspaces_by_id,
+    )
     summary.update(
         {
             "timestamp": module3_entry["timestamp"],
@@ -3185,18 +3202,28 @@ def audit_log_summary(item: AuditLog) -> dict[str, Any]:
     return summary
 
 
-def module3_audit_log_entry(row: dict[str, Any]) -> dict[str, Any]:
-    action_type = str(row.get("actionType") or "")
+def module3_audit_log_entry(
+    row: dict[str, Any],
+    *,
+    users_by_id: dict[str, str] | None = None,
+    workspaces_by_id: dict[str, str] | None = None,
+) -> dict[str, Any]:
     object_type_code = _module3_object_type_code(row)
     object_id = row.get("widgetCode") or row.get("moduleCode") or row.get("targetUserId") or row.get("workspaceId") or row.get("entityId") or ""
-    object_name = row.get("subjectLabel") or row.get("objectName") or object_id or object_type_code
+    object_name = _module3_history_subject_name(
+        row,
+        object_type_code=object_type_code,
+        object_id=object_id,
+        users_by_id=users_by_id,
+        workspaces_by_id=workspaces_by_id,
+    )
     details_text = _module3_audit_details_text(row)
     return {
         "id": str(row.get("id") or ""),
         "timestamp": _stringify_search_value(row.get("createdAt")),
         "actorId": str(row.get("actorUserId") or row.get("actorId") or ""),
         "actorName": str(row.get("actor") or row.get("actorName") or "system/dev"),
-        "action": MODULE3_AUDIT_ACTION_LABELS.get(action_type, action_type or "Изменение"),
+        "action": _module3_specific_action_label(row),
         "objectType": object_type_code,
         "objectId": str(object_id or ""),
         "objectName": str(object_name or ""),
@@ -3204,8 +3231,161 @@ def module3_audit_log_entry(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _module3_specific_action_label(row: dict[str, Any]) -> str:
+    action_type = str(row.get("actionType") or "").strip().lower()
+    old_open = _module3_value_open_state(row.get("oldValue"))
+    new_open = _module3_value_open_state(row.get("newValue"))
+
+    if action_type in {"permission_changed", "module_access_changed"}:
+        if new_open is True and old_open is not True:
+            return "Доступ добавлен"
+        if new_open is False and old_open is not False:
+            return "Доступ ограничен"
+        if action_type == "module_access_changed":
+            return "Доступ изменен"
+        return "Доступ изменен"
+
+    if action_type in {"widget_permission_changed", "widget_registry_changed"}:
+        if new_open is True and old_open is not True:
+            return "Виджет добавлен"
+        if new_open is False and old_open is not False:
+            return "Виджет ограничен"
+        return "Виджет изменен"
+
+    if action_type == "platform_module_registry_changed":
+        if new_open is True and old_open is not True:
+            return "Модуль добавлен"
+        if new_open is False and old_open is not False:
+            return "Модуль ограничен"
+        return "Модуль изменен"
+
+    if action_type in {"user_disabled"}:
+        return "Блокировка"
+    if action_type in {"user_enabled"}:
+        return "Разблокировка"
+    if action_type in {"user_created"}:
+        return "Пользователь добавлен"
+    if action_type in {"company_created"}:
+        return "Компания добавлена"
+    if action_type in {"role_changed", "user_role_assigned", "company_employee_role_changed"}:
+        return "Роль изменена"
+    if action_type == "bulk_access_assigned":
+        return "Доступ назначен"
+    if action_type == "user_dashboard_layout_changed":
+        return "Панель изменена"
+
+    return MODULE3_AUDIT_ACTION_LABELS.get(action_type, str(row.get("actionType") or "Изменение"))
+
+
+def _module3_value_open_state(value: Any) -> bool | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, dict):
+        for key in ("accessLevel", "access_level"):
+            if key in value:
+                return _access_level_is_open(value.get(key))
+        for key in ("enabled", "isEnabled", "is_active", "isActive"):
+            if key in value:
+                return bool(value.get(key))
+        for key in ("status", "state"):
+            if key in value:
+                return _module3_status_open_state(value.get(key))
+        return None
+    return _module3_status_open_state(value)
+
+
+def _module3_status_open_state(value: Any) -> bool | None:
+    raw = str(value or "").strip().upper()
+    if raw in {"NO_ACCESS", "DENY", "DENIED", "CLOSED", "DISABLED", "BLOCKED", "DELETED", "ARCHIVED", "FALSE", "0"}:
+        return False
+    if raw in {"ACTIVE", "ENABLED", "OPEN", "ALLOWED", "READ", "WRITE", "ADMIN", "OWNER", "TRUE", "1"}:
+        return True
+    return None
+
+
+def _module3_history_subject_name(
+    row: dict[str, Any],
+    *,
+    object_type_code: str,
+    object_id: Any,
+    users_by_id: dict[str, str] | None = None,
+    workspaces_by_id: dict[str, str] | None = None,
+) -> str:
+    details = _dict_value(row.get("details"))
+    users_by_id = users_by_id or {}
+    workspaces_by_id = workspaces_by_id or {}
+    target_user_id = str(row.get("targetUserId") or details.get("targetUserId") or details.get("target_user_id") or "")
+    workspace_id = str(row.get("workspaceId") or details.get("workspaceId") or details.get("workspace_id") or "")
+
+    if target_user_id and users_by_id.get(target_user_id):
+        return users_by_id[target_user_id]
+    if workspace_id and workspaces_by_id.get(workspace_id):
+        return workspaces_by_id[workspace_id]
+
+    for key in (
+        "subjectName",
+        "targetUserName",
+        "target_user_name",
+        "userName",
+        "companyName",
+        "supplierName",
+        "workspaceTitle",
+        "workspaceName",
+        "objectName",
+        "title",
+        "name",
+        "targetUserEmail",
+        "email",
+    ):
+        value = details.get(key) or row.get(key)
+        if value and not _module3_is_opaque_identifier(value):
+            return str(value)
+
+    if object_type_code == "WIDGET" and row.get("widgetCode"):
+        widget = get_widget_registry_item(str(row.get("widgetCode")))
+        return str(_get_value(widget, "title") or row.get("widgetCode"))
+    if object_type_code in {"MODULE", "ACCESS"} and row.get("moduleCode"):
+        module = get_dashboard_module_registry_item(str(row.get("moduleCode")))
+        return str(_get_value(module, "title") or row.get("moduleCode"))
+
+    candidate = row.get("subjectLabel") or row.get("objectName") or object_id
+    if candidate and not _module3_is_opaque_identifier(candidate):
+        return str(candidate)
+    return _module3_object_type_display_label(object_type_code)
+
+
+def _module3_is_opaque_identifier(value: Any) -> bool:
+    raw = str(value or "").strip()
+    if not raw:
+        return False
+    try:
+        UUID(raw)
+        return True
+    except ValueError:
+        return False
+
+
+def _module3_user_name_lookup(users: list[User] | None) -> dict[str, str]:
+    return {
+        str(_get_value(user, "id")): str(_get_value(user, "name") or _get_value(user, "email") or _get_value(user, "id"))
+        for user in (users or [])
+        if _get_value(user, "id")
+    }
+
+
+def _module3_workspace_name_lookup(workspaces: list[Workspace] | None) -> dict[str, str]:
+    return {
+        str(_get_value(workspace, "id")): str(_get_value(workspace, "title") or _get_value(workspace, "name") or _get_value(workspace, "id"))
+        for workspace in (workspaces or [])
+        if _get_value(workspace, "id")
+    }
+
+
 def _module3_audit_display_fields(row: dict[str, Any], entry: dict[str, Any]) -> dict[str, str]:
     module_label, widget_label = _module3_module_widget_display_label(row)
+    subject_name = str(entry.get("objectName") or row.get("subjectLabel") or "").strip()
     return {
         "displayTimestamp": _reference_datetime_label(row.get("createdAt") or entry.get("timestamp")),
         "displayTimestampShort": _compact_datetime_label(row.get("createdAt") or entry.get("timestamp")),
@@ -3213,6 +3393,7 @@ def _module3_audit_display_fields(row: dict[str, Any], entry: dict[str, Any]) ->
         "displayAction": str(entry.get("action") or row.get("actionType") or "Изменение"),
         "displayObject": _module3_object_display_label(row, entry),
         "displayObjectType": _module3_object_type_display_label(entry.get("objectType") or row.get("objectType")),
+        "displaySubjectName": subject_name,
         "displayDetails": _module3_overview_details_label(row, entry),
         "displayOldValue": _module3_value_display_label(row.get("oldValue")),
         "displayNewValue": _module3_value_display_label(row.get("newValue")),
@@ -3275,16 +3456,26 @@ def _module3_module_widget_display_label(row: dict[str, Any]) -> tuple[str, str]
 
 
 def _module3_overview_details_label(row: dict[str, Any], entry: dict[str, Any]) -> str:
+    subject_name = _module3_compact_text(str(entry.get("objectName") or row.get("subjectLabel") or "").strip(), limit=72)
     reason = str(row.get("reason") or row.get("comment") or "").strip()
     if reason:
-        return _module3_compact_text(reason, limit=110)
-    new_value = row.get("newValue")
-    if new_value is not None and new_value != "":
-        return f"Новое значение: {_module3_value_display_label(new_value)}"
-    details = str(entry.get("details") or "").strip()
-    if details and details.upper() != "SUCCESS":
-        return _module3_compact_text(details, limit=110)
-    return _module3_result_display_label(row.get("result"))
+        detail = _module3_compact_text(reason, limit=110)
+    else:
+        new_value = row.get("newValue")
+        if new_value is not None and new_value != "":
+            detail = f"Новое значение: {_module3_value_display_label(new_value)}"
+        else:
+            details = str(entry.get("details") or "").strip()
+            if details and details.upper() not in {"SUCCESS", "OK"}:
+                detail = _module3_compact_text(details, limit=110)
+            else:
+                detail = _module3_result_display_label(row.get("result"))
+
+    if subject_name and subject_name.lower() not in detail.lower():
+        if detail in {"Успешно", "SUCCESS", "OK"}:
+            return subject_name
+        return _module3_compact_text(f"{subject_name} · {detail}", limit=132)
+    return detail
 
 
 def _module3_value_display_label(value: Any) -> str:
@@ -3399,8 +3590,15 @@ def change_history_for_admin_panel(history: list[AuditLog], user_data: dict[str,
     }
 
 
-def audit_panel_summary(history: list[AuditLog]) -> dict[str, Any]:
-    rows = [audit_log_summary(item) for item in history]
+def audit_panel_summary(
+    history: list[AuditLog],
+    *,
+    users: list[User] | None = None,
+    workspaces: list[Workspace] | None = None,
+) -> dict[str, Any]:
+    users_by_id = _module3_user_name_lookup(users)
+    workspaces_by_id = _module3_workspace_name_lookup(workspaces)
+    rows = [audit_log_summary(item, users_by_id=users_by_id, workspaces_by_id=workspaces_by_id) for item in history]
     selected = rows[0] if rows else None
     return {
         "rows": rows,
@@ -4535,6 +4733,10 @@ def _add_audit_log(
     details: dict[str, Any] | None = None,
 ) -> None:
     actor_id = _get_value(actor, "id")
+    audit_details = dict(details or {})
+    audit_details.setdefault("targetUserId", str(target_user.id))
+    audit_details.setdefault("targetUserName", target_user.name or target_user.email or str(target_user.id))
+    audit_details.setdefault("targetUserEmail", target_user.email)
     db.add(
         AuditLog(
             user_id=actor_id if isinstance(actor_id, UUID) else None,
@@ -4543,7 +4745,7 @@ def _add_audit_log(
             entity_type="User",
             entity_id=target_user.id,
             result="SUCCESS",
-            details=details or {},
+            details=audit_details,
         )
     )
 

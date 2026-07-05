@@ -228,6 +228,7 @@
     .module3-nav-footer {
       display: grid;
       gap: 6px;
+      margin-top: auto;
       padding: 10px 6px 0;
       color: var(--muted);
       font-size: 12px;
@@ -266,45 +267,55 @@
     }
     .system-card-atom {
       position: absolute;
-      top: 13px;
-      right: 17px;
-      width: 78px;
-      height: 58px;
+      top: 9px;
+      right: 10px;
+      width: 92px;
+      height: 68px;
       pointer-events: none;
-      opacity: 0.68;
-      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--card-accent) 34%, transparent));
+      opacity: 0.66;
+      filter: drop-shadow(0 0 10px rgba(24, 168, 255, 0.32));
     }
     .system-card-atom span {
       position: absolute;
-      left: 14px;
-      top: 20px;
-      width: 50px;
-      height: 18px;
-      border: 1px solid color-mix(in srgb, var(--card-accent) 62%, transparent);
-      border-radius: 50%;
+      left: 25px;
+      top: 16px;
+      width: 52px;
+      height: 40px;
+      border: 1px solid rgba(24, 168, 255, 0.22);
+      border-radius: 999px;
+      background: transparent;
+      transform-origin: 50% 50%;
     }
-    .system-card-atom span:nth-child(1) { transform: rotate(28deg); }
-    .system-card-atom span:nth-child(2) { transform: rotate(-28deg); }
-    .system-card-atom span:nth-child(3) { transform: rotate(90deg) scaleX(0.66); }
+    .system-card-atom span:nth-child(1) { transform: rotate(-21deg) scaleX(1.14) scaleY(0.48); }
+    .system-card-atom span:nth-child(2) { transform: rotate(18deg) scaleX(1.17) scaleY(0.48); }
+    .system-card-atom span:nth-child(3) { transform: rotate(82deg) scaleX(0.95) scaleY(0.42); }
     .system-card-atom::before,
     .system-card-atom::after {
       content: "";
       position: absolute;
       border-radius: 50%;
-      background: var(--card-accent);
-      box-shadow: 0 0 14px color-mix(in srgb, var(--card-accent) 70%, transparent);
     }
     .system-card-atom::before {
-      width: 6px;
-      height: 6px;
-      left: 36px;
-      top: 26px;
+      width: 26px;
+      height: 26px;
+      right: 12px;
+      top: 9px;
+      border: 1px solid rgba(24, 168, 255, 0.42);
+      background: radial-gradient(circle, rgba(24, 168, 255, 0.95) 0 2px, transparent 3px);
+      box-shadow: inset 0 0 0 7px rgba(24, 168, 255, 0.045), 0 0 18px rgba(24, 168, 255, 0.22);
     }
     .system-card-atom::after {
-      width: 4px;
-      height: 4px;
-      right: 7px;
-      top: 9px;
+      width: 3px;
+      height: 3px;
+      left: 7px;
+      top: 35px;
+      background: rgba(24, 168, 255, 0.9);
+      box-shadow:
+        19px 20px 0 rgba(24, 168, 255, 0.58),
+        38px -13px 0 rgba(24, 168, 255, 0.7),
+        65px -20px 0 rgba(24, 168, 255, 0.66),
+        79px 6px 0 rgba(24, 168, 255, 0.58),
+        0 0 12px rgba(24, 168, 255, 0.64);
     }
     .system-card[data-user-type="SUPPLIER"] { --card-accent: #8b5cf6; }
     .system-card[data-user-type="CUSTOMER"] { --card-accent: #7c9dff; }
@@ -314,6 +325,7 @@
       align-items: center;
       gap: 13px;
       min-width: 0;
+      padding-right: 88px;
     }
     .system-card-icon {
       position: relative;
@@ -415,14 +427,14 @@
       margin-top: 8px;
       font-size: 36px;
       line-height: 1;
-      overflow-wrap: anywhere;
+      white-space: nowrap;
     }
     .system-card-description {
       display: none;
     }
     .user-type-metrics {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 0.98fr) minmax(0, 1.16fr);
       gap: 7px;
       margin-top: auto;
     }
@@ -431,27 +443,32 @@
     }
     .metric-pill {
       min-width: 0;
-      overflow: hidden;
-      min-height: 52px;
-      padding: 8px 9px;
+      min-height: 58px;
+      padding: 8px 8px;
       border: 1px solid rgba(119, 172, 255, 0.16);
       border-radius: 8px;
-      background: rgba(5, 12, 30, 0.54);
+      background: linear-gradient(180deg, rgba(8, 22, 52, 0.64), rgba(5, 12, 30, 0.58));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      overflow: hidden;
     }
     .metric-pill span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
       min-width: 0;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1.12;
-      font-size: 9.5px;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1;
+      font-size: 8.7px;
+      color: #a9bce0;
     }
     .metric-pill span::before {
       content: "";
-      display: inline-block;
+      display: block;
+      flex: 0 0 auto;
       width: 6px;
       height: 6px;
-      margin-right: 6px;
       border-radius: 50%;
       background: var(--green);
       box-shadow: 0 0 10px rgba(34, 197, 94, 0.44);
@@ -466,9 +483,13 @@
     }
     .metric-pill strong {
       margin: 0;
-      margin-top: 5px;
-      font-size: 20px;
+      margin-top: 9px;
+      font-size: 21px;
+      font-weight: 500;
+      color: #edf6ff;
     }
+    .metric-pill[data-metric="moderation"] span { font-size: 8.1px; }
+    .metric-pill[data-metric="blocked"] span { font-size: 8.2px; }
     .system-registry-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -476,7 +497,7 @@
     }
     .overview-dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(430px, 0.98fr);
+      grid-template-columns: minmax(560px, 1.35fr) minmax(320px, 0.75fr);
       gap: 16px;
       align-items: stretch;
     }
@@ -485,44 +506,176 @@
       min-height: 270px;
     }
     .overview-history-table {
-      padding: 0 14px 14px;
-      max-height: 286px;
-      overflow-x: auto;
+      margin: 0 14px;
+      max-height: 214px;
+      overflow-x: hidden;
       overflow-y: auto;
       scrollbar-width: none;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 12, 30, 0.28);
     }
     .overview-history-table::-webkit-scrollbar,
     .verification-queue-scroll::-webkit-scrollbar {
       display: none;
     }
     .overview-history-entity-table {
-      min-width: 720px !important;
+      min-width: 0 !important;
+      width: 100%;
       table-layout: fixed;
       font-size: 12px;
+      border: 0;
+      background: transparent;
     }
     .overview-history-entity-table th,
     .overview-history-entity-table td {
-      padding: 8px;
+      padding: 7px 10px;
+      border-right: 0;
       overflow: hidden;
       line-height: 1.28;
       overflow-wrap: anywhere;
-      vertical-align: top;
-      white-space: normal;
+      vertical-align: middle;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     .overview-history-entity-table th {
+      color: #8fa4c8;
+      font-weight: 500;
+      font-size: 11px;
       white-space: nowrap;
+      background: rgba(10, 25, 56, 0.34);
     }
     .overview-history-entity-table .overview-history-icon-cell {
-      width: 36px;
+      width: 40px;
       text-align: center;
     }
     .overview-history-entity-table .chip {
       max-width: 100%;
-      min-height: 24px;
-      padding: 3px 7px;
-      white-space: normal;
-      overflow-wrap: anywhere;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+    .history-kind-icon {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(24, 215, 242, 0.34);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(24, 215, 242, 0.08);
+      box-shadow: 0 0 18px rgba(24, 215, 242, 0.08);
+    }
+    .history-kind-icon::before,
+    .history-kind-icon::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+    }
+    .history-kind-icon--user::before {
+      width: 11px;
+      height: 11px;
+      top: 6px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+    }
+    .history-kind-icon--user::after {
+      width: 18px;
+      height: 9px;
+      bottom: 5px;
+      border: 1.5px solid currentColor;
+      border-top: 0;
+      border-radius: 0 0 12px 12px;
+    }
+    .history-kind-icon--module::before {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid currentColor;
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+    .history-kind-icon--widget::before {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid currentColor;
+      border-radius: 4px;
+      box-shadow: inset 6px 0 0 rgba(24, 215, 242, 0.12);
+    }
+    .history-kind-icon--company::before {
+      width: 15px;
+      height: 18px;
+      border: 1.5px solid currentColor;
+      border-bottom-width: 2px;
+    }
+    .history-kind-icon--company::after {
+      width: 3px;
+      height: 3px;
+      background: currentColor;
+      box-shadow: -5px -5px 0 currentColor, 0 -5px 0 currentColor, 5px -5px 0 currentColor, -5px 3px 0 currentColor, 0 3px 0 currentColor, 5px 3px 0 currentColor;
+    }
+    .history-kind-icon--access::before {
+      width: 15px;
+      height: 18px;
+      border: 1.5px solid currentColor;
+      border-radius: 9px 9px 7px 7px;
+    }
+    .history-kind-icon--access::after {
+      width: 7px;
+      height: 5px;
+      top: 7px;
+      border: 1.5px solid currentColor;
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+    }
+    .history-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid rgba(24, 215, 242, 0.22);
+      border-radius: 7px;
+      color: #54dfff;
+      background: rgba(24, 215, 242, 0.08);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-pill::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .history-pill--ok {
+      border-color: rgba(34, 197, 94, 0.26);
+      color: #35f0a0;
+      background: rgba(34, 197, 94, 0.08);
+    }
+    .history-pill--warn {
+      border-color: rgba(245, 158, 11, 0.34);
+      color: #ffd28a;
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .history-pill--danger {
+      border-color: rgba(255, 59, 127, 0.42);
+      color: #ff6d8e;
+      background: rgba(255, 59, 127, 0.08);
+    }    .overview-history-action--created { color: #28e58c; }
+    .overview-history-action--blocked { color: #ff6d8e; }
+    .overview-history-action--changed { color: #25c8ff; }
+    .overview-history-action--access { color: #a78bfa; }
     .overview-history-entity-table strong,
     .verification-queue-text strong {
       display: block;
@@ -539,7 +692,7 @@
     .verification-queue-scroll {
       display: grid;
       gap: 8px;
-      max-height: 286px;
+      max-height: 236px;
       overflow-y: auto;
       padding-right: 2px;
       scrollbar-width: none;
@@ -575,20 +728,20 @@
     .history-action-icon {
       display: inline-grid;
       place-items: center;
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border: 1px solid rgba(24, 215, 242, 0.28);
-      border-radius: 8px;
+      border-radius: 7px;
       color: var(--cyan);
       background: rgba(24, 215, 242, 0.08);
     }
     .history-action-icon::before {
       content: "";
-      width: 10px;
-      height: 10px;
+      width: 11px;
+      height: 11px;
       border: 1.5px solid currentColor;
-      border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(24, 215, 242, 0.08);
+      border-radius: 3px;
+      box-shadow: inset 0 0 0 2px rgba(24, 215, 242, 0.08);
     }
     .history-action-icon[data-kind="blocked"] {
       border-color: rgba(255, 59, 127, 0.34);
@@ -599,6 +752,56 @@
       border-color: rgba(34, 197, 94, 0.34);
       color: #4ee995;
       background: rgba(34, 197, 94, 0.08);
+    }
+    .overview-history-menu {
+      width: 24px;
+      color: #86a3cf;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .overview-history-more {
+      display: flex;
+      justify-content: center;
+      padding: 10px 14px 13px;
+    }
+    .overview-history-more a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #25c8ff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .overview-history-more a::after {
+      content: "⌄";
+      color: #77c6ff;
+      font-size: 15px;
+    }
+    .overview-panel-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .overview-panel-title::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border: 1px solid rgba(183, 209, 255, 0.72);
+      border-radius: 50%;
+      background: conic-gradient(from 210deg, transparent 0 22%, rgba(183, 209, 255, 0.9) 22% 34%, transparent 34% 100%);
+      box-shadow: 0 0 12px rgba(24, 215, 242, 0.12);
+    }
+    .overview-history-link {
+      border: 0;
+      background: transparent;
+      color: #25c8ff;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .overview-history-link::after {
+      content: "↗";
+      margin-left: 8px;
+      color: #25c8ff;
     }
     .registry-meter {
       display: grid;
@@ -1965,13 +2168,6 @@
         <a class="active" href="#overview" data-module3-tab-link="overview"><span class="module3-nav-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
         <a href="#users" data-module3-tab-link="users"><span class="module3-nav-icon" aria-hidden="true">♙</span><span>Пользователи</span></a>
         <a href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}" data-module3-tab-link="access"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
-        <div class="module3-nav-help">
-          <strong>Нужна помощь?</strong>
-          <span>Документация и поддержка по модулю.</span>
-          <form method="get" action="/api/v1/admin/users-roles/view/docs">
-            <button class="module3-doc-button" type="submit">Инструкция по модулю</button>
-          </form>
-        </div>
         <div class="module3-nav-footer">
           <span>ATOM — единая платформа управления строительством</span>
           <span>Версия 1.0.0 · Май 2025</span>
@@ -2022,54 +2218,8 @@
           {% endfor %}
         </div>
 
+        {% set verification_queue = overview.verificationQueue if overview.verificationQueue is defined else none %}
         <div class="overview-dashboard-grid overview-only">
-        <section class="panel" aria-labelledby="overview-history-title">
-          <div class="panel-head">
-            <div>
-              <h2 id="overview-history-title">История изменений</h2>
-            </div>
-            <a class="chip info" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
-          </div>
-          <div class="overview-history-table">
-            <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
-              <colgroup>
-                <col style="width: 36px">
-                <col style="width: 108px">
-                <col style="width: 124px">
-                <col style="width: 142px">
-                <col style="width: 148px">
-                <col>
-              </colgroup>
-              <thead>
-                <tr>
-                  <th class="overview-history-icon-cell" aria-label="Тип события"></th>
-                  <th title="Дата и время">Дата</th>
-                  <th>Кто изменил</th>
-                  <th>Действие</th>
-                  <th>Объект</th>
-                  <th>Детали</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in overview.recentAccessHistory[:6] %}
-                <tr>
-                  <td class="overview-history-icon-cell"><span class="history-action-icon" data-kind="{% if 'Заблок' in item.action %}blocked{% elif 'Создан' in item.action %}created{% else %}changed{% endif %}" aria-hidden="true"></span></td>
-                  <td title="{{ item.displayTimestamp or item.timestampReference or item.timestamp }}">{{ item.displayTimestampShort or item.timestampCompact or item.timestamp }}</td>
-                  <td title="{{ item.displayActor or item.actorName }}">{{ item.displayActor or item.actorName }}</td>
-                  <td><span class="chip info">{{ item.displayAction or item.action }}</span></td>
-                  <td title="{{ item.displayObject or item.objectName }}">{{ item.displayObject or item.objectName or item.displayObjectType }}</td>
-                  <td title="{{ item.displayDetails or item.detailsText }}">{{ item.displayDetails or item.detailsText or item.displayResult }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                  <td colspan="6"><div class="empty">Изменений доступа пока нет.</div></td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         <section class="system-registry-grid" aria-label="Модули и виджеты в системе">
           <div class="bridge-card registry-card">
             <div class="registry-card-head">
@@ -2132,10 +2282,8 @@
             </div>
           </div>
         </section>
-        </div>
 
-        {% set verification_queue = overview.verificationQueue if overview.verificationQueue is defined else none %}
-        <section class="panel overview-only" id="verification-queue" aria-labelledby="verification-queue-title">
+        <section class="panel" id="verification-queue" aria-labelledby="verification-queue-title">
           <div class="panel-head">
             <div>
               <h2 id="verification-queue-title">Очередь проверки</h2>
@@ -2171,6 +2319,64 @@
             <div class="empty">{{ verification_queue.emptyState if verification_queue else 'Очередь проверки пуста.' }}</div>
             {% endif %}
           </div>
+        </section>
+        </div>
+
+        <section class="panel overview-only" aria-labelledby="overview-history-title">
+          <div class="panel-head">
+            <div>
+              <h2 id="overview-history-title" class="overview-panel-title">История изменений</h2>
+            </div>
+            <a class="overview-history-link" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
+          </div>
+          <div class="overview-history-table">
+            <table class="entity-table overview-history-entity-table" aria-label="История изменений Module №3">
+              <colgroup>
+                <col style="width: 44px">
+                <col style="width: 118px">
+                <col style="width: 150px">
+                <col style="width: 132px">
+                <col style="width: 128px">
+                <col>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="overview-history-icon-cell" aria-label="Тип"></th>
+                  <th title="Дата и время">Дата и время</th>
+                  <th>Пользователь</th>
+                  <th>Действие</th>
+                  <th>Что изменено</th>
+                  <th>Детали</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in overview.recentAccessHistory[:3] %}
+                {% set raw_action = item.displayAction or item.action or item.actionType or '' %}
+                {% set raw_action_lower = raw_action|lower %}
+                {% set action_label = 'Блокировка' if 'блок' in raw_action_lower else ('Доступ добавлен' if 'включ' in raw_action_lower or 'создан' in raw_action_lower or 'добав' in raw_action_lower else ('Доступ ограничен' if 'отключ' in raw_action_lower or 'огранич' in raw_action_lower else ('Доступ изменен' if 'доступ' in raw_action_lower else raw_action))) %}
+                {% set object_label = item.displayObjectType or item.objectTypeCode or item.displayObject or 'Объект' %}
+                {% set details_label = item.displaySubjectName or item.targetUserName or item.workspaceName or item.objectName or 'Системная матрица' %}
+                <tr>
+                  <td class="overview-history-icon-cell"><span class="history-kind-icon history-kind-icon--{% if item.objectTypeCode == 'WIDGET' %}widget{% elif item.objectTypeCode == 'MODULE' %}module{% elif item.objectTypeCode == 'COMPANY' %}company{% elif item.objectTypeCode == 'ACCESS' %}access{% else %}user{% endif %}" aria-hidden="true"></span></td>
+                  <td title="{{ item.displayTimestamp or item.timestampReference or item.timestamp }}">{{ item.displayTimestampShort or item.timestampCompact or item.timestamp }}</td>
+                  <td title="{{ item.displayActor or item.actorName }}">{{ item.displayActor or item.actorName }}</td>
+                  <td title="{{ action_label }}"><span class="history-pill {% if 'Блок' in action_label or 'огранич' in (action_label|lower) %}history-pill--danger{% elif 'добавлен' in (action_label|lower) %}history-pill--ok{% else %}history-pill--warn{% endif %}">{{ action_label }}</span></td>
+                  <td title="{{ object_label }}"><span class="history-pill">{{ object_label }}</span></td>
+                  <td title="{{ details_label }}">{{ details_label }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="6"><div class="empty">Изменений доступа пока нет.</div></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if overview.historyTotal and overview.historyTotal > 3 %}
+          <div class="overview-history-more">
+            <a href="/api/v1/admin/users-roles/view/history">Показать ещё {{ overview.historyTotal - 3 }} записей</a>
+          </div>
+          {% endif %}
         </section>
 
         {% if not company_mode %}
@@ -2643,7 +2849,7 @@
                   </tr>
                   {% else %}
                   <tr>
-                    <td colspan="7"><div class="empty">Журнал изменений пока пуст.</div></td>
+                    <td colspan="6"><div class="empty">Журнал изменений пока пуст.</div></td>
                   </tr>
                   {% endfor %}
                 </tbody>
