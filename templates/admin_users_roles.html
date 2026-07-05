@@ -1487,10 +1487,88 @@
     .access-matrix-table tbody tr:hover {
       background: rgba(24, 215, 242, 0.045);
     }
+    #access-matrix {
+      display: grid;
+      gap: 14px;
+      padding: 0;
+    }
+    .access-page-head {
+      display: grid;
+      gap: 6px;
+    }
+    .access-page-head h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+    .access-page-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .access-info-banner {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid rgba(24, 215, 242, 0.42);
+      border-radius: 8px;
+      color: #cfe3ff;
+      background: rgba(0, 100, 180, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(24, 215, 242, 0.04);
+    }
+    .access-info-banner::before {
+      content: "i";
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(24, 215, 242, 0.68);
+      border-radius: 50%;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .access-info-banner p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .access-filter-row {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) minmax(174px, 0.45fr) minmax(174px, 0.45fr) auto auto;
+      gap: 10px;
+      align-items: end;
+      padding: 0;
+      border-bottom: 0;
+    }
+    .access-filter-row label {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .access-filter-row input,
+    .access-filter-row select {
+      width: 100%;
+      min-height: 38px;
+      border-color: rgba(119, 172, 255, 0.2);
+      background: rgba(5, 12, 30, 0.66);
+    }
+    .access-filter-row .btn {
+      min-height: 38px;
+      white-space: nowrap;
+    }
     .access-type-matrix {
       display: grid;
-      gap: 12px;
-      margin-top: 12px;
+      gap: 14px;
+      margin-top: 0;
     }
     .bulk-access-panel {
       display: grid;
@@ -1505,7 +1583,7 @@
     .bulk-access-panel-head {
       display: flex;
       flex-wrap: wrap;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 10px;
     }
@@ -1515,7 +1593,7 @@
     }
     .bulk-access-controls {
       display: grid;
-      grid-template-columns: minmax(160px, 0.9fr) minmax(160px, 0.9fr) minmax(150px, 0.8fr) auto auto;
+      grid-template-columns: minmax(150px, 0.9fr) minmax(150px, 0.9fr) minmax(142px, 0.8fr) auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -1528,7 +1606,7 @@
     }
     .bulk-access-controls select {
       width: 100%;
-      min-height: 40px;
+      min-height: 36px;
       border-color: rgba(119, 172, 255, 0.2);
       background: rgba(5, 12, 30, 0.66);
     }
@@ -1609,7 +1687,7 @@
     .access-module-title {
       display: flex;
       gap: 8px;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
     }
     .access-module-title strong {
@@ -3320,20 +3398,25 @@
         </div>
 
         <div class="subject-section" id="access-matrix">
-          <h3>Доступы</h3>
-          <div class="muted">Рабочая матрица доступа: строки — модули и вложенные виджеты, столбцы — типы пользователей, ячейка — доступ разрешен или запрещен. Если модуль не выбран, связанные виджеты выбрать нельзя.</div>
+          <div class="access-page-head">
+            <h2>Доступы</h2>
+            <p>Управление доступом к модулям и виджетам для разных типов пользователей.</p>
+          </div>
           <form class="access-type-matrix" method="post" action="{{ overview.userTypeAccessMatrix.saveAction }}" data-access-type-matrix aria-label="Столбцы матрицы доступа: Заказчики, Поставщики, Строительные компании, Самостоятельные инженеры">
+            <section class="access-info-banner" aria-label="Правило матрицы доступов">
+              <p>Строки — модули и виджеты. Столбцы — типы пользователей.<br>Если модуль не выбран, связанные виджеты недоступны.</p>
+            </section>
             <input type="hidden" name="matrix_payload" data-access-matrix-payload value="{}">
             <div class="directory-toolbar" aria-label="Фильтры матрицы доступа">
-              <div class="filter-row">
+              <div class="filter-row access-filter-row">
                 <label>
-                  <span>Поиск по модулю / виджету</span>
+                  <span>Поиск по модулям и виджетам</span>
                   <input type="search" placeholder="{{ overview.userTypeAccessMatrix.filters.searchPlaceholder }}" data-access-matrix-search>
                 </label>
                 <label>
                   <span>Статус модуля</span>
                   <select data-access-matrix-status>
-                    <option value="">Все статусы</option>
+                    <option value="">Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.statusOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
@@ -3342,7 +3425,7 @@
                 <label>
                   <span>Тип пользователя</span>
                   <select data-access-matrix-user-type>
-                    <option value="">Все типы</option>
+                    <option value="">Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
@@ -3358,7 +3441,7 @@
                   <h4>Массовое назначение доступа</h4>
                   <div class="muted">Изменяет видимые ячейки матрицы перед сохранением. Сначала сделайте предпросмотр, затем примените изменения и сохраните.</div>
                 </div>
-                <span class="chip warn">требует сохранения</span>
+                <span class="chip warn">изменения не применены</span>
               </div>
               <div class="bulk-access-controls">
                 <label>
