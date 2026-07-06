@@ -857,7 +857,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Заказчики" in html
     assert "Специалисты" in html
     assert "История изменений" in html
-    assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" in html
+    assert "Очередь на модерацию" in html
     assert "Доступ добавлен" in html
     assert "Модули в системе" in html
     assert "24" in html
@@ -1477,8 +1477,8 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Заблокированные" in overview
     assert "На модерации" in overview
     assert "История изменений" in overview
-    assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" in overview
-    assert overview.index("ОЧЕРЕДЬ НА МОДЕРАЦИЮ") < overview.index("История изменений")
+    assert "Очередь на модерацию" in overview
+    assert overview.index("Очередь на модерацию") < overview.index("История изменений")
     assert "Новые или спорные участники" not in overview
     assert "Короткая лента последних изменений доступа и пользователей" not in overview
     assert "Дата и время" in overview
@@ -1492,7 +1492,17 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "{% set object_label = item.displayObjectType or item.objectTypeCode or item.displayObject or 'Объект' %}" in overview
     assert "{% set details_label = item.displaySubjectName or item.targetUserName or item.workspaceName or item.objectName or 'Системная матрица' %}" in overview
     assert "verification-queue-scroll" in overview
+    assert "verification-queue-count" in overview
+    assert "Нет заявок на модерацию" in overview
+    assert "Новые компании и поставщики появятся здесь после регистрации или изменения данных." in overview
+    assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" not in overview
     assert "scrollbar-width: none" in template
+    assert "max-height: 226px" in template
+    assert "overscroll-behavior: contain" in template
+    assert "min-height: 62px" in template
+    assert "verification-action-btn--accept" in template
+    assert "verification-action-btn--reject" in template
+    assert "verification-action-btn--defer" in template
     assert "Модули в системе" in overview
     assert "Виджеты в системе" in overview
     assert "Открыть полную историю" in overview
