@@ -1894,3 +1894,37 @@ def test_quick_action_rows_do_not_materialize_fixed_registry_actions():
     )
 
     assert rows == []
+
+
+def test_module3_overview_registry_cards_reference_contract():
+    with open("templates/admin_users_roles.html", encoding="utf-8") as file:
+        template = file.read()
+
+    overview = template.split('<section class="command-hero" id="overview">', 1)[1].split(
+        '<section class="panel" id="settings"',
+        1,
+    )[0]
+
+    assert overview.count('class="bridge-card registry-card"') == 2
+    assert 'registry-card-icon registry-card-icon--cube' in overview
+    assert 'registry-card-icon registry-card-icon--atom' in overview
+    assert 'registry-card-body' in overview
+    assert 'registry-ring' in overview
+    assert 'registry-stat ok' in overview
+    assert 'registry-stat info' in overview
+    assert 'registry-stat archived' in overview
+    assert 'overview.moduleRegistrySummary.total' in overview
+    assert 'overview.moduleRegistrySummary.active' in overview
+    assert 'overview.moduleRegistrySummary.inDevelopment' in overview
+    assert 'overview.moduleRegistrySummary.archived' in overview
+    assert 'overview.widgetRegistrySummary.total' in overview
+    assert 'overview.widgetRegistrySummary.active' in overview
+    assert 'overview.widgetRegistrySummary.inDevelopment' in overview
+    assert 'overview.widgetRegistrySummary.archived' in overview
+    assert "Открыть все модули" not in overview
+    assert "Открыть все виджеты" not in overview
+    assert 'min-height: 246px;' in template
+    assert 'grid-template-columns: minmax(126px, 0.82fr) minmax(0, 1fr)' in template
+    assert 'width: 132px;' in template
+    assert 'font-variant-numeric: tabular-nums;' in template
+    assert '.registry-stat.archived span' in template
