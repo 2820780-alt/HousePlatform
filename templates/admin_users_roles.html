@@ -1981,9 +1981,86 @@
       justify-content: space-between;
       gap: 12px;
       padding: 12px;
-      border: 1px solid var(--line-soft);
+      border: 1px solid rgba(32, 144, 226, 0.22);
       border-radius: 8px;
-      background: rgba(8, 18, 41, 0.74);
+      background:
+        linear-gradient(90deg, rgba(5, 35, 70, 0.72), rgba(5, 15, 36, 0.86)),
+        rgba(5, 15, 36, 0.86);
+      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.06);
+    }
+    .matrix-savebar .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .matrix-savebar .btn {
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 7px;
+    }
+    .matrix-savebar [data-access-save] {
+      border-color: rgba(24, 215, 242, 0.72);
+      color: #f3fbff;
+      background: linear-gradient(180deg, rgba(21, 151, 255, 0.92), rgba(8, 112, 210, 0.92));
+      box-shadow: 0 0 18px rgba(14, 165, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+    .matrix-savebar [data-access-save]:disabled,
+    .matrix-savebar [data-access-reset]:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .matrix-savebar [data-access-reset] {
+      border-color: rgba(119, 172, 255, 0.24);
+      color: #cfe3ff;
+      background: rgba(5, 12, 30, 0.56);
+    }
+    .matrix-save-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 220px;
+      color: #91a4c9;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .matrix-save-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #64748b;
+      box-shadow: 0 0 8px rgba(100, 116, 139, 0.28);
+    }
+    .matrix-save-status[data-state="dirty"] {
+      color: #fbbf24;
+    }
+    .matrix-save-status[data-state="dirty"]::before {
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.32);
+    }
+    .matrix-save-status[data-state="saving"] {
+      color: #54dfff;
+    }
+    .matrix-save-status[data-state="saving"]::before {
+      background: #18d7f2;
+      box-shadow: 0 0 10px rgba(24, 215, 242, 0.36);
+    }
+    .matrix-save-status[data-state="success"] {
+      color: #34d399;
+    }
+    .matrix-save-status[data-state="success"]::before {
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.32);
+    }
+    .matrix-save-status[data-state="error"] {
+      color: #fb7185;
+    }
+    .matrix-save-status[data-state="error"]::before {
+      background: #fb7185;
+      box-shadow: 0 0 10px rgba(251, 113, 133, 0.32);
     }
     .access-matrix-table tr.new-module td {
       background: rgba(24, 215, 242, 0.045);
@@ -3769,12 +3846,12 @@
                 </tbody>
               </table>
             </div>
-            <div class="matrix-savebar" aria-label="Состояния сохранения: нет изменений; есть несохраненные изменения; сохранение; ошибка сохранения; успешно сохранено">
-              <div class="muted" data-access-save-status>{{ overview.userTypeAccessMatrix.saveState.noChanges }}</div>
+            <div class="matrix-savebar" aria-label="Состояния сохранения: изменения не сохранены; есть несохраненные изменения; сохранение; ошибка сохранения; изменения сохранены">
               <div class="toolbar">
                 <button class="btn" type="submit" data-access-save disabled>Сохранить изменения</button>
                 <button class="btn" type="button" data-access-reset disabled>Сбросить</button>
               </div>
+              <div class="matrix-save-status" data-access-save-status data-state="clean">Изменения не сохранены</div>
             </div>
           </form>
         </div>
@@ -4989,12 +5066,12 @@
         if (!statusText) return;
         statusText.dataset.state = state;
         statusText.textContent = {
-          clean: "Изменений нет",
+          clean: "Изменения не сохранены",
           dirty: "Есть несохраненные изменения",
           saving: "Сохранение",
           error: "Ошибка сохранения",
-          success: "Успешно сохранено",
-        }[state] || "Изменений нет";
+          success: "Изменения сохранены",
+        }[state] || "Изменения не сохранены";
       };
 
       const matchingModuleCheckbox = (rowId, userTypeCode) => checks.find((checkbox) => (
