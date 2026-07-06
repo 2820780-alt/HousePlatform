@@ -491,19 +491,24 @@
     .metric-pill[data-metric="moderation"] span { font-size: 8.1px; }
     .metric-pill[data-metric="blocked"] span { font-size: 8.2px; }
     .system-registry-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      display: contents;
     }
     .overview-dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(560px, 1.35fr) minmax(320px, 0.75fr);
+      grid-template-columns: repeat(3, minmax(280px, 1fr));
       gap: 16px;
       align-items: stretch;
+      margin-top: 16px;
+      margin-bottom: 16px;
     }
-    .overview-dashboard-grid > .panel,
-    .overview-dashboard-grid > .system-registry-grid {
-      min-height: 270px;
+    .overview-dashboard-grid > .panel {
+      min-height: 246px;
+    }
+    #verification-queue {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      max-height: 246px;
+      overflow: hidden;
     }
     .overview-history-table {
       margin: 0 14px;
@@ -751,7 +756,8 @@
     .verification-queue-scroll {
       display: grid;
       gap: 7px;
-      max-height: 226px;
+      max-height: 182px;
+      min-height: 0;
       overflow-x: hidden;
       overflow-y: auto;
       padding-right: 2px;
@@ -2589,7 +2595,7 @@
       .module3-action { padding-inline: 10px; }
       .system-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .detail-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .overview-dashboard-grid { grid-template-columns: 1fr; }
+      .overview-dashboard-grid { grid-template-columns: repeat(3, minmax(260px, 1fr)); }
       .bulk-access-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 1366px) {
@@ -2610,7 +2616,7 @@
     @media (max-width: 980px) {
       main,
       .module3-shell { width: min(100vw - 20px, 1500px); }
-      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .system-grid, .system-registry-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
+      .layout, .grid-2, .bridge-grid, .overview-preview-grid, .roles-groups-layout, .audit-workspace, .detail-card-grid, .control-shell, .command-hero, .system-grid, .widget-row, .state-legend, .overview-dashboard-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; flex-direction: column; }
       .module3-nav { position: static; min-height: auto; }
       .control-main { padding: 14px; }

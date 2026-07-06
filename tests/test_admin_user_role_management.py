@@ -1497,7 +1497,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Новые компании и поставщики появятся здесь после регистрации или изменения данных." in overview
     assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" not in overview
     assert "scrollbar-width: none" in template
-    assert "max-height: 226px" in template
+    assert "max-height: 182px" in template
     assert "overscroll-behavior: contain" in template
     assert "min-height: 62px" in template
     assert "verification-action-btn--accept" in template
@@ -1928,3 +1928,28 @@ def test_module3_overview_registry_cards_reference_contract():
     assert 'width: 132px;' in template
     assert 'font-variant-numeric: tabular-nums;' in template
     assert '.registry-stat.archived span' in template
+
+
+def test_module3_overview_dashboard_row_layout_contract():
+    with open("templates/admin_users_roles.html", encoding="utf-8") as file:
+        template = file.read()
+
+    overview = template.split('<section class="command-hero" id="overview">', 1)[1].split(
+        '<section class="panel" id="settings"',
+        1,
+    )[0]
+
+    assert '<div class="overview-dashboard-grid overview-only">' in overview
+    assert overview.count('class="bridge-card registry-card"') == 2
+    assert overview.index('class="bridge-card registry-card"') < overview.index('id="verification-queue"')
+    assert overview.index('id="verification-queue"') < overview.index('id="overview-history-title"')
+    assert '.system-registry-grid {' in template
+    assert 'display: contents;' in template
+    assert 'grid-template-columns: repeat(3, minmax(280px, 1fr));' in template
+    assert '.overview-dashboard-grid { grid-template-columns: repeat(3, minmax(260px, 1fr)); }' in template
+    assert '#verification-queue {' in template
+    assert 'grid-template-rows: auto minmax(0, 1fr);' in template
+    assert 'max-height: 246px;' in template
+    assert 'max-height: 182px;' in template
+    assert 'overflow-y: auto;' in template
+    assert 'scrollbar-width: none;' in template
