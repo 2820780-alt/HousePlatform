@@ -1846,6 +1846,135 @@
       clip: rect(0 0 0 0);
       white-space: nowrap;
     }
+    .access-matrix-table-wrap {
+      overflow: hidden;
+      border: 1px solid rgba(32, 144, 226, 0.28);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(8, 29, 58, 0.82), rgba(4, 14, 34, 0.92)),
+        rgba(4, 14, 34, 0.94);
+      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.08);
+    }
+    .access-matrix-table-wrap .access-matrix-table {
+      min-width: 1040px;
+      border-collapse: separate;
+      border-spacing: 0;
+      color: #dce8ff;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+    .access-matrix-table-wrap .access-matrix-table th,
+    .access-matrix-table-wrap .access-matrix-table td {
+      border-bottom: 1px solid rgba(119, 172, 255, 0.13);
+      border-left: 1px solid rgba(119, 172, 255, 0.12);
+      background: rgba(5, 18, 42, 0.42);
+      vertical-align: middle;
+    }
+    .access-matrix-table-wrap .access-matrix-table th:first-child,
+    .access-matrix-table-wrap .access-matrix-table td:first-child {
+      border-left: 0;
+      text-align: left;
+    }
+    .access-matrix-table-wrap .access-matrix-table th:not(:first-child),
+    .access-matrix-table-wrap .access-matrix-table td:not(:first-child) {
+      text-align: center;
+    }
+    .access-matrix-table-wrap .access-matrix-table thead th {
+      height: 52px;
+      padding: 0 14px;
+      color: #cfe3ff;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: linear-gradient(180deg, rgba(14, 39, 76, 0.82), rgba(7, 23, 52, 0.88));
+    }
+    .access-matrix-table-wrap .access-matrix-table tbody td {
+      padding: 7px 12px;
+      height: 34px;
+    }
+    .access-matrix-table-wrap .matrix-module-row td {
+      height: 38px;
+      background: linear-gradient(90deg, rgba(4, 31, 66, 0.82), rgba(5, 22, 49, 0.76));
+      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.06);
+    }
+    .access-matrix-table-wrap .matrix-module-row td:first-child {
+      background: linear-gradient(90deg, rgba(3, 34, 70, 0.94), rgba(5, 23, 51, 0.82));
+    }
+    .access-matrix-table-wrap .matrix-widget-row td {
+      height: 30px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      background: rgba(8, 28, 55, 0.48);
+    }
+    .access-matrix-table-wrap .matrix-widget-row td:first-child {
+      padding-left: 24px;
+      background: linear-gradient(90deg, rgba(8, 29, 56, 0.72), rgba(6, 20, 44, 0.66));
+    }
+    .access-matrix-table-wrap .access-matrix-table tbody tr:hover td {
+      background-color: rgba(24, 215, 242, 0.055);
+    }
+    .access-matrix-table-wrap .access-module-title {
+      min-height: 20px;
+      overflow: hidden;
+    }
+    .access-matrix-table-wrap .matrix-module-copy,
+    .access-matrix-table-wrap .matrix-widget-copy {
+      gap: 10px;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .access-matrix-table-wrap .matrix-module-number {
+      color: #eaf4ff;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .access-matrix-table-wrap .matrix-module-name,
+    .access-matrix-table-wrap .matrix-widget-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .access-matrix-table-wrap .matrix-widget-title {
+      color: #b9c8e8;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .access-matrix-table-wrap .matrix-row-toggle {
+      width: 20px;
+      height: 20px;
+      border-color: transparent;
+      background: transparent;
+      color: #2dd4ff;
+      box-shadow: none;
+    }
+    .access-matrix-table-wrap .matrix-tree-line {
+      width: 26px;
+      color: rgba(184, 200, 238, 0.54);
+    }
+    .access-matrix-table-wrap .matrix-check input {
+      width: 14px;
+      height: 14px;
+      appearance: none;
+      border: 1px solid rgba(119, 172, 255, 0.54);
+      border-radius: 3px;
+      background: rgba(7, 19, 43, 0.92);
+      box-shadow: inset 0 0 0 1px rgba(5, 12, 30, 0.72);
+    }
+    .access-matrix-table-wrap .matrix-check input:checked {
+      border-color: #16bfff;
+      background:
+        linear-gradient(135deg, transparent 0 42%, #061428 42% 58%, transparent 58%),
+        linear-gradient(45deg, transparent 0 42%, #061428 42% 58%, transparent 58%),
+        #0ea5ff;
+      box-shadow: 0 0 8px rgba(14, 165, 255, 0.28);
+    }
+    .access-matrix-table-wrap .matrix-check input:disabled {
+      border-color: rgba(92, 121, 158, 0.45);
+      background: rgba(25, 42, 68, 0.56);
+      box-shadow: none;
+    }
     .matrix-savebar {
       display: flex;
       align-items: center;
@@ -3575,7 +3704,7 @@
               </div>
               <div class="bulk-access-status" data-bulk-status>Выберите параметры и нажмите предпросмотр.</div>
             </section>
-            <div class="table-wrap">
+            <div class="table-wrap access-matrix-table-wrap">
               <table class="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
                 <thead>
                   <tr>
