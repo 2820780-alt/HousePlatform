@@ -438,6 +438,21 @@ def test_user_type_access_matrix_view_model_has_hierarchical_rows_and_dependency
     assert customer_widget_cell["inheritedFromModule"] is True
     assert customer_widget_cell["reason"] == "Виджет недоступен, потому что модуль выключен для этого типа пользователя."
 
+    module_rows = [row for row in matrix["rows"] if row["type"] == "MODULE"]
+    widget_rows = [row for row in matrix["rows"] if row["type"] == "WIDGET"]
+    module_codes = {row["moduleCode"] for row in module_rows}
+    widget_codes = {row["widgetCode"] for row in widget_rows}
+    parent_ids = {row["id"] for row in module_rows}
+    marketplace_row = next(row for row in module_rows if row["moduleCode"] == "MODULE_10_MARKETPLACE")
+
+    assert "MODULE_08_PROCUREMENT" not in module_codes
+    assert "MODULE_08_TARIFFS" not in module_codes
+    assert "MODULE_14_PRICE_HISTORY" not in module_codes
+    assert "MODULE_10_MARKETPLACE" in module_codes
+    assert marketplace_row["title"] == "Витрина"
+    assert "quick-actions" not in widget_codes
+    assert all(row["parentId"] in parent_ids for row in widget_rows)
+
 
 @pytest.mark.asyncio
 async def test_saving_user_type_access_matrix_writes_history_without_replacing_permissions():

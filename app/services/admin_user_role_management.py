@@ -134,12 +134,8 @@ ACCESS_MATRIX_USER_TYPE_COLUMNS: tuple[dict[str, str], ...] = (
     },
 )
 
-ACCESS_MATRIX_DISPLAY_MODULE_CODES: tuple[str, ...] = (
-    "MODULE_01_MATERIAL_HUB",
-    "MODULE_02_KNOWLEDGE_BASE",
-    "MODULE_05_ESTIMATES",
-    "MODULE_11_ANALYTICS",
-)
+ACCESS_MATRIX_VISIBLE_MODULE_STATUSES: set[str] = {"active", "beta", "available"}
+ACCESS_MATRIX_VISIBLE_WIDGET_STATUSES: set[str] = {"active"}
 
 MODULE3_AUDIT_ACTION_LABELS: dict[str, str] = {
     "user_created": "Создание пользователя",
@@ -4239,12 +4235,14 @@ def user_type_access_matrix_view_model() -> dict[str, Any]:
     cells: list[dict[str, Any]] = []
     order = 0
 
+    seen_module_codes: set[str] = set()
     for module in get_dashboard_module_registry():
         module_code = module["canonicalModuleCode"] or module["moduleCode"]
-        if module_code not in ACCESS_MATRIX_DISPLAY_MODULE_CODES:
+        if module_code in seen_module_codes:
             continue
-        if module.get("status") in {"merged", "archived", "deprecated"}:
+        if not _is_user_type_access_matrix_module(module):
             continue
+        seen_module_codes.add(module_code)
         order += 10
         module_row_id = f"module:{module_code}"
         module_row = {
@@ -4348,9 +4346,34 @@ async def save_user_type_access_matrix_changes(
     )
 
 
+def _is_user_type_access_matrix_module(module: dict[str, Any]) -> bool:
+    status = _status_value(module.get("status"))
+    if status not in ACCESS_MATRIX_VISIBLE_MODULE_STATUSES:
+        return False
+    if module.get("isSystemCritical"):
+        return False
+    if not module.get("isAvailableForDashboard"):
+        return False
+    return True
+
+
+def _is_user_type_access_matrix_widget(widget: dict[str, Any]) -> bool:
+    status = _status_value(widget.get("status"))
+    if status not in ACCESS_MATRIX_VISIBLE_WIDGET_STATUSES:
+        return False
+    if not widget.get("isDashboardEligible", True):
+        return False
+    module_code = _canonical_module_code_value(widget.get("canonicalModuleCode") or widget.get("sourceModuleCode"))
+    if not module_code:
+        return False
+    module = get_dashboard_module_registry_item(module_code)
+    return bool(module and _is_user_type_access_matrix_module(module.to_dict()))
+
 def _matrix_widgets_by_module() -> dict[str, list[dict[str, Any]]]:
     widgets_by_module: dict[str, list[dict[str, Any]]] = {}
     for widget in get_widget_registry():
+        if not _is_user_type_access_matrix_widget(widget):
+            continue
         module_code = _canonical_module_code_value(widget.get("canonicalModuleCode") or widget.get("sourceModuleCode"))
         if not module_code:
             continue
@@ -4369,7 +4392,7 @@ def _user_type_module_access_cell(
     module_code = module["canonicalModuleCode"] or module["moduleCode"]
     module_status = str(module.get("status") or "").lower()
     allowed_modules = set(_list_strings(profile.get("allowedModuleCodes")))
-    disabled = module_status != "active" or not module.get("isAvailableForDashboard")
+    disabled = module_status not in ACCESS_MATRIX_VISIBLE_MODULE_STATUSES or not module.get("isAvailableForDashboard")
     allowed = module_code in allowed_modules and not disabled
     return {
         "rowId": row_id,
