@@ -134,6 +134,13 @@ ACCESS_MATRIX_USER_TYPE_COLUMNS: tuple[dict[str, str], ...] = (
     },
 )
 
+ACCESS_MATRIX_DISPLAY_MODULE_CODES: tuple[str, ...] = (
+    "MODULE_01_MATERIAL_HUB",
+    "MODULE_02_KNOWLEDGE_BASE",
+    "MODULE_05_ESTIMATES",
+    "MODULE_11_ANALYTICS",
+)
+
 MODULE3_AUDIT_ACTION_LABELS: dict[str, str] = {
     "user_created": "Создание пользователя",
     "company_created": "Создание компании",
@@ -4234,6 +4241,8 @@ def user_type_access_matrix_view_model() -> dict[str, Any]:
 
     for module in get_dashboard_module_registry():
         module_code = module["canonicalModuleCode"] or module["moduleCode"]
+        if module_code not in ACCESS_MATRIX_DISPLAY_MODULE_CODES:
+            continue
         if module.get("status") in {"merged", "archived", "deprecated"}:
             continue
         order += 10
@@ -4244,7 +4253,8 @@ def user_type_access_matrix_view_model() -> dict[str, Any]:
             "moduleCode": module_code,
             "widgetCode": None,
             "parentId": None,
-            "title": module.get("title") or module_code,
+            "title": module.get("shortTitle") or module.get("title") or module_code,
+            "moduleNumber": module.get("visualNumber") or module.get("displayNumber") or module.get("legacyNumber"),
             "status": module.get("status") or "unknown",
             "statusLabel": _module_status_label(str(module.get("status") or "")),
             "order": order,
