@@ -106,3 +106,38 @@ def test_widget_registry_model_has_no_module_number_logic():
     assert item.source_module_code == "MODULE_11_ANALYTICS"
     assert not hasattr(item, "module_number")
     assert not hasattr(item, "source_module_number")
+
+
+def test_module3_widget_registry_exposes_only_agreed_active_admin_widgets():
+    expected_titles = {
+        "MODULE_03_USERS_SUMMARY_WIDGET": "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438",
+        "MODULE_03_MODERATION_QUEUE_WIDGET": "\u041e\u0447\u0435\u0440\u0435\u0434\u044c \u043d\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044e",
+        "MODULE_03_AUDIT_LOG_WIDGET": "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        "MODULE_03_MODULES_STATUS_WIDGET": "\u041c\u043e\u0434\u0443\u043b\u0438 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+        "MODULE_03_WIDGETS_STATUS_WIDGET": "\u0412\u0438\u0434\u0436\u0435\u0442\u044b \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+    }
+    expected_types = {
+        "MODULE_03_USERS_SUMMARY_WIDGET": "SUMMARY",
+        "MODULE_03_MODERATION_QUEUE_WIDGET": "TASK_QUEUE",
+        "MODULE_03_AUDIT_LOG_WIDGET": "LIST",
+        "MODULE_03_MODULES_STATUS_WIDGET": "STATUS",
+        "MODULE_03_WIDGETS_STATUS_WIDGET": "STATUS",
+    }
+
+    module3_widgets = [
+        item
+        for item in get_widget_registry()
+        if item["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+        and item["widgetCode"].startswith("MODULE_03_")
+        and item["widgetCode"].endswith("_WIDGET")
+    ]
+
+    assert {item["widgetCode"] for item in module3_widgets} == set(expected_titles)
+    for item in module3_widgets:
+        assert item["title"] == expected_titles[item["widgetCode"]]
+        assert item["canonicalModuleCode"] == "MODULE_03_USERS_ROLES"
+        assert item["widgetType"] == expected_types[item["widgetCode"]]
+        assert item["status"] == "ACTIVE"
+        assert item["isDashboardEligible"] is True
+        assert item["isMock"] is False
+        assert item["widgetType"] != "ACTIONS"

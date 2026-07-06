@@ -113,3 +113,29 @@ def test_constructor_lite_widget_uses_module_19_canonical_source():
     assert widget.sourceModuleCode == "MODULE_19_CONSTRUCTOR_LITE"
     assert widget.canonicalModuleCode == "MODULE_19_CONSTRUCTOR_LITE"
     assert widget.legacyModuleCode is None
+
+
+def test_module3_dashboard_widget_registry_contract_has_no_settings_or_quick_actions():
+    expected = {
+        "MODULE_03_USERS_SUMMARY_WIDGET": "Module03UsersSummaryWidget",
+        "MODULE_03_MODERATION_QUEUE_WIDGET": "Module03ModerationQueueWidget",
+        "MODULE_03_AUDIT_LOG_WIDGET": "Module03AuditLogWidget",
+        "MODULE_03_MODULES_STATUS_WIDGET": "Module03ModulesStatusWidget",
+        "MODULE_03_WIDGETS_STATUS_WIDGET": "Module03WidgetsStatusWidget",
+    }
+
+    for widget_code, component_key in expected.items():
+        widget = get_dashboard_widget_registry_item(widget_code)
+
+        assert widget is not None
+        assert widget.sourceModuleCode == "MODULE_03_USERS_ROLES"
+        assert widget.canonicalModuleCode == "MODULE_03_USERS_ROLES"
+        assert widget.status == "available"
+        assert widget.type != "ACTIONS"
+        assert widget.componentKey == component_key
+        assert widget.defaultSettings == {}
+        assert widget.availableSettings == {}
+        assert widget.requiredPermissions == []
+        assert widget.mockDataProvider is None
+        assert widget.payloadOwnerModuleCode == "MODULE_03_USERS_ROLES"
+        assert widget.isBusinessLogicOwner is False
