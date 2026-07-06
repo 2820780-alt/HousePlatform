@@ -1829,6 +1829,15 @@
       opacity: 0.42;
       cursor: not-allowed;
     }
+    .access-matrix-table .matrix-access-cell[data-blocked-by-module="true"] {
+      background: rgba(5, 12, 30, 0.28);
+    }
+    .access-matrix-table .matrix-access-cell[data-blocked-by-module="true"] .matrix-check {
+      opacity: 0.46;
+    }
+    .access-matrix-table .matrix-access-cell[data-blocked-by-module="true"] input {
+      filter: grayscale(1);
+    }
     .matrix-check-text {
       position: absolute;
       width: 1px;
@@ -4868,17 +4877,29 @@
       const applyModuleDependency = (moduleCheckbox) => {
         const moduleRowId = moduleCheckbox.dataset.rowId;
         const userTypeCode = moduleCheckbox.dataset.userTypeCode;
+        const moduleAllowed = moduleCheckbox.checked;
         checks
           .filter((checkbox) => checkbox.dataset.rowType === "WIDGET" && checkbox.dataset.parentId === moduleRowId && checkbox.dataset.userTypeCode === userTypeCode)
           .forEach((widgetCheckbox) => {
             const systemDisabled = widgetCheckbox.dataset.systemDisabled === "true";
-            widgetCheckbox.disabled = systemDisabled || !moduleCheckbox.checked;
-            if (!moduleCheckbox.checked) {
+            const blockedByModule = !moduleAllowed;
+            const cell = widgetCheckbox.closest("[data-access-user-type-cell]");
+            widgetCheckbox.dataset.blockedByModule = String(blockedByModule);
+            if (cell) cell.dataset.blockedByModule = String(blockedByModule);
+            widgetCheckbox.disabled = systemDisabled || blockedByModule;
+            if (blockedByModule) {
+              if (widgetCheckbox.dataset.moduleDisabledValue === undefined) {
+                widgetCheckbox.dataset.moduleDisabledValue = String(widgetCheckbox.checked);
+              }
               widgetCheckbox.checked = false;
+              return;
+            }
+            if (widgetCheckbox.dataset.moduleDisabledValue !== undefined) {
+              widgetCheckbox.checked = widgetCheckbox.dataset.moduleDisabledValue === "true";
+              delete widgetCheckbox.dataset.moduleDisabledValue;
             }
           });
       };
-
       const syncDependencies = () => {
         checks
           .filter((checkbox) => checkbox.dataset.rowType === "MODULE")
@@ -4992,7 +5013,10 @@
 
       const buildPayload = () => {
         const changes = checks
-          .filter((checkbox) => checkbox.checked !== originalValue(checkbox))
+          .filter((checkbox) => {
+            if (checkbox.dataset.blockedByModule === "true") return false;
+            return checkbox.checked !== originalValue(checkbox);
+          })
           .map((checkbox) => ({
             rowId: checkbox.dataset.rowId,
             type: checkbox.dataset.rowType,
@@ -5092,6 +5116,10 @@
       resetButton?.addEventListener("click", () => {
         checks.forEach((checkbox) => {
           checkbox.checked = originalValue(checkbox);
+          delete checkbox.dataset.moduleDisabledValue;
+          delete checkbox.dataset.blockedByModule;
+          const cell = checkbox.closest("[data-access-user-type-cell]");
+          if (cell) delete cell.dataset.blockedByModule;
         });
         currentBulkAction = null;
         resetBulkPreview();
