@@ -3730,7 +3730,7 @@
             <p>Управление доступом к модулям и виджетам для разных типов пользователей.</p>
           </div>
           <form class="access-type-matrix" method="post" action="{{ overview.userTypeAccessMatrix.saveAction }}" data-access-type-matrix aria-label="Столбцы матрицы доступа: Заказчики, Поставщики, Строительные компании, Самостоятельные инженеры">
-            <section class="access-info-banner" aria-label="Правило матрицы доступов">
+            <section class="access-info-banner" data-testid="access-info-banner" aria-label="Правило матрицы доступов">
               <p>Строки — модули и виджеты. Столбцы — типы пользователей.<br>Если модуль не выбран, связанные виджеты недоступны.</p>
             </section>
             <input type="hidden" name="matrix_payload" data-access-matrix-payload value="{}">
@@ -3738,11 +3738,11 @@
               <div class="filter-row access-filter-row">
                 <label>
                   <span>Поиск по модулям и виджетам</span>
-                  <input type="search" placeholder="{{ overview.userTypeAccessMatrix.filters.searchPlaceholder }}" data-access-matrix-search>
+                  <input type="search" placeholder="{{ overview.userTypeAccessMatrix.filters.searchPlaceholder }}" data-access-matrix-search data-testid="access-search-input">
                 </label>
                 <label>
                   <span>Статус модуля</span>
-                  <select data-access-matrix-status>
+                  <select data-access-matrix-status data-testid="access-module-status-filter">
                     <option value="">Статус модуля: Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.statusOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
@@ -3751,17 +3751,17 @@
                 </label>
                 <label>
                   <span>Тип пользователя</span>
-                  <select data-access-matrix-user-type>
+                  <select data-access-matrix-user-type data-testid="access-user-type-filter">
                     <option value="">Тип пользователя: Все</option>
                     {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
                   </select>
                 </label>
-                <button class="btn" type="button" data-access-toggle-all>Развернуть все</button>
+                <button class="btn" type="button" data-access-toggle-all data-testid="access-expand-all-button">Развернуть все</button>
               </div>
             </div>
-            <section class="bulk-access-panel" aria-label="Массовое назначение доступа">
+            <section class="bulk-access-panel" data-testid="access-bulk-assignment-panel" aria-label="Массовое назначение доступа">
               <div class="bulk-access-panel-head">
                 <div>
                   <h4>Массовое назначение доступа</h4>
@@ -3771,7 +3771,7 @@
               <div class="bulk-access-controls">
                 <label>
                   <span>Тип пользователей</span>
-                  <select data-bulk-user-type>
+                  <select data-bulk-user-type data-testid="access-bulk-user-type-select">
                     <option value="">Все видимые типы</option>
                     {% for option in overview.userTypeAccessMatrix.filters.userTypeOptions %}
                     <option value="{{ option.value }}">{{ option.label }}</option>
@@ -3780,7 +3780,7 @@
                 </label>
                 <label>
                   <span>Что изменить</span>
-                  <select data-bulk-row-scope>
+                  <select data-bulk-row-scope data-testid="access-bulk-target-select">
                     <option value="ALL">Модули и виджеты</option>
                     <option value="MODULE">Только модули</option>
                     <option value="WIDGET">Только виджеты</option>
@@ -3788,13 +3788,13 @@
                 </label>
                 <label>
                   <span>Действие</span>
-                  <select data-bulk-action>
+                  <select data-bulk-action data-testid="access-bulk-action-select">
                     <option value="ALLOW">Открыть доступ</option>
                     <option value="DENY">Закрыть доступ</option>
                   </select>
                 </label>
-                <button class="btn bulk-access-preview-btn" type="button" data-bulk-preview>Предпросмотр</button>
-                <button class="btn bulk-access-apply-btn" type="button" data-bulk-apply disabled>Применить к матрице</button>
+                <button class="btn bulk-access-preview-btn" type="button" data-bulk-preview data-testid="access-bulk-preview-button">Предпросмотр</button>
+                <button class="btn bulk-access-apply-btn" type="button" data-bulk-apply data-testid="access-bulk-apply-button" disabled>Применить к матрице</button>
               </div>
               <div class="bulk-access-status" data-bulk-status></div>
             </section>
@@ -3849,7 +3849,8 @@
                         <input
                           type="checkbox"
                           data-access-matrix-checkbox
-                          data-testid="{% if row.type == 'MODULE' %}access-module-checkbox{% else %}access-widget-checkbox{% endif %}"
+                          data-testid="access-checkbox"
+                          data-access-checkbox-kind="{% if row.type == 'MODULE' %}access-module-checkbox{% else %}access-widget-checkbox{% endif %}"
                           data-row-id="{{ row.id }}"
                           data-row-type="{{ row.type }}"
                           data-module-code="{{ row.moduleCode }}"
@@ -3872,10 +3873,10 @@
             </div>
             <div class="matrix-savebar" aria-label="Состояния сохранения: изменения не сохранены; есть несохраненные изменения; сохранение; ошибка сохранения; изменения сохранены">
               <div class="toolbar">
-                <button class="btn" type="submit" data-access-save disabled>Сохранить изменения</button>
-                <button class="btn" type="button" data-access-reset disabled>Сбросить</button>
+                <button class="btn" type="submit" data-access-save data-testid="access-save-button" disabled>Сохранить изменения</button>
+                <button class="btn" type="button" data-access-reset data-testid="access-reset-button" disabled>Сбросить</button>
               </div>
-              <div class="matrix-save-status" data-access-save-status data-state="clean">Изменения не сохранены</div>
+              <div class="matrix-save-status" data-access-save-status data-testid="access-dirty-status" data-state="clean">Изменения не сохранены</div>
             </div>
           </form>
         </div>

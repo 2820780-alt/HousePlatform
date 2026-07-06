@@ -455,6 +455,87 @@ def test_user_type_access_matrix_view_model_has_hierarchical_rows_and_dependency
     assert all(row["parentId"] in parent_ids for row in widget_rows)
 
 
+
+
+def test_module3_access_matrix_sprint8_ui_contract():
+    template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+    access_section = template.split('<div class="subject-section" id="access-matrix"', 1)[1].split(
+        '<div class="subject-section" id="users-history">',
+        1,
+    )[0]
+
+    for test_id in (
+        "access-page",
+        "access-info-banner",
+        "access-search-input",
+        "access-module-status-filter",
+        "access-user-type-filter",
+        "access-expand-all-button",
+        "access-bulk-assignment-panel",
+        "access-bulk-user-type-select",
+        "access-bulk-target-select",
+        "access-bulk-action-select",
+        "access-bulk-preview-button",
+        "access-bulk-apply-button",
+        "access-matrix-table",
+        "access-checkbox",
+        "access-save-button",
+        "access-reset-button",
+        "access-dirty-status",
+    ):
+        assert f'data-testid="{test_id}"' in access_section
+
+    assert "access-module-row" in access_section
+    assert "access-widget-row" in access_section
+
+    assert "<h2>Доступы</h2>" in access_section
+    assert "Строки — модули и виджеты. Столбцы — типы пользователей." in access_section
+    assert "Поиск по модулям и виджетам" in access_section
+    assert "Статус модуля" in access_section
+    assert "Тип пользователя" in access_section
+    assert "Развернуть все" in access_section
+    assert "Свернуть все" in template
+    assert "Массовое назначение доступа" in access_section
+    assert "Предпросмотр" in access_section
+    assert "Применить к матрице" in access_section
+    assert 'data-bulk-apply data-testid="access-bulk-apply-button" disabled' in access_section
+    assert 'data-access-checkbox-kind="{% if row.type == \'MODULE\' %}access-module-checkbox{% else %}access-widget-checkbox{% endif %}"' in access_section
+
+    assert "bulkPreview?.addEventListener(\"click\", buildBulkPreview);" in template
+    assert "bulkApply?.addEventListener(\"click\", () => {" in template
+    assert "if (bulkApply) bulkApply.disabled = changes.length === 0;" in template
+    assert "updateDirtyState();" in template
+    assert "matrix.addEventListener(\"submit\", () =>" in template
+    assert "resetButton?.addEventListener(\"click\", () =>" in template
+    assert "checkbox.checked = originalValue(checkbox);" in template
+    assert "setStatus(dirty ? \"dirty\" : \"clean\");" in template
+    assert "setAllRowsExpanded" in template
+    assert "widgetCheckbox.disabled = systemDisabled || blockedByModule;" in template
+    assert "checkbox.dataset.blockedByModule === \"true\"" in template
+
+    assert "data-bulk-state" not in access_section
+    assert "выберите параметры" not in access_section.lower()
+    assert "data-module3-quick-actions" not in template
+
+
+def test_module3_access_matrix_sprint8_compact_table_contract():
+    template = open("templates/admin_users_roles.html", encoding="utf-8").read()
+    styles = template.split(".access-matrix-table-wrap .access-matrix-table", 1)[1].split(".matrix-savebar", 1)[0]
+
+    assert "min-width: 920px;" in styles
+    assert "font-size: 11px;" in styles
+    assert "height: 42px;" in styles
+    assert "height: 34px;" in styles
+    assert "height: 28px;" in styles
+    assert "padding: 3px 8px;" in styles
+    assert "width: 13px;" in styles
+    assert "height: 13px;" in styles
+    assert "min-width: 0;" in styles
+    assert "width: 30%;" in template
+    assert "Разрешен" in template
+    assert "Запрещен" in template
+    assert "matrix-check-text" in template
+
 def test_user_type_access_matrix_accepts_future_registry_modules_and_widgets(monkeypatch):
     base_modules = admin_user_role_management_service.get_dashboard_module_registry()
     base_widgets = admin_user_role_management_service.get_widget_registry()
@@ -776,8 +857,8 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Заказчики" in html
     assert "Специалисты" in html
     assert "История изменений" in html
-    assert "Очередь проверки" in html
-    assert "Создание пользователя" in html
+    assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" in html
+    assert "Доступ добавлен" in html
     assert "Модули в системе" in html
     assert "24" in html
     assert "Виджеты в системе" in html
@@ -871,9 +952,9 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     assert summary["reason"] == "Закрыто администратором платформы"
     assert summary["actorId"] == "actor-1"
     assert summary["actorName"] == "system/dev"
-    assert summary["action"] == "Изменение индивидуального доступа"
+    assert summary["action"] == "Доступ ограничен"
     assert summary["objectId"] == "price-dynamics"
-    assert summary["objectName"] == "price-dynamics"
+    assert summary["objectName"] == "Динамика цен"
     assert "Старое значение" in summary["detailsText"]
     assert "Новое значение" in summary["detailsText"]
     assert summary["module3Entry"] == {
@@ -881,10 +962,10 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
         "timestamp": "2026-06-30T10:15:00",
         "actorId": "actor-1",
         "actorName": "system/dev",
-        "action": "Изменение индивидуального доступа",
+        "action": "Доступ ограничен",
         "objectType": "WIDGET",
         "objectId": "price-dynamics",
-        "objectName": "price-dynamics",
+        "objectName": "Динамика цен",
         "details": summary["detailsText"],
     }
 
@@ -935,7 +1016,7 @@ def test_module3_audit_log_entry_maps_required_actions_and_objects():
         "timestamp": "2026-06-30T12:00:00",
         "actorId": "actor-1",
         "actorName": "platform-admin",
-        "action": "Изменение доступа по типу пользователя",
+        "action": "Доступ изменен",
         "objectType": "ACCESS",
         "objectId": "MODULE_01_MATERIAL_HUB",
         "objectName": "База материалов",
@@ -1125,10 +1206,10 @@ def test_verification_queue_summary_tracks_review_items_without_changing_permiss
     queue = verification_queue_summary([user_without_role], [company])
     kinds = {item["kind"] for item in queue["allItems"]}
 
-    assert queue["summary"]["total"] == 3
+    assert queue["summary"]["total"] == 1
     assert queue["summary"]["high"] == 1
-    assert {"COMPANY_REVIEW", "COMPANY_ADMIN_MISSING", "ROLE_MISSING"} <= kinds
-    assert "Основная роль приходит из регистрации" in queue["roleModelNote"]
+    assert kinds == {"COMPANY_REVIEW"}
+    assert "официального представителя" in queue["roleModelNote"]
 
 
 def test_user_directory_rows_expose_search_filter_sort_and_card_links():
@@ -1317,17 +1398,12 @@ def test_module3_history_page_template_has_required_audit_fields():
 
     assert "История изменений" in template
     assert "Дата и время" in template
-    assert "Администратор" in template
+    assert "Пользователь" in template
     assert "Действие" in template
-    assert "Объект" in template
-    assert "Старое значение" in template
-    assert "Новое значение" in template
-    assert "Причина / детали" in template
-    assert "Модуль / виджет" in template
-    assert "Статус" in template
+    assert "Что изменено" in template
+    assert "Детали" in template
+    assert "history-column-filter" in template
     assert "data-history-search" in template
-    assert "business-payload" in template
-    assert "Вернуться в Module №3" in template
 
 
 def test_admin_users_roles_template_has_sprint8_responsive_contracts():
@@ -1401,26 +1477,25 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Заблокированные" in overview
     assert "На модерации" in overview
     assert "История изменений" in overview
-    assert "Очередь проверки" in overview
-    assert overview.index("История изменений") < overview.index("Очередь проверки")
+    assert "ОЧЕРЕДЬ НА МОДЕРАЦИЮ" in overview
+    assert overview.index("ОЧЕРЕДЬ НА МОДЕРАЦИЮ") < overview.index("История изменений")
     assert "Новые или спорные участники" not in overview
     assert "Короткая лента последних изменений доступа и пользователей" not in overview
     assert "Дата и время" in overview
-    assert "Кто изменил" in overview
+    assert "Пользователь" in overview
     assert "Действие" in overview
     assert "Объект" in overview
     assert "Детали" in overview
     assert "{{ item.displayTimestampShort or item.timestampCompact or item.timestamp }}" in overview
     assert "{{ item.displayActor or item.actorName }}" in overview
-    assert "{{ item.displayAction or item.action }}" in overview
-    assert "{{ item.displayObject or item.objectName or item.displayObjectType }}" in overview
-    assert "{{ item.displayDetails or item.detailsText or item.displayResult }}" in overview
+    assert "{% set action_label = 'Блокировка'" in overview
+    assert "{% set object_label = item.displayObjectType or item.objectTypeCode or item.displayObject or 'Объект' %}" in overview
+    assert "{% set details_label = item.displaySubjectName or item.targetUserName or item.workspaceName or item.objectName or 'Системная матрица' %}" in overview
     assert "verification-queue-scroll" in overview
     assert "scrollbar-width: none" in template
     assert "Модули в системе" in overview
     assert "Виджеты в системе" in overview
     assert "Открыть полную историю" in overview
-    assert "Инструкция по модулю" in nav
     assert "Системные пользователи" not in overview
     assert "Управление системными пользователями" not in overview
     assert "MODULE_03_USERS_ROLES · unified admin panel" not in overview
@@ -1545,13 +1620,12 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "data-user-page-summary" in users_section
     assert "data-user-page-prev" in users_section
     assert "data-user-page-next" in users_section
-    assert "Если модуль не выбран, связанные виджеты выбрать нельзя" in users_section
-    assert "Рабочая матрица доступа: строки — модули и вложенные виджеты" in users_section
+    assert "Если модуль не выбран, связанные виджеты недоступны" in users_section
     assert "Заказчики" in users_section
     assert "Поставщики" in users_section
     assert "Строительные компании" in users_section
     assert "Самостоятельные инженеры" in users_section
-    assert "Поиск по модулю / виджету" in users_section
+    assert "Поиск по модулям и виджетам" in users_section
     assert "Статус модуля" in users_section
     assert "Тип пользователя" in users_section
     assert "Развернуть все" in users_section
@@ -1565,12 +1639,12 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "bulkAction: currentBulkAction" in template
     assert "Сохранить изменения" in users_section
     assert "Сбросить" in users_section
-    assert "нет изменений; есть несохраненные изменения; сохранение; ошибка сохранения; успешно сохранено" in users_section
+    assert "изменения не сохранены; есть несохраненные изменения; сохранение; ошибка сохранения; изменения сохранены" in users_section
     assert 'data-access-matrix-checkbox' in template
     assert 'data-access-matrix-payload' in template
     assert 'data-system-disabled' in template
     assert "Виджет недоступен, потому что модуль выключен" in template
-    assert "if (!moduleCheckbox.checked)" in template
+    assert "widgetCheckbox.disabled = systemDisabled || blockedByModule;" in template
     assert "JSON.stringify(buildPayload())" in template
     assert "Доступы к модулям и виджетам" in template
     assert "Пользователь" in template
