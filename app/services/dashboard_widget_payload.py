@@ -310,3 +310,187 @@ def _item_status_from_tone(tone: str | None) -> str | None:
 
 def _attention_severity_from_tone(tone: str | None) -> str:
     return "error" if tone == "danger" else "attention"
+MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
+    "MODULE_03_USERS_SUMMARY_WIDGET",
+    "MODULE_03_MODERATION_QUEUE_WIDGET",
+    "MODULE_03_AUDIT_LOG_WIDGET",
+    "MODULE_03_MODULES_STATUS_WIDGET",
+    "MODULE_03_WIDGETS_STATUS_WIDGET",
+)
+
+
+def build_module3_dashboard_widget_payloads(
+    *,
+    users: list[Any] | None = None,
+    workspaces: list[Any] | None = None,
+    history: list[Any] | None = None,
+    updated_at: str | datetime | None = None,
+) -> list[dict[str, Any]]:
+    return [
+        build_module3_dashboard_widget_payload(
+            widget_code=widget_code,
+            users=users,
+            workspaces=workspaces,
+            history=history,
+            updated_at=updated_at,
+        )
+        for widget_code in MODULE_03_DASHBOARD_WIDGET_CODES
+    ]
+
+
+def build_module3_dashboard_widget_payload(
+    *,
+    widget_code: str,
+    users: list[Any] | None = None,
+    workspaces: list[Any] | None = None,
+    history: list[Any] | None = None,
+    updated_at: str | datetime | None = None,
+) -> dict[str, Any]:
+    users_list = list(users or [])
+    workspaces_list = list(workspaces or [])
+    history_list = list(history or [])
+    if widget_code == "MODULE_03_USERS_SUMMARY_WIDGET":
+        return _module3_users_summary_payload(users_list, workspaces_list, updated_at=updated_at)
+    if widget_code == "MODULE_03_MODERATION_QUEUE_WIDGET":
+        return _module3_moderation_queue_payload(users_list, workspaces_list, updated_at=updated_at)
+    if widget_code == "MODULE_03_AUDIT_LOG_WIDGET":
+        return _module3_audit_log_payload(history_list, users_list, workspaces_list, updated_at=updated_at)
+    if widget_code == "MODULE_03_MODULES_STATUS_WIDGET":
+        return _module3_modules_status_payload(updated_at=updated_at)
+    if widget_code == "MODULE_03_WIDGETS_STATUS_WIDGET":
+        return _module3_widgets_status_payload(updated_at=updated_at)
+    return build_atom_widget_payload(
+        widget_code=widget_code,
+        source_module_code="MODULE_03_USERS_ROLES",
+        title=widget_code,
+        status="disabled",
+        subtitle="Unknown Module 3 widget code.",
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_users_summary_payload(users: list[Any], workspaces: list[Any], *, updated_at: str | datetime | None) -> dict[str, Any]:
+    from app.services.admin_user_role_management import user_directory_rows, user_directory_summary_chips
+
+    rows = user_directory_rows(users, workspaces)
+    chips = {item["typeCode"]: item["count"] for item in user_directory_summary_chips(rows)}
+    active_count = len([row for row in rows if str(row.get("status") or "").lower() in {"active", "approved"}])
+    blocked_count = len([row for row in rows if row.get("blocking") == "blocked"])
+    invited_count = len([row for row in rows if str(row.get("status") or "").lower() in {"invited", "pending"}])
+    return build_atom_widget_payload(
+        widget_code="MODULE_03_USERS_SUMMARY_WIDGET",
+        source_module_code="MODULE_03_USERS_ROLES",
+        feature_code="MODULE_03_USERS_SUMMARY",
+        title="\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438",
+        status="ok" if rows else "info",
+        primary_value=chips.get("ALL", 0),
+        primary_label="\u0412\u0441\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439",
+        items=[
+            {"label": "\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u0438", "value": chips.get("COMPANY", 0), "status": "info"},
+            {"label": "\u041f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0438", "value": chips.get("SUPPLIER", 0), "status": "info"},
+            {"label": "\u0417\u0430\u043a\u0430\u0437\u0447\u0438\u043a\u0438", "value": chips.get("CUSTOMER", 0), "status": "info"},
+            {"label": "\u0421\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u044b", "value": chips.get("SPECIALIST", 0), "status": "info"},
+            {"label": "\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435", "value": active_count, "status": "ok"},
+            {"label": "\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0435", "value": blocked_count, "status": "error"},
+            {"label": "\u041f\u0440\u0438\u0433\u043b\u0430\u0448\u0435\u043d\u043d\u044b\u0435", "value": invited_count, "status": "attention"},
+        ],
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_moderation_queue_payload(users: list[Any], workspaces: list[Any], *, updated_at: str | datetime | None) -> dict[str, Any]:
+    from app.services.admin_user_role_management import verification_queue_summary
+
+    queue = verification_queue_summary(users, workspaces)
+    items = list(queue.get("allItems") or [])
+    companies_count = len([item for item in items if str(item.get("companyType") or "").upper() not in {"SUPPLIER", "MATERIAL_SUPPLIER"}])
+    suppliers_count = len([item for item in items if str(item.get("companyType") or "").upper() in {"SUPPLIER", "MATERIAL_SUPPLIER"}])
+    deferred_count = len([item for item in items if str(item.get("priority") or "").lower() == "low"])
+    total = int(queue.get("summary", {}).get("total") or 0)
+    return build_atom_widget_payload(
+        widget_code="MODULE_03_MODERATION_QUEUE_WIDGET",
+        source_module_code="MODULE_03_USERS_ROLES",
+        feature_code="MODULE_03_MODERATION_QUEUE",
+        title="\u041e\u0447\u0435\u0440\u0435\u0434\u044c \u043d\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044e",
+        status="attention" if total else "ok",
+        severity="medium" if total else None,
+        primary_value=total,
+        primary_label="\u041e\u0436\u0438\u0434\u0430\u044e\u0442 \u0440\u0435\u0448\u0435\u043d\u0438\u044f" if total else "\u041d\u0435\u0442 \u0437\u0430\u044f\u0432\u043e\u043a",
+        items=[
+            {"label": "\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u0438", "value": companies_count, "status": "info"},
+            {"label": "\u041f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0438", "value": suppliers_count, "status": "info"},
+            {"label": "\u041e\u0442\u043b\u043e\u0436\u0435\u043d\u043d\u044b\u0435", "value": deferred_count, "status": "attention"},
+        ],
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_audit_log_payload(history: list[Any], users: list[Any], workspaces: list[Any], *, updated_at: str | datetime | None) -> dict[str, Any]:
+    from app.services.admin_user_role_management import audit_panel_summary
+
+    audit = audit_panel_summary(history, users=users, workspaces=workspaces)
+    rows = list(audit.get("rows") or [])
+    total = int(audit.get("summary", {}).get("total") or 0)
+    latest_items = [
+        {
+            "label": str(row.get("action") or row.get("actionType") or ""),
+            "value": str(row.get("objectName") or row.get("subjectLabel") or row.get("objectId") or ""),
+            "status": "ok" if str(row.get("result") or "SUCCESS").upper() == "SUCCESS" else "error",
+        }
+        for row in rows[:2]
+    ]
+    return build_atom_widget_payload(
+        widget_code="MODULE_03_AUDIT_LOG_WIDGET",
+        source_module_code="MODULE_03_USERS_ROLES",
+        feature_code="MODULE_03_AUDIT_LOG",
+        title="\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        status="info" if total else "ok",
+        primary_value=total,
+        primary_label="\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        items=latest_items,
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_modules_status_payload(*, updated_at: str | datetime | None) -> dict[str, Any]:
+    from app.services.admin_user_role_management import module_registry_overview_summary
+
+    summary = module_registry_overview_summary()
+    return build_atom_widget_payload(
+        widget_code="MODULE_03_MODULES_STATUS_WIDGET",
+        source_module_code="MODULE_03_USERS_ROLES",
+        feature_code="MODULE_03_MODULES_STATUS",
+        title="\u041c\u043e\u0434\u0443\u043b\u0438 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+        status="info",
+        primary_value=summary.get("total", 0),
+        primary_label="\u0412\u0441\u0435\u0433\u043e \u043c\u043e\u0434\u0443\u043b\u0435\u0439",
+        items=_module3_registry_status_items(summary),
+        mini_chart={"type": "donut", "points": [summary.get("active", 0), summary.get("inDevelopment", 0), summary.get("archived", 0)]},
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_widgets_status_payload(*, updated_at: str | datetime | None) -> dict[str, Any]:
+    from app.services.admin_user_role_management import widget_registry_overview_summary
+
+    summary = widget_registry_overview_summary()
+    return build_atom_widget_payload(
+        widget_code="MODULE_03_WIDGETS_STATUS_WIDGET",
+        source_module_code="MODULE_03_USERS_ROLES",
+        feature_code="MODULE_03_WIDGETS_STATUS",
+        title="\u0412\u0438\u0434\u0436\u0435\u0442\u044b \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+        status="info",
+        primary_value=summary.get("total", 0),
+        primary_label="\u0412\u0441\u0435\u0433\u043e \u0432\u0438\u0434\u0436\u0435\u0442\u043e\u0432",
+        items=_module3_registry_status_items(summary),
+        mini_chart={"type": "donut", "points": [summary.get("active", 0), summary.get("inDevelopment", 0), summary.get("archived", 0)]},
+        updated_at=updated_at,
+    ).to_dict()
+
+
+def _module3_registry_status_items(summary: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {"label": "\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435", "value": summary.get("active", 0), "status": "ok"},
+        {"label": "\u0412 \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0435", "value": summary.get("inDevelopment", 0), "status": "info"},
+        {"label": "\u0410\u0440\u0445\u0438\u0432\u043d\u044b\u0435", "value": summary.get("archived", 0), "status": "attention"},
+    ]

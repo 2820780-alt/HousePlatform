@@ -137,3 +137,17 @@ def test_legacy_price_widget_uses_analytics_permission_and_feature():
     )
 
     assert can_view_widget(user, "price-dynamics", context)
+
+def test_module3_dashboard_widget_permission_uses_module_profile_layout_and_widget_codes():
+    user = _user(allowedWidgetCodes=["MODULE_03_USERS_SUMMARY_WIDGET"])
+    context = _context(
+        userDashboardLayout={"widgets": [{"widgetCode": "MODULE_03_USERS_SUMMARY_WIDGET", "isVisible": True}]}
+    )
+
+    assert can_view_widget(user, "MODULE_03_USERS_SUMMARY_WIDGET", context)
+    assert not can_view_widget(user, "MODULE_03_AUDIT_LOG_WIDGET", context)
+    assert not can_view_widget(
+        _user(roleCode="SUPPLIER", allowedWidgetCodes=["MODULE_03_USERS_SUMMARY_WIDGET"]),
+        "MODULE_03_USERS_SUMMARY_WIDGET",
+        _context(roleCode="SUPPLIER", userDashboardLayout={"widgets": [{"widgetCode": "MODULE_03_USERS_SUMMARY_WIDGET", "isVisible": True}]}),
+    )

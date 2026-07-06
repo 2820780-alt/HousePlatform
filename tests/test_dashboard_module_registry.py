@@ -279,3 +279,15 @@ def test_planned_modules_are_hidden_from_regular_user_preview():
     assert get_planned_dashboard_modules(regular_profile) == []
     assert get_visible_dashboard_modules(regular_profile) == []
     assert get_atom_map_modules(regular_profile) == []
+
+def test_module3_registry_owns_agreed_dashboard_widgets():
+    module3 = get_dashboard_module_registry_item("MODULE_03_USERS_ROLES")
+
+    assert module3 is not None
+    assert set(module3.moduleOwnedWidgets) == {
+        "MODULE_03_USERS_SUMMARY_WIDGET",
+        "MODULE_03_MODERATION_QUEUE_WIDGET",
+        "MODULE_03_AUDIT_LOG_WIDGET",
+        "MODULE_03_MODULES_STATUS_WIDGET",
+        "MODULE_03_WIDGETS_STATUS_WIDGET",
+    }

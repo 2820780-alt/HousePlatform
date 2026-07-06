@@ -139,3 +139,29 @@ def test_module3_dashboard_widget_registry_contract_has_no_settings_or_quick_act
         assert widget.mockDataProvider is None
         assert widget.payloadOwnerModuleCode == "MODULE_03_USERS_ROLES"
         assert widget.isBusinessLogicOwner is False
+
+def test_module3_dashboard_widgets_are_available_only_with_module_and_widget_access():
+    all_module3_codes = {
+        "MODULE_03_USERS_SUMMARY_WIDGET",
+        "MODULE_03_MODERATION_QUEUE_WIDGET",
+        "MODULE_03_AUDIT_LOG_WIDGET",
+        "MODULE_03_MODULES_STATUS_WIDGET",
+        "MODULE_03_WIDGETS_STATUS_WIDGET",
+    }
+    profile = {
+        "roleCode": "PLATFORM_ADMIN",
+        "authMode": "mock",
+        "allowedModuleCodes": ["MODULE_03_USERS_ROLES"],
+        "allowedWidgetCodes": sorted(all_module3_codes),
+    }
+
+    widget_codes = {widget["widgetCode"] for widget in get_available_dashboard_widgets(profile)}
+    assert all_module3_codes.issubset(widget_codes)
+
+    no_module_profile = {**profile, "allowedModuleCodes": []}
+    assert all_module3_codes.isdisjoint({widget["widgetCode"] for widget in get_available_dashboard_widgets(no_module_profile)})
+
+    one_widget_profile = {**profile, "allowedWidgetCodes": ["MODULE_03_USERS_SUMMARY_WIDGET"]}
+    one_widget_codes = {widget["widgetCode"] for widget in get_available_dashboard_widgets(one_widget_profile)}
+    assert "MODULE_03_USERS_SUMMARY_WIDGET" in one_widget_codes
+    assert "MODULE_03_AUDIT_LOG_WIDGET" not in one_widget_codes

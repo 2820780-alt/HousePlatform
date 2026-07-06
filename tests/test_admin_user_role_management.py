@@ -1953,3 +1953,25 @@ def test_module3_overview_dashboard_row_layout_contract():
     assert 'max-height: 182px;' in template
     assert 'overflow-y: auto;' in template
     assert 'scrollbar-width: none;' in template
+
+def test_module3_access_matrix_includes_module3_dashboard_widgets_under_module3():
+    matrix = user_type_access_matrix_view_model()
+    module_row = next(row for row in matrix["rows"] if row["type"] == "MODULE" and row["moduleCode"] == "MODULE_03_USERS_ROLES")
+    widget_rows = [row for row in matrix["rows"] if row["type"] == "WIDGET" and row["parentId"] == module_row["id"]]
+    widget_codes = {row["widgetCode"] for row in widget_rows}
+
+    assert widget_codes == {
+        "MODULE_03_USERS_SUMMARY_WIDGET",
+        "MODULE_03_MODERATION_QUEUE_WIDGET",
+        "MODULE_03_AUDIT_LOG_WIDGET",
+        "MODULE_03_MODULES_STATUS_WIDGET",
+        "MODULE_03_WIDGETS_STATUS_WIDGET",
+    }
+    assert all(row["moduleCode"] == "MODULE_03_USERS_ROLES" for row in widget_rows)
+    customer_module_cell = next(cell for cell in module_row["cells"] if cell["userTypeCode"] == "CUSTOMER")
+    customer_widget_cell = next(cell for cell in widget_rows[0]["cells"] if cell["userTypeCode"] == "CUSTOMER")
+
+    assert customer_module_cell["allowed"] is False
+    assert customer_widget_cell["disabled"] is True
+    assert customer_widget_cell["inheritedFromModule"] is True
+    assert customer_widget_cell["reason"] == "Виджет недоступен, потому что модуль выключен для этого типа пользователя."

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -14,6 +14,14 @@ DEFAULT_DASHBOARD_FEATURES: tuple[str, ...] = (
     "ATOM_MAP_VIEW",
 )
 
+
+MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
+    "MODULE_03_USERS_SUMMARY_WIDGET",
+    "MODULE_03_MODERATION_QUEUE_WIDGET",
+    "MODULE_03_AUDIT_LOG_WIDGET",
+    "MODULE_03_MODULES_STATUS_WIDGET",
+    "MODULE_03_WIDGETS_STATUS_WIDGET",
+)
 
 @dataclass(frozen=True)
 class RoleDashboardAccessProfileDefinition:
@@ -60,7 +68,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         roleCode="SUPER_ADMIN",
         allowedModuleCodes=_role_modules("SUPER_ADMIN"),
         allowedFeatureCodes=(*_role_features("SUPER_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
-        defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map"),
+        defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES),
         defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Owner-level profile for viewing and configuring the existing Dashboard shell.",
@@ -74,7 +82,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         roleCode="PLATFORM_ADMIN",
         allowedModuleCodes=_role_modules("PLATFORM_ADMIN"),
         allowedFeatureCodes=(*_role_features("PLATFORM_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
-        defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map"),
+        defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES),
         defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Platform administration profile without Super Admin ownership-level operations.",

@@ -99,3 +99,16 @@ def test_role_dashboard_access_profile_model_is_module03_preset_not_payload():
 
     assert profile.source_module_code == "MODULE_03_USERS_ROLES"
     assert not hasattr(profile, "business_payload")
+
+def test_admin_dashboard_profiles_include_module3_widgets_without_quick_actions():
+    profile = get_role_dashboard_access_profile("ADMIN")
+    module3_codes = {
+        "MODULE_03_USERS_SUMMARY_WIDGET",
+        "MODULE_03_MODERATION_QUEUE_WIDGET",
+        "MODULE_03_AUDIT_LOG_WIDGET",
+        "MODULE_03_MODULES_STATUS_WIDGET",
+        "MODULE_03_WIDGETS_STATUS_WIDGET",
+    }
+
+    assert module3_codes.issubset(set(profile["defaultWidgetCodes"]))
+    assert profile["defaultQuickActionCodes"] == []

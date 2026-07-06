@@ -15,6 +15,14 @@ PLANNED_STATUSES = {"planned", "draft"}
 HIDDEN_ACTIVE_STATUSES = {"disabled", "deprecated", "archived", "merged"}
 
 
+MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
+    "MODULE_03_USERS_SUMMARY_WIDGET",
+    "MODULE_03_MODERATION_QUEUE_WIDGET",
+    "MODULE_03_AUDIT_LOG_WIDGET",
+    "MODULE_03_MODULES_STATUS_WIDGET",
+    "MODULE_03_WIDGETS_STATUS_WIDGET",
+)
+
 @dataclass(frozen=True)
 class DashboardModuleRegistryItem:
     id: str
@@ -191,6 +199,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         icon="users",
         color="#38bdf8",
         is_system_critical=True,
+        module_owned_widgets=list(MODULE_03_DASHBOARD_WIDGET_CODES),
     ),
     _registry_item(
         "MODULE_04_WORKS_COSTS",
