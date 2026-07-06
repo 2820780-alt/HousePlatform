@@ -1858,13 +1858,13 @@
     }
     .access-matrix-table-wrap .access-matrix-table {
       width: 100%;
-      min-width: 980px;
+      min-width: 920px;
       border-collapse: separate;
       border-spacing: 0;
       table-layout: fixed;
       color: #dce8ff;
-      font-size: 12px;
-      line-height: 1.2;
+      font-size: 11px;
+      line-height: 1.15;
     }
     .access-matrix-table-wrap .access-matrix-table th,
     .access-matrix-table-wrap .access-matrix-table td {
@@ -1884,10 +1884,10 @@
     }
     .access-matrix-table-wrap .access-matrix-table thead th {
       position: relative;
-      height: 48px;
-      padding: 0 12px;
+      height: 42px;
+      padding: 0 10px;
       color: #cfe3ff;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
@@ -1895,11 +1895,11 @@
       background: linear-gradient(180deg, rgba(14, 39, 76, 0.68), rgba(7, 23, 52, 0.82));
     }
     .access-matrix-table-wrap .access-matrix-table tbody td {
-      padding: 5px 10px;
-      height: 32px;
+      padding: 3px 8px;
+      height: 28px;
     }
     .access-matrix-table-wrap .matrix-module-row td {
-      height: 40px;
+      height: 34px;
       background: linear-gradient(90deg, rgba(4, 31, 66, 0.68), rgba(5, 22, 49, 0.62));
       box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.045);
     }
@@ -1907,9 +1907,9 @@
       background: linear-gradient(90deg, rgba(3, 34, 70, 0.82), rgba(5, 23, 51, 0.72));
     }
     .access-matrix-table-wrap .matrix-widget-row td {
-      height: 32px;
-      padding-top: 4px;
-      padding-bottom: 4px;
+      height: 28px;
+      padding-top: 3px;
+      padding-bottom: 3px;
       background: rgba(8, 28, 55, 0.34);
     }
     .access-matrix-table-wrap .matrix-widget-row td:first-child {
@@ -1920,19 +1920,19 @@
       background-color: rgba(24, 215, 242, 0.045);
     }
     .access-matrix-table-wrap .access-module-title {
-      min-height: 20px;
+      min-height: 18px;
       overflow: hidden;
     }
     .access-matrix-table-wrap .matrix-module-copy,
     .access-matrix-table-wrap .matrix-widget-copy {
-      gap: 8px;
+      gap: 6px;
       max-width: 100%;
       overflow: hidden;
       white-space: nowrap;
     }
     .access-matrix-table-wrap .matrix-module-number {
       color: #eaf4ff;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
     }
@@ -1944,12 +1944,12 @@
     }
     .access-matrix-table-wrap .matrix-widget-title {
       color: #b9c8e8;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
     }
     .access-matrix-table-wrap .matrix-row-toggle {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-color: transparent;
       background: transparent;
       color: #2dd4ff;
@@ -1958,19 +1958,20 @@
       line-height: 1;
     }
     .access-matrix-table-wrap .matrix-tree-line {
-      width: 24px;
+      width: 22px;
       color: rgba(184, 200, 238, 0.48);
     }
     .access-matrix-table-wrap .matrix-check {
       display: inline-grid;
       place-items: center;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      min-width: 0;
+      height: 16px;
       margin: 0 auto;
     }
     .access-matrix-table-wrap .matrix-check input {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
       appearance: none;
       border: 1px solid rgba(119, 172, 255, 0.54);
       border-radius: 3px;
@@ -3800,7 +3801,7 @@
             <div class="table-wrap access-matrix-table-wrap">
               <table class="access-matrix-table" data-testid="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
                 <colgroup>
-                  <col style="width: 32%;">
+                  <col style="width: 30%;">
                   {% for column in overview.userTypeAccessMatrix.columns %}
                   <col>
                   {% endfor %}
