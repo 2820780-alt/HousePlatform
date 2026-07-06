@@ -1847,27 +1847,30 @@
       white-space: nowrap;
     }
     .access-matrix-table-wrap {
-      overflow: hidden;
-      border: 1px solid rgba(32, 144, 226, 0.28);
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 1px solid rgba(32, 144, 226, 0.24);
       border-radius: 8px;
       background:
-        linear-gradient(180deg, rgba(8, 29, 58, 0.82), rgba(4, 14, 34, 0.92)),
+        linear-gradient(180deg, rgba(8, 29, 58, 0.72), rgba(4, 14, 34, 0.9)),
         rgba(4, 14, 34, 0.94);
-      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.08);
+      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.06);
     }
     .access-matrix-table-wrap .access-matrix-table {
-      min-width: 1040px;
+      width: 100%;
+      min-width: 980px;
       border-collapse: separate;
       border-spacing: 0;
+      table-layout: fixed;
       color: #dce8ff;
       font-size: 12px;
-      line-height: 1.25;
+      line-height: 1.2;
     }
     .access-matrix-table-wrap .access-matrix-table th,
     .access-matrix-table-wrap .access-matrix-table td {
-      border-bottom: 1px solid rgba(119, 172, 255, 0.13);
-      border-left: 1px solid rgba(119, 172, 255, 0.12);
-      background: rgba(5, 18, 42, 0.42);
+      border-bottom: 1px solid rgba(119, 172, 255, 0.1);
+      border-left: 1px solid rgba(119, 172, 255, 0.09);
+      background: rgba(5, 18, 42, 0.3);
       vertical-align: middle;
     }
     .access-matrix-table-wrap .access-matrix-table th:first-child,
@@ -1880,38 +1883,41 @@
       text-align: center;
     }
     .access-matrix-table-wrap .access-matrix-table thead th {
-      height: 52px;
-      padding: 0 14px;
+      position: relative;
+      height: 48px;
+      padding: 0 12px;
       color: #cfe3ff;
       font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
-      background: linear-gradient(180deg, rgba(14, 39, 76, 0.82), rgba(7, 23, 52, 0.88));
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: linear-gradient(180deg, rgba(14, 39, 76, 0.68), rgba(7, 23, 52, 0.82));
     }
     .access-matrix-table-wrap .access-matrix-table tbody td {
-      padding: 7px 12px;
-      height: 34px;
+      padding: 5px 10px;
+      height: 32px;
     }
     .access-matrix-table-wrap .matrix-module-row td {
-      height: 38px;
-      background: linear-gradient(90deg, rgba(4, 31, 66, 0.82), rgba(5, 22, 49, 0.76));
-      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.06);
+      height: 40px;
+      background: linear-gradient(90deg, rgba(4, 31, 66, 0.68), rgba(5, 22, 49, 0.62));
+      box-shadow: inset 0 1px 0 rgba(24, 215, 242, 0.045);
     }
     .access-matrix-table-wrap .matrix-module-row td:first-child {
-      background: linear-gradient(90deg, rgba(3, 34, 70, 0.94), rgba(5, 23, 51, 0.82));
+      background: linear-gradient(90deg, rgba(3, 34, 70, 0.82), rgba(5, 23, 51, 0.72));
     }
     .access-matrix-table-wrap .matrix-widget-row td {
-      height: 30px;
-      padding-top: 5px;
-      padding-bottom: 5px;
-      background: rgba(8, 28, 55, 0.48);
+      height: 32px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      background: rgba(8, 28, 55, 0.34);
     }
     .access-matrix-table-wrap .matrix-widget-row td:first-child {
-      padding-left: 24px;
-      background: linear-gradient(90deg, rgba(8, 29, 56, 0.72), rgba(6, 20, 44, 0.66));
+      padding-left: 22px;
+      background: linear-gradient(90deg, rgba(8, 29, 56, 0.48), rgba(6, 20, 44, 0.54));
     }
     .access-matrix-table-wrap .access-matrix-table tbody tr:hover td {
-      background-color: rgba(24, 215, 242, 0.055);
+      background-color: rgba(24, 215, 242, 0.045);
     }
     .access-matrix-table-wrap .access-module-title {
       min-height: 20px;
@@ -1919,7 +1925,7 @@
     }
     .access-matrix-table-wrap .matrix-module-copy,
     .access-matrix-table-wrap .matrix-widget-copy {
-      gap: 10px;
+      gap: 8px;
       max-width: 100%;
       overflow: hidden;
       white-space: nowrap;
@@ -1942,16 +1948,25 @@
       font-weight: 500;
     }
     .access-matrix-table-wrap .matrix-row-toggle {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-color: transparent;
       background: transparent;
       color: #2dd4ff;
       box-shadow: none;
+      font-size: 14px;
+      line-height: 1;
     }
     .access-matrix-table-wrap .matrix-tree-line {
-      width: 26px;
-      color: rgba(184, 200, 238, 0.54);
+      width: 24px;
+      color: rgba(184, 200, 238, 0.48);
+    }
+    .access-matrix-table-wrap .matrix-check {
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      margin: 0 auto;
     }
     .access-matrix-table-wrap .matrix-check input {
       width: 14px;
@@ -1965,14 +1980,16 @@
     .access-matrix-table-wrap .matrix-check input:checked {
       border-color: #16bfff;
       background:
-        linear-gradient(135deg, transparent 0 42%, #061428 42% 58%, transparent 58%),
-        linear-gradient(45deg, transparent 0 42%, #061428 42% 58%, transparent 58%),
+        linear-gradient(135deg, transparent 0 42%, #e8f8ff 42% 58%, transparent 58%),
+        linear-gradient(45deg, transparent 0 42%, #e8f8ff 42% 58%, transparent 58%),
         #0ea5ff;
-      box-shadow: 0 0 8px rgba(14, 165, 255, 0.28);
+      box-shadow: 0 0 7px rgba(14, 165, 255, 0.22);
     }
     .access-matrix-table-wrap .matrix-check input:disabled {
-      border-color: rgba(92, 121, 158, 0.45);
-      background: rgba(25, 42, 68, 0.56);
+      opacity: 0.62;
+      cursor: not-allowed;
+      border-color: rgba(92, 121, 158, 0.5);
+      background: rgba(25, 42, 68, 0.46);
       box-shadow: none;
     }
     .matrix-savebar {
@@ -3749,7 +3766,6 @@
                   <h4>Массовое назначение доступа</h4>
                   <div class="muted">Изменяет видимые ячейки матрицы перед сохранением. Сначала сделайте предпросмотр, затем примените изменения и сохраните.</div>
                 </div>
-                <span class="chip warn" data-bulk-state>выберите параметры</span>
               </div>
               <div class="bulk-access-controls">
                 <label>
@@ -3779,10 +3795,16 @@
                 <button class="btn bulk-access-preview-btn" type="button" data-bulk-preview>Предпросмотр</button>
                 <button class="btn bulk-access-apply-btn" type="button" data-bulk-apply disabled>Применить к матрице</button>
               </div>
-              <div class="bulk-access-status" data-bulk-status>Выберите параметры и нажмите предпросмотр.</div>
+              <div class="bulk-access-status" data-bulk-status></div>
             </section>
             <div class="table-wrap access-matrix-table-wrap">
               <table class="access-matrix-table" data-testid="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
+                <colgroup>
+                  <col style="width: 32%;">
+                  {% for column in overview.userTypeAccessMatrix.columns %}
+                  <col>
+                  {% endfor %}
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Модули / виджеты</th>
@@ -5045,7 +5067,6 @@
       const bulkPreview = matrix.querySelector("[data-bulk-preview]");
       const bulkApply = matrix.querySelector("[data-bulk-apply]");
       const bulkStatus = matrix.querySelector("[data-bulk-status]");
-      const bulkState = matrix.querySelector("[data-bulk-state]");
       const toggleAll = matrix.querySelector("[data-access-toggle-all]");
       const saveButton = matrix.querySelector("[data-access-save]");
       const resetButton = matrix.querySelector("[data-access-reset]");
@@ -5054,12 +5075,6 @@
       const collapsed = new Set();
       let currentBulkAction = null;
       let lastBulkPreview = null;
-
-      const setBulkState = (label, tone = "warn") => {
-        if (!bulkState) return;
-        bulkState.textContent = label;
-        bulkState.className = `chip ${tone}`;
-      };
 
       const originalValue = (checkbox) => checkbox.dataset.original === "true";
       const isDirty = () => checks.some((checkbox) => checkbox.checked !== originalValue(checkbox));
@@ -5184,15 +5199,13 @@
             ? `${actionLabel}: модули ${moduleChangeCount}, виджеты ${widgetChangeCount}; типы: ${userTypeLabel}; область: ${scopeLabel}. Примените к матрице и сохраните.`
             : `Изменений нет: выбранные ${targets.length} ячеек уже соответствуют действию.`;
         }
-        setBulkState(changes.length ? "предпросмотр готов" : "нет изменений", changes.length ? "ok" : "warn");
         if (bulkApply) bulkApply.disabled = changes.length === 0;
       };
 
       const resetBulkPreview = () => {
         lastBulkPreview = null;
         if (bulkApply) bulkApply.disabled = true;
-        if (bulkStatus) bulkStatus.textContent = "Выберите параметры и нажмите предпросмотр.";
-        setBulkState("выберите параметры", "warn");
+        if (bulkStatus) bulkStatus.textContent = "";
       };
 
       const applyFilters = () => {
@@ -5316,7 +5329,6 @@
         updateDirtyState();
         if (bulkStatus && lastBulkPreview) {
           bulkStatus.textContent = `${lastBulkPreview.actionLabel}: применено к матрице. Проверьте изменения и сохраните.`;
-          setBulkState("требует сохранения", "warn");
         }
         if (bulkApply) bulkApply.disabled = true;
       });
@@ -5397,6 +5409,7 @@
       };
 
       initResizableColumns(document.querySelector(".overview-history-entity-table"), "module3-overview-history-widths");
+      initResizableColumns(document.querySelector(".access-matrix-table"), "module3-access-matrix-widths");
     })();
   </script>
 </body>
