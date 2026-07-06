@@ -3706,7 +3706,7 @@
           {% endif %}
         </div>
 
-        <div class="subject-section" id="access-matrix">
+        <div class="subject-section" id="access-matrix" data-testid="access-page">
           <div class="access-page-head">
             <h2>Доступы</h2>
             <p>Управление доступом к модулям и виджетам для разных типов пользователей.</p>
@@ -3782,19 +3782,19 @@
               <div class="bulk-access-status" data-bulk-status>Выберите параметры и нажмите предпросмотр.</div>
             </section>
             <div class="table-wrap access-matrix-table-wrap">
-              <table class="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
+              <table class="access-matrix-table" data-testid="access-matrix-table" aria-label="Матрица доступов: строки модули и виджеты, столбцы типы пользователей. Виджет недоступен, потому что модуль выключен для этого типа пользователя.">
                 <thead>
                   <tr>
                     <th>Модули / виджеты</th>
                     {% for column in overview.userTypeAccessMatrix.columns %}
-                    <th data-access-user-type-header="{{ column.userTypeCode }}" title="{{ column.sourceRoleCode }}">{{ column.label }}</th>
+                    <th data-access-user-type-header="{{ column.userTypeCode }}" data-testid="access-user-type-column" title="{{ column.sourceRoleCode }}">{{ column.label }}</th>
                     {% endfor %}
                   </tr>
                 </thead>
                 <tbody>
                   {% for row in overview.userTypeAccessMatrix.rows %}
                   <tr
-                    class="{% if row.type == 'MODULE' %}matrix-module-row{% else %}matrix-widget-row{% endif %}"
+                    class="{% if row.type == 'MODULE' %}matrix-module-row{% else %}matrix-widget-row{% endif %}" data-testid="{% if row.type == 'MODULE' %}access-module-row{% else %}access-widget-row{% endif %}"
                     data-access-row
                     data-row-id="{{ row.id }}"
                     data-row-type="{{ row.type }}"
@@ -3810,12 +3810,12 @@
                         <button class="icon-btn matrix-row-toggle" type="button" data-row-toggle="{{ row.id }}" aria-label="Свернуть или развернуть виджеты модуля">⌄</button>
                         <div class="matrix-module-copy">
                           <span class="matrix-module-number">Модуль №{{ row.moduleNumber or '—' }}</span>
-                          <strong class="matrix-module-name">{{ row.title }}</strong>
+                          <strong class="matrix-module-name" data-testid="access-module-title">{{ row.title }}</strong>
                         </div>
                         {% else %}
                         <span class="matrix-tree-line" aria-hidden="true">└──</span>
                         <div class="matrix-widget-copy">
-                          <strong class="matrix-widget-title">Виджет: {{ row.title }}</strong>
+                          <strong class="matrix-widget-title" data-testid="access-widget-title">Виджет: {{ row.title }}</strong>
                         </div>
                         {% endif %}
                       </div>
@@ -3826,6 +3826,7 @@
                         <input
                           type="checkbox"
                           data-access-matrix-checkbox
+                          data-testid="{% if row.type == 'MODULE' %}access-module-checkbox{% else %}access-widget-checkbox{% endif %}"
                           data-row-id="{{ row.id }}"
                           data-row-type="{{ row.type }}"
                           data-module-code="{{ row.moduleCode }}"

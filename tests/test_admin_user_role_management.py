@@ -14,6 +14,7 @@ from app.database import async_session_factory
 from app.models import AuditLog, FunctionAccess, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
 from app.models.enums import UserRole, UserStatus
 from app.services.audit_log_service import AuditLogType, MOCK_AUDIT_EVENTS, clear_mock_audit_events
+import app.services.admin_user_role_management as admin_user_role_management_service
 from app.services.admin_user_role_management import (
     ACCESS_DENY_REASONS,
     ACCESS_REASON_CATEGORIES,
@@ -453,6 +454,91 @@ def test_user_type_access_matrix_view_model_has_hierarchical_rows_and_dependency
     assert "quick-actions" not in widget_codes
     assert all(row["parentId"] in parent_ids for row in widget_rows)
 
+
+def test_user_type_access_matrix_accepts_future_registry_modules_and_widgets(monkeypatch):
+    base_modules = admin_user_role_management_service.get_dashboard_module_registry()
+    base_widgets = admin_user_role_management_service.get_widget_registry()
+    future_module = {
+        "id": "module-31-field-control",
+        "moduleCode": "MODULE_31_FIELD_CONTROL",
+        "canonicalModuleCode": "MODULE_31_FIELD_CONTROL",
+        "title": "Полевой контроль",
+        "shortTitle": "Полевой контроль",
+        "displayOrder": 310,
+        "status": "active",
+        "isSystem": True,
+        "isVisibleInSidebar": True,
+        "isVisibleOnAtomMap": True,
+        "isAvailableForDashboard": True,
+        "isSystemCritical": False,
+        "displayNumber": 31,
+        "visualNumber": 31,
+        "legacyNumber": 31,
+    }
+    archived_module = {
+        **future_module,
+        "id": "module-32-archived",
+        "moduleCode": "MODULE_32_ARCHIVED",
+        "canonicalModuleCode": "MODULE_32_ARCHIVED",
+        "status": "archived",
+        "displayNumber": 32,
+        "visualNumber": 32,
+        "legacyNumber": 32,
+    }
+    future_widget = {
+        "id": "field-control-kpi",
+        "widgetCode": "field-control-kpi",
+        "title": "Полевой KPI",
+        "sourceModuleCode": "MODULE_31_FIELD_CONTROL",
+        "canonicalModuleCode": "MODULE_31_FIELD_CONTROL",
+        "widgetType": "KPI",
+        "defaultSize": "small",
+        "status": "ACTIVE",
+        "isSystem": True,
+        "isDashboardEligible": True,
+        "order": 5,
+    }
+    orphan_widget = {
+        **future_widget,
+        "id": "orphan-widget",
+        "widgetCode": "orphan-widget",
+        "title": "Без модуля",
+        "sourceModuleCode": "MODULE_404_UNKNOWN",
+        "canonicalModuleCode": "MODULE_404_UNKNOWN",
+    }
+    planned_widget = {
+        **future_widget,
+        "id": "field-control-planned",
+        "widgetCode": "field-control-planned",
+        "title": "Плановый виджет",
+        "status": "PLANNED",
+    }
+
+    monkeypatch.setattr(
+        admin_user_role_management_service,
+        "get_dashboard_module_registry",
+        lambda: [*base_modules, future_module, archived_module],
+    )
+    monkeypatch.setattr(
+        admin_user_role_management_service,
+        "get_widget_registry",
+        lambda: [*base_widgets, future_widget, orphan_widget, planned_widget],
+    )
+
+    matrix = admin_user_role_management_service.user_type_access_matrix_view_model()
+    module_rows = [row for row in matrix["rows"] if row["type"] == "MODULE"]
+    widget_rows = [row for row in matrix["rows"] if row["type"] == "WIDGET"]
+    module_codes = {row["moduleCode"] for row in module_rows}
+    widget_codes = {row["widgetCode"] for row in widget_rows}
+    future_module_row = next(row for row in module_rows if row["moduleCode"] == "MODULE_31_FIELD_CONTROL")
+    future_widget_row = next(row for row in widget_rows if row["widgetCode"] == "field-control-kpi")
+
+    assert "MODULE_31_FIELD_CONTROL" in module_codes
+    assert "MODULE_32_ARCHIVED" not in module_codes
+    assert future_module_row["title"] == "Полевой контроль"
+    assert future_widget_row["parentId"] == future_module_row["id"]
+    assert "orphan-widget" not in widget_codes
+    assert "field-control-planned" not in widget_codes
 
 @pytest.mark.asyncio
 async def test_saving_user_type_access_matrix_writes_history_without_replacing_permissions():

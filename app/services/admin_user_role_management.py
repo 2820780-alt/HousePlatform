@@ -4230,11 +4230,11 @@ def user_type_access_matrix_view_model() -> dict[str, Any]:
         column["userTypeCode"]: get_role_dashboard_access_profile(column["sourceRoleCode"]) or {}
         for column in columns
     }
-    widgets_by_module = _matrix_widgets_by_module()
     rows: list[dict[str, Any]] = []
     cells: list[dict[str, Any]] = []
     order = 0
 
+    visible_modules: list[tuple[str, dict[str, Any]]] = []
     seen_module_codes: set[str] = set()
     for module in get_dashboard_module_registry():
         module_code = module["canonicalModuleCode"] or module["moduleCode"]
@@ -4243,6 +4243,11 @@ def user_type_access_matrix_view_model() -> dict[str, Any]:
         if not _is_user_type_access_matrix_module(module):
             continue
         seen_module_codes.add(module_code)
+        visible_modules.append((module_code, module))
+
+    widgets_by_module = _matrix_widgets_by_module(seen_module_codes)
+
+    for module_code, module in visible_modules:
         order += 10
         module_row_id = f"module:{module_code}"
         module_row = {
@@ -4357,22 +4362,20 @@ def _is_user_type_access_matrix_module(module: dict[str, Any]) -> bool:
     return True
 
 
-def _is_user_type_access_matrix_widget(widget: dict[str, Any]) -> bool:
+def _is_user_type_access_matrix_widget(widget: dict[str, Any], visible_module_codes: set[str]) -> bool:
     status = _status_value(widget.get("status"))
     if status not in ACCESS_MATRIX_VISIBLE_WIDGET_STATUSES:
         return False
     if not widget.get("isDashboardEligible", True):
         return False
     module_code = _canonical_module_code_value(widget.get("canonicalModuleCode") or widget.get("sourceModuleCode"))
-    if not module_code:
-        return False
-    module = get_dashboard_module_registry_item(module_code)
-    return bool(module and _is_user_type_access_matrix_module(module.to_dict()))
+    return bool(module_code and module_code in visible_module_codes)
 
-def _matrix_widgets_by_module() -> dict[str, list[dict[str, Any]]]:
+
+def _matrix_widgets_by_module(visible_module_codes: set[str]) -> dict[str, list[dict[str, Any]]]:
     widgets_by_module: dict[str, list[dict[str, Any]]] = {}
     for widget in get_widget_registry():
-        if not _is_user_type_access_matrix_widget(widget):
+        if not _is_user_type_access_matrix_widget(widget, visible_module_codes):
             continue
         module_code = _canonical_module_code_value(widget.get("canonicalModuleCode") or widget.get("sourceModuleCode"))
         if not module_code:
@@ -4381,7 +4384,6 @@ def _matrix_widgets_by_module() -> dict[str, list[dict[str, Any]]]:
     for widgets in widgets_by_module.values():
         widgets.sort(key=lambda item: (int(item.get("order") or 0), item.get("title") or item.get("widgetCode") or ""))
     return widgets_by_module
-
 
 def _user_type_module_access_cell(
     row_id: str,
