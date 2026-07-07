@@ -641,6 +641,48 @@
       border-style: dashed;
     }
     .widget-card strong { display: block; margin-bottom: 5px; }
+    .widget-card-heading {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 10px;
+      min-width: 0;
+    }
+    .widget-card-heading-copy {
+      min-width: 0;
+    }
+    .widget-card-heading-copy strong {
+      margin: 0 0 4px;
+      color: #f4f8ff;
+      font-size: 14px;
+      line-height: 1.22;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .widget-card-heading-copy p {
+      margin: 0;
+      color: #9fb3d4;
+      font-size: 12px;
+      line-height: 1.32;
+    }
+    .widget-owner-pill {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      margin-top: 7px;
+      padding: 3px 7px;
+      border: 1px solid color-mix(in srgb, var(--module-accent, var(--cyan)) 34%, transparent);
+      border-radius: 999px;
+      color: color-mix(in srgb, var(--module-accent, var(--cyan)) 74%, white 14%);
+      background: color-mix(in srgb, var(--module-accent, var(--cyan)) 10%, transparent);
+      font-size: 11px;
+      line-height: 1.15;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .settings-details {
       margin-top: 12px;
       border-top: 1px solid rgba(119, 172, 255, 0.16);
@@ -2056,7 +2098,7 @@
         </div>
         <details class="settings-details" open>
           <summary>Виджеты</summary>
-          <p class="event-note">Виджеты сгруппированы по модулю-источнику. Данные, фильтры и варианты отображения отдает модуль, Dashboard только выбирает зону и показывает payload.</p>
+          <p class="event-note">Выберите виджеты, которые будут отображаться на Dashboard. Данные берутся из модуля-источника, здесь настраивается только показ и зона размещения.</p>
           <div class="widget-module-groups">
           {% for group in widget_settings_groups %}
           <section class="widget-module-group" style="--module-accent: {{ group.color }}" data-widget-module-group="{{ group.moduleCode }}">
@@ -2075,6 +2117,14 @@
                 data-widget-can-enable="{{ 'true' if widget.isAllowed else 'false' }}"
                 data-widget-zone="{{ widget.zoneCode }}"
               >
+                <div class="widget-card-heading">
+                  <span class="admin-widget-icon admin-widget-icon--{{ widget.previewPayload.iconKey or 'default' }}" aria-hidden="true"></span>
+                  <div class="widget-card-heading-copy">
+                    <strong>{{ widget.settingsTitle or widget.previewPayload.title }}</strong>
+                    {% if widget.settingsDescription %}<p>{{ widget.settingsDescription }}</p>{% endif %}
+                    <span class="widget-owner-pill">{{ widget.settingsOwnerLabel }}</span>
+                  </div>
+                </div>
                 <div class="admin-widget-card settings-widget-preview" data-widget-size="{{ widget.defaultSize }}" data-widget-payload-status="{{ widget.previewPayload.status }}">
                   <div class="admin-widget-head">
                     <h2>{{ widget.previewPayload.title }}</h2>
@@ -2093,7 +2143,7 @@
                     </div>
                     {% else %}
                     {% if not widget.previewPayload.primaryValue %}
-                    <div class="widget-empty-state">Здесь появится module-owned payload.</div>
+                    <div class="widget-empty-state">Нет данных для предпросмотра.</div>
                     {% endif %}
                     {% endfor %}
                   </div>
@@ -2111,7 +2161,7 @@
                     </select>
                   </label>
                 </div>
-                <div class="widget-empty-state">{{ widget.policyNote }}</div>
+                <div class="widget-empty-state widget-policy-note">{{ widget.policyNote }}</div>
               </article>
               {% endfor %}
             </div>

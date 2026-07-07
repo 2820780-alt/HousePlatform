@@ -295,6 +295,33 @@ def _module_registry_icon(icon: str | None) -> str:
     }.get(icon or "", "◌")
 
 
+MODULE3_WIDGET_SETTINGS_COPY = {
+    "MODULE_03_USERS_SUMMARY_WIDGET": {
+        "title": "Пользователи",
+        "description": "Сводка пользователей по типам и статусам.",
+    },
+    "MODULE_03_MODERATION_QUEUE_WIDGET": {
+        "title": "Очередь на модерацию",
+        "description": "Заявки компаний и поставщиков, ожидающие решения.",
+    },
+    "MODULE_03_AUDIT_LOG_WIDGET": {
+        "title": "История изменений",
+        "description": "Последние административные изменения и события доступа.",
+    },
+    "MODULE_03_MODULES_STATUS_WIDGET": {
+        "title": "Модули в системе",
+        "description": "Состояние модулей платформы: активные, в разработке и архивные.",
+    },
+    "MODULE_03_WIDGETS_STATUS_WIDGET": {
+        "title": "Виджеты в системе",
+        "description": "Состояние зарегистрированных виджетов платформы.",
+    },
+}
+
+
+def _module3_widget_settings_copy(widget_code: str | None) -> dict[str, str]:
+    return MODULE3_WIDGET_SETTINGS_COPY.get(str(widget_code or ""), {})
+
 def _build_widget_settings_groups(widget_registry: list[dict], user_context) -> list[dict]:
     module_items = get_dashboard_module_registry()
     modules_by_code = {
@@ -334,12 +361,20 @@ def _build_widget_settings_groups(widget_registry: list[dict], user_context) -> 
                 "widgets": [],
             },
         )
+        settings_copy = _module3_widget_settings_copy(widget.get("widgetCode"))
         group["widgets"].append({
             **widget,
             "zoneCode": _default_widget_settings_zone(widget),
             "isAllowed": is_allowed,
             "isEnabled": is_allowed and widget.get("isEnabledByDefault", False),
             "canChooseZone": is_allowed and widget.get("type") != "ATOM_MAP",
+            "settingsTitle": settings_copy.get("title") or widget.get("title"),
+            "settingsDescription": settings_copy.get("description") or widget.get("description") or "",
+            "settingsOwnerLabel": (
+                "Module №3 · Пользователи и роли"
+                if settings_copy
+                else module.get("shortTitle") or module.get("title") or source_code
+            ),
             "policyNote": _widget_policy_note(
                 widget,
                 module_allowed=module_allowed,
@@ -369,21 +404,20 @@ def _widget_policy_note(
 ) -> str:
     status = widget.get("status")
     if status == "planned":
-        return "Будущий виджет. Видим администратору как preview, но не включаем в рабочий Dashboard."
+        return "Будущий виджет. Доступен только для предварительного просмотра."
     if status == "requires_module":
-        return "Включится после активации модуля-источника."
+        return "Станет доступен после включения модуля-источника."
     if status == "disabled":
-        return "Системно отключен или заменен другой настройкой."
+        return "Виджет отключен системной настройкой."
     if status == "requires_permission" or not widget_allowed:
-        return "Недоступен по текущим widgetCode / permissions Module 03."
+        return "Недоступен по правам на виджет."
     if not module_allowed:
-        return "Недоступен по moduleCode текущего пользователя."
+        return "Недоступен: модуль-источник выключен для пользователя."
     if not feature_allowed:
-        return "Недоступен по featureCode текущего пользователя."
+        return "Недоступен по правам раздела."
     if status == "mock_only":
-        return "Работает на mock payload до подключения module-owned данных."
-    return "Данные и варианты отображения задает модуль-источник."
-
+        return "Доступен для предварительного просмотра."
+    return "Доступен для Dashboard."
 
 def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
     if widget.get("sourceModuleCode") == "MODULE_03_USERS_ROLES" and str(widget.get("widgetCode") or "").startswith("MODULE_03_"):
@@ -411,9 +445,9 @@ def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
     }
     if widget_type == "KPI":
         payload_kwargs.update({
-            "primary_value": "—" if not is_allowed else "mock",
+            "primary_value": "—" if not is_allowed else "Предпросмотр",
             "primary_label": "значение",
-            "secondary_value": "module payload",
+            "secondary_value": "Dashboard",
             "secondary_label": "источник",
             "mini_chart": {"type": "sparkline", "points": [6, 9, 7, 11, 10, 14, 13, 16]},
         })
@@ -426,8 +460,8 @@ def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
     elif widget_type in {"LIST", "TASK_QUEUE", "ALERTS"}:
         payload_kwargs.update({
             "items": [
-                {"label": "Module-owned payload", "value": widget.get("sourceModuleCode"), "status": status},
-                {"label": "Настройки отдаст модуль", "value": widget.get("featureCode") or "summary", "status": "info"},
+                {"label": "Данные виджета", "value": widget.get("title"), "status": status},
+                {"label": "Зона отображения", "value": "Dashboard", "status": "info"},
             ],
         })
     elif widget_type == "ACTIONS":
@@ -438,10 +472,10 @@ def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
         })
     else:
         payload_kwargs.update({
-            "primary_value": widget_type,
-            "primary_label": "тип",
-            "secondary_value": widget.get("status"),
-            "secondary_label": "статус",
+            "primary_value": "Доступен" if is_allowed else "Недоступен",
+            "primary_label": "состояние",
+            "secondary_value": "Dashboard",
+            "secondary_label": "зона",
         })
     return build_atom_widget_payload(**payload_kwargs).to_dict()
 

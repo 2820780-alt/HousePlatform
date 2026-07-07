@@ -90,6 +90,49 @@ def test_dashboard_settings_groups_include_module3_widgets_as_allowed():
     assert all(widget["isEnabled"] is True for widget in module3_widgets.values())
 
 
+
+def test_module3_widget_settings_cards_use_user_facing_copy():
+    groups = _build_widget_settings_groups(
+        get_dashboard_widget_registry(),
+        {
+            "roleCode": "PLATFORM_ADMIN",
+            "effectiveRoleCode": "PLATFORM_ADMIN",
+            "authMode": "mock",
+            "allowedModuleCodes": ["MODULE_03_USERS_ROLES"],
+            "allowedWidgetCodes": sorted(MODULE3_DASHBOARD_WIDGETS),
+            "allowedFeatureCodes": ["DASHBOARD_PERSONALIZE"],
+        },
+    )
+    module3_group = next(group for group in groups if group["moduleCode"] == "MODULE_03_USERS_ROLES")
+    widgets = {
+        widget["widgetCode"]: widget
+        for widget in module3_group["widgets"]
+        if widget["widgetCode"] in MODULE3_DASHBOARD_WIDGETS
+    }
+
+    assert widgets["MODULE_03_USERS_SUMMARY_WIDGET"]["settingsTitle"] == "Пользователи"
+    assert widgets["MODULE_03_USERS_SUMMARY_WIDGET"]["settingsDescription"] == "Сводка пользователей по типам и статусам."
+    assert widgets["MODULE_03_MODERATION_QUEUE_WIDGET"]["settingsDescription"] == "Заявки компаний и поставщиков, ожидающие решения."
+    assert widgets["MODULE_03_AUDIT_LOG_WIDGET"]["settingsDescription"] == "Последние административные изменения и события доступа."
+    assert widgets["MODULE_03_MODULES_STATUS_WIDGET"]["settingsDescription"] == "Состояние модулей платформы: активные, в разработке и архивные."
+    assert widgets["MODULE_03_WIDGETS_STATUS_WIDGET"]["settingsDescription"] == "Состояние зарегистрированных виджетов платформы."
+    assert {widget["settingsOwnerLabel"] for widget in widgets.values()} == {"Module №3 · Пользователи и роли"}
+    assert all("module-owned" not in widget["policyNote"] for widget in widgets.values())
+    assert all("widgetCode" not in widget["policyNote"] for widget in widgets.values())
+    assert all("MODULE_03_USERS_ROLES" not in widget["settingsOwnerLabel"] for widget in widgets.values())
+
+
+def test_dashboard_settings_template_hides_technical_widget_copy():
+    template = Path("templates/admin_cabinet_view.html").read_text(encoding="utf-8")
+
+    assert "widget.settingsTitle" in template
+    assert "widget.settingsDescription" in template
+    assert "widget.settingsOwnerLabel" in template
+    assert "module-owned payload" not in template
+    assert "Данные и варианты отображения задает модуль-источник" not in template
+    assert "показывает payload" not in template
+    assert "Нет данных для предпросмотра." in template
+
 def test_bottom_widget_grid_renders_allowed_module3_dashboard_widgets():
     module3_payloads = build_module3_dashboard_widget_payloads(users=[], workspaces=[], history=[])
     grid = _build_bottom_widget_grid(
