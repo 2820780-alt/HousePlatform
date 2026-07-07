@@ -17,6 +17,7 @@ from app.api.v1 import (
     supplier_branches,
     supplier_profile,
     supplier_upload,
+    user_module_quick_actions,
 )
 
 api_router = APIRouter()
@@ -37,3 +38,4 @@ api_router.include_router(dev_material_hub.router)
 api_router.include_router(supplier_profile.router)
 api_router.include_router(supplier_branches.router)
 api_router.include_router(supplier_upload.router)
+api_router.include_router(user_module_quick_actions.router)
