@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from fastapi import APIRouter, Request
@@ -1368,10 +1368,13 @@ def _can_show_widget_source(source_module_code: str | None, feature_code: str | 
 
 def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int, grid_span: int | None = None) -> dict:
     normalized_size = size if size in SIZE_GRID_SPANS else "medium"
+    source_module_code = payload["sourceModuleCode"]
+    accent_color = _widget_accent_color(source_module_code)
     return {
         "widgetCode": payload["widgetCode"],
-        "sourceModuleCode": payload["sourceModuleCode"],
+        "sourceModuleCode": source_module_code,
         "featureCode": payload.get("featureCode"),
+        "accentColor": accent_color,
         "zoneCode": zone_code,
         "size": normalized_size,
         "gridSpan": grid_span or SIZE_GRID_SPANS[normalized_size],
@@ -1379,6 +1382,11 @@ def _widget_zone_item(payload: dict, *, size: str, zone_code: str, order: int, g
         "isVisible": True,
         "payload": payload,
     }
+
+
+def _widget_accent_color(source_module_code: str | None) -> str:
+    module = get_dashboard_module_registry_item(get_canonical_module_code(source_module_code) or source_module_code)
+    return (module.color if module and module.color else None) or "#18d7f2"
 
 
 def _bottom_widget_size(index: int) -> str:

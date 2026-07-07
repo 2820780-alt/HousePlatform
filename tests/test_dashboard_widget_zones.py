@@ -2,7 +2,9 @@ from pathlib import Path
 
 from jinja2 import Environment
 
-from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled
+from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled, _widget_accent_color
+from app.services.dashboard_module_registry import get_dashboard_module_registry_item
+from app.services.dashboard_widget_payload import build_module3_dashboard_widget_payloads
 
 
 def _payload(widget_code: str) -> dict:
@@ -32,6 +34,26 @@ def test_bottom_widget_grid_limits_widgets_and_uses_zone_code():
     assert grid["widgets"][0]["size"] == "small"
     assert grid["widgets"][0]["gridSpan"] == 2
 
+
+def test_bottom_widget_grid_inherits_accent_from_owner_module():
+    module3 = get_dashboard_module_registry_item("MODULE_03_USERS_ROLES")
+    module3_payloads = build_module3_dashboard_widget_payloads(users=[], workspaces=[], history=[])
+    grid = _build_bottom_widget_grid(
+        admin_widgets=[{"payload": payload} for payload in module3_payloads],
+        right_rail_widgets=[],
+        include_right_rail_widgets=False,
+        user_context={
+            "allowedModuleCodes": ["MODULE_03_USERS_ROLES"],
+            "allowedFeatureCodes": [payload["featureCode"] for payload in module3_payloads],
+        },
+    )
+
+    assert module3 is not None
+    assert {widget["accentColor"] for widget in grid["widgets"]} == {module3.color}
+
+
+def test_widget_accent_color_falls_back_to_platform_cyan():
+    assert _widget_accent_color("MODULE_UNKNOWN") == "#18d7f2"
 
 def test_bottom_widget_grid_does_not_auto_include_right_rail_widgets():
     admin_widgets = [{"payload": _payload("admin-widget")}]
@@ -126,6 +148,8 @@ def test_bottom_widget_template_uses_administrative_card_contract():
 
     assert "admin-widget-card--{{ widget.payload.styleVariant }}" in template
     assert "data-widget-style-variant=\"{{ widget.payload.styleVariant or '' }}\"" in template
+    assert "data-widget-accent-color=\"{{ widget.accentColor or '#18d7f2' }}\"" in template
+    assert "--widget-accent: {{ widget.accentColor or '#18d7f2' }}" in template
     assert "admin-widget-icon--{{ widget.payload.iconKey or 'default' }}" in template
     assert "widget.payload.primaryValue is not none" in template
     assert "widget.payload.emptyStateLabel" in template
