@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+from pathlib import Path
 
 import pytest
 
@@ -80,6 +81,16 @@ def _context(**overrides):
     }
     data.update(overrides)
     return data
+
+
+def test_atom_card_pinned_actions_are_loaded_from_user_module_quick_actions_table():
+    source = (Path(__file__).resolve().parents[1] / "app/services/user_module_quick_actions.py").read_text(encoding="utf-8")
+
+    assert "select(UserModuleQuickAction)" in source
+    assert "UserModuleQuickAction.user_id == _uuid(userId, \"userId\")" in source
+    assert "UserModuleQuickAction.source_module_code == sourceModuleCode" in source
+    assert "UserModuleQuickAction.is_pinned_to_atom_card.is_(True)" in source
+    assert "[:MAX_ATOM_CARD_PINNED_ACTIONS]" in source
 
 
 def test_add_user_module_quick_action_creates_user_owned_shortcut(monkeypatch):

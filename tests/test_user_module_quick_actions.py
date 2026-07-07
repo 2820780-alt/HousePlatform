@@ -37,6 +37,17 @@ def test_user_module_quick_action_model_is_user_owned_and_module_scoped():
     assert "result_payload" not in columns
 
 
+def test_user_module_quick_action_is_not_registry_or_widget_reference():
+    columns = UserModuleQuickAction.__table__.columns
+
+    assert "quick_action_code" not in columns
+    assert "quickActionCode" not in columns
+    assert "widget_code" not in columns
+    assert "widgetCode" not in columns
+    assert "source_module_code" in columns
+    assert "action_key" in columns
+    assert "user_id" in columns
+
 def test_quick_action_contract_statuses_and_atom_accents_are_explicit():
     assert USER_MODULE_QUICK_ACTION_STATUSES == (
         "ACTIVE",

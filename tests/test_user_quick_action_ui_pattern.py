@@ -23,6 +23,17 @@ def test_quick_action_context_menu_partial_declares_required_commands():
     assert "Переименовать shortcut" in html
 
 
+def test_quick_action_ui_commands_require_active_candidate_source():
+    html = read("templates/_atom_quick_action_menu.html")
+
+    assert 'root.querySelectorAll("[data-quick-action-candidate]")' in html
+    assert "let activeCandidate = null" in html
+    assert "if (!command || !activeCandidate || event.target.disabled) return;" in html
+    assert "candidateFromElement(element)" in html
+    assert "sourceModuleCode" in html
+    assert "actionKey" in html
+    assert "if (!sourceModuleCode || !actionKey || !title) return null;" in html
+
 def test_quick_action_context_menu_partial_keeps_user_shortcut_limits_and_safe_payload_rules():
     html = read("templates/_atom_quick_action_menu.html")
 
