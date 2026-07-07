@@ -397,6 +397,36 @@
     }
     .dashboard-config h2 { margin: 0 0 4px; font-size: 17px; }
     .dashboard-config p { margin: 0; color: var(--muted); }
+    .dashboard-config-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 0;
+      padding-top: 12px;
+      border-top: 1px solid rgba(119, 172, 255, 0.16);
+    }
+    .dashboard-config-actions button {
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 9px;
+      border: 1px solid rgba(24, 215, 242, 0.42);
+      background: linear-gradient(180deg, rgba(20, 184, 255, 0.24), rgba(14, 116, 184, 0.28));
+      color: #e7f8ff;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(24, 215, 242, 0.16);
+    }
+    .dashboard-config-actions button.secondary {
+      border-color: rgba(119, 172, 255, 0.22);
+      background: rgba(6, 13, 31, 0.48);
+      color: var(--muted);
+      box-shadow: none;
+    }
+    .dashboard-config-status {
+      color: var(--muted);
+      font-size: 12px;
+    }
     .widget-catalog {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2094,6 +2124,11 @@
           {% endfor %}
           </div>
         </details>
+        <div class="dashboard-config-actions" data-widget-settings-actions>
+          <button type="button" data-widget-settings-save>Сохранить настройки</button>
+          <button class="secondary" type="button" data-widget-settings-reset>Сбросить выбор</button>
+          <span class="dashboard-config-status" data-widget-settings-status>Изменения не сохранены</span>
+        </div>
         <div class="registry-section-title">
           <h3>Все модули · Атомная карта</h3>
           <p>Сверху показаны модули на атоме, ниже — остальные доступные и planned-записи. Legacy/merged-модули показываются как связь с каноническим модулем.</p>
@@ -2304,6 +2339,7 @@
         {% for widget in bottom_widget_grid.widgets %}
         <article
           class="admin-widget-card{% if widget.payload.styleVariant %} admin-widget-card--{{ widget.payload.styleVariant }}{% endif %}"
+          data-dashboard-widget-card
           data-widget-code="{{ widget.widgetCode }}"
           data-widget-source-module="{{ widget.sourceModuleCode }}"
           data-widget-feature-code="{{ widget.featureCode or '' }}"
@@ -2513,6 +2549,98 @@
           { card: [20, 48], node: [16, 50] },
         ],
       };
+      const widgetLayoutStorageKey = "atom.dashboard.widgetLayout.v1";
+      const widgetSettingsStatus = document.querySelector("[data-widget-settings-status]");
+      const widgetSaveButton = document.querySelector("[data-widget-settings-save]");
+      const widgetResetButton = document.querySelector("[data-widget-settings-reset]");
+      const widgetSettingCards = () => Array.from(document.querySelectorAll(".widget-card[data-widget-key]"));
+      const dashboardWidgetCards = () => Array.from(document.querySelectorAll("[data-dashboard-widget-card]"));
+      const widgetLayoutByCode = (layout) => new Map((layout && Array.isArray(layout.widgets) ? layout.widgets : []).map((item) => [item.widgetCode, item]));
+
+      function readWidgetLayout() {
+        try {
+          return JSON.parse(localStorage.getItem(widgetLayoutStorageKey) || "null") || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writeWidgetLayout(layout) {
+        localStorage.setItem(widgetLayoutStorageKey, JSON.stringify(layout));
+      }
+
+      function widgetDefaultsFromSettings() {
+        return widgetSettingCards().map((card, index) => {
+          const toggle = card.querySelector("[data-widget-toggle]");
+          const zoneSelect = card.querySelector("[data-widget-zone-select]");
+          return {
+            widgetCode: card.dataset.widgetKey,
+            sourceModuleCode: card.dataset.sourceModuleCode,
+            zoneCode: zoneSelect ? zoneSelect.value : card.dataset.widgetZone || "BOTTOM_WIDGET_GRID",
+            isVisible: Boolean(toggle && toggle.checked && !toggle.disabled),
+            position: index + 1,
+          };
+        });
+      }
+
+      function collectWidgetLayout() {
+        return {
+          version: "module3-dashboard-widgets-v1",
+          updatedAt: new Date().toISOString(),
+          widgets: widgetDefaultsFromSettings(),
+        };
+      }
+
+      function setWidgetSettingsStatus(text) {
+        if (widgetSettingsStatus) widgetSettingsStatus.textContent = text;
+      }
+
+      function applyWidgetLayout(layout) {
+        const byCode = widgetLayoutByCode(layout);
+        widgetSettingCards().forEach((card) => {
+          const item = byCode.get(card.dataset.widgetKey);
+          const toggle = card.querySelector("[data-widget-toggle]");
+          const zoneSelect = card.querySelector("[data-widget-zone-select]");
+          if (item && toggle && !toggle.disabled) {
+            toggle.checked = Boolean(item.isVisible);
+            card.dataset.widgetEnabled = String(toggle.checked);
+          }
+          if (item && zoneSelect && !zoneSelect.disabled && item.zoneCode) {
+            zoneSelect.value = item.zoneCode;
+            card.dataset.widgetZone = item.zoneCode;
+          }
+        });
+
+        const fallback = widgetLayoutByCode({ widgets: widgetDefaultsFromSettings() });
+        dashboardWidgetCards().forEach((card) => {
+          const item = byCode.get(card.dataset.widgetCode) || fallback.get(card.dataset.widgetCode);
+          const isVisible = item ? item.isVisible !== false : true;
+          const zoneCode = (item && item.zoneCode) || card.dataset.widgetZoneCode || "BOTTOM_WIDGET_GRID";
+          const targetGrid = zoneCode === "TOP_WIDGET_GRID"
+            ? document.querySelector(".top-widget-grid")
+            : document.querySelector(".bottom-widget-grid");
+          card.hidden = !isVisible;
+          card.dataset.widgetZoneCode = zoneCode;
+          if (isVisible && targetGrid && card.parentElement !== targetGrid) {
+            targetGrid.appendChild(card);
+          }
+        });
+      }
+
+      const savedWidgetLayout = readWidgetLayout();
+      applyWidgetLayout(savedWidgetLayout);
+      widgetSaveButton?.addEventListener("click", () => {
+        const layout = collectWidgetLayout();
+        writeWidgetLayout(layout);
+        applyWidgetLayout(layout);
+        setWidgetSettingsStatus("Настройки сохранены");
+      });
+      widgetResetButton?.addEventListener("click", () => {
+        localStorage.removeItem(widgetLayoutStorageKey);
+        const layout = { widgets: widgetDefaultsFromSettings().map((item) => ({ ...item, isVisible: false })) };
+        applyWidgetLayout(layout);
+        setWidgetSettingsStatus("Выбор сброшен");
+      });
       document.querySelectorAll("[data-widget-toggle]").forEach((toggle) => {
         const widgetCard = toggle.closest(".widget-card");
         if (!widgetCard) return;
@@ -2524,6 +2652,7 @@
         widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
         toggle.addEventListener("change", () => {
           widgetCard.dataset.widgetEnabled = String(toggle.checked && canEnable);
+          setWidgetSettingsStatus("Есть несохраненные изменения");
         });
       });
       document.querySelectorAll("[data-widget-zone-select]").forEach((select) => {
@@ -2532,6 +2661,7 @@
         widgetCard.dataset.widgetZone = select.value;
         select.addEventListener("change", () => {
           widgetCard.dataset.widgetZone = select.value;
+          setWidgetSettingsStatus("Есть несохраненные изменения");
         });
       });
       if (!manager) return;

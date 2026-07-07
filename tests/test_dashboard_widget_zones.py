@@ -89,6 +89,38 @@ def test_dashboard_settings_groups_include_module3_widgets_as_allowed():
     assert all(widget["isAllowed"] is True for widget in module3_widgets.values())
     assert all(widget["isEnabled"] is True for widget in module3_widgets.values())
 
+
+def test_bottom_widget_grid_renders_allowed_module3_dashboard_widgets():
+    module3_payloads = build_module3_dashboard_widget_payloads(users=[], workspaces=[], history=[])
+    grid = _build_bottom_widget_grid(
+        admin_widgets=[{"payload": payload} for payload in module3_payloads],
+        right_rail_widgets=[],
+        include_right_rail_widgets=False,
+        user_context={
+            "allowedModuleCodes": ["MODULE_03_USERS_ROLES"],
+            "allowedWidgetCodes": sorted(MODULE3_DASHBOARD_WIDGETS),
+            "allowedFeatureCodes": [],
+        },
+    )
+
+    assert {widget["widgetCode"] for widget in grid["widgets"]} == MODULE3_DASHBOARD_WIDGETS
+
+
+def test_bottom_widget_grid_hides_module3_widgets_without_module_access():
+    module3_payloads = build_module3_dashboard_widget_payloads(users=[], workspaces=[], history=[])
+    grid = _build_bottom_widget_grid(
+        admin_widgets=[{"payload": payload} for payload in module3_payloads],
+        right_rail_widgets=[],
+        include_right_rail_widgets=False,
+        user_context={
+            "allowedModuleCodes": [],
+            "allowedWidgetCodes": sorted(MODULE3_DASHBOARD_WIDGETS),
+            "allowedFeatureCodes": [],
+        },
+    )
+
+    assert grid["widgets"] == []
+
 def test_widget_accent_color_falls_back_to_platform_cyan():
     assert _widget_accent_color("MODULE_UNKNOWN") == "#18d7f2"
 
@@ -186,6 +218,10 @@ def test_bottom_widget_template_uses_administrative_card_contract():
     assert "admin-widget-card--{{ widget.payload.styleVariant }}" in template
     assert "data-widget-style-variant=\"{{ widget.payload.styleVariant or '' }}\"" in template
     assert "data-widget-accent-color=\"{{ widget.accentColor or '#18d7f2' }}\"" in template
+    assert "data-dashboard-widget-card" in template
+    assert "data-widget-settings-save" in template
+    assert "atom.dashboard.widgetLayout.v1" in template
+    assert "setWidgetSettingsStatus(\"Есть несохраненные изменения\")" in template
     assert "--widget-accent: {{ widget.accentColor or '#18d7f2' }}" in template
     assert "admin-widget-icon--{{ widget.payload.iconKey or 'default' }}" in template
     assert "widget.payload.primaryValue is not none" in template

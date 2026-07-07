@@ -59,7 +59,12 @@ from app.services.dashboard_widget_config import (
     TOP_WIDGET_GRID,
     dashboard_widget_config_from_model,
 )
-from app.services.dashboard_widget_payload import atom_widget_payload_from_admin_widget, build_atom_widget_payload
+from app.services.dashboard_widget_payload import (
+    atom_widget_payload_from_admin_widget,
+    build_atom_widget_payload,
+    build_module3_dashboard_widget_payload,
+    build_module3_dashboard_widget_payloads,
+)
 from app.services.dashboard_widget_registry import (
     get_dashboard_widget_registry,
 )
@@ -381,6 +386,18 @@ def _widget_policy_note(
 
 
 def _widget_settings_preview_payload(widget: dict, is_allowed: bool) -> dict:
+    if widget.get("sourceModuleCode") == "MODULE_03_USERS_ROLES" and str(widget.get("widgetCode") or "").startswith("MODULE_03_"):
+        payload = build_module3_dashboard_widget_payload(
+            widget_code=widget["widgetCode"],
+            users=[],
+            workspaces=[],
+            history=[],
+            updated_at=datetime.utcnow(),
+        )
+        if not is_allowed:
+            payload = {**payload, "status": "disabled"}
+        return payload
+
     widget_type = widget.get("type", "STATUS")
     status = "disabled" if not is_allowed else ("attention" if widget.get("status") == "mock_only" else "info")
     payload_kwargs = {
@@ -539,6 +556,16 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     )
     for widget in admin_widgets:
         widget["payload"] = atom_widget_payload_from_admin_widget(widget)
+    module3_dashboard_widgets = [
+        {"payload": payload}
+        for payload in build_module3_dashboard_widget_payloads(
+            users=[],
+            workspaces=[],
+            history=[],
+            updated_at=datetime.utcnow(),
+        )
+    ]
+    admin_widgets = module3_dashboard_widgets + admin_widgets
     analytics = {
         "construction_cost": f"{construction_cost:,.0f} ₽".replace(",", " "),
         "construction_delta_rub": "+187 432 ₽",
@@ -1240,7 +1267,7 @@ def _build_top_widget_grid(top_kpis: list[dict], user_context) -> dict:
     visible_kpis = [
         kpi
         for kpi in top_kpis
-        if _can_show_widget_source(kpi.get("sourceModuleCode"), kpi.get("featureCode"), user_context)
+        if _can_show_widget_source(None, kpi.get("sourceModuleCode"), kpi.get("featureCode"), user_context)
     ][:6]
     widgets = [
         _widget_zone_item(
@@ -1344,7 +1371,7 @@ def _build_bottom_widget_grid(
     widgets = [
         widget
         for widget in widgets
-        if _can_show_widget_source(widget["sourceModuleCode"], widget.get("featureCode"), user_context)
+        if _can_show_widget_source(widget.get("widgetCode"), widget["sourceModuleCode"], widget.get("featureCode"), user_context)
     ]
     visible_widgets = widgets[:6]
     equal_span = _equal_grid_span(len(visible_widgets))
@@ -1358,9 +1385,11 @@ def _build_bottom_widget_grid(
     }
 
 
-def _can_show_widget_source(source_module_code: str | None, feature_code: str | None, user_context) -> bool:
+def _can_show_widget_source(widget_code: str | None, source_module_code: str | None, feature_code: str | None, user_context) -> bool:
     if source_module_code and not can_access_module(user_context, source_module_code):
         return False
+    if widget_code and can_access_widget(user_context, widget_code):
+        return True
     if feature_code and not can_use_feature(user_context, feature_code):
         return False
     return True
