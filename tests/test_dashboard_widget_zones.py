@@ -2,10 +2,24 @@ from pathlib import Path
 
 from jinja2 import Environment
 
-from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled, _widget_accent_color
+from app.api.v1.admin_cabinet_view import (
+    _build_bottom_widget_grid,
+    _build_top_widget_grid,
+    _build_widget_settings_groups,
+    _is_right_rail_enabled,
+    _widget_accent_color,
+)
 from app.services.dashboard_module_registry import get_dashboard_module_registry_item
+from app.services.dashboard_widget_registry import get_dashboard_widget_registry
 from app.services.dashboard_widget_payload import build_module3_dashboard_widget_payloads
 
+MODULE3_DASHBOARD_WIDGETS = {
+    "MODULE_03_USERS_SUMMARY_WIDGET",
+    "MODULE_03_MODERATION_QUEUE_WIDGET",
+    "MODULE_03_AUDIT_LOG_WIDGET",
+    "MODULE_03_MODULES_STATUS_WIDGET",
+    "MODULE_03_WIDGETS_STATUS_WIDGET",
+}
 
 def _payload(widget_code: str) -> dict:
     return {
@@ -51,6 +65,29 @@ def test_bottom_widget_grid_inherits_accent_from_owner_module():
     assert module3 is not None
     assert {widget["accentColor"] for widget in grid["widgets"]} == {module3.color}
 
+
+def test_dashboard_settings_groups_include_module3_widgets_as_allowed():
+    groups = _build_widget_settings_groups(
+        get_dashboard_widget_registry(),
+        {
+            "roleCode": "PLATFORM_ADMIN",
+            "effectiveRoleCode": "PLATFORM_ADMIN",
+            "authMode": "mock",
+            "allowedModuleCodes": ["MODULE_03_USERS_ROLES"],
+            "allowedWidgetCodes": sorted(MODULE3_DASHBOARD_WIDGETS),
+            "allowedFeatureCodes": ["DASHBOARD_PERSONALIZE"],
+        },
+    )
+    module3_group = next(group for group in groups if group["moduleCode"] == "MODULE_03_USERS_ROLES")
+    module3_widgets = {
+        widget["widgetCode"]: widget
+        for widget in module3_group["widgets"]
+        if widget["widgetCode"] in MODULE3_DASHBOARD_WIDGETS
+    }
+
+    assert set(module3_widgets) == MODULE3_DASHBOARD_WIDGETS
+    assert all(widget["isAllowed"] is True for widget in module3_widgets.values())
+    assert all(widget["isEnabled"] is True for widget in module3_widgets.values())
 
 def test_widget_accent_color_falls_back_to_platform_cyan():
     assert _widget_accent_color("MODULE_UNKNOWN") == "#18d7f2"

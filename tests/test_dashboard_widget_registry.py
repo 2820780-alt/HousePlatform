@@ -8,6 +8,31 @@ from app.services.dashboard_widget_registry import (
     get_dashboard_widget_registry_item,
     get_planned_dashboard_widgets,
 )
+from app.services.quick_action_registry import get_quick_action_registry_items_for_module
+
+
+MODULE3_DASHBOARD_WIDGETS = {
+    "MODULE_03_USERS_SUMMARY_WIDGET": {
+        "title": "Пользователи",
+        "componentKey": "Module03UsersSummaryWidget",
+    },
+    "MODULE_03_MODERATION_QUEUE_WIDGET": {
+        "title": "Очередь на модерацию",
+        "componentKey": "Module03ModerationQueueWidget",
+    },
+    "MODULE_03_AUDIT_LOG_WIDGET": {
+        "title": "История изменений",
+        "componentKey": "Module03AuditLogWidget",
+    },
+    "MODULE_03_MODULES_STATUS_WIDGET": {
+        "title": "Модули в системе",
+        "componentKey": "Module03ModulesStatusWidget",
+    },
+    "MODULE_03_WIDGETS_STATUS_WIDGET": {
+        "title": "Виджеты в системе",
+        "componentKey": "Module03WidgetsStatusWidget",
+    },
+}
 
 
 def test_widget_registry_exposes_available_widgets_for_allowed_modules():
@@ -116,38 +141,54 @@ def test_constructor_lite_widget_uses_module_19_canonical_source():
 
 
 def test_module3_dashboard_widget_registry_contract_has_no_settings_or_quick_actions():
-    expected = {
-        "MODULE_03_USERS_SUMMARY_WIDGET": "Module03UsersSummaryWidget",
-        "MODULE_03_MODERATION_QUEUE_WIDGET": "Module03ModerationQueueWidget",
-        "MODULE_03_AUDIT_LOG_WIDGET": "Module03AuditLogWidget",
-        "MODULE_03_MODULES_STATUS_WIDGET": "Module03ModulesStatusWidget",
-        "MODULE_03_WIDGETS_STATUS_WIDGET": "Module03WidgetsStatusWidget",
-    }
-
-    for widget_code, component_key in expected.items():
+    for widget_code, expected in MODULE3_DASHBOARD_WIDGETS.items():
         widget = get_dashboard_widget_registry_item(widget_code)
 
         assert widget is not None
+        assert widget.title == expected["title"]
         assert widget.sourceModuleCode == "MODULE_03_USERS_ROLES"
         assert widget.canonicalModuleCode == "MODULE_03_USERS_ROLES"
         assert widget.status == "available"
         assert widget.type != "ACTIONS"
-        assert widget.componentKey == component_key
+        assert widget.componentKey == expected["componentKey"]
         assert widget.defaultSettings == {}
         assert widget.availableSettings == {}
         assert widget.requiredPermissions == []
         assert widget.mockDataProvider is None
         assert widget.payloadOwnerModuleCode == "MODULE_03_USERS_ROLES"
         assert widget.isBusinessLogicOwner is False
+        assert "Открыть все" not in widget.title
+        assert "Открыть все" not in (widget.description or "")
+
+
+def test_module3_dashboard_widgets_do_not_register_unapproved_admin_mechanisms():
+    module3_widgets = [
+        widget
+        for widget in get_dashboard_widget_registry()
+        if widget["sourceModuleCode"] == "MODULE_03_USERS_ROLES"
+        and widget["widgetCode"].startswith("MODULE_03_")
+    ]
+    titles_and_descriptions = " ".join(
+        f"{widget['title']} {widget.get('description') or ''}".lower()
+        for widget in module3_widgets
+    )
+
+    assert {widget["widgetCode"] for widget in module3_widgets} == set(MODULE3_DASHBOARD_WIDGETS)
+    assert "дубл" not in titles_and_descriptions
+    assert "представител" not in titles_and_descriptions
+    assert "конфликт" not in titles_and_descriptions
+    assert "проблем" not in titles_and_descriptions
+
+
+def test_module3_dashboard_widgets_are_not_quick_actions():
+    quick_actions = get_quick_action_registry_items_for_module("MODULE_03_USERS_ROLES")
+    quick_action_codes = {action.actionCode for action in quick_actions}
+
+    assert set(MODULE3_DASHBOARD_WIDGETS).isdisjoint(quick_action_codes)
+
 
 def test_module3_dashboard_widgets_are_available_only_with_module_and_widget_access():
-    all_module3_codes = {
-        "MODULE_03_USERS_SUMMARY_WIDGET",
-        "MODULE_03_MODERATION_QUEUE_WIDGET",
-        "MODULE_03_AUDIT_LOG_WIDGET",
-        "MODULE_03_MODULES_STATUS_WIDGET",
-        "MODULE_03_WIDGETS_STATUS_WIDGET",
-    }
+    all_module3_codes = set(MODULE3_DASHBOARD_WIDGETS)
     profile = {
         "roleCode": "PLATFORM_ADMIN",
         "authMode": "mock",
