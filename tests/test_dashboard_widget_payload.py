@@ -106,4 +106,9 @@ def test_module3_dashboard_widget_payloads_use_existing_sources_without_settings
     assert by_code["MODULE_03_AUDIT_LOG_WIDGET"]["primaryValue"] == 0
     assert by_code["MODULE_03_MODULES_STATUS_WIDGET"]["miniChart"]["type"] == "donut"
     assert by_code["MODULE_03_WIDGETS_STATUS_WIDGET"]["items"][0]["label"] == "\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435"
+    assert all(payload["styleVariant"] == "administrative" for payload in payloads)
+    assert all(payload["iconKey"] for payload in payloads)
+    assert by_code["MODULE_03_USERS_SUMMARY_WIDGET"]["emptyStateLabel"] == "\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445"
+    assert by_code["MODULE_03_MODERATION_QUEUE_WIDGET"]["emptyStateLabel"] == "\u041d\u0435\u0442 \u0437\u0430\u044f\u0432\u043e\u043a"
+    assert by_code["MODULE_03_AUDIT_LOG_WIDGET"]["emptyStateLabel"] == "\u041d\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439"
     assert all(payload["cta"] is None for payload in payloads)

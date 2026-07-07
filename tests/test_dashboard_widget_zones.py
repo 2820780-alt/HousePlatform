@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled
 
 
@@ -116,3 +118,13 @@ def test_right_rail_defaults_off_but_can_use_preview_role():
         {"userDashboardLayout": {"previewRoleCode": "ANALYST", "zones": {}}, "roleCode": "ADMIN"},
         {"cabinetDashboardPreset": {"widgetZones": {"rightRailEnabled": False, "rightRailRoleCodes": ["ANALYST"]}}},
     ) is True
+
+def test_bottom_widget_template_uses_administrative_card_contract():
+    template = Path("templates/admin_cabinet_view.html").read_text(encoding="utf-8")
+
+    assert "admin-widget-card--{{ widget.payload.styleVariant }}" in template
+    assert "data-widget-style-variant=\"{{ widget.payload.styleVariant or '' }}\"" in template
+    assert "admin-widget-icon--{{ widget.payload.iconKey or 'default' }}" in template
+    assert "widget.payload.primaryValue is not none" in template
+    assert "widget.payload.emptyStateLabel" in template
+    assert "Открыть все" not in template[template.index("bottom-widget-grid") : template.index("</section>", template.index("bottom-widget-grid"))]

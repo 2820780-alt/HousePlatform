@@ -90,6 +90,9 @@ class AtomWidgetPayload:
     featureCode: str | None = None
     contextCode: str | None = None
     subtitle: str | None = None
+    styleVariant: str | None = None
+    iconKey: str | None = None
+    emptyStateLabel: str | None = None
     severity: str | None = None
     primaryValue: str | int | float | None = None
     primaryLabel: str | None = None
@@ -116,6 +119,9 @@ def build_atom_widget_payload(
     feature_code: str | None = None,
     context_code: str | None = None,
     subtitle: str | None = None,
+    style_variant: str | None = None,
+    icon_key: str | None = None,
+    empty_state_label: str | None = None,
     severity: str | None = None,
     primary_value: str | int | float | None = None,
     primary_label: str | None = None,
@@ -141,6 +147,9 @@ def build_atom_widget_payload(
         contextCode=normalized_context_code,
         title=title,
         subtitle=subtitle,
+        styleVariant=style_variant,
+        iconKey=icon_key,
+        emptyStateLabel=empty_state_label,
         status=_normalize_status(status),
         severity=_normalize_optional(severity, PAYLOAD_SEVERITIES),
         primaryValue=primary_value,
@@ -382,6 +391,9 @@ def _module3_users_summary_payload(users: list[Any], workspaces: list[Any], *, u
         source_module_code="MODULE_03_USERS_ROLES",
         feature_code="MODULE_03_USERS_SUMMARY",
         title="\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438",
+        style_variant="administrative",
+        icon_key="users",
+        empty_state_label="\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445",
         status="ok" if rows else "info",
         primary_value=chips.get("ALL", 0),
         primary_label="\u0412\u0441\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439",
@@ -412,6 +424,9 @@ def _module3_moderation_queue_payload(users: list[Any], workspaces: list[Any], *
         source_module_code="MODULE_03_USERS_ROLES",
         feature_code="MODULE_03_MODERATION_QUEUE",
         title="\u041e\u0447\u0435\u0440\u0435\u0434\u044c \u043d\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044e",
+        style_variant="administrative",
+        icon_key="moderation",
+        empty_state_label="\u041d\u0435\u0442 \u0437\u0430\u044f\u0432\u043e\u043a",
         status="attention" if total else "ok",
         severity="medium" if total else None,
         primary_value=total,
@@ -444,6 +459,9 @@ def _module3_audit_log_payload(history: list[Any], users: list[Any], workspaces:
         source_module_code="MODULE_03_USERS_ROLES",
         feature_code="MODULE_03_AUDIT_LOG",
         title="\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        style_variant="administrative",
+        icon_key="audit",
+        empty_state_label="\u041d\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
         status="info" if total else "ok",
         primary_value=total,
         primary_label="\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
@@ -461,6 +479,9 @@ def _module3_modules_status_payload(*, updated_at: str | datetime | None) -> dic
         source_module_code="MODULE_03_USERS_ROLES",
         feature_code="MODULE_03_MODULES_STATUS",
         title="\u041c\u043e\u0434\u0443\u043b\u0438 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+        style_variant="administrative",
+        icon_key="modules",
+        empty_state_label="\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445",
         status="info",
         primary_value=summary.get("total", 0),
         primary_label="\u0412\u0441\u0435\u0433\u043e \u043c\u043e\u0434\u0443\u043b\u0435\u0439",
@@ -479,6 +500,9 @@ def _module3_widgets_status_payload(*, updated_at: str | datetime | None) -> dic
         source_module_code="MODULE_03_USERS_ROLES",
         feature_code="MODULE_03_WIDGETS_STATUS",
         title="\u0412\u0438\u0434\u0436\u0435\u0442\u044b \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0435",
+        style_variant="administrative",
+        icon_key="widgets",
+        empty_state_label="\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445",
         status="info",
         primary_value=summary.get("total", 0),
         primary_label="\u0412\u0441\u0435\u0433\u043e \u0432\u0438\u0434\u0436\u0435\u0442\u043e\u0432",
