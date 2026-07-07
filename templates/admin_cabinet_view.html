@@ -1440,9 +1440,9 @@
     .admin-widget-card {
       position: relative;
       grid-column: span var(--widget-span, 4);
-      min-height: 128px;
-      height: 128px;
-      max-height: 128px;
+      min-height: 148px;
+      height: 148px;
+      max-height: 148px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -1528,7 +1528,7 @@
       z-index: 1;
       display: grid;
       gap: 5px;
-      max-height: 78px;
+      max-height: 98px;
       overflow: hidden;
     }
     .admin-widget-row {
@@ -1561,6 +1561,223 @@
     .admin-widget-row.error strong { color: var(--red); }
     .admin-widget-row.ok strong { color: var(--green); }
     .admin-widget-row.info strong { color: var(--cyan); }
+    .admin-widget-body {
+      position: relative;
+      z-index: 1;
+      min-height: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .admin-widget-primary {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+    .admin-widget-primary--inline {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 10px;
+    }
+    .admin-widget-primary-value {
+      color: #f4f8ff;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .admin-widget-primary-label {
+      color: #92a8c8;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .admin-widget-count-badge {
+      min-width: 34px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 9px;
+      border: 1px solid rgba(245, 158, 11, 0.34);
+      border-radius: 999px;
+      color: #ffd28a;
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 0 18px rgba(245, 158, 11, 0.08);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .admin-widget-count-badge.ok {
+      border-color: rgba(34, 197, 94, 0.3);
+      color: var(--green);
+      background: rgba(34, 197, 94, 0.08);
+      box-shadow: none;
+    }
+    .admin-widget-metrics {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .admin-widget-metric-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      min-height: 17px;
+      color: #9fb2d2;
+      font-size: 11px;
+      line-height: 1.15;
+    }
+    .admin-widget-metric-row span:nth-child(2) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-widget-metric-row strong {
+      color: #eef6ff;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .admin-widget-marker {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 10px rgba(24, 215, 242, 0.28);
+    }
+    .admin-widget-metric-row.ok .admin-widget-marker { background: var(--green); }
+    .admin-widget-metric-row.info .admin-widget-marker { background: var(--cyan); }
+    .admin-widget-metric-row.attention .admin-widget-marker { background: var(--amber); }
+    .admin-widget-metric-row.error .admin-widget-marker { background: var(--red); }
+    .admin-widget-empty-note {
+      padding: 8px 0 0;
+      color: #8ea3c4;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .admin-widget-audit-list {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .admin-widget-audit-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 6px 7px;
+      border: 1px solid rgba(119, 172, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 14, 34, 0.48);
+    }
+    .admin-widget-audit-main {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+    .admin-widget-action-badge {
+      width: max-content;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 2px 7px;
+      border: 1px solid rgba(34, 197, 94, 0.28);
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(34, 197, 94, 0.08);
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+    .admin-widget-audit-row.error .admin-widget-action-badge {
+      border-color: rgba(255, 59, 127, 0.34);
+      color: var(--red);
+      background: rgba(255, 59, 127, 0.08);
+    }
+    .admin-widget-audit-target {
+      overflow: hidden;
+      color: #dbe8ff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-widget-audit-time {
+      color: #8ea3c4;
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .admin-widget-system-layout {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .admin-widget-donut {
+      width: 86px;
+      height: 86px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(5, 14, 34, 0.96) 0 48%, transparent 49%),
+        conic-gradient(var(--cyan) 0 var(--donut-active), rgba(24, 125, 242, 0.78) var(--donut-active) var(--donut-dev), rgba(69, 88, 123, 0.62) var(--donut-dev) 100%);
+      box-shadow: 0 0 24px rgba(24, 215, 242, 0.22), inset 0 0 16px rgba(24, 215, 242, 0.08);
+    }
+    .admin-widget-donut-inner {
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      text-align: center;
+    }
+    .admin-widget-donut-value {
+      color: #f4f8ff;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .admin-widget-donut-label {
+      max-width: 62px;
+      color: #8fa5c7;
+      font-size: 9px;
+      line-height: 1.15;
+    }
+    .admin-widget-system-stats {
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+    }
+    .admin-widget-system-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: baseline;
+      gap: 7px;
+      min-width: 0;
+    }
+    .admin-widget-system-row strong {
+      color: #f4f8ff;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .admin-widget-system-row span {
+      overflow: hidden;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-widget-system-row.ok span { color: var(--green); }
+    .admin-widget-system-row.info span { color: var(--cyan); }
+    .admin-widget-system-row.attention span { color: #8fa5c7; }
     .event-list,
     .source-list,
     .quick-grid { display: grid; gap: 8px; }
@@ -2105,21 +2322,103 @@
               <h2>{{ widget.payload.title }}</h2>
             </div>
           </div>
-          <div class="admin-widget-list">
-            {% if widget.payload.primaryValue is not none %}
-            <div class="admin-widget-row {{ widget.payload.status }}">
-              <span>{{ widget.payload.primaryLabel or "Значение" }}</span>
-              <strong>{{ widget.payload.primaryValue }}</strong>
+          <div class="admin-widget-body">
+            {% if widget.widgetCode == "MODULE_03_USERS_SUMMARY_WIDGET" %}
+            <div class="admin-widget-primary">
+              <div class="admin-widget-primary-value">{{ widget.payload.primaryValue }}</div>
+              <div class="admin-widget-primary-label">{{ widget.payload.primaryLabel }}</div>
             </div>
-            {% endif %}
-            {% for item in widget.payload["items"][:5] %}
-            <div class="admin-widget-row {{ item.status|default('') }}">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
+            <div class="admin-widget-metrics admin-widget-metrics--types">
+              {% for item in widget.payload["items"][:4] %}
+              <div class="admin-widget-metric-row {{ item.status|default('') }}">
+                <span class="admin-widget-marker" aria-hidden="true"></span>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              {% else %}
+              <div class="admin-widget-empty-note">{{ widget.payload.emptyStateLabel or "Нет данных" }}</div>
+              {% endfor %}
+            </div>
+            {% elif widget.widgetCode == "MODULE_03_MODERATION_QUEUE_WIDGET" %}
+            <div class="admin-widget-primary admin-widget-primary--inline">
+              <div>
+                <div class="admin-widget-primary-value">{{ widget.payload.primaryValue }}</div>
+                <div class="admin-widget-primary-label">{{ widget.payload.primaryLabel }}</div>
+              </div>
+              <span class="admin-widget-count-badge {% if not widget.payload.primaryValue %}ok{% endif %}">{{ widget.payload.primaryValue }}</span>
+            </div>
+            <div class="admin-widget-metrics">
+              {% for item in widget.payload["items"][:3] %}
+              <div class="admin-widget-metric-row {{ item.status|default('') }}">
+                <span class="admin-widget-marker" aria-hidden="true"></span>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              {% else %}
+              <div class="admin-widget-empty-note">{{ widget.payload.emptyStateLabel or "Нет заявок" }}</div>
+              {% endfor %}
+            </div>
+            {% elif widget.widgetCode == "MODULE_03_AUDIT_LOG_WIDGET" %}
+            <div class="admin-widget-primary">
+              <div class="admin-widget-primary-value">{{ widget.payload.primaryValue }}</div>
+              <div class="admin-widget-primary-label">{{ widget.payload.primaryLabel }}</div>
+            </div>
+            <div class="admin-widget-audit-list">
+              {% for item in widget.payload["items"][:2] %}
+              <div class="admin-widget-audit-row {{ item.status|default('') }}">
+                <div class="admin-widget-audit-main">
+                  <span class="admin-widget-action-badge">{{ item.label }}</span>
+                  <span class="admin-widget-audit-target">{{ item.value }}</span>
+                </div>
+                <span class="admin-widget-audit-time">{{ item.caption }}</span>
+              </div>
+              {% else %}
+              <div class="admin-widget-empty-note">{{ widget.payload.emptyStateLabel or "Нет изменений" }}</div>
+              {% endfor %}
+            </div>
+            {% elif widget.widgetCode in ["MODULE_03_MODULES_STATUS_WIDGET", "MODULE_03_WIDGETS_STATUS_WIDGET"] %}
+            {% set chart_points = widget.payload.miniChart.points if widget.payload.miniChart else [] %}
+            {% set chart_total = widget.payload.primaryValue or 0 %}
+            {% set chart_active = chart_points[0] if chart_points|length > 0 else 0 %}
+            {% set chart_dev = chart_points[1] if chart_points|length > 1 else 0 %}
+            {% set chart_active_pct = (chart_active / chart_total * 100) if chart_total else 0 %}
+            {% set chart_dev_pct = ((chart_active + chart_dev) / chart_total * 100) if chart_total else 0 %}
+            <div class="admin-widget-system-layout">
+              <div class="admin-widget-donut" style="--donut-active: {{ chart_active_pct }}%; --donut-dev: {{ chart_dev_pct }}%">
+                <div class="admin-widget-donut-inner">
+                  <div class="admin-widget-donut-value">{{ widget.payload.primaryValue }}</div>
+                  <div class="admin-widget-donut-label">{{ widget.payload.primaryLabel }}</div>
+                </div>
+              </div>
+              <div class="admin-widget-system-stats">
+                {% for item in widget.payload["items"][:3] %}
+                <div class="admin-widget-system-row {{ item.status|default('') }}">
+                  <strong>{{ item.value }}</strong>
+                  <span>{{ item.label }}</span>
+                </div>
+                {% else %}
+                <div class="admin-widget-empty-note">{{ widget.payload.emptyStateLabel or "Нет данных" }}</div>
+                {% endfor %}
+              </div>
             </div>
             {% else %}
-            <div class="widget-empty-state">{{ widget.payload.emptyStateLabel or "Нет данных" }}</div>
-            {% endfor %}
+            <div class="admin-widget-list">
+              {% if widget.payload.primaryValue is not none %}
+              <div class="admin-widget-row {{ widget.payload.status }}">
+                <span>{{ widget.payload.primaryLabel or "Значение" }}</span>
+                <strong>{{ widget.payload.primaryValue }}</strong>
+              </div>
+              {% endif %}
+              {% for item in widget.payload["items"][:5] %}
+              <div class="admin-widget-row {{ item.status|default('') }}">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              {% else %}
+              <div class="widget-empty-state">{{ widget.payload.emptyStateLabel or "Нет данных" }}</div>
+              {% endfor %}
+            </div>
+            {% endif %}
           </div>
         </article>
         {% endfor %}

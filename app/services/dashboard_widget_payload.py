@@ -53,6 +53,7 @@ class WidgetMiniChartPayload:
 class WidgetItemPayload:
     label: str
     value: str | int | float | None = None
+    caption: str | None = None
     status: str | None = None
     route: str | None = None
 
@@ -248,6 +249,7 @@ def _normalize_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         WidgetItemPayload(
             label=str(item.get("label", "")),
             value=item.get("value"),
+            caption=str(item.get("caption")) if item.get("caption") not in {None, ""} else None,
             status=_normalize_optional(item.get("status"), ITEM_STATUSES),
             route=item.get("route"),
         ).to_dict()
@@ -450,6 +452,7 @@ def _module3_audit_log_payload(history: list[Any], users: list[Any], workspaces:
         {
             "label": str(row.get("action") or row.get("actionType") or ""),
             "value": str(row.get("objectName") or row.get("subjectLabel") or row.get("objectId") or ""),
+            "caption": str(row.get("timestampCompact") or ""),
             "status": "ok" if str(row.get("result") or "SUCCESS").upper() == "SUCCESS" else "error",
         }
         for row in rows[:2]

@@ -1,5 +1,7 @@
+import uuid
 from datetime import datetime
 
+from app.models import AuditLog
 from app.services.dashboard_widget_payload import (
     atom_widget_payload_from_admin_widget,
     build_atom_widget_payload,
@@ -19,7 +21,7 @@ def test_build_atom_widget_payload_normalizes_shape_and_canonical_module_code():
         trend={"direction": "sideways", "value": "+1,2%"},
         mini_chart={"type": "unknown", "points": [1, 2, 3]},
         items=[
-            {"label": "Газобетон", "value": "+8%", "status": "ok", "route": "/modules/analytics"},
+            {"label": "Газобетон", "value": "+8%", "caption": "05.07 08:57", "status": "ok", "route": "/modules/analytics"},
             {"label": "OSB", "value": "-3%", "status": "bad"},
         ],
         attention_items=[
@@ -39,6 +41,7 @@ def test_build_atom_widget_payload_normalizes_shape_and_canonical_module_code():
     assert data["miniChart"]["type"] == "sparkline"
     assert data["items"][0]["status"] == "ok"
     assert data["items"][1]["status"] is None
+    assert data["items"][0]["caption"] == "05.07 08:57"
     assert data["attentionItems"][0]["severity"] == "error"
     assert data["cta"]["actionCode"] == "VIEW"
     assert data["updatedAt"] == "2026-06-26 14:37"
@@ -112,3 +115,36 @@ def test_module3_dashboard_widget_payloads_use_existing_sources_without_settings
     assert by_code["MODULE_03_MODERATION_QUEUE_WIDGET"]["emptyStateLabel"] == "\u041d\u0435\u0442 \u0437\u0430\u044f\u0432\u043e\u043a"
     assert by_code["MODULE_03_AUDIT_LOG_WIDGET"]["emptyStateLabel"] == "\u041d\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439"
     assert all(payload["cta"] is None for payload in payloads)
+
+def test_module3_audit_dashboard_widget_compacts_latest_entries():
+    from app.services.dashboard_widget_payload import build_module3_dashboard_widget_payload
+
+    audit = AuditLog(
+        id=uuid.uuid4(),
+        user_id=None,
+        workspace_id=uuid.uuid4(),
+        action_type="module_access_changed",
+        entity_type="ModuleAccess",
+        entity_id=uuid.uuid4(),
+        result="SUCCESS",
+        created_at=datetime(2026, 7, 5, 8, 57, 0),
+        details={
+            "moduleCode": "MODULE_03_USERS_ROLES",
+            "targetUserId": "user-1",
+            "oldValue": {"allowed": False},
+            "newValue": {"allowed": True},
+            "reason": "test",
+        },
+    )
+
+    payload = build_module3_dashboard_widget_payload(
+        widget_code="MODULE_03_AUDIT_LOG_WIDGET",
+        history=[audit],
+        updated_at="2026-07-06 12:00",
+    )
+
+    assert payload["primaryValue"] == 1
+    assert payload["items"][0]["label"]
+    assert payload["items"][0]["value"]
+    assert payload["items"][0]["caption"] == "05.07 08:57"
+    assert payload["cta"] is None

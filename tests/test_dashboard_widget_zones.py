@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from jinja2 import Environment
+
 from app.api.v1.admin_cabinet_view import _build_bottom_widget_grid, _build_top_widget_grid, _is_right_rail_enabled
 
 
@@ -127,4 +129,17 @@ def test_bottom_widget_template_uses_administrative_card_contract():
     assert "admin-widget-icon--{{ widget.payload.iconKey or 'default' }}" in template
     assert "widget.payload.primaryValue is not none" in template
     assert "widget.payload.emptyStateLabel" in template
+    assert "MODULE_03_USERS_SUMMARY_WIDGET" in template
+    assert "MODULE_03_MODERATION_QUEUE_WIDGET" in template
+    assert "MODULE_03_AUDIT_LOG_WIDGET" in template
+    assert "admin-widget-audit-row" in template
+    assert "MODULE_03_MODULES_STATUS_WIDGET" in template
+    assert "MODULE_03_WIDGETS_STATUS_WIDGET" in template
+    assert "admin-widget-donut" in template
+    assert "admin-widget-system-row" in template
     assert "Открыть все" not in template[template.index("bottom-widget-grid") : template.index("</section>", template.index("bottom-widget-grid"))]
+
+def test_admin_cabinet_template_jinja_syntax_is_valid():
+    template = Path("templates/admin_cabinet_view.html").read_text(encoding="utf-8")
+
+    Environment().parse(template)
