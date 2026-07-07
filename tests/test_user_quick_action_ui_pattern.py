@@ -259,3 +259,23 @@ def test_quick_action_documentation_lists_stale_action_states():
     assert "LOADING" in doc
     assert "ERROR" in doc
     assert "интерфейс не должен падать" in doc
+
+
+def test_quick_action_menu_uses_backend_api_as_primary_storage():
+    html = read("templates/_atom_quick_action_menu.html")
+
+    assert 'QUICK_ACTION_API_BASE = "/api/v1/quick-actions/user-module"' in html
+    assert 'FALLBACK_STORAGE_KEY = "atom:userModuleQuickActions:v1"' in html
+    assert "async function apiRequest" in html
+    assert "await apiRequest(`?${moduleQuery(sourceModuleCode)}`)" in html
+    assert "method: \"POST\", body: JSON.stringify(createPayloadFromCandidate" in html
+    assert "method: \"DELETE\"" in html
+    assert "pin-atom-card" in html
+    assert "unpin-atom-card" in html
+    assert "/rename?${moduleQuery" in html
+    assert "await apiRequest(\"/reorder\"" in html
+    assert "}/run`" in html
+    assert "function readFallbackStore()" in html
+    assert "function writeFallbackStore(items)" in html
+    assert "quickActionCache.map(normalizeAction)" in html
+    assert "localStorage.setItem(FALLBACK_STORAGE_KEY" in html

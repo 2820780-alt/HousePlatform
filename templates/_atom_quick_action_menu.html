@@ -251,49 +251,155 @@
 
 <script>
   (() => {
-    const STORAGE_KEY = "atom:userModuleQuickActions:v1";
+    const QUICK_ACTION_API_BASE = "/api/v1/quick-actions/user-module";
+    const FALLBACK_STORAGE_KEY = "atom:userModuleQuickActions:v1";
     const MAX_MODULE_ACTIONS = 9;
     const MAX_PINNED_ACTIONS = 3;
-    const FORBIDDEN_CONFIG_KEYS = new Set([
-      "businessPayload",
-      "business_payload",
-      "resultPayload",
-      "result_payload",
-      "rawData",
-      "raw_data",
-      "sourceRows",
-      "source_rows",
-      "rows",
-      "password",
-      "token"
-    ]);
+    const FORBIDDEN_CONFIG_KEYS = new Set(["businessPayload", "business_payload", "resultPayload", "result_payload", "rawData", "raw_data", "sourceRows", "source_rows", "rows", "password", "token"]);
     let activeCandidate = null;
+    let quickActionCache = [];
+    let loadedSourceModules = new Set();
+    let backendUnavailable = false;
 
-    function readStore() {
+    function stableStringify(value) {
+      if (!value || typeof value !== "object") return JSON.stringify(value || null);
+      if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
+      return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + stableStringify(value[key])).join(",") + "}";
+    }
+
+    function candidateId(candidate) {
+      return [candidate.userId || "current-user", candidate.workspaceId || "", candidate.activeRegionCode || "", candidate.sourceModuleCode, candidate.featureCode || "", candidate.actionKey, candidate.savedConfigRef || stableStringify(candidate.configSnapshot || {})].join("::");
+    }
+
+    function normalizeAction(item) {
+      if (!item) return null;
+      const normalized = {
+        id: item.quickActionId || item.id || null,
+        quickActionId: item.quickActionId || item.id || null,
+        localId: item.localId || item.quickActionId || item.id || "",
+        userId: item.userId || item.user_id || "current-user",
+        workspaceId: item.workspaceId || item.workspace_id || "",
+        activeRegionCode: item.activeRegionCode || item.active_region_code || "",
+        sourceModuleCode: item.sourceModuleCode || item.source_module_code || "",
+        featureCode: item.featureCode || item.feature_code || "",
+        actionKey: item.actionKey || item.action_key || "",
+        title: item.title || "",
+        description: item.description || "",
+        icon: item.icon || "",
+        route: item.route || "",
+        deepLink: item.deepLink || item.deep_link || "",
+        savedConfigRef: item.savedConfigRef || item.saved_config_ref || "",
+        configSnapshot: item.configSnapshot || item.config_snapshot || null,
+        order: Number(item.sortOrder ?? item.order ?? 0),
+        sortOrder: Number(item.sortOrder ?? item.order ?? 0),
+        isVisibleInModuleBar: item.isVisibleInModuleBar !== false && item.is_visible_in_module_bar !== false,
+        isPinnedToAtomCard: Boolean(item.isPinnedToAtomCard ?? item.is_pinned_to_atom_card),
+        atomCardOrder: item.atomCardOrder ?? item.atom_card_order ?? null,
+        atomCardAccent: item.atomCardAccent || item.atom_card_accent || "cyan",
+        status: item.status || "ACTIVE",
+        createdAt: item.createdAt || item.created_at || "",
+        updatedAt: item.updatedAt || item.updated_at || ""
+      };
+      if (!normalized.localId) normalized.localId = candidateId(normalized);
+      return normalized;
+    }
+
+    function actionIdentity(item) {
+      const normalized = normalizeAction(item);
+      return normalized?.quickActionId || normalized?.localId || candidateId(normalized);
+    }
+
+    function readFallbackStore() {
       try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        return Array.isArray(parsed) ? parsed : [];
+        const parsed = JSON.parse(localStorage.getItem(FALLBACK_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed.map(normalizeAction).filter(Boolean) : [];
       } catch (error) {
         return [];
       }
     }
 
-    function writeStore(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    function writeFallbackStore(items) {
+      try { localStorage.setItem(FALLBACK_STORAGE_KEY, JSON.stringify(items.map(normalizeAction))); } catch (error) {}
+    }
+
+    function readStore() {
+      if (backendUnavailable && quickActionCache.length === 0) quickActionCache = readFallbackStore();
+      return quickActionCache.map(normalizeAction).filter(Boolean);
+    }
+
+    function setStore(items, options = {}) {
+      quickActionCache = items.map(normalizeAction).filter(Boolean);
+      if (backendUnavailable || options.fallback) writeFallbackStore(quickActionCache);
       renderAllModuleQuickActionBars();
       renderAllAtomCardPinnedActions();
     }
 
-    function candidateId(candidate) {
-      return [
-        candidate.userId || "current-user",
-        candidate.workspaceId || "",
-        candidate.activeRegionCode || "",
-        candidate.sourceModuleCode,
-        candidate.featureCode || "",
-        candidate.actionKey,
-        candidate.savedConfigRef || JSON.stringify(candidate.configSnapshot || {})
-      ].join("::");
+    function mergeModuleActions(sourceModuleCode, items) {
+      const nextItems = items.map(normalizeAction).filter(Boolean);
+      const others = readStore().filter((item) => item.sourceModuleCode !== sourceModuleCode);
+      setStore([...others, ...nextItems]);
+      loadedSourceModules.add(sourceModuleCode);
+      return nextItems;
+    }
+
+    function activateFallback(error) {
+      if (!backendUnavailable) {
+        backendUnavailable = true;
+        quickActionCache = readFallbackStore();
+        showToast("Backend быстрых действий недоступен. Используется локальный fallback.");
+      }
+      if (error) console.warn("Quick actions backend unavailable", error);
+    }
+
+    async function apiRequest(path, options = {}) {
+      const response = await fetch(`${QUICK_ACTION_API_BASE}${path}`, {
+        credentials: "same-origin",
+        ...options,
+        headers: { "Accept": "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) }
+      });
+      if (!response.ok) throw new Error(await response.text() || `Quick actions API error ${response.status}`);
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    function moduleQuery(sourceModuleCode) {
+      return `sourceModuleCode=${encodeURIComponent(sourceModuleCode)}`;
+    }
+
+    async function loadModuleQuickActions(sourceModuleCode, options = {}) {
+      if (!sourceModuleCode) return [];
+      if (backendUnavailable) return moduleActions(sourceModuleCode);
+      if (!options.force && loadedSourceModules.has(sourceModuleCode)) return moduleActions(sourceModuleCode);
+      try {
+        const items = await apiRequest(`?${moduleQuery(sourceModuleCode)}`);
+        return mergeModuleActions(sourceModuleCode, Array.isArray(items) ? items : []);
+      } catch (error) {
+        activateFallback(error);
+        return moduleActions(sourceModuleCode);
+      }
+    }
+
+    async function refreshModuleQuickActions(sourceModuleCode) {
+      const items = await loadModuleQuickActions(sourceModuleCode, { force: true });
+      renderAllModuleQuickActionBars();
+      renderAllAtomCardPinnedActions();
+      return items;
+    }
+    async function loadAllQuickActionModules(root = document) {
+      const modules = collectSourceModuleCodes(root);
+      renderAllModuleQuickActionBars(root);
+      renderAllAtomCardPinnedActions(root);
+      await Promise.all(modules.map((sourceModuleCode) => loadModuleQuickActions(sourceModuleCode)));
+      renderAllModuleQuickActionBars(root);
+      renderAllAtomCardPinnedActions(root);
+    }
+
+    function collectSourceModuleCodes(root = document) {
+      const codes = new Set();
+      root.querySelectorAll("[data-quick-action-module-bar]").forEach((node) => codes.add(node.dataset.quickActionModuleBar));
+      root.querySelectorAll("[data-quick-action-atom-card]").forEach((node) => codes.add(node.dataset.quickActionAtomCard));
+      root.querySelectorAll("[data-quick-action-source-module-code]").forEach((node) => codes.add(node.dataset.quickActionSourceModuleCode));
+      return Array.from(codes).filter(Boolean);
     }
 
     function candidateFromElement(element) {
@@ -303,12 +409,10 @@
       const title = element.dataset.quickActionTitle || element.textContent.trim();
       if (!sourceModuleCode || !actionKey || !title) return null;
       const config = readCandidateConfig(element);
-      if (config.error) {
-        showToast(config.error);
-        return null;
-      }
-      return {
+      if (config.error) { showToast(config.error); return null; }
+      const candidate = {
         id: null,
+        quickActionId: null,
         localId: "",
         userId: element.dataset.quickActionUserId || "current-user",
         workspaceId: element.dataset.quickActionWorkspaceId || "",
@@ -327,38 +431,31 @@
         isVisibleInModuleBar: true,
         isPinnedToAtomCard: false,
         atomCardOrder: null,
-        atomCardAccent: element.dataset.quickActionAtomCardAccent || "cyan",
+        atomCardAccent: element.dataset.quickActionAtomCardAccent || element.dataset.quickActionAccent || "cyan",
         status: "ACTIVE",
         createdAt: "",
         updatedAt: ""
       };
+      candidate.localId = candidateId(candidate);
+      return candidate;
     }
 
     function readCandidateConfig(element) {
       const providerName = element.dataset.quickActionConfigProvider;
       let value = null;
-      if (providerName && typeof window[providerName] === "function") {
-        value = window[providerName](element);
-      } else if (element.dataset.quickActionConfigSnapshot) {
-        try {
-          value = JSON.parse(element.dataset.quickActionConfigSnapshot);
-        } catch (error) {
-          return { error: "Настройки quick action не удалось прочитать." };
-        }
+      if (providerName && typeof window[providerName] === "function") value = window[providerName](element);
+      else if (element.dataset.quickActionConfigSnapshot) {
+        try { value = JSON.parse(element.dataset.quickActionConfigSnapshot); }
+        catch (error) { return { error: "Настройки quick action не удалось прочитать." }; }
       }
       const forbidden = findForbiddenConfigKeys(value);
-      if (forbidden.length > 0) {
-        return { error: "Shortcut не сохраняет business/raw payload: " + forbidden.join(", ") + "." };
-      }
+      if (forbidden.length > 0) return { error: "Shortcut не сохраняет business/raw payload: " + forbidden.join(", ") + "." };
       return { value };
     }
 
     function findForbiddenConfigKeys(value, result = []) {
       if (!value || typeof value !== "object") return result;
-      if (Array.isArray(value)) {
-        value.forEach((item) => findForbiddenConfigKeys(item, result));
-        return result;
-      }
+      if (Array.isArray(value)) { value.forEach((item) => findForbiddenConfigKeys(item, result)); return result; }
       Object.entries(value).forEach(([key, child]) => {
         if (FORBIDDEN_CONFIG_KEYS.has(key)) result.push(key);
         findForbiddenConfigKeys(child, result);
@@ -366,141 +463,305 @@
       return Array.from(new Set(result));
     }
 
+    function sameCandidate(item, candidate) {
+      const stored = normalizeAction(item);
+      const current = normalizeAction(candidate);
+      if (!stored || !current) return false;
+      return stored.sourceModuleCode === current.sourceModuleCode
+        && stored.actionKey === current.actionKey
+        && (stored.featureCode || "") === (current.featureCode || "")
+        && (stored.savedConfigRef || "") === (current.savedConfigRef || "")
+        && stableStringify(stored.configSnapshot || {}) === stableStringify(current.configSnapshot || {});
+    }
+
     function findStored(candidate) {
-      const id = candidateId(candidate);
-      return readStore().find((item) => item.localId === id) || null;
+      return readStore().find((item) => sameCandidate(item, candidate)) || null;
     }
 
     function moduleActions(sourceModuleCode) {
       return readStore()
-        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isVisibleInModuleBar !== false)
+        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isVisibleInModuleBar !== false && item.status === "ACTIVE")
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .slice(0, MAX_MODULE_ACTIONS);
     }
 
     function pinnedActions(sourceModuleCode) {
       return readStore()
-        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isPinnedToAtomCard)
+        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.isPinnedToAtomCard && item.status === "ACTIVE")
         .sort((a, b) => (a.atomCardOrder || 0) - (b.atomCardOrder || 0) || (a.order || 0) - (b.order || 0))
         .slice(0, MAX_PINNED_ACTIONS);
     }
 
     function activeModuleActions(sourceModuleCode) {
-      return readStore()
-        .filter((item) => item.sourceModuleCode === sourceModuleCode && item.status === "ACTIVE")
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+      return readStore().filter((item) => item.sourceModuleCode === sourceModuleCode && item.status === "ACTIVE").sort((a, b) => (a.order || 0) - (b.order || 0));
     }
 
-    function addCandidate(candidate, pinToAtomCard = false) {
-      const store = readStore();
+    function createPayloadFromCandidate(candidate, pinToAtomCard = false) {
+      const payload = {
+        sourceModuleCode: candidate.sourceModuleCode,
+        featureCode: candidate.featureCode || undefined,
+        actionKey: candidate.actionKey,
+        title: candidate.title,
+        description: candidate.description || undefined,
+        icon: candidate.icon || undefined,
+        route: candidate.route || undefined,
+        deepLink: candidate.deepLink || undefined,
+        workspaceId: candidate.workspaceId || undefined,
+        activeRegionCode: candidate.activeRegionCode || undefined,
+        savedConfigRef: candidate.savedConfigRef || undefined,
+        configSnapshot: candidate.configSnapshot || undefined,
+        pinToAtomCard,
+        atomCardAccent: candidate.atomCardAccent || undefined
+      };
+      Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+      return payload;
+    }
+
+    async function addCandidate(candidate, pinToAtomCard = false) {
+      if (!candidate) return null;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
       const existing = findStored(candidate);
       if (existing) {
         if (pinToAtomCard && !existing.isPinnedToAtomCard) return pinCandidate(existing);
         showToast("Это действие уже добавлено в быстрые действия.");
         return existing;
       }
+      if (activeModuleActions(candidate.sourceModuleCode).length >= MAX_MODULE_ACTIONS) { showToast("В этом модуле уже добавлено 9 быстрых действий. Уберите одно действие, чтобы добавить новое."); return null; }
+      if (pinToAtomCard && pinnedActions(candidate.sourceModuleCode).length >= MAX_PINNED_ACTIONS) { showToast("На карточке модуля можно закрепить не более 3 быстрых действий."); return null; }
+      if (backendUnavailable) return fallbackAddCandidate(candidate, pinToAtomCard);
+      try {
+        const item = normalizeAction(await apiRequest("", { method: "POST", body: JSON.stringify(createPayloadFromCandidate(candidate, pinToAtomCard)) }));
+        await refreshModuleQuickActions(candidate.sourceModuleCode);
+        dispatchQuickActionEvent("atom:quick-action:add", item);
+        if (pinToAtomCard) dispatchQuickActionEvent("atom:quick-action:pin", item);
+        showToast("Добавлено в быстрые действия.");
+        return item;
+      } catch (error) {
+        activateFallback(error);
+        return fallbackAddCandidate(candidate, pinToAtomCard);
+      }
+    }
+
+    function fallbackAddCandidate(candidate, pinToAtomCard = false) {
+      const existing = findStored(candidate);
+      if (existing) return existing;
       const moduleItems = activeModuleActions(candidate.sourceModuleCode);
-      if (moduleItems.length >= MAX_MODULE_ACTIONS) {
-        showToast("В этом модуле уже добавлено 9 быстрых действий. Уберите одно действие, чтобы добавить новое.");
-        return null;
-      }
-      if (pinToAtomCard && pinnedActions(candidate.sourceModuleCode).length >= MAX_PINNED_ACTIONS) {
-        showToast("На карточке модуля можно закрепить не более 3 быстрых действий.");
-        return null;
-      }
       const now = new Date().toISOString();
-      const item = {
-        ...candidate,
-        localId: candidateId(candidate),
-        order: moduleItems.length + 1,
-        isPinnedToAtomCard: pinToAtomCard,
-        atomCardOrder: pinToAtomCard ? pinnedActions(candidate.sourceModuleCode).length + 1 : null,
-        createdAt: now,
-        updatedAt: now
-      };
-      store.push(item);
-      writeStore(store);
+      const item = normalizeAction({ ...candidate, localId: candidateId(candidate), order: moduleItems.length + 1, sortOrder: moduleItems.length + 1, isPinnedToAtomCard: pinToAtomCard, atomCardOrder: pinToAtomCard ? pinnedActions(candidate.sourceModuleCode).length + 1 : null, createdAt: now, updatedAt: now });
+      setStore([...readStore(), item], { fallback: true });
       dispatchQuickActionEvent("atom:quick-action:add", item);
+      if (pinToAtomCard) dispatchQuickActionEvent("atom:quick-action:pin", item);
       showToast("Добавлено в быстрые действия.");
       return item;
     }
-
-    function removeCandidate(candidate) {
+    async function removeCandidate(candidate) {
+      if (!candidate) return null;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
       const existing = findStored(candidate);
-      if (!existing) {
-        showToast("Этого действия нет в быстрых действиях.");
-        return null;
-      }
-      const updated = readStore().filter((item) => item.localId !== existing.localId);
-      writeStore(reorderModule(updated, existing.sourceModuleCode));
-      dispatchQuickActionEvent("atom:quick-action:remove", existing);
-      showToast("Удалено из быстрых действий.");
-      return existing;
+      if (!existing) { showToast("Этого действия нет в быстрых действиях."); return null; }
+      return removeStoredQuickAction(existing);
     }
 
-    function pinCandidate(candidate) {
-      const existing = findStored(candidate) || addCandidate(candidate, false);
+    async function pinCandidate(candidate) {
+      if (!candidate) return null;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
+      const existing = findStored(candidate) || await addCandidate(candidate, false);
       if (!existing) return null;
-      if (existing.isPinnedToAtomCard) {
-        showToast("Действие уже закреплено на карточке модуля.");
-        return existing;
+      if (existing.isPinnedToAtomCard) { showToast("Действие уже закреплено на карточке модуля."); return existing; }
+      if (pinnedActions(existing.sourceModuleCode).length >= MAX_PINNED_ACTIONS) { showToast("На карточке модуля можно закрепить не более 3 быстрых действий."); return null; }
+      if (backendUnavailable || !existing.quickActionId) return fallbackPinCandidate(existing);
+      try {
+        const item = normalizeAction(await apiRequest(`/${encodeURIComponent(existing.quickActionId)}/pin-atom-card?${moduleQuery(existing.sourceModuleCode)}`, { method: "POST", body: JSON.stringify({ atomCardAccent: existing.atomCardAccent || "cyan" }) }));
+        await refreshModuleQuickActions(existing.sourceModuleCode);
+        dispatchQuickActionEvent("atom:quick-action:pin", item);
+        showToast("Закреплено на карточке модуля.");
+        return item;
+      } catch (error) {
+        activateFallback(error);
+        return fallbackPinCandidate(existing);
       }
-      if (pinnedActions(existing.sourceModuleCode).length >= MAX_PINNED_ACTIONS) {
-        showToast("На карточке модуля можно закрепить не более 3 быстрых действий.");
-        return null;
-      }
-      const updated = readStore().map((item) => {
-        if (item.localId !== existing.localId) return item;
-        return {
-          ...item,
-          isPinnedToAtomCard: true,
-          atomCardOrder: pinnedActions(existing.sourceModuleCode).length + 1,
-          updatedAt: new Date().toISOString()
-        };
-      });
-      writeStore(updated);
+    }
+
+    function fallbackPinCandidate(existing) {
+      const updated = readStore().map((item) => actionIdentity(item) === actionIdentity(existing) ? normalizeAction({ ...item, isPinnedToAtomCard: true, atomCardOrder: pinnedActions(existing.sourceModuleCode).length + 1, updatedAt: new Date().toISOString() }) : item);
+      setStore(updated, { fallback: true });
       dispatchQuickActionEvent("atom:quick-action:pin", existing);
       showToast("Закреплено на карточке модуля.");
       return existing;
     }
 
-    function unpinCandidate(candidate) {
+    async function unpinCandidate(candidate) {
+      if (!candidate) return null;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
       const existing = findStored(candidate);
-      if (!existing) {
-        showToast("Этого действия нет в быстрых действиях.");
-        return null;
+      if (!existing) { showToast("Этого действия нет в быстрых действиях."); return null; }
+      return unpinStoredQuickAction(existing);
+    }
+
+    async function unpinStoredQuickAction(item) {
+      if (backendUnavailable || !item.quickActionId) return fallbackUnpinQuickAction(item);
+      try {
+        const updatedItem = normalizeAction(await apiRequest(`/${encodeURIComponent(item.quickActionId)}/unpin-atom-card?${moduleQuery(item.sourceModuleCode)}`, { method: "POST" }));
+        await refreshModuleQuickActions(item.sourceModuleCode);
+        dispatchQuickActionEvent("atom:quick-action:unpin", updatedItem);
+        showToast("Снято с карточки модуля.");
+        return updatedItem;
+      } catch (error) {
+        activateFallback(error);
+        return fallbackUnpinQuickAction(item);
       }
-      const updated = readStore().map((item) => {
-        if (item.localId !== existing.localId) return item;
-        return {
-          ...item,
-          isPinnedToAtomCard: false,
-          atomCardOrder: null,
-          updatedAt: new Date().toISOString()
-        };
-      });
-      writeStore(reorderPinned(updated, existing.sourceModuleCode));
-      dispatchQuickActionEvent("atom:quick-action:unpin", existing);
+    }
+
+    function fallbackUnpinQuickAction(item) {
+      const updated = readStore().map((entry) => actionIdentity(entry) === actionIdentity(item) ? normalizeAction({ ...entry, isPinnedToAtomCard: false, atomCardOrder: null, updatedAt: new Date().toISOString() }) : entry);
+      setStore(reorderPinned(updated, item.sourceModuleCode), { fallback: true });
+      dispatchQuickActionEvent("atom:quick-action:unpin", item);
       showToast("Снято с карточки модуля.");
+      return item;
+    }
+
+    async function renameCandidate(candidate) {
+      if (!candidate) return null;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
+      const existing = findStored(candidate);
+      if (!existing) { showToast("Сначала добавьте действие в быстрые действия."); return null; }
+      const nextTitle = window.prompt("Новое название shortcut", existing.title);
+      if (!nextTitle || !nextTitle.trim()) return existing;
+      const title = nextTitle.trim();
+      if (backendUnavailable || !existing.quickActionId) return fallbackRenameQuickAction(existing, title);
+      try {
+        const item = normalizeAction(await apiRequest(`/${encodeURIComponent(existing.quickActionId)}/rename?${moduleQuery(existing.sourceModuleCode)}`, { method: "POST", body: JSON.stringify({ title }) }));
+        await refreshModuleQuickActions(existing.sourceModuleCode);
+        dispatchQuickActionEvent("atom:quick-action:rename", item);
+        showToast("Shortcut переименован.");
+        return item;
+      } catch (error) {
+        activateFallback(error);
+        return fallbackRenameQuickAction(existing, title);
+      }
+    }
+
+    function fallbackRenameQuickAction(existing, title) {
+      const updated = readStore().map((item) => actionIdentity(item) === actionIdentity(existing) ? normalizeAction({ ...item, title, updatedAt: new Date().toISOString() }) : item);
+      setStore(updated, { fallback: true });
+      dispatchQuickActionEvent("atom:quick-action:rename", { ...existing, title });
+      showToast("Shortcut переименован.");
       return existing;
     }
 
-    function renameCandidate(candidate) {
-      const existing = findStored(candidate);
-      if (!existing) {
-        showToast("Сначала добавьте действие в быстрые действия.");
+    async function removeStoredQuickAction(item) {
+      if (backendUnavailable || !item.quickActionId) return fallbackRemoveQuickAction(item);
+      try {
+        await apiRequest(`/${encodeURIComponent(item.quickActionId)}?${moduleQuery(item.sourceModuleCode)}`, { method: "DELETE" });
+        await refreshModuleQuickActions(item.sourceModuleCode);
+        dispatchQuickActionEvent("atom:quick-action:remove", item);
+        showToast("Удалено из быстрых действий.");
+        return item;
+      } catch (error) {
+        activateFallback(error);
+        return fallbackRemoveQuickAction(item);
+      }
+    }
+
+    function fallbackRemoveQuickAction(item) {
+      const updated = readStore().filter((entry) => actionIdentity(entry) !== actionIdentity(item));
+      setStore(reorderModule(updated, item.sourceModuleCode), { fallback: true });
+      dispatchQuickActionEvent("atom:quick-action:remove", item);
+      showToast("Удалено из быстрых действий.");
+      return item;
+    }
+
+    async function moveStoredQuickAction(item, direction) {
+      const moduleItems = moduleActions(item.sourceModuleCode);
+      const currentIndex = moduleItems.findIndex((entry) => actionIdentity(entry) === actionIdentity(item));
+      const nextIndex = currentIndex + direction;
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= moduleItems.length) return;
+      const reorderedItems = [...moduleItems];
+      [reorderedItems[currentIndex], reorderedItems[nextIndex]] = [reorderedItems[nextIndex], reorderedItems[currentIndex]];
+      if (backendUnavailable || reorderedItems.some((entry) => !entry.quickActionId)) return fallbackReorderModuleActions(item.sourceModuleCode, reorderedItems);
+      try {
+        const orderedIds = reorderedItems.map((entry) => entry.quickActionId);
+        const items = await apiRequest("/reorder", { method: "POST", body: JSON.stringify({ sourceModuleCode: item.sourceModuleCode, orderedIds }) });
+        mergeModuleActions(item.sourceModuleCode, Array.isArray(items) ? items : []);
+        dispatchQuickActionEvent("atom:quick-action:reorder", { sourceModuleCode: item.sourceModuleCode, orderedIds });
+        showToast("Порядок быстрых действий обновлен.");
+      } catch (error) {
+        activateFallback(error);
+        fallbackReorderModuleActions(item.sourceModuleCode, reorderedItems);
+      }
+    }
+
+    function fallbackReorderModuleActions(sourceModuleCode, reorderedItems) {
+      const ids = reorderedItems.map(actionIdentity);
+      const nextById = new Map(reorderedItems.map((item, index) => [actionIdentity(item), normalizeAction({ ...item, order: index + 1, sortOrder: index + 1, updatedAt: new Date().toISOString() })]));
+      const updated = readStore().map((entry) => nextById.get(actionIdentity(entry)) || entry);
+      setStore(reorderModule(updated, sourceModuleCode), { fallback: true });
+      dispatchQuickActionEvent("atom:quick-action:reorder", { sourceModuleCode, orderedIds: ids });
+      showToast("Порядок быстрых действий обновлен.");
+    }
+    async function resetModuleQuickActions(sourceModuleCode, options = {}) {
+      const items = readStore().filter((item) => item.sourceModuleCode === sourceModuleCode);
+      if (items.length === 0) { showToast("В этом модуле нет быстрых действий для сброса."); return 0; }
+      if (options.confirm && !window.confirm("Удалить все быстрые действия этого модуля?")) return 0;
+      if (backendUnavailable || items.some((item) => !item.quickActionId)) {
+        setStore(readStore().filter((item) => item.sourceModuleCode !== sourceModuleCode), { fallback: true });
+        dispatchQuickActionEvent("atom:quick-action:reset-module", { sourceModuleCode, removedCount: items.length });
+        showToast("Быстрые действия модуля сброшены.");
+        return items.length;
+      }
+      let removedCount = 0;
+      for (const item of items) {
+        await apiRequest(`/${encodeURIComponent(item.quickActionId)}?${moduleQuery(sourceModuleCode)}`, { method: "DELETE" });
+        removedCount += 1;
+      }
+      await refreshModuleQuickActions(sourceModuleCode);
+      dispatchQuickActionEvent("atom:quick-action:reset-module", { sourceModuleCode, removedCount });
+      showToast("Быстрые действия модуля сброшены.");
+      return removedCount;
+    }
+
+    async function resetAtomCardPinnedQuickActions(sourceModuleCode, options = {}) {
+      const items = pinnedActions(sourceModuleCode);
+      if (items.length === 0) { showToast("На карточке модуля нет закрепленных действий."); return 0; }
+      if (options.confirm && !window.confirm("Снять все быстрые действия с карточки модуля?")) return 0;
+      if (backendUnavailable || items.some((item) => !item.quickActionId)) {
+        const updated = readStore().map((item) => item.sourceModuleCode === sourceModuleCode && item.isPinnedToAtomCard ? normalizeAction({ ...item, isPinnedToAtomCard: false, atomCardOrder: null, updatedAt: new Date().toISOString() }) : item);
+        setStore(reorderPinned(updated, sourceModuleCode), { fallback: true });
+        dispatchQuickActionEvent("atom:quick-action:reset-pinned", { sourceModuleCode, unpinnedCount: items.length });
+        showToast("Закрепленные действия на карточке сброшены.");
+        return items.length;
+      }
+      let unpinnedCount = 0;
+      for (const item of items) {
+        await apiRequest(`/${encodeURIComponent(item.quickActionId)}/unpin-atom-card?${moduleQuery(sourceModuleCode)}`, { method: "POST" });
+        unpinnedCount += 1;
+      }
+      await refreshModuleQuickActions(sourceModuleCode);
+      dispatchQuickActionEvent("atom:quick-action:reset-pinned", { sourceModuleCode, unpinnedCount });
+      showToast("Закрепленные действия на карточке сброшены.");
+      return unpinnedCount;
+    }
+
+    async function runQuickAction(item) {
+      if (backendUnavailable || !item.quickActionId) return navigateQuickAction(item);
+      try {
+        const result = await apiRequest(`/${encodeURIComponent(item.quickActionId)}/run`, { method: "POST", body: JSON.stringify({ sourceModuleCode: item.sourceModuleCode, actionKey: item.actionKey }) });
+        if (result.status !== "READY" && result.status !== "OPEN_MODULE_HANDLER") {
+          showToast(result.message || stateMessage({ ...item, status: result.state || result.status }));
+          return result;
+        }
+        return navigateQuickAction({ ...item, route: result.route || item.route, deepLink: result.deepLink || item.deepLink });
+      } catch (error) {
+        showToast("Не удалось выполнить быстрое действие. Проверьте доступы и повторите попытку.");
         return null;
       }
-      const nextTitle = window.prompt("Новое название shortcut", existing.title);
-      if (!nextTitle) return existing;
-      const updated = readStore().map((item) => {
-        if (item.localId !== existing.localId) return item;
-        return { ...item, title: nextTitle.trim(), updatedAt: new Date().toISOString() };
-      });
-      writeStore(updated);
-      dispatchQuickActionEvent("atom:quick-action:rename", { ...existing, title: nextTitle.trim() });
-      showToast("Shortcut переименован.");
-      return existing;
+    }
+
+    function navigateQuickAction(item) {
+      dispatchQuickActionEvent("atom:quick-action:run", item);
+      if (item.deepLink) { window.location.href = item.deepLink; return item; }
+      if (item.route) window.location.href = item.route;
+      return item;
     }
 
     function renderModuleQuickActionBar(container) {
@@ -511,7 +772,7 @@
       if (items.length === 0) {
         const empty = document.createElement("div");
         empty.className = "atom-module-quick-actions-empty";
-        empty.textContent = "В этом модуле еще нет быстрых действий. Откройте действие в модуле и выберите “Добавить в быстрые действия”.";
+        empty.textContent = "В этом модуле еще нет быстрых действий. Откройте действие в модуле и выберите «Добавить в быстрые действия».";
         container.appendChild(empty);
         return;
       }
@@ -557,118 +818,29 @@
       title.className = "atom-module-quick-action-title";
       title.textContent = item.title;
       button.appendChild(title);
-      button.addEventListener("click", () => {
-        if (item.status !== "ACTIVE") {
-          showToast(stateMessage(item));
-          return;
-        }
-        dispatchQuickActionEvent("atom:quick-action:run", item);
-        if (item.deepLink) {
-          window.location.href = item.deepLink;
-          return;
-        }
-        if (item.route) {
-          window.location.href = item.route;
-        }
-      });
-
+      button.addEventListener("click", async () => item.status === "ACTIVE" ? await runQuickAction(item) : showToast(stateMessage(item)));
       const moveUp = document.createElement("button");
       moveUp.type = "button";
       moveUp.className = "atom-module-quick-action-order";
       moveUp.title = "Переместить левее";
       moveUp.textContent = "↑";
-      moveUp.addEventListener("click", (event) => {
-        event.stopPropagation();
-        moveStoredQuickAction(item, -1);
-      });
+      moveUp.addEventListener("click", async (event) => { event.stopPropagation(); await moveStoredQuickAction(item, -1); });
       button.appendChild(moveUp);
-
       const moveDown = document.createElement("button");
       moveDown.type = "button";
       moveDown.className = "atom-module-quick-action-order";
       moveDown.title = "Переместить правее";
       moveDown.textContent = "↓";
-      moveDown.addEventListener("click", (event) => {
-        event.stopPropagation();
-        moveStoredQuickAction(item, 1);
-      });
+      moveDown.addEventListener("click", async (event) => { event.stopPropagation(); await moveStoredQuickAction(item, 1); });
       button.appendChild(moveDown);
-
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "atom-module-quick-action-remove";
       remove.title = "Убрать из быстрых действий";
       remove.textContent = "×";
-      remove.addEventListener("click", (event) => {
-        event.stopPropagation();
-        removeStoredQuickAction(item);
-      });
+      remove.addEventListener("click", async (event) => { event.stopPropagation(); await removeStoredQuickAction(item); });
       button.appendChild(remove);
       return button;
-    }
-
-    function removeStoredQuickAction(item) {
-      const updated = readStore().filter((entry) => entry.localId !== item.localId);
-      writeStore(reorderModule(updated, item.sourceModuleCode));
-      dispatchQuickActionEvent("atom:quick-action:remove", item);
-      showToast("Удалено из быстрых действий.");
-    }
-
-    function moveStoredQuickAction(item, direction) {
-      const store = readStore();
-      const moduleItems = moduleActions(item.sourceModuleCode);
-      const currentIndex = moduleItems.findIndex((entry) => entry.localId === item.localId);
-      const nextIndex = currentIndex + direction;
-      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= moduleItems.length) return;
-      const current = moduleItems[currentIndex];
-      const target = moduleItems[nextIndex];
-      const reordered = store.map((entry) => {
-        if (entry.localId === current.localId) return { ...entry, order: target.order, updatedAt: new Date().toISOString() };
-        if (entry.localId === target.localId) return { ...entry, order: current.order, updatedAt: new Date().toISOString() };
-        return entry;
-      });
-      writeStore(reorderModule(reordered, item.sourceModuleCode));
-      dispatchQuickActionEvent("atom:quick-action:reorder", {
-        sourceModuleCode: item.sourceModuleCode,
-        orderedIds: moduleActions(item.sourceModuleCode).map((entry) => entry.localId)
-      });
-      showToast("Порядок быстрых действий обновлен.");
-    }
-
-    function resetModuleQuickActions(sourceModuleCode, options = {}) {
-      const items = readStore().filter((item) => item.sourceModuleCode === sourceModuleCode);
-      if (items.length === 0) {
-        showToast("В этом модуле нет быстрых действий для сброса.");
-        return 0;
-      }
-      if (options.confirm && !window.confirm("Удалить все быстрые действия этого модуля?")) return 0;
-      const updated = readStore().filter((item) => item.sourceModuleCode !== sourceModuleCode);
-      writeStore(updated);
-      dispatchQuickActionEvent("atom:quick-action:reset-module", { sourceModuleCode, removedCount: items.length });
-      showToast("Быстрые действия модуля сброшены.");
-      return items.length;
-    }
-
-    function resetAtomCardPinnedQuickActions(sourceModuleCode, options = {}) {
-      const items = pinnedActions(sourceModuleCode);
-      if (items.length === 0) {
-        showToast("На карточке модуля нет закрепленных действий.");
-        return 0;
-      }
-      if (options.confirm && !window.confirm("Снять все быстрые действия с карточки модуля?")) return 0;
-      const updated = readStore().map((item) => {
-        if (item.sourceModuleCode !== sourceModuleCode || !item.isPinnedToAtomCard) return item;
-        return {
-          ...item,
-          isPinnedToAtomCard: false,
-          atomCardOrder: null,
-          updatedAt: new Date().toISOString()
-        };
-      });
-      writeStore(reorderPinned(updated, sourceModuleCode));
-      dispatchQuickActionEvent("atom:quick-action:reset-pinned", { sourceModuleCode, unpinnedCount: items.length });
-      showToast("Закрепленные действия на карточке сброшены.");
-      return items.length;
     }
 
     function stateMessage(item) {
@@ -682,7 +854,6 @@
       };
       return messages[item.status] || item.title;
     }
-
     function renderAllModuleQuickActionBars(root = document) {
       root.querySelectorAll("[data-quick-action-module-bar]").forEach(renderModuleQuickActionBar);
     }
@@ -706,7 +877,7 @@
       node.textContent = item.icon || item.title.slice(0, 1);
       if (node.tagName === "A") {
         node.href = item.deepLink || item.route || "#";
-        node.addEventListener("click", () => dispatchQuickActionEvent("atom:quick-action:atom-card-run", item));
+        node.addEventListener("click", async (event) => { event.preventDefault(); await runQuickAction(item); dispatchQuickActionEvent("atom:quick-action:atom-card-run", item); });
       } else {
         node.type = "button";
         node.disabled = true;
@@ -721,18 +892,12 @@
 
     function reorderModule(items, sourceModuleCode) {
       let index = 1;
-      return items.map((item) => {
-        if (item.sourceModuleCode !== sourceModuleCode) return item;
-        return { ...item, order: index++ };
-      });
+      return items.map((item) => item.sourceModuleCode === sourceModuleCode ? normalizeAction({ ...item, order: index, sortOrder: index++ }) : item);
     }
 
     function reorderPinned(items, sourceModuleCode) {
       let index = 1;
-      return items.map((item) => {
-        if (item.sourceModuleCode !== sourceModuleCode || !item.isPinnedToAtomCard) return item;
-        return { ...item, atomCardOrder: index++ };
-      });
+      return items.map((item) => item.sourceModuleCode === sourceModuleCode && item.isPinnedToAtomCard ? normalizeAction({ ...item, atomCardOrder: index++ }) : item);
     }
 
     function openMenu(candidate, x, y) {
@@ -743,12 +908,19 @@
       const pinned = existing && existing.isPinnedToAtomCard;
       setCommandDisabled("add", Boolean(existing));
       setCommandDisabled("remove", !existing);
-      setCommandDisabled("pin", pinned);
+      setCommandDisabled("pin", Boolean(pinned));
       setCommandDisabled("unpin", !pinned);
       setCommandDisabled("rename", !existing);
       menu.style.left = Math.min(x, window.innerWidth - 250) + "px";
       menu.style.top = Math.min(y, window.innerHeight - 190) + "px";
       menu.classList.add("open");
+    }
+
+    async function prepareAndOpenMenu(element, x, y) {
+      const candidate = candidateFromElement(element);
+      if (!candidate) return;
+      await loadModuleQuickActions(candidate.sourceModuleCode);
+      openMenu(candidate, x, y);
     }
 
     function closeMenu() {
@@ -780,21 +952,17 @@
       root.querySelectorAll("[data-quick-action-candidate]").forEach((element) => {
         if (element.dataset.quickActionMenuReady === "true") return;
         element.dataset.quickActionMenuReady = "true";
-        element.addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          openMenu(candidateFromElement(element), event.clientX, event.clientY);
-        });
+        element.addEventListener("contextmenu", async (event) => { event.preventDefault(); event.stopPropagation(); await prepareAndOpenMenu(element, event.clientX, event.clientY); });
       });
       root.querySelectorAll("[data-quick-action-menu-for]").forEach((button) => {
         if (button.dataset.quickActionMenuReady === "true") return;
         button.dataset.quickActionMenuReady = "true";
-        button.addEventListener("click", (event) => {
+        button.addEventListener("click", async (event) => {
           event.preventDefault();
           event.stopPropagation();
           const target = document.getElementById(button.dataset.quickActionMenuFor);
           const rect = button.getBoundingClientRect();
-          openMenu(candidateFromElement(target), rect.left, rect.bottom + 6);
+          await prepareAndOpenMenu(target, rect.left, rect.bottom + 6);
         });
       });
     }
@@ -803,28 +971,30 @@
       const menu = document.getElementById("atom-quick-action-context-menu");
       if (menu && !menu.contains(event.target)) closeMenu();
     });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeMenu();
-    });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
     document.addEventListener("DOMContentLoaded", () => {
       initQuickActionMenus();
       renderAllModuleQuickActionBars();
       renderAllAtomCardPinnedActions();
-      document.getElementById("atom-quick-action-context-menu")?.addEventListener("click", (event) => {
+      loadAllQuickActionModules();
+      document.getElementById("atom-quick-action-context-menu")?.addEventListener("click", async (event) => {
         const command = event.target?.dataset?.quickActionMenuCommand;
         if (!command || !activeCandidate || event.target.disabled) return;
         event.stopPropagation();
-        if (command === "add") addCandidate(activeCandidate, false);
-        if (command === "remove") removeCandidate(activeCandidate);
-        if (command === "pin") pinCandidate(activeCandidate);
-        if (command === "unpin") unpinCandidate(activeCandidate);
-        if (command === "rename") renameCandidate(activeCandidate);
+        if (command === "add") await addCandidate(activeCandidate, false);
+        if (command === "remove") await removeCandidate(activeCandidate);
+        if (command === "pin") await pinCandidate(activeCandidate);
+        if (command === "unpin") await unpinCandidate(activeCandidate);
+        if (command === "rename") await renameCandidate(activeCandidate);
         closeMenu();
       });
     });
 
     window.ATOMQuickActionMenu = {
       init: initQuickActionMenus,
+      loadAllQuickActionModules,
+      loadModuleQuickActions,
+      refreshModuleQuickActions,
       addCandidate,
       removeCandidate,
       pinCandidate,
@@ -837,10 +1007,9 @@
       renderAllModuleQuickActionBars,
       renderAtomCardPinnedActions,
       renderAllAtomCardPinnedActions,
-      limits: {
-        maxModuleActions: MAX_MODULE_ACTIONS,
-        maxPinnedActions: MAX_PINNED_ACTIONS
-      }
+      apiBase: QUICK_ACTION_API_BASE,
+      fallbackStorageKey: FALLBACK_STORAGE_KEY,
+      limits: { maxModuleActions: MAX_MODULE_ACTIONS, maxPinnedActions: MAX_PINNED_ACTIONS }
     };
   })();
 </script>

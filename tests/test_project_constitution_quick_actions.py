@@ -87,7 +87,12 @@ def test_local_storage_is_not_backend_source_of_truth_for_quick_actions():
         ]
     )
 
-    assert 'STORAGE_KEY = "atom:userModuleQuickActions:v1"' in ui_partial
+    assert 'QUICK_ACTION_API_BASE = "/api/v1/quick-actions/user-module"' in ui_partial
+    assert 'FALLBACK_STORAGE_KEY = "atom:userModuleQuickActions:v1"' in ui_partial
+    assert "fetch(`${QUICK_ACTION_API_BASE}${path}`" in ui_partial
+    assert "function readFallbackStore()" in ui_partial
+    assert "function writeFallbackStore(items)" in ui_partial
+    assert "quickActionCache.map(normalizeAction)" in ui_partial
     assert "user_module_quick_actions" in backend_text
     assert "localStorage" not in backend_text
     assert "atom:quick-action:add" in ui_partial
