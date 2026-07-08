@@ -4619,15 +4619,12 @@
                 </div>
               </div>
 
-              <div class="bridge-card" id="module8-quick-action-recommendations">
-                <h3>Рекомендованные быстрые действия</h3>
-                <div class="muted">Quick actions остаются permission-driven. Кабинетный контур не выполняет бизнес-операции из этой панели.</div>
+              <div class="bridge-card" id="module8-user-quick-actions-note">
+                <h3>Пользовательские быстрые действия</h3>
+                <div class="muted">Кабинетный контур не рекомендует и не создает быстрые действия. На карточках Dashboard показываются только shortcuts, которые пользователь сохранил и закрепил сам.</div>
                 <div class="code-list">
-                  {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedQuickActionCodes %}
-                  <span class="chip ok">{{ code }}</span>
-                  {% else %}
-                  <span class="muted">Нужен activeRegionCode и подключенные quick action permissions.</span>
-                  {% endfor %}
+                  <span class="chip">user_module_quick_actions</span>
+                  <span class="chip">is_pinned_to_atom_card</span>
                 </div>
               </div>
 
@@ -4730,86 +4727,6 @@
         </section>
         {% endif %}
 
-        {% if not company_mode %}
-        <section class="panel" id="quick-actions" hidden data-system-section="quick-action-diagnostics">
-          <div class="panel-head">
-            <div>
-              <h2>Быстрые действия</h2>
-              <div class="muted">QuickActionRegistry управляет закреплением и доступом. Действие выполняет модуль-владелец и каждый запуск снова проходит requirePermission().</div>
-            </div>
-            <div class="toolbar">
-              <span class="chip"><strong>{{ detail.quickActionRows|length }}</strong> actionCode</span>
-              <span class="chip ok"><strong>{{ detail.accessContextForCabinet.allowedQuickActionCodes|length }}</strong> разрешено</span>
-            </div>
-          </div>
-          <div class="widget-registry">
-            {% for action in detail.quickActionRows %}
-            <div class="widget-row {% if action.isAllowed %}allowed{% else %}blocked{% endif %}">
-              <div>
-                <strong>{{ action.title }}</strong>
-                <small>{{ action.quickActionCode }}</small>
-                <div class="code-list">
-                  <span class="chip {% if action.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ action.status }}</span>
-                  <span class="chip">{{ action.actionCode }}</span>
-                  {% if action.widgetCode %}<span class="chip">widget: {{ action.widgetCode }}</span>{% endif %}
-                </div>
-              </div>
-              <div>
-                <strong>{{ action.sourceModuleCode }}</strong>
-                <small>canonical: {{ action.canonicalModuleCode }}</small>
-                {% if action.featureCode %}<small>feature: {{ action.featureCode }}</small>{% endif %}
-                {% if action.route %}<small>route: {{ action.route }}</small>{% endif %}
-              </div>
-              <div>
-                <strong>Permission</strong>
-                <small>{{ action.requiredAccessLevel }} · {{ action.requiredScope }}</small>
-                <small>actionCode: {{ action.actionCode }}</small>
-                <div class="code-list">
-                  {% for role in action.allowedRoles[:3] %}
-                  <span class="chip">{{ role }}</span>
-                  {% endfor %}
-                </div>
-              </div>
-              <div>
-                <strong>{% if action.isAllowed %}Можно закрепить{% else %}Недоступно{% endif %}</strong>
-                <small>{{ action.unavailableReason }}</small>
-                <small>{{ action.stateDescription }}</small>
-                <small>Module №8: {{ action.module8Recommendation }}</small>
-                <div class="code-list">
-                  <span class="chip state-{{ action.stateSeverity }}">{{ action.stateCode }}</span>
-                  {% for cabinet in action.allowedCabinetTypes[:2] %}
-                  <span class="chip">{{ cabinet }}</span>
-                  {% endfor %}
-                </div>
-                <details class="widget-settings-preview">
-                  <summary title="Добавить в быстрые действия">＋ Добавить в быстрые действия</summary>
-                  <div class="widget-settings-panel">
-                    <div>
-                      <strong>QuickActionPreference / instance</strong>
-                      <small>savedConfigRef: {{ action.preferencePreview.savedConfigRef }}</small>
-                      <small>workspaceId: {{ action.preferencePreview.workspaceId or '—' }}</small>
-                      <small>activeRegionCode: {{ action.preferencePreview.activeRegionCode or 'не задан' }}</small>
-                      <small>activeCabinetId: {{ action.preferencePreview.activeCabinetId or 'ожидает Module №8' }}</small>
-                      <small>AuditLog: {{ action.preferencePreview.auditEventType }}</small>
-                    </div>
-                    <div class="muted">{{ action.preferencePreview.warning }}</div>
-                    <div class="setting-row {% if not action.preferencePreview.canRunQuickAction %}hidden{% endif %}">
-                      <div>
-                        <strong>Перед запуском</strong>
-                        <small>requirePermission({{ action.sourceModuleCode }}, {{ action.actionCode }}, {{ action.requiredScope }})</small>
-                        <small>Результаты действия не хранятся в quick action preference.</small>
-                      </div>
-                      <span class="chip {% if action.preferencePreview.canRunQuickAction %}ok{% else %}warn{% endif %}">{% if action.preferencePreview.canRunQuickAction %}canRunQuickAction{% else %}заблокировано{% endif %}</span>
-                    </div>
-                  </div>
-                </details>
-              </div>
-            </div>
-            {% else %}
-            <div class="empty">QuickActionRegistry пока пуст. Действия должны регистрироваться через Module №3, а выполнять их должен модуль-владелец.</div>
-            {% endfor %}
-          </div>
-        </section>
 
         <section class="panel" id="dashboard-layouts">
           <div class="panel-head">
@@ -4830,7 +4747,6 @@
             {% endfor %}
           </div>
         </section>
-        {% endif %}
 
         <section class="panel" id="user-audit-log">
           <div class="panel-head">

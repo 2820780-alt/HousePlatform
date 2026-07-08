@@ -11,7 +11,7 @@ SOURCE_MODULE_CODE = "MODULE_08_PARTNER_PORTAL"
 MODULE8_BRIDGE_WARNING = (
     "Кабинетный контур пока является legacy draft boundary, а не финальным Module №8. "
     "Module №3 показывает только preview через adapter/mock и продолжает управлять ролями, "
-    "permissions, workspace, widget access и quick action access."
+    "permissions, workspace, widget access и quick action permissions."
 )
 MODULE8_EMPTY_STATE = (
     "Кабинеты участников еще не подключены как отдельный будущий контур. Здесь будут отображаться "
@@ -126,7 +126,7 @@ class Module8CabinetAdminPreviewDTO:
         "workspace",
         "module access",
         "widget access",
-        "quick action access",
+        "quick action permissions",
         "role/dashboard access profile",
         "preview role",
     ])
@@ -189,7 +189,7 @@ def get_module8_cabinet_admin_preview(
             mainFocus=_main_focus(active),
             recommendedBlocks=_recommended_blocks(access_data),
             recommendedWidgetCodes=_list_strings(access_data.get("allowedWidgetCodes"))[:6],
-            recommendedQuickActionCodes=_list_strings(access_data.get("allowedQuickActionCodes"))[:6],
+            recommendedQuickActionCodes=[],
         ),
     )
 

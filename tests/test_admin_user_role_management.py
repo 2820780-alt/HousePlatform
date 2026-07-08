@@ -1455,7 +1455,8 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Настройки видимости placeholder" in template
     assert "Настройки предложений placeholder" in template
     assert "Рекомендованные виджеты" in template
-    assert "Рекомендованные быстрые действия" in template
+    assert "Пользовательские быстрые действия" in template
+    assert "Рекомендованные быстрые действия" not in template
     assert "Виджеты и доступ" in template
     assert "WidgetRegistry управляет metadata и доступом" in template
     assert "Payload формирует модуль-владелец данных" in template
@@ -1463,10 +1464,10 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Настройки конкретного экземпляра виджета" in template
     assert "WidgetSettingsSchema" in template
     assert "Модуль-владелец еще не отдал schema" in template
-    assert "Быстрые действия" in template
-    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' in template
-    assert "savedConfigRef:" in template
-    assert "requirePermission(" in template
+    assert "user_module_quick_actions" in template
+    assert "is_pinned_to_atom_card" in template
+    assert "QuickActionRegistry управляет" not in template
+    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' not in template
     assert "Обзор модуля" in overview
     assert 'data-user-type="{{ widget.userTypeCode }}"' in overview
     assert "Компании" in overview
@@ -1791,7 +1792,7 @@ def test_module3_final_visual_unification_contract():
     assert "атомная карта" not in template.lower()
     assert "орбита" not in template.lower()
     assert "Dashboard-клон" not in template
-    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' in template
+    assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' not in template
     assert 'hidden data-system-section="module8-context-diagnostics"' in template
 
 
@@ -1826,7 +1827,7 @@ def test_module8_cabinet_admin_preview_exposes_context_placeholders():
     assert preview["visibilitySettingsPreview"]["sourceOfTruth"] == "MODULE_08_PARTNER_PORTAL"
     assert preview["offerSettingsPreview"]["sourceOfTruth"] == "MODULE_08_PARTNER_PORTAL"
     assert preview["dashboardContextPreview"]["recommendedWidgetCodes"] == ["TEST_WIDGET"]
-    assert preview["dashboardContextPreview"]["recommendedQuickActionCodes"] == ["TEST_ACTION"]
+    assert preview["dashboardContextPreview"]["recommendedQuickActionCodes"] == []
 
 
 def test_widget_access_rows_are_registry_metadata_without_payload():
@@ -1888,7 +1889,7 @@ def test_quick_action_rows_do_not_materialize_fixed_registry_actions():
             "activeCabinetId": "admin-cabinet",
             "activeCabinetType": "ADMIN",
             "dashboardContextPreview": {
-                "recommendedQuickActionCodes": ["SAMPLE_OPEN_LIST"],
+                "recommendedQuickActionCodes": [],
             },
         },
     )
