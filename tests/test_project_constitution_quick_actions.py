@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from app.core.role_dashboard_access_profiles import get_role_dashboard_access_profile_definitions
@@ -65,6 +66,7 @@ def test_quick_actions_are_not_dashboard_widgets_or_widget_registry_items():
 def test_quick_action_candidates_do_not_use_legacy_quick_action_codes():
     candidate_templates = [
         _read("templates/material_hub_view.html"),
+        _read("templates/admin_users_roles.html"),
         _read("templates/price_dynamics_view.html"),
     ]
 
@@ -72,8 +74,9 @@ def test_quick_action_candidates_do_not_use_legacy_quick_action_codes():
         assert "data-quick-action-candidate" in html
         assert "data-quick-action-key" in html
         assert "data-quick-action-code" not in html
-        assert "quickActionCode" not in html
-
+        candidate_elements = re.findall(r"<[^>]+data-quick-action-candidate[^>]*>", html)
+        assert candidate_elements
+        assert all("quickActionCode" not in element for element in candidate_elements)
 
 def test_local_storage_is_not_backend_source_of_truth_for_quick_actions():
     ui_partial = _read("templates/_atom_quick_action_menu.html")
@@ -119,15 +122,45 @@ def test_quick_action_candidates_live_on_real_module_buttons_only():
 
     assert "data-quick-action-candidate" in material_hub
     assert "data-quick-action-candidate" in price_dynamics
-    assert "data-quick-action-source-module-code=\"MODULE_03_USERS_ROLES\"" not in module3
+    assert "data-quick-action-source-module-code=\"MODULE_03_USERS_ROLES\"" in module3
+    assert "data-quick-action-feature-code=\"USERS_DIRECTORY\"" in module3
+    assert "data-quick-action-feature-code=\"ACCESS_MATRIX\"" in module3
+    assert "data-quick-action-feature-code=\"AUDIT_LOG\"" in module3
+    assert "data-quick-action-key=\"VIEW\"" in module3
+    assert "data-quick-action-key=\"OPEN_USERS_ADMIN\"" not in module3
+    assert "data-quick-action-key=\"OPEN_MODULE_REGISTRY\"" not in module3
+    assert "data-quick-action-feature-code=\"MODERATION_DECISION\"" not in module3
+    assert "data-quick-action-feature-code=\"BULK_ACCESS_APPLY\"" not in module3
     assert "data-module3-quick-actions" not in module3
     assert "data-module3-quick-action-modal" not in module3
 
 
-def test_quick_action_pattern_service_does_not_predeclare_actions_for_modules():
-    assert get_active_module_quick_action_patterns() == []
-    assert get_planned_module_quick_action_patterns() == []
-    assert get_quick_action_pattern_readiness() == []
+def test_quick_action_pattern_service_documents_candidates_without_preseeding_actions():
+    active_patterns = get_active_module_quick_action_patterns()
+    planned_patterns = get_planned_module_quick_action_patterns()
+    readiness = get_quick_action_pattern_readiness()
+
+    assert {item["sourceModuleCode"] for item in active_patterns} == {
+        "MODULE_01_MATERIAL_HUB",
+        "MODULE_03_USERS_ROLES",
+        "MODULE_11_ANALYTICS",
+    }
+    assert {item["featureCode"] for item in active_patterns if item["sourceModuleCode"] == "MODULE_03_USERS_ROLES"} == {
+        "USERS_DIRECTORY",
+        "ACCESS_MATRIX",
+        "AUDIT_LOG",
+    }
+    assert {item["actionKey"] for item in active_patterns if item["sourceModuleCode"] == "MODULE_03_USERS_ROLES"} == {"VIEW"}
+    assert all(item["ownerModuleOwnsExecution"] for item in active_patterns)
+    assert all("quickActionCode" not in item for item in active_patterns)
+    assert all(item["status"] == "PLANNED_DOCUMENTATION_ONLY" for item in planned_patterns)
+    assert all(item["isExecutable"] is False for item in planned_patterns)
+    assert all(item["canPinToAtomCard"] is False for item in planned_patterns)
+    assert {item["sourceModuleCode"] for item in readiness} == {
+        "MODULE_01_MATERIAL_HUB",
+        "MODULE_03_USERS_ROLES",
+        "MODULE_11_ANALYTICS",
+    }
 
 
 def test_migrations_do_not_seed_fixed_quick_action_sets():

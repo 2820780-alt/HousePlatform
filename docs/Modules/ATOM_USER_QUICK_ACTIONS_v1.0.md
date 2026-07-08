@@ -558,21 +558,19 @@ app/services/active_module_quick_action_patterns.py
 ```
 
 Этот слой не является RBAC, WidgetRegistry, Dashboard engine или источником
-business payload. Он нужен как единый ориентир для модулей-владельцев: какие
-`sourceModuleCode`, `featureCode`, `actionKey`, `route`, `configMode` и accent
-использовать при подключении своих quick action candidates.
+business payload. Он нужен только как documentation/adapter metadata для
+модулей-владельцев: какие `sourceModuleCode`, `featureCode`, `actionKey`,
+`route`, `configMode` и accent использовать при подключении своих quick action
+candidates.
 
-Активные модули, для которых зафиксирован pattern:
+Важно: catalog/readiness слой не создает пользователю shortcut. Быстрое действие
+создает только пользователь из существующего candidate в интерфейсе модуля.
+
+Активные модули, где есть реальные UI candidates:
 
 ```text
-MODULE_02_KNOWLEDGE_BASE
+MODULE_01_MATERIAL_HUB
 MODULE_03_USERS_ROLES
-MODULE_04_WORKS_COSTS
-MODULE_05_ESTIMATE_ENGINE
-MODULE_06_ESTIMATE_AUDIT
-MODULE_07_DIGITAL_HOUSE
-MODULE_09_PROCUREMENT
-MODULE_10_MARKETPLACE
 MODULE_11_ANALYTICS
 ```
 
@@ -585,34 +583,58 @@ MODULE_03_USERS_ROLES
 MODULE_11_ANALYTICS
 
 PATTERN_READY_NO_UI:
-MODULE_02_KNOWLEDGE_BASE
-MODULE_04_WORKS_COSTS
-MODULE_05_ESTIMATE_ENGINE
-MODULE_06_ESTIMATE_AUDIT
-MODULE_07_DIGITAL_HOUSE
-MODULE_09_PROCUREMENT
-MODULE_10_MARKETPLACE
+используется только для будущего подключения реального UI модуля-владельца.
 ```
 
-`PATTERN_READY_NO_UI` означает, что архитектура и candidate naming уже
-подготовлены, но реальный экран модуля еще не должен имитироваться. Когда
-модуль получит рабочий UI, он подключает:
+Module №3 имеет право объявлять собственные candidates, но не управляет быстрыми
+действиями других модулей и не создает shortcut сам.
 
-```text
-templates/_atom_quick_action_menu.html
-data-quick-action-candidate
-data-quick-action-module-bar
-data-quick-action-config-provider optional
-```
-
-Module №3 и Module №11 уже используют общий UI-pattern:
+Реальные candidates Module №3 безопасны и открывают существующие экраны:
 
 ```text
 MODULE_03_USERS_ROLES:
-OPEN_USERS_ADMIN
-OPEN_MODULE_REGISTRY
-OPEN_AUDIT_LOG
+featureCode = USERS_DIRECTORY
+actionKey = VIEW
+route = /api/v1/admin/users-roles/view#users
 
+featureCode = ACCESS_MATRIX
+actionKey = VIEW
+route = /api/v1/admin/users-roles/view#access-matrix
+
+featureCode = AUDIT_LOG
+actionKey = VIEW
+route = /api/v1/admin/users-roles/view/history
+```
+
+Опасные решения Module №3 не становятся quick action candidates:
+
+```text
+Принять / Отклонить / Отложить заявку;
+массово применить доступы;
+сохранить / сбросить матрицу;
+заблокировать / разблокировать пользователя;
+удалить данные.
+```
+
+Для Module №1 остаются эталонные candidates:
+
+```text
+featureCode = SOURCE_ANALYSIS
+actionKey = RUN_SOURCE_ANALYSIS
+
+featureCode = SUPPLIER_PRICE_UPLOAD
+actionKey = UPLOAD_SUPPLIER_PRICE
+
+featureCode = MATERIAL_MODERATION
+actionKey = OPEN_MATERIAL_MODERATION
+
+featureCode = SOURCE_PRODUCTS
+actionKey = CHECK_SOURCE_CARDS
+```
+
+Module №11 использует общий UI-pattern:
+
+```text
 MODULE_11_ANALYTICS / PRICE_DYNAMICS:
 OPEN_PRICE_DYNAMICS
 OPEN_CURRENT_PRICE_DYNAMICS_SLICE
@@ -679,18 +701,48 @@ canPinToAtomCard = false
 metadata.mustNotRenderAsActive = true
 ```
 
-Примеры planned actionKey:
+Стандарт для будущего модуля:
 
 ```text
-MODULE_12_AI_ASSISTANT / OPEN_AI_ASSISTANT
-MODULE_13_PROJECT_COLLABORATION / OPEN_PROJECT_ROOM
-MODULE_15_CONTRACTS / OPEN_CONTRACTS
-MODULE_16_LOGISTICS_DELIVERY / OPEN_LOGISTICS
-MODULE_17_FINANCE_PAYMENTS / OPEN_BUDGET
-MODULE_18_QUALITY_CONTROL / OPEN_QUALITY_CHECKS
-MODULE_19_CONSTRUCTOR_LITE / OPEN_PLAN
-MODULE_20_SITE_SUPERVISION / OPEN_SITE_JOURNAL
-MODULE_21_WARRANTY_SERVICE / OPEN_WARRANTY_REQUESTS
+moduleCode / sourceModuleCode;
+sourceActionId / actionKey;
+permissionKey;
+captureContext;
+route / deepLink;
+savedParams;
+savedFilters;
+savedSearchQuery;
+isSafeToRun;
+requiresConfirmation.
+```
+
+UI-правило будущего модуля:
+
+```html
+<button
+  data-quick-action-candidate
+  data-quick-action-source-module-code="MODULE_XX_EXAMPLE"
+  data-quick-action-feature-code="EXAMPLE_FEATURE"
+  data-quick-action-key="OPEN_EXAMPLE"
+  data-quick-action-permission-key="VIEW"
+  data-quick-action-route="/api/v1/admin/example/view"
+  data-quick-action-title="Открыть пример">
+  Открыть пример
+</button>
+```
+
+Каждый будущий модуль обязан соблюдать правила:
+
+```text
+не создавать fixed quick actions;
+не создавать default quick actions;
+не seed-ить quick actions;
+помечать только реальные кнопки как candidate;
+сохранять только безопасный контекст действия;
+проверять RBAC перед отображением и запуском;
+поддерживать pin внутри модуля;
+поддерживать pin на карточке Dashboard;
+не смешивать Quick Actions с Widgets.
 ```
 
 Когда будущий модуль становится рабочим, его owner-module должен заменить
@@ -704,7 +756,6 @@ actionKey обязателен;
 business payload не сохранять;
 запуск только через guard модуля-владельца.
 ```
-
 ## Sprint 10: удаление, сброс и восстановление порядка
 
 Пользователь должен управлять своими быстрыми действиями без обращения к

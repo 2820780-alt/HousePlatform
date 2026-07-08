@@ -2730,8 +2730,8 @@
           <strong>Пользователи и роли</strong>
         </div>
         <a class="active" href="#overview" data-module3-tab-link="overview"><span class="module3-nav-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
-        <a href="#users" data-module3-tab-link="users"><span class="module3-nav-icon" aria-hidden="true">♙</span><span>Пользователи</span></a>
-        <a href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}" data-module3-tab-link="access"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
+        <a href="#users" data-module3-tab-link="users" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="USERS_DIRECTORY" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть пользователей" data-quick-action-route="/api/v1/admin/users-roles/view#users" data-quick-action-atom-card-accent="cyan"><span class="module3-nav-icon" aria-hidden="true">♙</span><span>Пользователи</span></a>
+        <a href="{% if detail %}#access-matrix-detail{% else %}#access-matrix{% endif %}" data-module3-tab-link="access" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="ACCESS_MATRIX" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть матрицу доступов" data-quick-action-route="/api/v1/admin/users-roles/view#access-matrix" data-quick-action-atom-card-accent="blue"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
         <div class="module3-nav-footer">
           <span>ATOM — единая платформа управления строительством</span>
           <span>Версия 1.0.0 · Май 2025</span>
@@ -2749,6 +2749,14 @@
             {% endif %}
           </div>
         </section>
+
+        <div
+          class="atom-module-quick-actions overview-only"
+          data-quick-action-module-bar="MODULE_03_USERS_ROLES"
+          data-quick-action-hide-empty="true"
+          aria-label="Быстрые действия модуля Пользователи и роли"
+          hidden
+        ></div>
 
         <div class="system-grid overview-only" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
           {% for widget in overview.userTypeSummaryWidgets %}
@@ -2896,7 +2904,7 @@
             <div>
               <h2 id="overview-history-title" class="overview-panel-title">История изменений</h2>
             </div>
-            <a class="overview-history-link" href="/api/v1/admin/users-roles/view/history">Открыть полную историю</a>
+            <a class="overview-history-link" href="/api/v1/admin/users-roles/view/history" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="AUDIT_LOG" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть историю изменений" data-quick-action-route="/api/v1/admin/users-roles/view/history" data-quick-action-atom-card-accent="purple">Открыть полную историю</a>
           </div>
           <div class="overview-history-table">
             <table class="entity-table overview-history-entity-table" data-resizable-table aria-label="История изменений Module №3">
@@ -5407,6 +5415,7 @@
       updateDirtyState();
     })();
   </script>
+  {% include "_atom_quick_action_menu.html" %}
   <script>
     (() => {
       const initResizableColumns = (table, storageKey) => {

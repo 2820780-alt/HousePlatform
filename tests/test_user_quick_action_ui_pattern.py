@@ -164,16 +164,28 @@ def test_material_hub_is_documented_as_reference_quick_action_example():
     assert "actionKey = CHECK_SOURCE_CARDS" in doc
 
 
-def test_module_03_admin_ui_does_not_use_user_quick_action_pattern_as_admin_menu():
+def test_module_03_admin_ui_uses_only_own_safe_navigation_candidates():
     html = read("templates/admin_users_roles.html")
 
-    assert "{% include \"_atom_quick_action_menu.html\" %}" not in html
-    assert "data-quick-action-module-bar=\"MODULE_03_USERS_ROLES\"" not in html
-    assert "data-quick-action-source-module-code=\"MODULE_03_USERS_ROLES\"" not in html
+    assert html.count("{% include \"_atom_quick_action_menu.html\" %}") == 1
+    assert "data-quick-action-module-bar=\"MODULE_03_USERS_ROLES\"" in html
+    assert "data-quick-action-hide-empty=\"true\"" in html
+    assert html.count("data-quick-action-source-module-code=\"MODULE_03_USERS_ROLES\"") == 3
+    assert "data-quick-action-feature-code=\"USERS_DIRECTORY\"" in html
+    assert "data-quick-action-feature-code=\"ACCESS_MATRIX\"" in html
+    assert "data-quick-action-feature-code=\"AUDIT_LOG\"" in html
+    assert html.count("data-quick-action-key=\"VIEW\"") >= 3
+    assert html.count("data-quick-action-permission-key=\"VIEW\"") >= 3
+    assert "data-quick-action-route=\"/api/v1/admin/users-roles/view#users\"" in html
+    assert "data-quick-action-route=\"/api/v1/admin/users-roles/view#access-matrix\"" in html
+    assert "data-quick-action-route=\"/api/v1/admin/users-roles/view/history\"" in html
     assert "data-quick-action-key=\"OPEN_USERS_ADMIN\"" not in html
     assert "data-quick-action-key=\"OPEN_MODULE_REGISTRY\"" not in html
     assert "data-quick-action-key=\"OPEN_AUDIT_LOG\"" not in html
-    assert "id=\"quick-actions\" hidden data-system-section=\"quick-action-diagnostics\"" in html
+    assert "data-quick-action-feature-code=\"MODERATION_DECISION\"" not in html
+    assert "data-quick-action-feature-code=\"BULK_ACCESS_APPLY\"" not in html
+    assert "data-module3-quick-actions" not in html
+    assert "data-module3-quick-action-modal" not in html
 
 
 def test_module_11_price_dynamics_uses_quick_action_pattern_without_result_payload():
@@ -200,15 +212,13 @@ def test_quick_action_documentation_lists_active_module_pattern_readiness():
 
     assert "Sprint 8: единый pattern для активных модулей" in doc
     assert "app/services/active_module_quick_action_patterns.py" in doc
-    assert "MODULE_02_KNOWLEDGE_BASE" in doc
+    assert "MODULE_01_MATERIAL_HUB" in doc
     assert "MODULE_03_USERS_ROLES" in doc
-    assert "MODULE_04_WORKS_COSTS" in doc
-    assert "MODULE_05_ESTIMATE_ENGINE" in doc
-    assert "MODULE_06_ESTIMATE_AUDIT" in doc
-    assert "MODULE_07_DIGITAL_HOUSE" in doc
-    assert "MODULE_09_PROCUREMENT" in doc
-    assert "MODULE_10_MARKETPLACE" in doc
     assert "MODULE_11_ANALYTICS" in doc
+    assert "featureCode = USERS_DIRECTORY" in doc
+    assert "featureCode = ACCESS_MATRIX" in doc
+    assert "featureCode = AUDIT_LOG" in doc
+    assert "actionKey = VIEW" in doc
     assert "UI_READY" in doc
     assert "PATTERN_READY_NO_UI" in doc
 

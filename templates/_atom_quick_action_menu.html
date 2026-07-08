@@ -410,6 +410,11 @@
       if (!sourceModuleCode || !actionKey || !title) return null;
       const config = readCandidateConfig(element);
       if (config.error) { showToast(config.error); return null; }
+      const permissionKey = element.dataset.quickActionPermissionKey || "";
+      if (permissionKey) {
+        const baseConfig = config.value && typeof config.value === "object" && !Array.isArray(config.value) ? config.value : {};
+        config.value = { ...baseConfig, permissionKey };
+      }
       const candidate = {
         id: null,
         quickActionId: null,
@@ -770,12 +775,15 @@
       const items = moduleActions(sourceModuleCode);
       container.innerHTML = "";
       if (items.length === 0) {
+        container.toggleAttribute("hidden", container.dataset.quickActionHideEmpty === "true");
+        if (container.dataset.quickActionHideEmpty === "true") return;
         const empty = document.createElement("div");
         empty.className = "atom-module-quick-actions-empty";
         empty.textContent = "В этом модуле еще нет быстрых действий. Откройте действие в модуле и выберите «Добавить в быстрые действия».";
         container.appendChild(empty);
         return;
       }
+      container.hidden = false;
       const row = document.createElement("div");
       row.className = "atom-module-quick-actions-row";
       container.appendChild(renderModuleQuickActionTools(sourceModuleCode, items.length));
