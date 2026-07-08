@@ -99,11 +99,15 @@ def test_local_storage_is_not_backend_source_of_truth_for_quick_actions():
     assert "atom:quick-action:pin" in ui_partial
 
 
-def test_dashboard_quick_action_contract_keeps_legacy_registry_empty_until_user_source_is_wired():
+def test_dashboard_quick_action_contract_uses_user_module_pins_not_legacy_registry():
     dashboard_service = _read("app/services/dashboard_quick_actions.py")
 
     assert "DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {}" in dashboard_service
-    assert "QUICK_ACTION_REGISTRY = _dashboard_quick_action_registry()" in dashboard_service
+    assert "QUICK_ACTION_REGISTRY: tuple[DashboardQuickAction, ...] = ()" in dashboard_service
+    assert "select(UserModuleQuickAction)" in dashboard_service
+    assert "UserModuleQuickAction.is_pinned_to_atom_card.is_(True)" in dashboard_service
+    assert "UserModuleQuickAction.status == ACTIVE_STATUS" in dashboard_service
+    assert "get_user_atom_card_quick_action_options" in dashboard_service
     assert get_preview_quick_action_registry_items({"roleCode": "SUPER_ADMIN"}) == []
 
 

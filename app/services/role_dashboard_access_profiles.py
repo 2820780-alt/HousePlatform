@@ -16,7 +16,7 @@ from app.services.widget_registry import get_widget_registry_item
 ROLE_DASHBOARD_PROFILE_LAYER = "module03_role_dashboard_access_profile"
 ROLE_DASHBOARD_PROFILE_NOTE = (
     "RoleDashboardAccessProfile is a Module 03 access/preset layer for the existing Dashboard. "
-    "It recommends visible modules, widgets and layout defaults, then the result is "
+    "It recommends visible modules, widgets and layout defaults; quick actions stay user-saved only. The result is "
     "filtered by PermissionGuard, WidgetRegistry, PlatformModuleRegistry, UserDashboardLayout and later Module 08 presets."
 )
 
@@ -52,9 +52,8 @@ def get_role_dashboard_access_profile(role_code: str | None) -> dict[str, Any] |
         allowed_feature_codes=allowed_features,
         hidden_widget_codes=hidden_widgets,
     )
-    profile["defaultQuickActionCodes"] = _filter_default_quick_action_codes(
-        profile.get("defaultQuickActionCodes") or []
-    )
+    profile["defaultQuickActionCodes"] = []
+    profile["deprecatedDefaultQuickActionCodes"] = []
     settings = dict(profile.get("settings") or {})
     settings["favoriteModuleCodes"] = _normalize_module_codes(settings.get("favoriteModuleCodes") or [])
     profile["settings"] = settings
@@ -123,6 +122,8 @@ def _filter_default_widget_codes(
 
 
 def _filter_default_quick_action_codes(action_codes: list[str] | tuple[str, ...]) -> list[str]:
+    """Deprecated compatibility helper; role profiles never create shortcuts."""
+
     return []
 
 

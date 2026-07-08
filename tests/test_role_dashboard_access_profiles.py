@@ -1,4 +1,6 @@
-from app.core.role_dashboard_access_profiles import missing_role_dashboard_profile_codes
+from dataclasses import fields
+from pathlib import Path
+from app.core.role_dashboard_access_profiles import RoleDashboardAccessProfileDefinition, missing_role_dashboard_profile_codes
 from app.models import RoleDashboardAccessProfile
 from app.services.dashboard_auth_adapters import get_dashboard_user_context
 from app.services.role_dashboard_access_profiles import (
@@ -30,6 +32,21 @@ def test_profile_filters_widgets_through_registry_and_permissions_layer():
     assert "digital-house-status" not in supplier_profile["defaultWidgetCodes"]
     assert supplier_profile["defaultQuickActionCodes"] == []
 
+
+
+def test_default_quick_action_codes_are_deprecated_not_active_contract():
+    field = next(item for item in fields(RoleDashboardAccessProfileDefinition) if item.name == "defaultQuickActionCodes")
+    service_text = Path("app/services/role_dashboard_access_profiles.py").read_text(encoding="utf-8")
+    dashboard_text = Path("app/services/dashboard_auth_adapters.py").read_text(encoding="utf-8")
+    preview_text = Path("app/services/preview_role.py").read_text(encoding="utf-8")
+    profile = get_role_dashboard_access_profile("ADMIN")
+
+    assert "roles grant permissions" in field.metadata["deprecated"]
+    assert profile["defaultQuickActionCodes"] == []
+    assert profile["deprecatedDefaultQuickActionCodes"] == []
+    assert 'profile["defaultQuickActionCodes"] = _filter_default_quick_action_codes' not in service_text
+    assert 'allowedActionCodes=profile.get("defaultQuickActionCodes")' not in dashboard_text
+    assert '"allowedActionCodes": profile.get("defaultQuickActionCodes")' not in preview_text
 
 def test_legacy_admin_uses_platform_admin_dashboard_profile():
     profile = get_role_dashboard_access_profile("ADMIN")

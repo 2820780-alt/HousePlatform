@@ -2,6 +2,7 @@ from pathlib import Path
 
 from app.models import QuickActionRegistryItem
 from app.services.quick_action_registry import (
+    DEPRECATED_ACTIVE_DISPLAY_FIELDS,
     QUICK_ACTION_REGISTRY_LAYER,
     build_quick_action_registry_item,
     filter_quick_action_registry_items_for_module,
@@ -23,8 +24,8 @@ SAMPLE_MODULE_QUICK_ACTIONS = [
         "featureCode": "SAMPLE",
         "sectionCode": "LIST",
         "actionCode": "OPEN_LIST",
-        "titleRu": "Открыть список",
-        "descriptionRu": "Тестовое действие для проверки расширяемости quick actions.",
+        "titleRu": "РћС‚РєСЂС‹С‚СЊ СЃРїРёСЃРѕРє",
+        "descriptionRu": "РўРµСЃС‚РѕРІРѕРµ РґРµР№СЃС‚РІРёРµ РґР»СЏ РїСЂРѕРІРµСЂРєРё СЂР°СЃС€РёСЂСЏРµРјРѕСЃС‚Рё quick actions.",
         "actionType": "navigate",
         "targetRoute": "/modules/sample/list",
         "requiredPermission": "sample.read",
@@ -39,7 +40,7 @@ SAMPLE_MODULE_QUICK_ACTIONS = [
         "featureCode": "SAMPLE",
         "sectionCode": "LEGACY",
         "actionCode": "OPEN_ARCHIVED",
-        "titleRu": "Архивное действие",
+        "titleRu": "РђСЂС…РёРІРЅРѕРµ РґРµР№СЃС‚РІРёРµ",
         "actionType": "navigate",
         "targetRoute": "/modules/sample/legacy",
         "requiredPermission": "sample.read",
@@ -58,6 +59,14 @@ def test_quick_action_registry_is_empty_compatibility_layer():
     assert get_quick_action_registry_items_for_module("MODULE_TEST_SAMPLE") == []
     assert get_quick_action_registry_items_for_module("MODULE_03_USERS_ROLES") == []
     assert get_preview_quick_action_registry_items({"roleCode": "SUPER_ADMIN", "authMode": "mock"}) == []
+
+
+def test_dashboard_service_does_not_import_quick_action_registry_as_source():
+    dashboard_service = (ROOT / "app/services/dashboard_quick_actions.py").read_text(encoding="utf-8")
+
+    assert "get_quick_action_registry" not in dashboard_service
+    assert "get_quick_action_registry_item" not in dashboard_service
+    assert "DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {}" in dashboard_service
 
 
 def test_quick_action_layer_does_not_branch_by_module_number():
@@ -91,7 +100,7 @@ def test_user_saved_shortcuts_can_use_universal_surface_contract():
     assert item.targetRoute == "/modules/sample/list"
     assert item.maxSurface == "BOTH"
     assert item.registryLayer == QUICK_ACTION_REGISTRY_LAYER
-    assert payload["titleRu"] == "Открыть список"
+    assert payload["titleRu"] == "РћС‚РєСЂС‹С‚СЊ СЃРїРёСЃРѕРє"
     assert payload["sortOrder"] == 10
     assert "moduleNumber" not in payload
     assert "sourceModuleNumber" not in payload
@@ -142,7 +151,7 @@ def test_quick_action_registry_model_is_module03_metadata_not_payload():
     assert not hasattr(item, "business_payload")
 
 
-def test_quick_action_registry_database_contract_has_surface_fields():
+def test_quick_action_registry_database_contract_has_deprecated_compatibility_fields():
     columns = QuickActionRegistryItem.__table__.columns
 
     assert "section_code" in columns
@@ -154,6 +163,23 @@ def test_quick_action_registry_database_contract_has_surface_fields():
     assert "is_enabled_by_default" in columns
     assert "is_available" in columns
     assert "max_surface" in columns
+    assert set(DEPRECATED_ACTIVE_DISPLAY_FIELDS) == {
+        "quickActionCode",
+        "isEnabledByDefault",
+        "maxSurface",
+        "allowedRoles",
+        "allowedCabinetTypes",
+        "widgetCode",
+    }
+    for column_name in (
+        "quick_action_code",
+        "is_enabled_by_default",
+        "max_surface",
+        "allowed_roles",
+        "allowed_cabinet_types",
+        "widget_code",
+    ):
+        assert "not an active source" in columns[column_name].info["deprecated"]
 
 
 def test_quick_action_migrations_keep_schema_but_do_not_seed_fixed_actions():

@@ -1,12 +1,20 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any
+from uuid import UUID
 
-from app.services.quick_action_permission import can_use_quick_action
-from app.services.quick_action_registry import get_quick_action_registry
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-ATOM_CARD_QUICK_ACTION_LIMIT = 3
+from app.core.access_scopes import AccessScope
+from app.core.permission_guard import can
+from app.models.user_module_quick_action import UserModuleQuickAction
+from app.services.dashboard_auth_adapters import can_access_module
+from app.services.dashboard_module_registry import get_canonical_module_code
+from app.services.user_module_quick_actions import ACTIVE_STATUS, MAX_ATOM_CARD_PINNED_ACTIONS
+
+ATOM_CARD_QUICK_ACTION_LIMIT = MAX_ATOM_CARD_PINNED_ACTIONS
 
 
 @dataclass(frozen=True)
@@ -27,30 +35,19 @@ class DashboardQuickAction:
         return asdict(self)
 
 
-def _dashboard_quick_action_registry() -> tuple[DashboardQuickAction, ...]:
-    return tuple(
-        _dashboard_action_from_registry(item)
-        for item in get_quick_action_registry()
-        if item["status"] == "ACTIVE" and item.get("maxSurface") in {"MODULE_CARD", "BOTH"}
-    )
-
-
-QUICK_ACTION_REGISTRY: tuple[DashboardQuickAction, ...]
-
+QUICK_ACTION_REGISTRY: tuple[DashboardQuickAction, ...] = ()
 DEFAULT_ATOM_CARD_ACTION_CODES: dict[str, tuple[str, ...]] = {}
 
 
 def get_quick_actions_for_dashboard(user_context: Any, cabinet_context: dict[str, Any]) -> list[dict[str, Any]]:
-    preset_action_codes = set((cabinet_context.get("cabinetDashboardPreset") or {}).get("quickActionCodes") or [])
-    permission_context = {**_context_dict(user_context), **cabinet_context}
-    actions: list[dict[str, Any]] = []
-    for action in _dashboard_quick_action_registry():
-        if action.actionCode not in preset_action_codes:
-            continue
-        if not can_use_quick_action(user_context, action.actionCode, permission_context):
-            continue
-        actions.append(action.to_dict())
-    return actions
+    """Legacy compatibility hook.
+
+    Dashboard quick actions are no longer built from registry/preset codes. The
+    active dashboard-card source is user_module_quick_actions via
+    get_user_atom_card_quick_action_options().
+    """
+
+    return []
 
 
 def get_atom_card_quick_action_options(
@@ -59,27 +56,9 @@ def get_atom_card_quick_action_options(
     module_code: str,
     selected_action_codes: list[str] | tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
-    available_actions = [
-        action
-        for action in get_quick_actions_for_dashboard(user_context, cabinet_context)
-        if action["moduleCode"] == module_code
-    ]
-    selected_codes = _selected_atom_action_codes(module_code, selected_action_codes, available_actions)
-    options: list[dict[str, Any]] = []
-    for action in available_actions:
-        option = dict(action)
-        option["isSelected"] = action["actionCode"] in selected_codes
-        option["placement"] = "ATOM_CARD"
-        options.append(option)
-    selected_order = {code: index for index, code in enumerate(selected_codes)}
-    return sorted(
-        options,
-        key=lambda action: (
-            0 if action["isSelected"] else 1,
-            selected_order.get(action["actionCode"], len(selected_order)),
-            action["label"],
-        ),
-    )
+    """Legacy compatibility hook for preset-based atom card actions."""
+
+    return []
 
 
 def get_atom_card_quick_actions(
@@ -88,44 +67,157 @@ def get_atom_card_quick_actions(
     module_code: str,
     selected_action_codes: list[str] | tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
-    return [
-        action
-        for action in get_atom_card_quick_action_options(
-            user_context,
-            cabinet_context,
-            module_code,
-            selected_action_codes=selected_action_codes,
-        )
-        if action["isSelected"]
-    ][:ATOM_CARD_QUICK_ACTION_LIMIT]
+    return []
 
 
-def _selected_atom_action_codes(
+async def get_user_atom_card_quick_action_options(
+    db: AsyncSession,
+    user_context: Any,
     module_code: str,
-    selected_action_codes: list[str] | tuple[str, ...] | None,
-    available_actions: list[dict[str, Any]],
-) -> list[str]:
-    available_codes = {action["actionCode"] for action in available_actions}
-    configured_codes = list(selected_action_codes or ())
-    selected_codes = [code for code in configured_codes if code in available_codes]
-    return selected_codes[:ATOM_CARD_QUICK_ACTION_LIMIT]
+    cabinet_context: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Return user-pinned quick actions for a dashboard module card.
+
+    The source of truth is user_module_quick_actions. Registry defaults,
+    dashboard presets, and role defaultQuickActionCodes are intentionally not
+    consulted here.
+    """
+
+    user_id = _current_user_uuid(user_context)
+    canonical_module_code = get_canonical_module_code(module_code) or module_code
+    if user_id is None or not can_access_module(user_context, canonical_module_code):
+        return []
+
+    actions = await _load_pinned_user_actions(db, user_id, canonical_module_code)
+    permission_context = {**_context_dict(user_context), **(cabinet_context or {})}
+    options: list[dict[str, Any]] = []
+    for action in actions:
+        if not _is_dashboard_visible_action(action, user_id, canonical_module_code, user_context, permission_context):
+            continue
+        options.append(_dashboard_action_from_user_action(action))
+        if len(options) >= ATOM_CARD_QUICK_ACTION_LIMIT:
+            break
+    return options
 
 
-def _dashboard_action_from_registry(item: dict[str, Any]) -> DashboardQuickAction:
-    settings = item.get("settings") or {}
-    return DashboardQuickAction(
-        actionCode=item["quickActionCode"],
-        label=item["title"],
-        href=item.get("route") or "#",
-        icon=settings.get("icon") or "•",
-        moduleCode=item["sourceModuleCode"],
-        featureCode=item.get("featureCode"),
-        contextCode=settings.get("contextCode"),
-        maxSurface=item.get("maxSurface") or "BOTH",
-        cabinetTypes=tuple(item.get("allowedCabinetTypes") or ("ADMIN",)),
-        requiresConfirmation=bool(settings.get("requiresConfirmation")),
-        mock=bool(settings.get("mock")),
+async def get_user_atom_card_quick_actions(
+    db: AsyncSession,
+    user_context: Any,
+    module_code: str,
+    cabinet_context: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    return await get_user_atom_card_quick_action_options(
+        db,
+        user_context,
+        module_code,
+        cabinet_context=cabinet_context,
     )
+
+
+async def _load_pinned_user_actions(
+    db: AsyncSession,
+    user_id: UUID,
+    module_code: str,
+) -> list[UserModuleQuickAction]:
+    result = await db.execute(
+        select(UserModuleQuickAction)
+        .where(
+            UserModuleQuickAction.user_id == user_id,
+            UserModuleQuickAction.source_module_code == module_code,
+            UserModuleQuickAction.is_pinned_to_atom_card.is_(True),
+            UserModuleQuickAction.status == ACTIVE_STATUS,
+        )
+        .order_by(UserModuleQuickAction.atom_card_order.asc(), UserModuleQuickAction.order.asc())
+        .limit(ATOM_CARD_QUICK_ACTION_LIMIT)
+    )
+    return list(result.scalars().all())
+
+
+def _is_dashboard_visible_action(
+    action: UserModuleQuickAction,
+    user_id: UUID,
+    module_code: str,
+    user_context: Any,
+    permission_context: dict[str, Any],
+) -> bool:
+    action_module_code = get_canonical_module_code(action.source_module_code) or action.source_module_code
+    if str(action.user_id) != str(user_id):
+        return False
+    if action_module_code != module_code:
+        return False
+    if not action.is_pinned_to_atom_card or action.status != ACTIVE_STATUS:
+        return False
+    if not can_access_module(user_context, action_module_code):
+        return False
+    return _can_use_user_action(user_context, action, permission_context)
+
+
+def _can_use_user_action(
+    user_context: Any,
+    action: UserModuleQuickAction,
+    permission_context: dict[str, Any],
+) -> bool:
+    module_code = get_canonical_module_code(action.source_module_code) or action.source_module_code
+    action_code = _action_permission_code(action)
+    if can(user_context, module_code, action_code, AccessScope.GLOBAL):
+        return True
+
+    allowed_action_codes = set(str(item) for item in _list_value(permission_context.get("allowedActionCodes")))
+    if allowed_action_codes:
+        return action_code in allowed_action_codes or action.action_key in allowed_action_codes
+    return False
+
+
+def _action_permission_code(action: UserModuleQuickAction) -> str:
+    snapshot = action.config_snapshot if isinstance(action.config_snapshot, dict) else {}
+    return str(
+        snapshot.get("permissionKey")
+        or snapshot.get("permission_key")
+        or snapshot.get("requiredActionCode")
+        or snapshot.get("required_action_code")
+        or action.action_key
+    )
+
+
+def _dashboard_action_from_user_action(action: UserModuleQuickAction) -> dict[str, Any]:
+    return {
+        "quickActionId": str(action.id),
+        "actionCode": action.action_key,
+        "actionKey": action.action_key,
+        "label": action.title,
+        "title": action.title,
+        "href": action.deep_link or action.route or "#",
+        "icon": action.icon or "*",
+        "moduleCode": action.source_module_code,
+        "sourceModuleCode": action.source_module_code,
+        "featureCode": action.feature_code,
+        "contextCode": None,
+        "maxSurface": "MODULE_CARD",
+        "cabinetTypes": ("ADMIN",),
+        "requiresConfirmation": _requires_confirmation(action),
+        "mock": False,
+        "isSelected": True,
+        "placement": "ATOM_CARD",
+        "atomCardOrder": action.atom_card_order,
+        "atomCardAccent": action.atom_card_accent or "cyan",
+        "status": action.status,
+    }
+
+
+def _requires_confirmation(action: UserModuleQuickAction) -> bool:
+    snapshot = action.config_snapshot if isinstance(action.config_snapshot, dict) else {}
+    return bool(snapshot.get("requiresConfirmation") or snapshot.get("requires_confirmation"))
+
+
+def _current_user_uuid(context: Any) -> UUID | None:
+    data = _context_dict(context)
+    value = data.get("id") or data.get("userId") or data.get("user_id")
+    if not value:
+        return None
+    try:
+        return UUID(str(value))
+    except ValueError:
+        return None
 
 
 def _context_dict(context: Any) -> dict[str, Any]:
@@ -140,4 +232,9 @@ def _context_dict(context: Any) -> dict[str, Any]:
     return {}
 
 
-QUICK_ACTION_REGISTRY = _dashboard_quick_action_registry()
+def _list_value(value: Any) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return list(value)
+    return []

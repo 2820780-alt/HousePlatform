@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -15,6 +15,14 @@ QUICK_ACTION_SURFACES: tuple[str, ...] = ("MODULE_BAR", "MODULE_CARD", "BOTH")
 QUICK_ACTION_ACTION_TYPES: tuple[str, ...] = ("navigate", "modal", "callback")
 
 QUICK_ACTION_REGISTRY_LAYER = "module03_quick_action_registry"
+DEPRECATED_ACTIVE_DISPLAY_FIELDS = (
+    "quickActionCode",
+    "isEnabledByDefault",
+    "maxSurface",
+    "allowedRoles",
+    "allowedCabinetTypes",
+    "widgetCode",
+)
 QUICK_ACTION_REGISTRY_NOTE = (
     "QuickActionRegistry is kept as a compatibility layer for user-saved shortcuts. "
     "The platform does not ship fixed quick action presets: modules expose candidates on real controls, "
@@ -47,7 +55,7 @@ class QuickActionRegistryItemDefinition:
     targetRoute: str | None = None
     modalCode: str | None = None
     requiredPermission: str | None = None
-    isEnabledByDefault: bool = True
+    isEnabledByDefault: bool = False
     isAvailable: bool = True
     maxSurface: str = "BOTH"
     settings: dict[str, Any] = field(default_factory=dict)
@@ -66,7 +74,9 @@ class QuickActionRegistryItemDefinition:
 
 
 def get_quick_action_registry() -> list[dict[str, Any]]:
-    return [item.to_dict() for item in _quick_action_registry_definitions()]
+    """Compatibility-only: registry never seeds or displays user shortcuts."""
+
+    return []
 
 
 def build_quick_action_registry_item(definition: dict[str, Any] | QuickActionRegistryItemDefinition) -> QuickActionRegistryItemDefinition:
@@ -104,16 +114,9 @@ def filter_quick_action_registry_items_for_module(
 
 
 def get_quick_action_registry_item(quick_action_code: str | None) -> QuickActionRegistryItemDefinition | None:
-    if not quick_action_code:
-        return None
-    return next(
-        (
-            item
-            for item in _quick_action_registry_definitions()
-            if item.quickActionCode == quick_action_code
-        ),
-        None,
-    )
+    """Compatibility-only: registry items are not an active lookup source."""
+
+    return None
 
 
 def get_quick_action_registry_items_for_module(
@@ -122,42 +125,21 @@ def get_quick_action_registry_items_for_module(
     surface: str | None = None,
     include_inactive: bool = False,
 ) -> list[dict[str, Any]]:
-    surface_code = surface.upper() if surface else None
-    items: list[dict[str, Any]] = []
-    for item in _quick_action_registry_definitions():
-        if item.sourceModuleCode != source_module_code:
-            continue
-        if not include_inactive and item.status not in ACTIVE_QUICK_ACTION_STATUSES:
-            continue
-        if surface_code and item.maxSurface not in {surface_code, "BOTH"}:
-            continue
-        items.append(item.to_dict())
-    return sorted(items, key=lambda action: (action["sortOrder"], action["quickActionCode"]))
+    """Compatibility-only: module UI must use user-saved actions, not registry rows."""
+
+    return []
 
 
 def get_available_quick_action_registry_items(user_profile: Any, context: Any | None = None) -> list[dict[str, Any]]:
-    from app.services.quick_action_permission import can_use_quick_action
+    """Compatibility-only: registry never grants available quick actions."""
 
-    effective_context = context or user_profile
-    return [
-        item.to_dict()
-        for item in _quick_action_registry_definitions()
-        if can_use_quick_action(user_profile, item.quickActionCode, effective_context)
-    ]
+    return []
 
 
 def get_preview_quick_action_registry_items(user_profile: Any) -> list[dict[str, Any]]:
-    data = _profile_dict(user_profile)
-    if data.get("authMode") not in {"mock", "dev"}:
-        return []
-    role_code = (data.get("effectiveRoleCode") or data.get("roleCode") or "").upper()
-    if role_code not in QUICK_ACTION_PREVIEW_ROLE_CODES:
-        return []
-    return [
-        item.to_dict()
-        for item in _quick_action_registry_definitions()
-        if item.status in PREVIEW_QUICK_ACTION_STATUSES
-    ]
+    """Compatibility-only: preview roles do not receive registry quick actions."""
+
+    return []
 
 
 def _quick_action_registry_definitions() -> tuple[QuickActionRegistryItemDefinition, ...]:
@@ -193,7 +175,7 @@ def _item(**data: Any) -> QuickActionRegistryItemDefinition:
         targetRoute=data.get("targetRoute") or data.get("route"),
         modalCode=data.get("modalCode"),
         requiredPermission=data.get("requiredPermission") or (data.get("settings") or {}).get("permissionCode"),
-        isEnabledByDefault=bool(data.get("isEnabledByDefault", True)),
+        isEnabledByDefault=bool(data.get("isEnabledByDefault", False)),
         isAvailable=bool(data.get("isAvailable", data.get("status", "ACTIVE") == "ACTIVE")),
         maxSurface=max_surface,
         status=data.get("status", "ACTIVE"),

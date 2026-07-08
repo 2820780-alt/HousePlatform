@@ -15,6 +15,11 @@ DEFAULT_DASHBOARD_FEATURES: tuple[str, ...] = (
 )
 
 
+DEPRECATED_DEFAULT_QUICK_ACTION_CODES_NOTE = (
+    "Deprecated compatibility field; roles grant permissions but never create quick action shortcuts."
+)
+
+
 MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
     "MODULE_03_USERS_SUMMARY_WIDGET",
     "MODULE_03_MODERATION_QUEUE_WIDGET",
@@ -28,7 +33,10 @@ class RoleDashboardAccessProfileDefinition:
     roleCode: str
     allowedModuleCodes: tuple[str, ...]
     defaultWidgetCodes: tuple[str, ...] = ()
-    defaultQuickActionCodes: tuple[str, ...] = ()
+    defaultQuickActionCodes: tuple[str, ...] = field(
+        default_factory=tuple,
+        metadata={"deprecated": DEPRECATED_DEFAULT_QUICK_ACTION_CODES_NOTE},
+    )
     hiddenWidgetCodes: tuple[str, ...] = ()
     allowedFeatureCodes: tuple[str, ...] = DEFAULT_DASHBOARD_FEATURES
     defaultLayoutCode: str | None = None

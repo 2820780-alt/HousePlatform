@@ -166,7 +166,7 @@ class DashboardUserContextAdapter:
                 "ATOM_MAP_VIEW",
                 "PRICE_DYNAMICS",
             ]),
-            allowedActionCodes=profile.get("defaultQuickActionCodes") or [],
+            allowedActionCodes=[],
             favoriteModuleCodes=favorite_module_codes[:8],
             previewRoleCode=normalized_preview_role,
             effectiveRoleCode=effective_role_code,

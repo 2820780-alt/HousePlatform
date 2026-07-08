@@ -7,18 +7,33 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
 
+LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE = (
+    "Deprecated compatibility field; not an active source for Dashboard or module quick actions."
+)
+
+
 class QuickActionRegistryItem(Base):
     __tablename__ = "quick_action_registry_items"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    quick_action_code: Mapped[str] = mapped_column(String(160), nullable=False, unique=True, index=True)
+    quick_action_code: Mapped[str] = mapped_column(
+        String(160),
+        nullable=False,
+        unique=True,
+        index=True,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     source_module_code: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     canonical_module_code: Mapped[str | None] = mapped_column(String(120), index=True)
     feature_code: Mapped[str | None] = mapped_column(String(120), index=True)
     section_code: Mapped[str | None] = mapped_column(String(120), index=True)
-    widget_code: Mapped[str | None] = mapped_column(String(160), index=True)
+    widget_code: Mapped[str | None] = mapped_column(
+        String(160),
+        index=True,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
     action_code: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
     action_type: Mapped[str] = mapped_column(String(40), default="navigate", nullable=False, index=True)
     target_route: Mapped[str | None] = mapped_column(String(255))
@@ -27,14 +42,36 @@ class QuickActionRegistryItem(Base):
     required_access_level: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     required_scope: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     required_permission: Mapped[str | None] = mapped_column(String(160), index=True)
-    allowed_roles: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
-    allowed_cabinet_types: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    allowed_roles: Mapped[list[str]] = mapped_column(
+        JSON,
+        default=list,
+        nullable=False,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
+    allowed_cabinet_types: Mapped[list[str]] = mapped_column(
+        JSON,
+        default=list,
+        nullable=False,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
     route: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(30), default="ACTIVE", nullable=False, index=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
-    is_enabled_by_default: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+    is_enabled_by_default: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
     is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
-    max_surface: Mapped[str] = mapped_column(String(40), default="BOTH", nullable=False, index=True)
+    max_surface: Mapped[str] = mapped_column(
+        String(40),
+        default="BOTH",
+        nullable=False,
+        index=True,
+        info={"deprecated": LEGACY_QUICK_ACTION_REGISTRY_FIELD_NOTE},
+    )
     sort_order: Mapped[int] = mapped_column(Integer, default=1000, nullable=False, index=True)
     settings: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())

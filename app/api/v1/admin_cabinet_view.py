@@ -48,7 +48,7 @@ from app.services.dashboard_module_registry import (
 )
 from app.services.dashboard_quick_actions import (
     ATOM_CARD_QUICK_ACTION_LIMIT,
-    get_atom_card_quick_action_options,
+    get_user_atom_card_quick_action_options,
     get_quick_actions_for_dashboard,
 )
 from app.services.dashboard_system_contexts import DASHBOARD_ADMIN_CONTEXT, DASHBOARD_ADMIN_SOURCE_MODULE
@@ -564,7 +564,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     cabinet_context = get_current_cabinet_context(dashboard_user_context)
     current_user_profile_mock = dashboard_user_context.to_template_dict()
     current_cabinet_context_mock = cabinet_context.to_dict()
-    _attach_atom_card_quick_actions(cards, dashboard_user_context, current_cabinet_context_mock)
+    await _attach_atom_card_quick_actions(db, cards, dashboard_user_context, current_cabinet_context_mock)
 
     market_label = price_summary["market"]
     market_is_real = market_label != "нужно больше данных"
@@ -668,23 +668,17 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     }
 
 
-def _attach_atom_card_quick_actions(cards: list[dict], user_context, cabinet_context: dict) -> None:
-    module_action_settings = (
-        (cabinet_context.get("cabinetDashboardPreset") or {})
-        .get("atomCardActions", {})
-        .get("moduleActionCodes", {})
-    )
+async def _attach_atom_card_quick_actions(db: DBSession, cards: list[dict], user_context, cabinet_context: dict) -> None:
     for card in cards:
         module_code = card.get("canonical_module_code") or card.get("module_code")
-        selected_codes = module_action_settings.get(module_code)
-        options = get_atom_card_quick_action_options(
+        options = await get_user_atom_card_quick_action_options(
+            db,
             user_context,
-            cabinet_context,
             module_code,
-            selected_action_codes=selected_codes,
+            cabinet_context=cabinet_context,
         )
         card["atom_quick_action_options"] = options
-        card["atom_quick_actions"] = [action for action in options if action["isSelected"]][:ATOM_CARD_QUICK_ACTION_LIMIT]
+        card["atom_quick_actions"] = options[:ATOM_CARD_QUICK_ACTION_LIMIT]
         card["atom_quick_action_limit"] = ATOM_CARD_QUICK_ACTION_LIMIT
 
 

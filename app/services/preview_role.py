@@ -152,7 +152,7 @@ def build_preview_role_context(
         "allowedModuleCodes": profile.get("allowedModuleCodes") or [],
         "allowedWidgetCodes": profile.get("defaultWidgetCodes") or [],
         "allowedFeatureCodes": profile.get("allowedFeatureCodes") or [],
-        "allowedActionCodes": profile.get("defaultQuickActionCodes") or [],
+        "allowedActionCodes": [],
         "favoriteModuleCodes": settings.get("favoriteModuleCodes") or [],
         "roleDashboardAccessProfile": profile,
         "isPreviewMode": True,
