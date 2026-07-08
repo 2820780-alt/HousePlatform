@@ -17,6 +17,10 @@ from app.services.partner_portal_cabinet_types import (
 
 
 MODULE_03_USERS_ROLES = "MODULE_03_USERS_ROLES"
+DEPRECATED_RECOMMENDED_QUICK_ACTION_CODES_NOTE = (
+    "Deprecated compatibility field. Cabinet presets must not create or recommend "
+    "quick actions; only user_module_quick_actions may provide saved/pinned actions."
+)
 
 TOP_WIDGET_GRID = "TOP_WIDGET_GRID"
 ATOM_MAP = "ATOM_MAP"
@@ -48,7 +52,9 @@ class CabinetDashboardPresetDefinition:
     recommendedBlockCodes: list[str]
     futureBlockCodes: list[str]
     recommendedWidgetCodes: list[str]
-    recommendedQuickActionCodes: list[str]
+    recommendedQuickActionCodes: list[str] = field(
+        metadata={"deprecated": DEPRECATED_RECOMMENDED_QUICK_ACTION_CODES_NOTE},
+    )
     zones: list[DashboardPresetZone]
     sourceModuleCode: str = MODULE_08_PARTNER_PORTAL
     permissionFilterSourceModuleCode: str = MODULE_03_USERS_ROLES
@@ -57,7 +63,8 @@ class CabinetDashboardPresetDefinition:
     isMock: bool = True
     compatibilityNote: str = (
         "Module 08 recommends cabinet Dashboard presets. Module 03 filters permissions, "
-        "WidgetRegistry remains Module 03 / Dashboard layer, and Dashboard only renders data."
+        "WidgetRegistry remains Module 03 / Dashboard layer, Dashboard only renders data, "
+        "and quick actions are user-saved only."
     )
 
     def to_dict(self) -> dict[str, Any]:
@@ -158,13 +165,11 @@ def filter_dashboard_preset_for_access(
     allowed_modules = set(_list_strings(access_data.get("allowedModuleCodes")))
     allowed_features = set(_list_strings(access_data.get("allowedFeatureCodes")))
     allowed_widgets = set(_list_strings(access_data.get("allowedWidgetCodes")))
-    allowed_actions = set(_list_strings(access_data.get("allowedQuickActionCodes")))
 
     denied: dict[str, list[str]] = {
         "moduleCodes": [],
         "blockCodes": [],
         "widgetCodes": [],
-        "quickActionCodes": [],
     }
     modules = _filter_codes(
         definition.recommendedModuleCodes,
@@ -194,12 +199,6 @@ def filter_dashboard_preset_for_access(
         is_filtered=is_filtered,
         denied=denied["widgetCodes"],
     )
-    actions = _filter_codes(
-        definition.recommendedQuickActionCodes,
-        allowed_actions,
-        is_filtered=is_filtered,
-        denied=denied["quickActionCodes"],
-    )
     zones = _filter_zones(
         definition.zones,
         allowed_block_codes=set(blocks + future_blocks),
@@ -214,17 +213,18 @@ def filter_dashboard_preset_for_access(
             "recommendedBlockCodes": blocks,
             "futureBlockCodes": future_blocks,
             "recommendedWidgetCodes": widgets,
-            "recommendedQuickActionCodes": actions,
             "zones": [zone.to_dict() for zone in zones],
             "isPermissionFiltered": is_filtered,
             "permissionFilterSourceModuleCode": MODULE_03_USERS_ROLES,
             "activeRegionCode": access_data.get("activeRegionCode"),
+            "deprecatedRecommendedQuickActionCodes": [],
             "deniedByAccess": {
                 key: _unique_strings(value)
                 for key, value in denied.items()
             },
         }
     )
+    data.pop("recommendedQuickActionCodes", None)
     return data
 
 
@@ -286,6 +286,8 @@ def _preset_to_dict(
             ).to_dict()
             for zone in definition.zones
         ]
+    data.pop("recommendedQuickActionCodes", None)
+    data["deprecatedRecommendedQuickActionCodes"] = []
     return data
 
 
@@ -521,7 +523,7 @@ def _preset(
         recommendedBlockCodes=_unique_strings(recommendedBlockCodes),
         futureBlockCodes=_unique_strings(futureBlockCodes),
         recommendedWidgetCodes=_unique_strings(recommendedWidgetCodes),
-        recommendedQuickActionCodes=_unique_strings(recommendedQuickActionCodes),
+        recommendedQuickActionCodes=[],
         zones=zones,
     )
 

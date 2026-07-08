@@ -157,6 +157,6 @@ def test_dashboard_ready_dto_splits_hidden_locked_future_and_premium_blocks(monk
     assert dto["premiumBlocks"] == ["PREMIUM_BLOCK"]
     assert dto["primaryBlocks"] == ["OBJECT_IMAGE_BLOCK"]
     assert dto["secondaryBlocks"] == ["ESTIMATES_BLOCK"]
-    assert [item["quickActionCode"] for item in dto["quickActions"]] == ["CUSTOMER_OBJECT_CREATE"]
+    assert dto["quickActions"] == []
     assert [item["widgetCode"] for item in dto["widgetPreferences"]] == ["estimate-summary"]
     assert [item["shortcutCode"] for item in dto["availableModuleShortcuts"]] == ["house"]

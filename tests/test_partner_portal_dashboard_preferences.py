@@ -157,7 +157,9 @@ def test_remove_widget_and_quick_action_visibility_do_not_bypass_permissions():
     )
 
     assert "price-dynamics" not in result["recommendedWidgetCodes"]
-    assert result["recommendedQuickActionCodes"] == []
+    assert "recommendedQuickActionCodes" not in result
+    assert result["deprecatedRecommendedQuickActionCodes"] == []
+    assert result["preferenceState"]["quickActions"] == []
 
 
 def test_reset_to_role_template_restores_filtered_defaults():

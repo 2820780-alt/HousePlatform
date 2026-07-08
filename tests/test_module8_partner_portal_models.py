@@ -36,7 +36,11 @@ from app.models import (
     UserCabinetLink,
     WorksCostsCabinetLink,
 )
-from app.models.partner_portal import MODULE_08_PARTNER_PORTAL, PARTNER_PORTAL_BOUNDARY_STATUS
+from app.models.partner_portal import (
+    MODULE_08_PARTNER_PORTAL,
+    PARTNER_PORTAL_BOUNDARY_STATUS,
+    PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE,
+)
 
 
 MODULE8_TYPES = (
@@ -107,3 +111,22 @@ def test_module8_types_use_partner_portal_module_code_by_default():
 
 def test_partner_portal_module_code_is_legacy_draft_boundary_marker():
     assert PARTNER_PORTAL_BOUNDARY_STATUS == "LEGACY_DRAFT_BOUNDARY"
+
+
+def test_module8_quick_action_fields_are_deprecated_compatibility_only():
+    preset_columns = CabinetDashboardPreset.__table__.columns
+    rule_columns = CabinetBlockRule.__table__.columns
+    action_columns = CabinetQuickAction.__table__.columns
+
+    for column in (
+        preset_columns["atom_card_actions"],
+        preset_columns["quick_action_codes"],
+        rule_columns["required_quick_action_code"],
+        action_columns["quick_action_code"],
+        action_columns["required_action_code"],
+        action_columns["is_recommended"],
+    ):
+        assert column.info["deprecated"] == PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE
+
+    assert CabinetQuickAction.__doc__
+    assert "not an active source" in CabinetQuickAction.__doc__

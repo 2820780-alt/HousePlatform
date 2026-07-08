@@ -115,6 +115,7 @@ def test_partner_portal_adapter_dashboard_context_preset_blocks_and_actions():
     assert "MODULE_07_DIGITAL_HOUSE" in preset["recommendedModuleCodes"]
     assert any(block["blockCode"] == "OBJECT_IMAGE_BLOCK" for block in blocks)
     assert actions == []
+    assert dashboard_context["quickActions"] == []
 
 
 def test_partner_portal_adapter_widget_preferences_can_be_read_and_updated():
@@ -160,3 +161,4 @@ def test_partner_portal_adapter_object_links_visibility_offer_settings_and_summa
     assert offer["offerContactPolicy"] == "AFTER_APPROVAL"
     assert summary["linkedObjectCount"] == 1
     assert summary["sourceModuleCode"] == MODULE_08_PARTNER_PORTAL
+    assert summary["quickActionCount"] == 0

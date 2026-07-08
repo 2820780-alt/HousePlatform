@@ -11,6 +11,10 @@ from app.services.partner_portal_dashboard_presets import (
 
 
 MODULE_03_USERS_ROLES = "MODULE_03_USERS_ROLES"
+DEPRECATED_CABINET_QUICK_ACTIONS_NOTE = (
+    "Deprecated compatibility field. Cabinet presets/preferences must not seed "
+    "quick actions; only user_module_quick_actions may store saved/pinned actions."
+)
 
 
 @dataclass(frozen=True)
@@ -75,7 +79,10 @@ class CabinetDashboardPreferenceState:
     blockPreferences: list[CabinetBlockPreferenceDTO] = field(default_factory=list)
     widgetPreferences: list[CabinetWidgetPreferenceDTO] = field(default_factory=list)
     moduleShortcuts: list[CabinetModuleShortcutDTO] = field(default_factory=list)
-    quickActions: list[CabinetQuickActionDTO] = field(default_factory=list)
+    quickActions: list[CabinetQuickActionDTO] = field(
+        default_factory=list,
+        metadata={"deprecated": DEPRECATED_CABINET_QUICK_ACTIONS_NOTE},
+    )
     deniedOperations: list[dict[str, Any]] = field(default_factory=list)
     isMock: bool = True
     isResetToRoleTemplate: bool = False
@@ -112,7 +119,6 @@ def build_default_cabinet_dashboard_preferences(
         [*preset.get("recommendedBlockCodes", []), *preset.get("futureBlockCodes", [])]
     )
     widgets = _unique_strings(preset.get("recommendedWidgetCodes", []))
-    quick_actions = _unique_strings(preset.get("recommendedQuickActionCodes", []))
     return CabinetDashboardPreferenceState(
         presetCode=preset["presetCode"],
         userId=user_id or _string_or_none(access_data.get("userId")),
@@ -130,10 +136,6 @@ def build_default_cabinet_dashboard_preferences(
                 zoneCode=_widget_zone(preset, widget_code),
             )
             for index, widget_code in enumerate(widgets, start=1)
-        ],
-        quickActions=[
-            CabinetQuickActionDTO(quickActionCode=action_code, sortOrder=index * 10)
-            for index, action_code in enumerate(quick_actions, start=1)
         ],
     )
 
@@ -153,7 +155,6 @@ def apply_cabinet_dashboard_preferences(
     )
     visible_blocks = _ordered_visible_blocks(state)
     visible_widgets = _ordered_visible_widgets(state)
-    visible_actions = _ordered_visible_quick_actions(state)
 
     preset["recommendedBlockCodes"] = [
         block_code
@@ -170,11 +171,8 @@ def apply_cabinet_dashboard_preferences(
         for widget_code in visible_widgets
         if widget_code in set(preset.get("recommendedWidgetCodes", []))
     ]
-    preset["recommendedQuickActionCodes"] = [
-        action_code
-        for action_code in visible_actions
-        if action_code in set(preset.get("recommendedQuickActionCodes", []))
-    ]
+    preset.pop("recommendedQuickActionCodes", None)
+    preset["deprecatedRecommendedQuickActionCodes"] = []
     preset["zones"] = [
         _apply_zone_preferences(zone, set(preset["recommendedBlockCodes"]), set(preset["recommendedWidgetCodes"]))
         for zone in preset.get("zones", [])
@@ -300,19 +298,8 @@ def set_quick_action_visibility(
     quick_action_code: str,
     is_visible: bool,
 ) -> CabinetDashboardPreferenceState:
-    state = _preference_state(preferences)
-    current = {item.quickActionCode: item for item in state.quickActions}
-    preference = replace(
-        current.get(quick_action_code, CabinetQuickActionDTO(quickActionCode=quick_action_code)),
-        isVisible=is_visible,
-    )
-    quick_actions = [
-        preference if item.quickActionCode == quick_action_code else item
-        for item in state.quickActions
-    ]
-    if quick_action_code not in {item.quickActionCode for item in state.quickActions}:
-        quick_actions.append(preference)
-    return replace(state, quickActions=quick_actions, isResetToRoleTemplate=False)
+    """Compatibility no-op: cabinet preferences never seed quick actions."""
+    return replace(_preference_state(preferences), quickActions=[], isResetToRoleTemplate=False)
 
 
 def reset_to_role_template(
@@ -412,10 +399,7 @@ def _preference_state(
             _module_shortcut(item)
             for item in _list_value(data.get("moduleShortcuts"))
         ],
-        quickActions=[
-            _quick_action(item)
-            for item in _list_value(data.get("quickActions"))
-        ],
+        quickActions=[],
         deniedOperations=_list_value(data.get("deniedOperations")),
         isMock=bool(data.get("isMock", True)),
         isResetToRoleTemplate=bool(data.get("isResetToRoleTemplate", False)),
@@ -505,11 +489,7 @@ def _ordered_visible_widgets(state: CabinetDashboardPreferenceState) -> list[str
 
 
 def _ordered_visible_quick_actions(state: CabinetDashboardPreferenceState) -> list[str]:
-    return [
-        item.quickActionCode
-        for item in sorted(state.quickActions, key=lambda item: (item.sortOrder, item.quickActionCode))
-        if item.isVisible
-    ]
+    return []
 
 
 def _widget_zone(preset: dict[str, Any], widget_code: str) -> str | None:

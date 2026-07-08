@@ -44,7 +44,8 @@ def test_dashboard_and_module8_presets_do_not_declare_quick_action_defaults():
     assert DEFAULT_ATOM_CARD_ACTION_CODES == {}
 
     for preset in get_dashboard_presets():
-        assert preset["recommendedQuickActionCodes"] == []
+        assert "recommendedQuickActionCodes" not in preset
+        assert preset["deprecatedRecommendedQuickActionCodes"] == []
         assert preset.get("quickActionCodes") in (None, [])
 
 

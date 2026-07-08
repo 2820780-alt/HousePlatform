@@ -96,7 +96,7 @@ def build_dashboard_ready_cabinet_context(
         mainFocus=_string_or_none(preset.get("mainFocus") or active_context.get("mainFocus")),
         primaryBlocks=primary_blocks,
         secondaryBlocks=secondary_blocks,
-        quickActions=_visible_quick_actions(dashboard_context, preferences),
+        quickActions=[],
         availableModuleShortcuts=_visible_dicts(preferences.get("moduleShortcuts")),
         widgetPreferences=_visible_dicts(preferences.get("widgetPreferences")),
         hiddenBlocks=hidden_blocks,
@@ -118,16 +118,8 @@ def _visible_quick_actions(
     dashboard_context: dict[str, Any],
     preferences: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    hidden_codes = {
-        str(item.get("quickActionCode"))
-        for item in _list_dicts(preferences.get("quickActions"))
-        if item.get("isVisible") is False and item.get("quickActionCode") is not None
-    }
-    return [
-        item
-        for item in _list_dicts(dashboard_context.get("quickActions"))
-        if item.get("quickActionCode") not in hidden_codes
-    ]
+    """Compatibility hook: Module 8 ready DTO does not emit quick actions."""
+    return []
 
 
 def _hidden_blocks(preferences: dict[str, Any]) -> list[str]:

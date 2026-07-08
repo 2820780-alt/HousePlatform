@@ -36,7 +36,8 @@ def test_dashboard_preset_catalog_contains_required_presets():
         assert "MODULE_08_PARTNER_PORTAL" not in item["recommendedModuleCodes"]
         assert item["recommendedBlockCodes"]
         assert item["recommendedWidgetCodes"]
-        assert item["recommendedQuickActionCodes"] == []
+        assert "recommendedQuickActionCodes" not in item
+        assert item["deprecatedRecommendedQuickActionCodes"] == []
         assert item["zones"]
         assert "Dashboard only renders data" in item["compatibilityNote"]
 
@@ -57,11 +58,12 @@ def test_supplier_preset_filters_modules_widgets_actions_and_blocks_through_modu
     assert preset["isPermissionFiltered"] is True
     assert preset["recommendedModuleCodes"] == ["MODULE_01_MATERIAL_HUB"]
     assert preset["recommendedWidgetCodes"] == ["materials-kpi"]
-    assert preset["recommendedQuickActionCodes"] == []
+    assert "recommendedQuickActionCodes" not in preset
+    assert preset["deprecatedRecommendedQuickActionCodes"] == []
     assert preset["recommendedBlockCodes"] == ["SUPPLIER_PRICE_LIST_BLOCK"]
     assert "SUPPLIER_REQUESTS_BLOCK" in preset["deniedByAccess"]["blockCodes"]
     assert "source-health" in preset["deniedByAccess"]["widgetCodes"]
-    assert preset["deniedByAccess"]["quickActionCodes"] == []
+    assert "quickActionCodes" not in preset["deniedByAccess"]
 
 
 def test_future_blocks_are_hidden_until_explicitly_requested_and_allowed():
@@ -139,5 +141,6 @@ def test_context_selects_role_specific_preset_without_creating_another_dashboard
     assert preset["sourceModuleCode"] == MODULE_08_PARTNER_PORTAL
     assert any(zone["zoneCode"] == BOTTOM_WIDGET_GRID for zone in preset["zones"])
     assert "materials-kpi" in preset["recommendedWidgetCodes"]
-    assert preset["recommendedQuickActionCodes"] == []
+    assert "recommendedQuickActionCodes" not in preset
+    assert preset["deprecatedRecommendedQuickActionCodes"] == []
     assert "route" not in preset

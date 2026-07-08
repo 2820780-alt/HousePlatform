@@ -107,17 +107,8 @@ def get_cabinet_block_catalog(cabinet_id: str | None, context: Any) -> list[dict
 
 
 def get_cabinet_quick_actions(cabinet_id: str | None, context: Any) -> list[dict[str, Any]]:
-    preset = get_cabinet_dashboard_preset(cabinet_id, context) or {}
-    return [
-        {
-            "quickActionCode": code,
-            "cabinetId": cabinet_id or normalize_partner_portal_context(context).activeCabinetId,
-            "sourceModuleCode": MODULE_08_PARTNER_PORTAL,
-            "permissionSourceModuleCode": MODULE_03_USERS_ROLES,
-            "isRecommended": True,
-        }
-        for code in preset.get("recommendedQuickActionCodes", [])
-    ]
+    """Compatibility hook: cabinet presets never provide fixed quick actions."""
+    return []
 
 
 def get_cabinet_widget_preferences(cabinet_id: str | None, context: Any) -> dict[str, Any]:
@@ -143,8 +134,7 @@ def update_cabinet_widget_preferences(cabinet_id: str | None, payload: Any, cont
         state["widgetPreferences"] = list(_list_value(payload_data.get("widgetPreferences")))
     if "blockPreferences" in payload_data:
         state["blockPreferences"] = list(_list_value(payload_data.get("blockPreferences")))
-    if "quickActions" in payload_data:
-        state["quickActions"] = list(_list_value(payload_data.get("quickActions")))
+    state["quickActions"] = []
     applied = apply_cabinet_dashboard_preferences(
         preset["presetCode"],
         state,
@@ -193,7 +183,7 @@ def get_cabinet_summary(context: Any) -> dict[str, Any]:
         "activeRegionCode": active_context.get("activeRegionCode"),
         "recommendedBlockCount": len(preset.get("recommendedBlockCodes", [])),
         "recommendedWidgetCount": len(preset.get("recommendedWidgetCodes", [])),
-        "quickActionCount": len(preset.get("recommendedQuickActionCodes", [])),
+        "quickActionCount": 0,
         "linkedObjectCount": len(object_links),
         "sourceModuleCode": MODULE_08_PARTNER_PORTAL,
         "permissionSourceModuleCode": MODULE_03_USERS_ROLES,

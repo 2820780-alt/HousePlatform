@@ -14,6 +14,11 @@ PARTNER_PORTAL_BOUNDARY_NOTE = (
     "Participant cabinets are a future separate contour; MODULE_08_PARTNER_PORTAL "
     "is a legacy draft source code and is not the final Module 8 boundary."
 )
+PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE = (
+    "Deprecated compatibility field. Module 8 cabinet presets must not seed, "
+    "recommend, or render quick actions; saved/pinned actions live in user_module_quick_actions."
+)
+
 
 
 class Module8RecordMixin:
@@ -453,8 +458,16 @@ class CabinetDashboardPreset(Module8RecordMixin, Base):
     cabinet_type: Mapped[str | None] = mapped_column(String(80), index=True)
     topbar: Mapped[dict | None] = mapped_column(JSON)
     widget_zones: Mapped[dict | None] = mapped_column(JSON)
-    atom_card_actions: Mapped[dict | None] = mapped_column(JSON)
-    quick_action_codes: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    atom_card_actions: Mapped[dict | None] = mapped_column(
+        JSON,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
+    quick_action_codes: Mapped[list[str]] = mapped_column(
+        JSON,
+        default=list,
+        nullable=False,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
     settings: Mapped[dict | None] = mapped_column(JSON)
 
 
@@ -477,7 +490,11 @@ class CabinetBlockRule(Module8RecordMixin, Base):
     cabinet_type: Mapped[str | None] = mapped_column(String(80), index=True)
     required_feature_code: Mapped[str | None] = mapped_column(String(120), index=True)
     required_widget_code: Mapped[str | None] = mapped_column(String(160), index=True)
-    required_quick_action_code: Mapped[str | None] = mapped_column(String(160), index=True)
+    required_quick_action_code: Mapped[str | None] = mapped_column(
+        String(160),
+        index=True,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
     visibility_rule: Mapped[dict | None] = mapped_column(JSON)
     sort_order: Mapped[int] = mapped_column(Integer, default=1000, nullable=False, index=True)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
@@ -508,16 +525,33 @@ class CabinetMainFocus(Module8RecordMixin, Base):
 
 
 class CabinetQuickAction(Module8RecordMixin, Base):
+    """Legacy compatibility table; not an active source for shortcuts."""
+
     __tablename__ = "module08_cabinet_quick_actions"
 
-    quick_action_code: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
+    quick_action_code: Mapped[str] = mapped_column(
+        String(160),
+        nullable=False,
+        index=True,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     cabinet_type: Mapped[str | None] = mapped_column(String(80), index=True)
-    required_action_code: Mapped[str | None] = mapped_column(String(120), index=True)
+    required_action_code: Mapped[str | None] = mapped_column(
+        String(120),
+        index=True,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
     route: Mapped[str | None] = mapped_column(String(255))
     sort_order: Mapped[int] = mapped_column(Integer, default=1000, nullable=False, index=True)
-    is_recommended: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    is_recommended: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+        info={"deprecated": PARTNER_PORTAL_QUICK_ACTION_COMPATIBILITY_NOTE},
+    )
     settings: Mapped[dict | None] = mapped_column(JSON)
 
 
