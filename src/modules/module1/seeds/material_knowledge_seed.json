@@ -1,0 +1,735 @@
+{
+  "version": "1.0",
+  "module": "Module 1 Material Knowledge Core",
+  "purpose": "Seed taxonomy, schemas, roles, alternatives, compatibility and extraction blueprints for private house construction and apartment renovation.",
+  "boundaries": {
+    "module1": "canonical materials, technical profiles, prices, documents, sources, quality, roles",
+    "module2": "technology algorithms and resource quantities",
+    "module5": "material selection, packaging, prices, cost estimate"
+  },
+  "taxonomy": [
+    {
+      "code": "concrete_and_mortar",
+      "name": "Бетон, цемент, растворы и инертные материалы",
+      "children": [
+        "ready_mix_concrete",
+        "lean_concrete",
+        "cement",
+        "masonry_mortar",
+        "sand",
+        "gravel",
+        "crushed_stone",
+        "expanded_clay",
+        "dry_masonry_mix",
+        "dry_screed_mix"
+      ]
+    },
+    {
+      "code": "reinforcement_and_metal",
+      "name": "Арматура и металл",
+      "children": [
+        "rebar",
+        "rebar_mesh",
+        "masonry_mesh",
+        "binding_wire",
+        "metal_profile",
+        "channel",
+        "angle_bar",
+        "perforated_strip",
+        "rebar_spacer"
+      ]
+    },
+    {
+      "code": "blocks_and_bricks",
+      "name": "Блоки, кирпич, кладочные материалы",
+      "children": [
+        "aerated_concrete_block",
+        "ceramic_block",
+        "brick_solid",
+        "brick_hollow",
+        "facing_brick",
+        "partition_block",
+        "u_block",
+        "lintel_block"
+      ]
+    },
+    {
+      "code": "lumber_and_wood_sheets",
+      "name": "Пиломатериалы и древесные плиты",
+      "children": [
+        "board",
+        "beam",
+        "batten",
+        "counter_batten",
+        "rafter_board",
+        "osb_board",
+        "plywood",
+        "mdf",
+        "chipboard",
+        "terrace_board",
+        "lining_board"
+      ]
+    },
+    {
+      "code": "drywall_and_sheet_systems",
+      "name": "Листовые системы и ГКЛ",
+      "children": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant",
+        "gypsum_fiber_board",
+        "cement_board",
+        "drywall_profile_cw",
+        "drywall_profile_uw",
+        "drywall_profile_cd",
+        "drywall_profile_ud",
+        "drywall_hanger",
+        "drywall_connector"
+      ]
+    },
+    {
+      "code": "dry_mixes_and_finishing_compounds",
+      "name": "Сухие смеси и отделочные составы",
+      "children": [
+        "gypsum_plaster",
+        "cement_plaster",
+        "facade_plaster_basecoat",
+        "decorative_plaster",
+        "putty_start",
+        "putty_finish",
+        "self_leveling_floor_mix",
+        "tile_adhesive",
+        "grout",
+        "masonry_glue"
+      ]
+    },
+    {
+      "code": "primers_chemicals_sealants",
+      "name": "Грунтовки, химия, герметики",
+      "children": [
+        "deep_penetration_primer",
+        "adhesion_primer",
+        "universal_primer",
+        "concrete_contact",
+        "waterproofing_mastic",
+        "liquid_waterproofing",
+        "sealant_silicone",
+        "sealant_polyurethane",
+        "mounting_foam",
+        "wood_protection",
+        "formwork_oil"
+      ]
+    },
+    {
+      "code": "waterproofing",
+      "name": "Гидроизоляция",
+      "children": [
+        "roll_bitumen_waterproofing",
+        "membrane_waterproofing",
+        "liquid_waterproofing",
+        "waterproofing_tape",
+        "waterproofing_corner",
+        "dimple_membrane"
+      ]
+    },
+    {
+      "code": "insulation",
+      "name": "Утеплители",
+      "children": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "xps_board",
+        "eps_board",
+        "pir_board",
+        "acoustic_wool",
+        "loose_insulation"
+      ]
+    },
+    {
+      "code": "membranes_films_tapes",
+      "name": "Мембраны, пленки, ленты",
+      "children": [
+        "vapor_barrier",
+        "windproof_membrane",
+        "diffusion_membrane",
+        "waterproof_film",
+        "roofing_underlayment",
+        "seam_tape",
+        "butyl_tape",
+        "vapor_barrier_tape"
+      ]
+    },
+    {
+      "code": "roofing",
+      "name": "Кровля",
+      "children": [
+        "metal_tile",
+        "flexible_shingle",
+        "profiled_sheet_roofing",
+        "standing_seam_roofing",
+        "roofing_fastener",
+        "roofing_nail",
+        "ridge_cap",
+        "hip_cap",
+        "valley_strip",
+        "eave_strip",
+        "gable_strip",
+        "abutment_strip",
+        "snow_guard",
+        "soffit"
+      ]
+    },
+    {
+      "code": "gutter_system",
+      "name": "Водосточная система",
+      "children": [
+        "gutter",
+        "downpipe",
+        "gutter_corner",
+        "gutter_connector",
+        "gutter_end_cap",
+        "gutter_bracket",
+        "downpipe_bracket",
+        "funnel",
+        "elbow",
+        "outlet"
+      ]
+    },
+    {
+      "code": "facade",
+      "name": "Фасады",
+      "children": [
+        "facade_insulation",
+        "facade_adhesive",
+        "facade_dowel",
+        "facade_mesh",
+        "basecoat",
+        "decorative_render",
+        "siding_panel",
+        "siding_profile",
+        "ventilated_facade_panel",
+        "facade_substructure_profile",
+        "plinth_panel"
+      ]
+    },
+    {
+      "code": "flooring",
+      "name": "Полы и напольные покрытия",
+      "children": [
+        "laminate",
+        "engineered_wood_floor",
+        "vinyl_tile",
+        "ceramic_floor_tile",
+        "porcelain_tile",
+        "underlay",
+        "skirting_board",
+        "threshold",
+        "floor_leveling_mix",
+        "damper_tape",
+        "floor_mesh"
+      ]
+    },
+    {
+      "code": "wall_finishing",
+      "name": "Стены и чистовая отделка",
+      "children": [
+        "wallpaper",
+        "wallpaper_adhesive",
+        "paint_interior",
+        "paint_facade",
+        "decorative_panel",
+        "wall_tile",
+        "corner_bead",
+        "plaster_beacon"
+      ]
+    },
+    {
+      "code": "electrical",
+      "name": "Электрика",
+      "children": [
+        "cable",
+        "conduit_corrugated",
+        "junction_box",
+        "socket_box",
+        "socket",
+        "switch",
+        "breaker",
+        "rcd",
+        "distribution_board",
+        "lighting_fixture",
+        "cable_clip",
+        "terminal_block"
+      ]
+    },
+    {
+      "code": "plumbing_and_sewer",
+      "name": "Водоснабжение и канализация",
+      "children": [
+        "ppr_pipe",
+        "pex_pipe",
+        "metal_plastic_pipe",
+        "hdpe_pipe",
+        "pipe_fitting",
+        "manifold",
+        "valve",
+        "sewer_pipe",
+        "sewer_fitting",
+        "trap",
+        "inspection_chamber",
+        "septic_tank"
+      ]
+    },
+    {
+      "code": "heating_and_ventilation",
+      "name": "Отопление и вентиляция",
+      "children": [
+        "radiator",
+        "heating_pipe",
+        "underfloor_heating_pipe",
+        "manifold_heating",
+        "boiler",
+        "pump",
+        "expansion_tank",
+        "duct",
+        "vent_grille",
+        "bathroom_fan",
+        "chimney_pipe"
+      ]
+    },
+    {
+      "code": "fences_and_landscaping",
+      "name": "Заборы и благоустройство",
+      "children": [
+        "profiled_sheet_fence",
+        "euro_picket_fence",
+        "welded_mesh_panel",
+        "fence_post",
+        "fence_rail",
+        "gate",
+        "wicket",
+        "paving_slab",
+        "curb",
+        "geotextile",
+        "drainage_pipe",
+        "lawn_seed",
+        "topsoil"
+      ]
+    }
+  ],
+  "characteristicSchemas": {
+    "aerated_concrete_block": {
+      "required": [
+        "length_mm",
+        "width_mm",
+        "height_mm",
+        "density_class",
+        "strength_class"
+      ],
+      "module2Required": [
+        "length_mm",
+        "width_mm",
+        "height_mm",
+        "volume_per_piece_m3"
+      ],
+      "recommended": [
+        "pieces_per_m3",
+        "pieces_per_pallet",
+        "weight_per_piece_kg",
+        "thermal_conductivity",
+        "frost_resistance"
+      ]
+    },
+    "gypsum_board_moisture_resistant": {
+      "required": [
+        "length_mm",
+        "width_mm",
+        "thickness_mm",
+        "board_type"
+      ],
+      "module2Required": [
+        "length_mm",
+        "width_mm",
+        "thickness_mm",
+        "sheet_area_m2"
+      ],
+      "recommended": [
+        "edge_type",
+        "weight_kg",
+        "sheets_per_pack",
+        "application"
+      ]
+    },
+    "rebar": {
+      "required": [
+        "diameter_mm",
+        "steel_class"
+      ],
+      "module2Required": [
+        "diameter_mm",
+        "kg_per_meter"
+      ],
+      "recommended": [
+        "standard_bar_length_m",
+        "profile_type",
+        "certificate"
+      ]
+    },
+    "board": {
+      "required": [
+        "thickness_mm",
+        "width_mm",
+        "length_mm"
+      ],
+      "module2Required": [
+        "thickness_mm",
+        "width_mm",
+        "length_mm",
+        "volume_per_piece_m3"
+      ],
+      "recommended": [
+        "wood_species",
+        "grade",
+        "moisture_percent",
+        "application_hint"
+      ]
+    },
+    "ready_mix_concrete": {
+      "required": [
+        "concrete_class",
+        "unit"
+      ],
+      "module2Required": [
+        "concrete_class",
+        "unit",
+        "application"
+      ],
+      "recommended": [
+        "mobility_class",
+        "frost_resistance",
+        "water_resistance",
+        "min_order_m3"
+      ]
+    },
+    "gypsum_plaster": {
+      "required": [
+        "consumption_kg_m2_mm",
+        "min_layer_mm",
+        "max_layer_mm"
+      ],
+      "module2Required": [
+        "consumption_kg_m2_mm"
+      ],
+      "recommended": [
+        "substrates",
+        "wet_room_allowed",
+        "bag_weight_kg"
+      ]
+    },
+    "deep_penetration_primer": {
+      "required": [
+        "consumption_l_m2",
+        "primer_type"
+      ],
+      "module2Required": [
+        "consumption_l_m2",
+        "compatible_substrates"
+      ],
+      "recommended": [
+        "drying_time",
+        "canister_volume_l"
+      ]
+    },
+    "metal_tile": {
+      "required": [
+        "profile_name",
+        "effective_width_mm",
+        "metal_thickness_mm"
+      ],
+      "module2Required": [
+        "effective_width_mm",
+        "fastening_pattern_code",
+        "min_roof_slope_deg"
+      ],
+      "recommended": [
+        "full_width_mm",
+        "sheet_length_mm",
+        "wave_step_mm",
+        "side_overlap_mm",
+        "end_overlap_mm"
+      ]
+    },
+    "flexible_shingle": {
+      "required": [
+        "coverage_area_per_pack_m2",
+        "min_roof_slope_deg"
+      ],
+      "module2Required": [
+        "coverage_area_per_pack_m2",
+        "underlayment_required"
+      ],
+      "recommended": [
+        "nails_per_shingle",
+        "ridge_cap_coverage",
+        "mastic_required_zones"
+      ]
+    },
+    "mineral_wool_slab": {
+      "required": [
+        "length_mm",
+        "width_mm",
+        "thickness_mm",
+        "area_per_pack_m2"
+      ],
+      "module2Required": [
+        "thickness_mm",
+        "area_per_pack_m2",
+        "application"
+      ],
+      "recommended": [
+        "density_kg_m3",
+        "thermal_conductivity",
+        "fire_class"
+      ]
+    },
+    "porcelain_tile": {
+      "required": [
+        "tile_length_mm",
+        "tile_width_mm",
+        "area_per_box_m2"
+      ],
+      "module2Required": [
+        "tile_length_mm",
+        "tile_width_mm"
+      ],
+      "recommended": [
+        "thickness_mm",
+        "application",
+        "frost_resistant",
+        "rectified"
+      ]
+    },
+    "cable": {
+      "required": [
+        "cable_type",
+        "cores_count",
+        "cross_section_mm2"
+      ],
+      "module2Required": [
+        "cable_type",
+        "cores_count",
+        "cross_section_mm2"
+      ],
+      "recommended": [
+        "conductor_material",
+        "insulation_type",
+        "voltage",
+        "fire_safety_class"
+      ]
+    }
+  },
+  "roleMappings": [
+    {
+      "materialGroup": "board",
+      "roles": [
+        "formwork_board",
+        "roof_batten_candidate",
+        "temporary_structure",
+        "auxiliary_lumber"
+      ]
+    },
+    {
+      "materialGroup": "ready_mix_concrete",
+      "roles": [
+        "strip_foundation_concrete",
+        "slab_foundation_concrete",
+        "bond_beam_concrete",
+        "lintel_concrete",
+        "blind_area_concrete",
+        "concrete_path",
+        "fence_post_concrete",
+        "porch_concrete"
+      ]
+    },
+    {
+      "materialGroup": "xps_board",
+      "roles": [
+        "foundation_insulation",
+        "blind_area_insulation",
+        "floor_insulation",
+        "plinth_insulation"
+      ]
+    },
+    {
+      "materialGroup": "gypsum_board_moisture_resistant",
+      "roles": [
+        "wet_zone_sheeting_candidate",
+        "bathroom_partition_sheet",
+        "ceiling_sheet"
+      ]
+    },
+    {
+      "materialGroup": "metal_tile",
+      "roles": [
+        "roof_covering",
+        "requires_fastening_pattern"
+      ]
+    },
+    {
+      "materialGroup": "flexible_shingle",
+      "roles": [
+        "roof_covering",
+        "requires_solid_base",
+        "requires_underlayment"
+      ]
+    }
+  ],
+  "compatibilityRules": [
+    {
+      "context": "plaster",
+      "material": "gypsum_plaster",
+      "substrate": "gas_block",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "deep_penetration_primer"
+      ],
+      "explanation": "Газоблок требует грунтовки глубокого проникновения перед штукатуркой."
+    },
+    {
+      "context": "plaster",
+      "material": "gypsum_plaster",
+      "substrate": "smooth_concrete",
+      "status": "warning",
+      "requiredAdditionalResources": [
+        "adhesion_primer",
+        "concrete_contact"
+      ],
+      "explanation": "Гладкий бетон требует адгезионной подготовки."
+    },
+    {
+      "context": "bathroom_tile",
+      "material": "wall_tile",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "liquid_waterproofing",
+        "waterproofing_tape"
+      ],
+      "explanation": "Мокрые зоны требуют гидроизоляции."
+    },
+    {
+      "context": "wet_zone",
+      "material": "gypsum_board_regular",
+      "status": "forbidden",
+      "explanation": "Обычный ГКЛ нельзя использовать в мокрых зонах."
+    },
+    {
+      "context": "metal_tile_roof",
+      "material": "metal_tile",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "batten",
+        "counter_batten",
+        "windproof_membrane",
+        "roofing_fastener"
+      ],
+      "explanation": "Металлочерепица требует кровельного пирога и fastening pattern."
+    },
+    {
+      "context": "flexible_shingle_roof",
+      "material": "flexible_shingle",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "osb_board",
+        "roofing_underlayment",
+        "roofing_nail"
+      ],
+      "explanation": "Мягкая кровля требует сплошного основания и подкладочного ковра."
+    }
+  ],
+  "alternativeRules": [
+    {
+      "from": "gypsum_plaster",
+      "to": "cement_plaster",
+      "type": "conditional_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "depends_on_room_and_substrate"
+    },
+    {
+      "from": "gypsum_board_regular",
+      "to": "gypsum_board_moisture_resistant",
+      "type": "technical_alternative",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "wet_room_or_higher_requirement"
+    },
+    {
+      "from": "gypsum_board_moisture_resistant",
+      "to": "gypsum_board_regular",
+      "type": "forbidden_replacement",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "wet_zone"
+    },
+    {
+      "from": "xps_board",
+      "to": "eps_board",
+      "type": "conditional_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "not_foundation_or_high_moisture_or_high_load"
+    },
+    {
+      "from": "cement_screed",
+      "to": "dry_screed",
+      "type": "functional_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": true,
+      "condition": "user_changes_floor_technology"
+    }
+  ],
+  "unitConversions": [
+    {
+      "group": "rebar",
+      "from": "m",
+      "to": "kg",
+      "formula": "length_m * kg_per_meter",
+      "fallback": "diameter_mm^2 / 162"
+    },
+    {
+      "group": "board",
+      "from": "piece",
+      "to": "m3",
+      "formula": "thickness_m * width_m * length_m * pieces"
+    },
+    {
+      "group": "aerated_concrete_block",
+      "from": "piece",
+      "to": "m3",
+      "formula": "length_m * width_m * height_m * pieces"
+    },
+    {
+      "group": "gypsum_board",
+      "from": "sheet",
+      "to": "m2",
+      "formula": "length_m * width_m * sheets"
+    },
+    {
+      "group": "membrane",
+      "from": "roll",
+      "to": "m2",
+      "formula": "roll_width_m * roll_length_m * rolls"
+    },
+    {
+      "group": "dry_mix",
+      "from": "m2_mm",
+      "to": "kg",
+      "formula": "area_m2 * thickness_mm * consumption_kg_m2_mm"
+    },
+    {
+      "group": "paint",
+      "from": "m2",
+      "to": "l",
+      "formula": "area_m2 * coats / coverage_m2_per_l"
+    }
+  ]
+}
