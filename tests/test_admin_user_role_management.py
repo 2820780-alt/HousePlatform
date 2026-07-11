@@ -720,11 +720,10 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
             {
                 "id": "user-1",
                 "subjectKind": "user",
-                "typeCode": "CUSTOMER",
-                "typeLabel": "Заказчик",
+                "typeCode": "PERSON",
+                "typeLabel": "Физ лицо",
                 "displayName": "Иван Петров",
-                "companyName": "ООО СтройПроект",
-                "organizationLabel": "Менеджер",
+                "secondaryLabel": "Физическое лицо",
                 "contacts": ["ivan@example.com", "+7 900 000-00-00"],
                 "status": "active",
                 "statusLabel": "Активен",
@@ -740,20 +739,20 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
                 "region": "Краснодарский край",
                 "moduleAccess": "has_modules",
                 "sortName": "иван петров",
-                "sortType": "заказчик",
+                "sortType": "физ лицо",
                 "cardUrl": "/app/users-roles/users/user-1",
                 "searchBlob": "иван петров ivan@example.com ооо стройпроект",
             }
         ],
         "userDirectoryChips": [
             {"typeCode": "ALL", "label": "Все", "count": 1},
-            {"typeCode": "COMPANY", "label": "Компании", "count": 0},
+            {"typeCode": "CONTRACTOR", "label": "Подрядчики", "count": 0},
             {"typeCode": "SUPPLIER", "label": "Поставщики", "count": 0},
-            {"typeCode": "CUSTOMER", "label": "Заказчики", "count": 1},
-            {"typeCode": "SPECIALIST", "label": "Специалисты", "count": 0},
+            {"typeCode": "ENGINEER", "label": "Инженеры", "count": 0},
+            {"typeCode": "PERSON", "label": "Физ лица", "count": 1},
         ],
         "userDirectoryFilters": {
-            "types": [{"value": "CUSTOMER", "label": "Заказчик"}],
+            "types": [{"value": "PERSON", "label": "Физ лицо"}],
             "statuses": [{"value": "active", "label": "active"}],
             "regions": [{"value": "Краснодарский край", "label": "Краснодарский край"}],
             "moduleAccess": [{"value": "has_modules", "label": "Есть доступ к модулям"}],
@@ -861,8 +860,8 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert 'data-quick-action-storage-key="atom:module3:quickActionSettings:v1"' not in fallback_html
     assert "Компании" in html
     assert "Поставщики" in html
-    assert "Заказчики" in html
-    assert "Специалисты" in html
+    assert "Физ лица" in html
+    assert "Инженеры" in html
     assert "История изменений" in html
     assert "Очередь на модерацию" in html
     assert "Доступ добавлен" in html
@@ -1235,35 +1234,34 @@ def test_user_directory_rows_expose_search_filter_sort_and_card_links():
     company.members = [member]
 
     rows = user_directory_rows([customer], [company])
-    user_row = next(row for row in rows if row["subjectKind"] == "user")
+    user_row = next(row for row in rows if row["subjectKind"] == "user" and row["typeCode"] == "PERSON")
+    contractor_user_row = next(row for row in rows if row["subjectKind"] == "user" and row["typeCode"] == "CONTRACTOR")
     company_row = next(row for row in rows if row["subjectKind"] == "company")
 
-    assert user_row["typeCode"] == "CUSTOMER"
+    assert user_row["typeCode"] == "PERSON"
     assert user_row["displayName"] == "Иван Петров"
-    assert user_row["companyName"] == company.title
-    assert user_row["organizationLabel"] == "Заказчик"
+    assert user_row["secondaryLabel"] == "Физическое лицо"
+    assert contractor_user_row["secondaryLabel"].startswith("ИНН")
     assert user_row["contacts"] == [customer.email, customer.phone]
     assert user_row["moduleLabel"] == "3 модуля"
     assert user_row["widgetLabel"] == "0 виджетов"
-    assert user_row["blockingLabel"] == "Нет"
     assert user_row["cardUrl"] == f"/app/users-roles/users/{customer.id}"
     assert "иван петров" in user_row["searchBlob"]
     assert str(customer.id) not in user_row["searchBlob"]
     assert user_row["moduleAccess"] in {"has_modules", "no_modules"}
-    assert company_row["typeCode"] == "COMPANY"
-    assert company_row["organizationLabel"] == "Строительная компания"
-    assert company_row["moduleLabel"] == "Доступ открыт"
-    assert company_row["widgetLabel"] == "По доступу компании"
-    assert company_row["blockingLabel"] == "Нет"
+    assert company_row["typeCode"] == "CONTRACTOR"
+    assert company_row["secondaryLabel"].startswith("ИНН")
+    assert company_row["moduleLabel"] == "Не рассчитано"
+    assert company_row["widgetLabel"] == "Не рассчитано"
     assert company_row["cardUrl"] == f"/app/users-roles/users/{customer.id}"
 
     chips = user_directory_summary_chips(rows)
-    assert chips[0] == {"typeCode": "ALL", "label": "Все", "count": 2}
-    assert next(chip for chip in chips if chip["typeCode"] == "COMPANY")["count"] == 1
-    assert next(chip for chip in chips if chip["typeCode"] == "CUSTOMER")["count"] == 1
+    assert chips[0] == {"typeCode": "ALL", "label": "Все", "count": 3}
+    assert next(chip for chip in chips if chip["typeCode"] == "CONTRACTOR")["count"] == 2
+    assert next(chip for chip in chips if chip["typeCode"] == "PERSON")["count"] == 1
 
     filters = user_directory_filter_options(rows)
-    assert any(option["value"] == "CUSTOMER" for option in filters["types"])
+    assert any(option["value"] == "PERSON" for option in filters["types"])
     assert any(option["value"] == "active" for option in filters["statuses"])
     assert {option["value"] for option in filters["moduleAccess"]} == {"has_modules", "no_modules"}
 
@@ -1322,7 +1320,11 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
     )
 
     assert card["header"]["title"] == "ООО СтройПроект Юг"
+    assert card["header"]["initials"] == "ОС"
     assert card["header"]["assignedManager"] == "Сидоров И. И."
+    assert card["employeeRoles"]["visibleCount"] == 3
+    assert card["employeeRoles"]["remainingCount"] == 0
+    assert {item["name"] for item in card["employeeRoles"]["all"]} >= {"Сидоров Иван", "Петрова Елена"}
     assert card["header"]["blockLabel"] == "Без блокировки"
     assert [action["label"] for action in card["header"]["actions"]] == [
         "Редактировать доступы",
@@ -1474,7 +1476,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'hidden data-system-section="module8-context-diagnostics"' in template
     assert "MODULE_08_PARTNER_PORTAL" in template
     assert "Кабинетный контур не рекомендует и не создает быстрые действия" in template
-    assert "не является финальной границей Module №8" in template
+    assert "Кабинетный контекст хранится как техническая информация" in template
     assert "Список кабинетов пользователя" in template
     assert "Настройки видимости" in template
     assert "Настройки видимости placeholder" not in template
@@ -1647,8 +1649,8 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Физические лица" in users_section
     assert "Все" in users_section
     assert "Поставщики" in users_section
-    assert "Заказчики" in users_section
-    assert "Специалисты" in users_section
+    assert "Физ лица" in users_section
+    assert "Инженеры" in users_section
     assert "Поиск по ФИО, названию компании, email, телефону или ИНН" in users_section
     assert "Фильтр по типу пользователя" in users_section
     assert "Фильтр по статусу" in users_section
@@ -1659,7 +1661,7 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Сортировка пользователей" in users_section
     assert "Единый список пользователей" in users_section
     assert "Наименование / ФИО" in users_section
-    assert "Компания / Организация" in users_section
+    assert "Компания / Организация" not in users_section
     assert "Последняя активность" in users_section
     assert "data-user-page-summary" in users_section
     assert "data-user-page-prev" in users_section
@@ -1690,63 +1692,84 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Виджет недоступен, потому что модуль выключен" in template
     assert "widgetCheckbox.disabled = systemDisabled || blockedByModule;" in template
     assert "JSON.stringify(buildPayload())" in template
-    assert "Доступы к модулям и виджетам" in template
-    assert "Пользователь" in template
-    assert "Компания" in template
-    assert "Сотрудник компании" in template
-    assert "Группа" in template
-    assert "Роль" in template
-    assert "Виджеты выбранного модуля" in template
-    assert "Причины ограничения" in template
-    assert "Закрыто администратором платформы" in template
-    assert "Закрыто администратором компании" in template
-    assert "Недоступно по тарифу" in template
-    assert "Недоступно: системное ограничение" in template
-    assert "Недоступно: модуль отключен" in template
-    assert "Недоступно: модуль еще не активен" in template
-    assert "Недоступно: модуль в подготовке" in template
-    assert "Недоступно: виджет отключен" in template
-    assert "Недоступно: виджет закрыт вместе с модулем" in template
-    assert "Недоступно: пользователь заблокирован" in template
-    assert "Недоступно: компания заблокирована" in template
-    assert "ручной запрет ≠ тарифное ограничение" in template
-    assert "Тарифное ограничение не равно ручному запрету администратора" in template
-    assert "Будущие тарифные ограничения" in template
-    assert "Оплата, подписки и тарифные страницы здесь не настраиваются" in template
+    assert "Матрица доступа выбранного пользователя" in template
+    assert "{% for column in detail.accessMatrix.columns %}" in template
+    assert "{{ column }}" in template
+    assert "{% for cell in row.cells %}" in template
+    assert 'id="access-matrix-detail"' in template
+    assert "Матрица доступа для выбранного пользователя" in template
+    assert "Если модуль закрыт для сотрудника" in template
+    assert "Нередактируемые ячейки показывают причину ограничения" in template
+    assert 'data-detail-access-matrix' in template
+    assert 'data-detail-access-form' in template
+    assert 'data-detail-access-table' in template
+    assert 'data-detail-access-search' in template
+    assert 'data-detail-access-toggle-all' in template
+    assert 'data-detail-row-toggle' in template
+    assert 'data-detail-access-kind="module"' in template
+    assert 'data-detail-access-kind="widget"' in template
+    assert 'data-detail-access-save' in template
+    assert 'data-detail-access-reset' in template
+    assert 'data-detail-access-save-status' in template
+    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access"' in template
+    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/widget-access"' in template
+    assert "Виджет:" in template
+    assert "applyModuleDependency" in template
+    assert "requestForCheckbox" in template
+    assert "module3-detail-access-matrix-widths" in template
+    assert "cell.reason" in template
+    assert "widget.reason" in template
+    assert "ручной запрет ≠ тарифное ограничение" not in template
+    assert "Тарифное ограничение не равно ручному запрету администратора" not in template
+    assert "Будущие тарифные ограничения" not in template
+    assert "Оплата, подписки и тарифные страницы здесь не настраиваются" not in template
     assert "billing не реализуется" not in template
     assert "Открыть модуль" not in users_section
     assert "наследуется" not in template.lower()
     assert "Добавить пользователя" not in users_section
     assert "Создать пользователя" not in users_section
-    assert "Карточка пользователя" in template
-    assert "Карточка компании" in template
-    assert "Карточка сотрудника компании" in template
+    assert "Основная информация" in template
+    assert "Техническая информация" in template
+    assert "Показать технические сведения" in template
+    assert "Карточка компании" not in template
+    assert "Карточка сотрудника компании" not in template
     assert "Основной контакт" in template
-    assert "Назначенный менеджер" in template
+    assert "Назначенный менеджер" not in template
+    assert "{{ detail.profileCard.header.initials }}" in template
+    assert "{{ detail.profileCard.header.title[:18] }}" not in template
     assert 'data-profile-action="{{ action.id }}"' in template
     assert "{{ action.label }}" in template
     assert "Редактировать доступы" in template
     assert "Заблокировать" in template
     assert "Разблокировать" in template
     assert "Назначить доступ" in template
-    assert "Сотрудники и роли" in template
-    assert "Название компании" in template
-    assert "Тип компании" in template
-    assert "Юридический адрес" in template
-    assert "Индивидуальный доступ" in template
-    assert "Источник доступа: По типу пользователя, Индивидуально переопределен или Системный" in template
-    assert "Включить модуль" in template
-    assert "Выключить модуль" in template
-    assert "Если модуль не разрешен, его виджеты нельзя включить" in template
-    assert "Назначить группу" in template
-    assert "Отвязать от компании" in template
+    assert "Сотрудники компании" in template
+    assert "detail.profileCard.companyInfo" in template
+    assert "Статус связи" in template
+    assert "Администрирование компании" in template
+    assert "Роль в компании" in template
+    assert "Статус связи" in template
+    assert "Данные компании" in template
+    assert "Перейти к компании" in template
+    assert "Пользователь пока не связан с компанией." in template
+    assert "Сотрудники пока не добавлены." in template
+    assert "Показать всех" in template
+    assert "workspaceTypeLabel" in template
+    assert "Индивидуальная матрица доступа пользователя" in template
+    assert "Источник доступа" in template
+    assert "По типу пользователя, Индивидуально переопределен или Системный" in template
+    assert "Включить модуль" not in template
+    assert "Выключить модуль" not in template
+    assert "Если модуль не разрешен, его виджеты нельзя включить" not in template
+    assert "Назначить роль" in template
+    assert "Связать с компанией" in template
     assert "Назначить администратора" in template
     assert "Назначить администратора компании" in template
     assert "Снять администратора компании" in template
     assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin"' in template
     assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin/revoke"' in template
-    assert "не может открыть сотруднику модуль или виджет, закрытый компании платформой" in template
-    assert "тарифные ограничения: внутри карточки" in template
+    assert "Доступы сотрудников можно менять только в пределах доступа своей компании" in template
+    assert "тарифные ограничения: внутри карточки" not in template
     assert "кто, когда, что изменил" in template
     assert "Фильтр истории по автору" in template
     assert "Фильтр истории по дате" in template

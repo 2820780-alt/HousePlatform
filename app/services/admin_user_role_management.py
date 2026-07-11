@@ -800,12 +800,30 @@ def _russian_count_label(count: int | None, one: str, few: str, many: str) -> st
 
 
 def _module_count_label(count: int | None) -> str:
+    if count is None:
+        return "Не рассчитано"
     return _russian_count_label(count, "модуль", "модуля", "модулей")
 
 
 def _widget_count_label(count: int | None) -> str:
+    if count is None:
+        return "Не рассчитано"
     return _russian_count_label(count, "виджет", "виджета", "виджетов")
 
+
+def _directory_subject_secondary_label(type_code: str, user_data: dict[str, Any], primary_workspace: dict[str, Any] | None) -> str:
+    if type_code in {"CONTRACTOR", "SUPPLIER"}:
+        inn = str((primary_workspace or {}).get("organizationId") or "").strip()
+        return f"ИНН {inn}" if inn else "ИНН не указан"
+    if type_code == "ENGINEER":
+        role_title = str(user_data.get("roleTitle") or "").strip()
+        return "Инженер" if not role_title or role_title == "Нет роли" else role_title
+    return "Физическое лицо"
+
+
+def _directory_company_secondary_label(workspace: Workspace) -> str:
+    inn = str(_get_value(workspace, "organization_id") or "").strip()
+    return f"ИНН {inn}" if inn else "ИНН не указан"
 
 def _directory_access_label(value: Any) -> str:
     normalized = str(value or "").strip().lower()
@@ -830,7 +848,7 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
 
     for user in users:
         user_data = user_summary(user)
-        row_type = _directory_user_type(user_data)
+        row_types = _directory_user_types(user_data)
         primary_workspace = _primary_user_workspace(user_data)
         company = company_by_id.get(str(primary_workspace.get("workspaceId") or "")) if primary_workspace else None
         last_activity = _get_value(user, "updated_at") or _get_value(user, "created_at")
@@ -846,48 +864,48 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
             )
         )
         blocking_state = "blocked" if _user_is_blocked(user) else "not_blocked"
-        rows.append(
-            {
-                "id": f"user-{user_data['id']}",
-                "subjectKind": "user",
-                "typeCode": row_type["typeCode"],
-                "typeLabel": row_type["typeLabel"],
-                "displayName": user_data["name"],
-                "companyName": primary_workspace.get("workspaceTitle") if primary_workspace else "Без компании",
-                "organizationLabel": primary_workspace.get("roleTitle") if primary_workspace else "Без компании",
-                "contacts": _contact_lines(user_data.get("email"), user_data.get("phone")),
-                "status": user_data["status"],
-                "statusLabel": _directory_status_label(user_data["status"], blocking_state),
-                "moduleCount": user_data["allowedModuleCount"],
-                "widgetCount": user_data["allowedWidgetCount"],
-                "moduleLabel": _module_count_label(user_data["allowedModuleCount"]),
-                "widgetLabel": _widget_count_label(user_data["allowedWidgetCount"]),
-                "blocking": blocking_state,
-                "blockingLabel": "Да" if blocking_state == "blocked" else "Нет",
-                "activity": "has_activity" if last_activity else "no_activity",
-                "lastActivity": last_activity or "нет данных",
-                "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
-                "registeredAt": registered_at or "",
-                "registeredAtCompact": _compact_datetime_label(registered_at) or "—",
-                "region": _company_region_label(company),
-                "moduleAccess": "has_modules" if user_data["allowedModuleCount"] else "no_modules",
-                "isWithoutCompany": primary_workspace is None,
-                "isWithoutType": row_type["typeCode"] == "USER",
-                "isSystemUser": _is_system_user_for_directory(user),
-                "sortName": user_data["name"].lower(),
-                "sortType": row_type["typeLabel"].lower(),
-                "cardUrl": f"/app/users-roles/users/{user_data['id']}",
-                "searchBlob": search_blob.lower(),
-            }
-        )
+        for row_type in row_types:
+            rows.append(
+                {
+                    "id": f"user-{user_data['id']}-{row_type['typeCode']}",
+                        "subjectKind": "user",
+                        "typeCode": row_type["typeCode"],
+                        "typeLabel": row_type["typeLabel"],
+                        "displayName": user_data["name"],
+                        "secondaryLabel": _directory_subject_secondary_label(row_type["typeCode"], user_data, primary_workspace),
+                        "contacts": _contact_lines(user_data.get("email"), user_data.get("phone")),
+                        "status": user_data["status"],
+                        "statusLabel": _directory_status_label(user_data["status"], blocking_state),
+                        "moduleCount": user_data["allowedModuleCount"],
+                        "widgetCount": user_data["allowedWidgetCount"],
+                        "moduleLabel": _module_count_label(user_data["allowedModuleCount"]),
+                        "widgetLabel": _widget_count_label(user_data["allowedWidgetCount"]),
+                        "blocking": blocking_state,
+                        "blockingLabel": "Да" if blocking_state == "blocked" else "Нет",
+                        "activity": "has_activity" if last_activity else "no_activity",
+                        "lastActivity": last_activity or "нет данных",
+                        "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
+                        "registeredAt": registered_at or "",
+                        "registeredAtCompact": _compact_datetime_label(registered_at) or "—",
+                        "region": _company_region_label(company),
+                        "moduleAccess": "has_modules" if user_data["allowedModuleCount"] else "no_modules",
+                        "isWithoutCompany": primary_workspace is None,
+                        "isWithoutType": False,
+                        "isSystemUser": _is_system_user_for_directory(user),
+                        "sortName": user_data["name"].lower(),
+                        "sortType": row_type["typeLabel"].lower(),
+                        "cardUrl": f"/app/users-roles/users/{user_data['id']}",
+                        "searchBlob": search_blob.lower(),
+                    }
+            )
 
     for workspace in workspaces:
         if not _is_company_workspace(workspace):
             continue
         company = company_summary(workspace)
         primary_user = _company_primary_user(workspace)
-        row_type_code = "SUPPLIER" if _workspace_type_value(workspace) in {"SUPPLIER", "MATERIAL_SUPPLIER"} else "COMPANY"
-        row_type_label = "Поставщик" if row_type_code == "SUPPLIER" else "Компания"
+        row_type_code = "SUPPLIER" if _workspace_type_value(workspace) in {"SUPPLIER", "MATERIAL_SUPPLIER"} else "CONTRACTOR"
+        row_type_label = "Поставщик" if row_type_code == "SUPPLIER" else "Подрядчик"
         last_activity = _get_value(workspace, "updated_at") or _get_value(workspace, "created_at")
         registered_at = _get_value(workspace, "created_at")
         search_blob = " ".join(
@@ -908,15 +926,14 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "typeCode": row_type_code,
                 "typeLabel": row_type_label,
                 "displayName": company["title"],
-                "companyName": company["title"],
-                "organizationLabel": company.get("typeLabel") or _company_type_label(str(company.get("type") or "")),
-                "contacts": _contact_lines(company["adminTitle"], _get_value(workspace, "organization_id")),
+                "secondaryLabel": _directory_company_secondary_label(workspace),
+                "contacts": _contact_lines(_get_value(workspace, "email"), _get_value(workspace, "phone")),
                 "status": str(company["status"] or "").lower(),
                 "statusLabel": _directory_status_label(company["status"], blocking_state),
                 "moduleCount": None,
                 "widgetCount": None,
-                "moduleLabel": company.get("moduleAccessLabel") or _directory_access_label(company["moduleAccessState"]),
-                "widgetLabel": company.get("widgetAccessLabel") or _directory_access_label(company["widgetAccessState"]),
+                "moduleLabel": _module_count_label(None),
+                "widgetLabel": _widget_count_label(None),
                 "blocking": blocking_state,
                 "blockingLabel": "Нет" if blocking_state == "not_blocked" else "Да",
                 "activity": "has_activity" if last_activity else "no_activity",
@@ -942,10 +959,10 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
 def user_directory_summary_chips(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     chip_defs = (
         ("ALL", "Все"),
-        ("COMPANY", "Компании"),
+        ("CONTRACTOR", "Подрядчики"),
         ("SUPPLIER", "Поставщики"),
-        ("CUSTOMER", "Заказчики"),
-        ("SPECIALIST", "Специалисты"),
+        ("ENGINEER", "Инженеры"),
+        ("PERSON", "Физ лица"),
     )
     return [
         {
@@ -1784,6 +1801,8 @@ def workspace_member_summary(member: WorkspaceMember) -> dict[str, Any]:
         "workspaceId": str(member.workspace_id),
         "workspaceTitle": workspace.name if workspace else str(member.workspace_id),
         "workspaceType": workspace.type if workspace else None,
+        "workspaceTypeLabel": _company_type_label(_workspace_type_value(workspace)) if workspace else "Компания",
+        "cardUrl": _company_primary_user_card_url(_company_primary_user(workspace)) if workspace else None,
         "roleCode": member.roleCode,
         "roleTitle": role_label(member.roleCode),
         "status": member.status,
@@ -1803,6 +1822,9 @@ def apply_company_context_to_user_summary(user_data: dict[str, Any], workspaces:
             continue
         member.update({
             "companyStatus": company["status"],
+            "companyStatusLabel": company.get("statusLabel") or _directory_status_label(company["status"], "not_blocked" if company["isActive"] else "blocked"),
+            "workspaceTypeLabel": company.get("typeLabel") or member.get("workspaceTypeLabel"),
+            "cardUrl": company.get("cardUrl") or member.get("cardUrl"),
             "isCompanyActive": company["isActive"],
             "employeeCount": company["employeeCount"],
             "adminTitle": company["adminTitle"],
@@ -1901,6 +1923,7 @@ def user_profile_card_summary(
         "subjectType": "COMPANY" if company else "USER",
         "header": {
             "title": company_details.get("title") or user_data["name"],
+            "initials": _profile_initials(company_details.get("title") or user_data["name"]),
             "subtitle": user_data["name"] if company else user_data.get("email"),
             "typeLabel": subject_type["typeLabel"],
             "typeCode": subject_type["typeCode"],
@@ -1932,6 +1955,11 @@ def user_profile_card_summary(
         "selectedWorkspaceId": primary_workspace.get("workspaceId"),
     }
 
+
+def _profile_initials(value: Any) -> str:
+    title = str(value or "").replace("«", " ").replace("»", " ").replace('"', " ")
+    letters = [word[0].upper() for word in title.split() if word]
+    return "".join(letters[:2]) or "А"
 
 def _profile_header_actions(is_blocked: bool) -> list[dict[str, Any]]:
     return [
@@ -1998,10 +2026,11 @@ def _profile_company_details(workspace: Workspace | None, company: dict[str, Any
     fields = [
         _profile_field("Название компании", company["title"]),
         _profile_field("Тип компании", company_type_label),
-        _profile_field("Статус", company.get("status") or "не задан"),
+        _profile_field("Статус", company.get("statusLabel") or _profile_status_label(company.get("status"))),
         _profile_field("Регион / город", _company_region_label(company) or "не задан"),
-        _profile_field("Администратор компании", company.get("adminTitle") or "администратор не назначен"),
         _profile_field("ИНН", inn or "не задан"),
+        _profile_field("Email", _settings_first(settings, "email", "contactEmail", "contact_email") or "не задан"),
+        _profile_field("Телефон", _settings_first(settings, "phone", "contactPhone", "contact_phone") or "не задан"),
         _profile_field("КПП", _settings_first(settings, "kpp", "KPP") or "не задан"),
         _profile_field("ОГРН", _settings_first(settings, "ogrn", "OGRN") or "не задан"),
         _profile_field(
@@ -2024,7 +2053,7 @@ def _profile_company_details(workspace: Workspace | None, company: dict[str, Any
 
 def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
     if not workspace or not _is_company_workspace(workspace):
-        return {"summary": [], "recent": [], "total": 0}
+        return {"summary": [], "recent": [], "all": [], "total": 0, "visibleCount": 0, "remainingCount": 0}
     active_members = [
         member
         for member in _safe_iterable(workspace.members)
@@ -2043,14 +2072,27 @@ def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
             {"label": "Закупщики", "value": buyer_count},
             {"label": "Менеджеры", "value": manager_count},
         ],
+        "visibleCount": min(len(active_members), 5),
+        "remainingCount": max(0, len(active_members) - 5),
+        "all": [
+            {
+                "name": _get_value(_get_value(member, "user"), "name")
+                or _get_value(_get_value(member, "user"), "email")
+                or "Пользователь",
+                "roleTitle": role_label(_get_value(member, "roleCode") or _get_value(member, "role_code")),
+                "statusLabel": _profile_status_label(_get_value(member, "status")),
+            }
+            for member in active_members
+        ],
         "recent": [
             {
                 "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
                 "name": _get_value(_get_value(member, "user"), "name")
                 or _get_value(_get_value(member, "user"), "email")
-                or str(_get_value(member, "user_id") or ""),
+                or "Пользователь",
                 "roleTitle": role_label(_get_value(member, "roleCode") or _get_value(member, "role_code")),
                 "status": _enum_value(_get_value(member, "status")) or "ACTIVE",
+                "statusLabel": _profile_status_label(_get_value(member, "status")),
             }
             for member in active_members[:5]
         ],
@@ -4174,16 +4216,24 @@ def _latest_user_activity(user: User | None, recent_history: list[AuditLog]) -> 
     return _get_value(user, "updated_at") or _get_value(user, "created_at") or "нет данных"
 
 
-def _directory_user_type(user_data: dict[str, Any]) -> dict[str, str]:
+def _directory_user_types(user_data: dict[str, Any]) -> list[dict[str, str]]:
     role_codes = set(user_data.get("roleCodes") or [])
     workspace_types = {str(item.get("workspaceType") or "").upper() for item in user_data.get("workspaces") or []}
+    types: list[dict[str, str]] = []
+
+    def add(type_code: str, type_label: str) -> None:
+        if not any(item["typeCode"] == type_code for item in types):
+            types.append({"typeCode": type_code, "typeLabel": type_label})
+
+    if workspace_types & {"CONSTRUCTION_COMPANY", "CONTRACTOR", "COMPANY"}:
+        add("CONTRACTOR", "Подрядчик")
     if "SUPPLIER" in role_codes or "SUPPLIER" in workspace_types or "MATERIAL_SUPPLIER" in workspace_types:
-        return {"typeCode": "SUPPLIER", "typeLabel": "Поставщик"}
-    if "CUSTOMER" in role_codes:
-        return {"typeCode": "CUSTOMER", "typeLabel": "Заказчик"}
-    if role_codes & {"CONTRACTOR", "ESTIMATOR", "ENGINEER_DESIGNER"}:
-        return {"typeCode": "SPECIALIST", "typeLabel": "Специалист"}
-    return {"typeCode": "USER", "typeLabel": "Пользователь"}
+        add("SUPPLIER", "Поставщик")
+    if role_codes & {"CONTRACTOR", "ESTIMATOR", "ENGINEER_DESIGNER", "SPECIALIST", "ENGINEER"}:
+        add("ENGINEER", "Инженер")
+    if role_codes & {"CUSTOMER", "USER"} or not types:
+        add("PERSON", "Физ лицо")
+    return types
 
 
 def _primary_user_workspace(user_data: dict[str, Any]) -> dict[str, Any]:
