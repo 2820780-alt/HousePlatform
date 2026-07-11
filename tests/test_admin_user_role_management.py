@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import select
 
 from app.main import app
-from app.api.v1.admin_users_roles_view import router as admin_users_roles_router
+from app.api.v1.admin_users_roles_view import router as admin_users_roles_router, ui_router as admin_users_roles_ui_router
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.database import async_session_factory
 from app.models import AuditLog, FunctionAccess, ModuleAccess, Role, User, UserRoleAssignment, Workspace, WorkspaceMember
@@ -528,8 +528,15 @@ def test_module3_access_matrix_sprint8_compact_table_contract():
     assert "height: 34px;" in styles
     assert "height: 28px;" in styles
     assert "padding: 3px 8px;" in styles
-    assert "width: 13px;" in styles
-    assert "height: 13px;" in styles
+    assert "width: 15px;" in styles
+    assert "height: 15px;" in styles
+    assert ".access-matrix-table-wrap .matrix-check input::after" in styles
+    assert "border-width: 0 2px 2px 0;" in styles
+    assert "input:checked::after" in styles
+    assert "input:hover:not(:disabled)" in styles
+    assert "input:focus-visible" in styles
+    assert "linear-gradient(135deg, transparent 0 42%" not in styles
+    assert "linear-gradient(45deg, transparent 0 42%" not in styles
     assert "min-width: 0;" in styles
     assert "width: 30%;" in template
     assert "Разрешен" in template
@@ -720,13 +727,13 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
                 "organizationLabel": "Менеджер",
                 "contacts": ["ivan@example.com", "+7 900 000-00-00"],
                 "status": "active",
-                "statusLabel": "active",
+                "statusLabel": "Активен",
                 "moduleCount": 3,
                 "widgetCount": 2,
-                "moduleLabel": "3 модулей",
-                "widgetLabel": "2 виджетов",
+                "moduleLabel": "3 модуля",
+                "widgetLabel": "2 виджета",
                 "blocking": "not_blocked",
-                "blockingLabel": "—",
+                "blockingLabel": "Нет",
                 "activity": "has_activity",
                 "lastActivity": "2026-06-30 14:35",
                 "registeredAt": "2026-06-01 10:00",
@@ -734,7 +741,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
                 "moduleAccess": "has_modules",
                 "sortName": "иван петров",
                 "sortType": "заказчик",
-                "cardUrl": "/api/v1/admin/users-roles/view/users/user-1",
+                "cardUrl": "/app/users-roles/users/user-1",
                 "searchBlob": "иван петров ivan@example.com ооо стройпроект",
             }
         ],
@@ -866,8 +873,13 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Открыть полную историю" in html
     assert "Системные пользователи" not in html
     assert "Управление системными пользователями" not in html
-    assert "Summary chips по типам пользователей" in html
-    assert "Поиск по ФИО, компании, email, телефону, ИНН / ID" in html
+    assert "Юридические лица." in html
+    assert "Поиск по ФИО, компании, email, телефону, ИНН" in html
+    assert "ИНН / ID" not in html
+    assert "user · ID" not in html
+    assert "company · ID" not in html
+    assert "3 модулей" not in html
+    assert "2 виджетов" not in html
     assert "Фильтр по типу пользователя" in html
     assert "Фильтр по блокировке" in html
     assert "Фильтр по активности" in html
@@ -876,7 +888,7 @@ def test_admin_users_roles_template_renders_module_overview_widgets():
     assert "Сортировать по дате регистрации" in html
     assert "Единый список пользователей" in html
     assert "Наименование / ФИО" in html
-    assert 'href="/api/v1/admin/users-roles/view/users/user-1"' in html
+    assert 'href="/app/users-roles/users/user-1"' in html
     assert "data-user-page-summary" in html
     assert 'data-access-type-matrix' in html
     assert "Строительные компании" in html
@@ -955,8 +967,8 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     assert summary["action"] == "Доступ ограничен"
     assert summary["objectId"] == "price-dynamics"
     assert summary["objectName"] == "Динамика цен"
-    assert "Старое значение" in summary["detailsText"]
-    assert "Новое значение" in summary["detailsText"]
+    assert "Было: Просмотр" in summary["detailsText"]
+    assert "Стало: Нет доступа" in summary["detailsText"]
     assert summary["module3Entry"] == {
         "id": str(audit.id),
         "timestamp": "2026-06-30T10:15:00",
@@ -970,13 +982,13 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     }
 
     history = change_history_for_admin_panel([audit], {"id": "user-1", "name": "User One"})
-    assert history["filters"]["authors"] == ["system/dev"]
+    assert history["filters"]["authors"] == ["Администратор"]
     assert history["filters"]["dates"] == ["2026-06-30"]
-    assert history["filters"]["actions"] == ["permission_changed"]
-    assert history["filters"]["objectTypes"] == ["виджет"]
-    assert history["filters"]["modules"] == ["MODULE_11_ANALYTICS"]
-    assert history["filters"]["widgets"] == ["price-dynamics"]
-    assert history["bySubject"] == [{"label": "виджет", "count": 1}]
+    assert history["filters"]["actions"] == ["Доступ ограничен"]
+    assert history["filters"]["objectTypes"] == ["Виджет"]
+    assert history["filters"]["modules"] == ["Аналитика"]
+    assert history["filters"]["widgets"] == ["Динамика цен"]
+    assert history["bySubject"] == [{"label": "Виджет", "count": 1}]
     assert history["notes"]["oldNewValuesVisible"] is True
     assert history["notes"]["reasonOptional"] is True
     assert history["notes"]["businessPayloadLogged"] is False
@@ -984,9 +996,9 @@ def test_change_history_exposes_filters_old_new_values_and_reason():
     panel = audit_panel_summary([audit])
     assert panel["summary"]["total"] == 1
     assert panel["summary"]["success"] == 1
-    assert panel["filters"]["actions"] == ["permission_changed"]
-    assert panel["filters"]["modules"] == ["MODULE_11_ANALYTICS"]
-    assert panel["filters"]["widgets"] == ["price-dynamics"]
+    assert panel["filters"]["actions"] == ["Доступ ограничен"]
+    assert panel["filters"]["modules"] == ["Аналитика"]
+    assert panel["filters"]["widgets"] == ["Динамика цен"]
     assert panel["selectedRecord"]["oldValue"] == {"accessLevel": "VIEW"}
     assert panel["selectedRecord"]["newValue"] == {"accessLevel": "NO_ACCESS"}
     assert panel["selectedRecord"]["subjectLabel"] == "price-dynamics"
@@ -1020,7 +1032,7 @@ def test_module3_audit_log_entry_maps_required_actions_and_objects():
         "objectType": "ACCESS",
         "objectId": "MODULE_01_MATERIAL_HUB",
         "objectName": "База материалов",
-        "details": "Массовое назначение доступа; Старое значение: {'allowed': True}; Новое значение: {'allowed': False}",
+        "details": "Массовое назначение доступа; Было: Разрешено; Стало: Запрещено",
     }
 
 
@@ -1105,12 +1117,12 @@ def test_settings_panel_separates_regular_settings_from_debug_zones():
 
     diagnostic_titles = {item["title"] for item in super_admin["developerDiagnostics"]}
     assert {
-        "Registry diagnostics",
-        "Widget diagnostics",
-        "Legacy aliases",
-        "UI states",
-        "Module lifecycle diagnostics",
-        "Widget lifecycle diagnostics",
+        "Проверка реестра модулей",
+        "Проверка виджетов",
+        "Устаревшие связи",
+        "Состояния интерфейса",
+        "Состояния модулей",
+        "Состояния виджетов",
     }.issubset(diagnostic_titles)
 
 
@@ -1229,12 +1241,21 @@ def test_user_directory_rows_expose_search_filter_sort_and_card_links():
     assert user_row["typeCode"] == "CUSTOMER"
     assert user_row["displayName"] == "Иван Петров"
     assert user_row["companyName"] == company.title
+    assert user_row["organizationLabel"] == "Заказчик"
     assert user_row["contacts"] == [customer.email, customer.phone]
-    assert user_row["cardUrl"] == f"/api/v1/admin/users-roles/view/users/{customer.id}"
+    assert user_row["moduleLabel"] == "3 модуля"
+    assert user_row["widgetLabel"] == "0 виджетов"
+    assert user_row["blockingLabel"] == "Нет"
+    assert user_row["cardUrl"] == f"/app/users-roles/users/{customer.id}"
     assert "иван петров" in user_row["searchBlob"]
+    assert str(customer.id) not in user_row["searchBlob"]
     assert user_row["moduleAccess"] in {"has_modules", "no_modules"}
     assert company_row["typeCode"] == "COMPANY"
-    assert company_row["cardUrl"] == f"/api/v1/admin/users-roles/view/users/{customer.id}"
+    assert company_row["organizationLabel"] == "Строительная компания"
+    assert company_row["moduleLabel"] == "Доступ открыт"
+    assert company_row["widgetLabel"] == "По доступу компании"
+    assert company_row["blockingLabel"] == "Нет"
+    assert company_row["cardUrl"] == f"/app/users-roles/users/{customer.id}"
 
     chips = user_directory_summary_chips(rows)
     assert chips[0] == {"typeCode": "ALL", "label": "Все", "count": 2}
@@ -1343,6 +1364,9 @@ def test_admin_users_roles_view_route_is_registered():
     assert "/admin/users-roles/view/settings" in paths
     assert "/admin/users-roles/view/docs" in paths
     assert "/admin/users-roles/view/users/{user_id}" in paths
+    ui_paths = {route.path for route in admin_users_roles_ui_router.routes}
+    assert "/app/users-roles" in ui_paths
+    assert "/app/users-roles/users/{user_id}" in ui_paths
     assert "/admin/users-roles/view/access-matrix" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin" in paths
     assert "/admin/users-roles/view/users/{user_id}/company-admin/revoke" in paths
@@ -1449,23 +1473,25 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Кабинеты и контекст" in template
     assert 'hidden data-system-section="module8-context-diagnostics"' in template
     assert "MODULE_08_PARTNER_PORTAL" in template
-    assert "Module №3 их не хранит" in template
+    assert "Кабинетный контур не рекомендует и не создает быстрые действия" in template
     assert "не является финальной границей Module №8" in template
     assert "Список кабинетов пользователя" in template
-    assert "Настройки видимости placeholder" in template
-    assert "Настройки предложений placeholder" in template
+    assert "Настройки видимости" in template
+    assert "Настройки видимости placeholder" not in template
+    assert "Настройки предложений" in template
+    assert "Настройки предложений placeholder" not in template
     assert "Рекомендованные виджеты" in template
     assert "Пользовательские быстрые действия" in template
     assert "Рекомендованные быстрые действия" not in template
     assert "Виджеты и доступ" in template
-    assert "WidgetRegistry управляет metadata и доступом" in template
-    assert "Payload формирует модуль-владелец данных" in template
-    assert "UserDashboardLayout:" in template
+    assert "Реестр виджетов хранит названия и права доступа" in template
+    assert "Данные для карточек отдает модуль-владелец" in template
+    assert "Панель:" in template
     assert "Настройки конкретного экземпляра виджета" in template
-    assert "WidgetSettingsSchema" in template
-    assert "Модуль-владелец еще не отдал schema" in template
-    assert "user_module_quick_actions" in template
-    assert "is_pinned_to_atom_card" in template
+    assert "WidgetSettingsSchema" not in template
+    assert "Для этого виджета пока нет дополнительных настроек." in template
+    assert "пользовательские действия" in template
+    assert "закреплено на панели" in template
     assert "QuickActionRegistry управляет" not in template
     assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' not in template
     assert "Обзор модуля" in overview
@@ -1500,7 +1526,10 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "scrollbar-width: none" in template
     assert "max-height: 182px" in template
     assert "overscroll-behavior: contain" in template
-    assert "min-height: 62px" in template
+    assert "grid-template-areas:" in template
+    assert "min-height: 0" in template
+    assert "min-width: 72px" in template
+    assert "width: auto" in template
     assert "verification-action-btn--accept" in template
     assert "verification-action-btn--reject" in template
     assert "verification-action-btn--defer" in template
@@ -1564,25 +1593,26 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Коды доступны в tooltip" in template
     assert 'id="workspaces" aria-labelledby="workspaces-title" hidden data-system-section="workspace-preserved"' in template
     assert "Список рабочих областей" in template
-    assert "Карточка workspace" in template
+    assert "Карточка рабочей области" in template
     assert "Связанные пользователи" in template
     assert "Связанные компании" in template
-    assert "История изменений workspace" in template
-    assert "Dashboard layout здесь не редактируется" in template
-    assert "Технические Dashboard presets и layout registry скрыты" in template
+    assert "История изменений рабочей области" in template
+    assert "Макет панели здесь не редактируется" in template
+    assert "Технические макеты панели скрыты" in template
     assert 'id="audit-log"' in template
     assert "Таблица изменений" in template
     assert "Фильтры журнала изменений" in template
     assert "Поиск по пользователю, компании, модулю или действию" in template
-    assert "Detail drawer записи" in template
+    assert "Детали записи" in template
     assert "Старое значение" in template
     assert "Новое значение" in template
     assert "Кто изменил" in template
     assert "Когда изменил" in template
     assert "Для кого изменил" in template
-    assert "Module3AuditLogEntry: id, timestamp, actorId, actorName, action, objectType, objectId, objectName, details" in template
-    assert "actorId:" in template
-    assert "objectId:" in template
+    assert "История показывает, кто выполнил действие, что изменилось и к кому относится решение" in template
+    assert "Module3AuditLogEntry" not in template
+    assert "actorId:" not in template
+    assert "objectId:" not in template
     assert "Детали:" in template
     assert "Реестр модулей" not in nav
     assert "Виджеты и доступ" not in nav
@@ -1590,19 +1620,22 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Макеты Dashboard" not in nav
     assert "Кабинеты и контекст" not in nav
     assert "Предпросмотр роли" not in nav
-    assert "Системные разделы" in template
-    assert "Registry / developer-only" in template
-    assert "Обычные настройки Module №3" in template
-    assert "Super Admin mode" in template
-    assert "developer-only diagnostics" in template
-    assert "Danger zone" in template
+    assert "Расширенные проверки" in template
+    assert "Проверка реестра модулей" in template
+    assert "Registry / developer-only" not in template
+    assert "Рабочие настройки" in template
+    assert "Обычные настройки Module №3" not in template
+    assert "Расширенный режим администратора" in template
+    assert "Super Admin mode" not in template
+    assert "расширенные проверки" in template
+    assert "developer-only diagnostics" not in template
+    assert "Опасные действия" in template
+    assert "Danger zone" not in template
     assert "подтверждение опасных действий" in template
-    assert "Registry diagnostics" in template
-    assert "Widget diagnostics" in template
-    assert "Legacy aliases" in template
-    assert "UI states" in template
-    assert "Module lifecycle diagnostics" in template
-    assert "Widget lifecycle diagnostics" in template
+    assert "Registry diagnostics" not in template
+    assert "Widget diagnostics" not in template
+    assert "Legacy aliases" not in template
+    assert "UI states" not in template
     assert "Главный центр управления физлицами, компаниями, сотрудниками компаний, группами, доступами и историей" in users_section
     assert "Ручное создание пользователя здесь не предусмотрено" in users_section
     assert "Физические лица" in users_section
@@ -1611,12 +1644,12 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Группы" in users_section
     assert "Доступы" in users_section
     assert "История" in users_section
-    assert "Summary chips по типам пользователей" in users_section
+    assert "Физические лица" in users_section
     assert "Все" in users_section
     assert "Поставщики" in users_section
     assert "Заказчики" in users_section
     assert "Специалисты" in users_section
-    assert "Поиск по ФИО, названию компании, email, телефону, ИНН или ID" in users_section
+    assert "Поиск по ФИО, названию компании, email, телефону или ИНН" in users_section
     assert "Фильтр по типу пользователя" in users_section
     assert "Фильтр по статусу" in users_section
     assert "Фильтр по блокировке" in users_section
@@ -1678,15 +1711,9 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Недоступно: компания заблокирована" in template
     assert "ручной запрет ≠ тарифное ограничение" in template
     assert "Тарифное ограничение не равно ручному запрету администратора" in template
-    assert "Future monetization fields" in template
-    assert "planCode" in template
-    assert "subscriptionCode" in template
-    assert "billingFeatureCode" in template
-    assert "billingRestrictionReason" in template
-    assert "tariffLevel" in template
-    assert "tariffExpiresAt" in template
-    assert "isBillingRestricted" in template
-    assert "Оплата, подписки, тарифные страницы и billing не реализуются в Module №3" in template
+    assert "Будущие тарифные ограничения" in template
+    assert "Оплата, подписки и тарифные страницы здесь не настраиваются" in template
+    assert "billing не реализуется" not in template
     assert "Открыть модуль" not in users_section
     assert "наследуется" not in template.lower()
     assert "Добавить пользователя" not in users_section
@@ -1729,8 +1756,8 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Фильтр истории по виджету" in template
     assert "Срез по объектам" in template
     assert "Модули и виджеты" in template
-    assert "Старое значение:" in template
-    assert "Новое значение:" in template
+    assert "Было" in template
+    assert "Стало" in template
     assert "Причина:" in template
 
     state_text = " ".join(state["description"] for state in ADMIN_UI_STATE_LEGEND)

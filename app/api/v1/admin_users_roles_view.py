@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from uuid import UUID
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -28,26 +28,82 @@ from app.services.admin_user_role_management import (
 
 
 router = APIRouter(prefix="/admin/users-roles/view", tags=["admin-users-roles-view"])
+ui_router = APIRouter(prefix="/app/users-roles", tags=["admin-users-roles-ui"])
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("", response_class=HTMLResponse)
-async def admin_users_roles_view(request: Request, db: DBSession):
+def _module3_template_context(
+    *,
+    mode: str,
+    overview: dict,
+    detail: dict | None = None,
+    detail_error: dict | None = None,
+) -> dict:
+    return {
+        "mode": mode,
+        "overview": overview,
+        "detail": detail,
+        "detail_error": detail_error,
+        "disable_confirmation": DISABLE_CONFIRMATION,
+        "atom_topbar_current_block": "Модуль №3: Пользователи и роли",
+        "atom_topbar_profile_name": "Admin",
+    }
+
+
+async def _render_users_roles_list(request: Request, db: DBSession):
     actor = _dev_actor()
     overview = await get_user_role_admin_overview(db, actor)
     return templates.TemplateResponse(
         request,
         "admin_users_roles.html",
-        {
-            "mode": "list",
-            "overview": overview,
-            "detail": None,
-            "disable_confirmation": DISABLE_CONFIRMATION,
-            "atom_topbar_current_block": "Модуль №3: Пользователи и роли",
-            "atom_topbar_profile_name": "Admin",
-        },
+        _module3_template_context(mode="list", overview=overview),
     )
 
+
+async def _render_user_card(request: Request, db: DBSession, user_id: str):
+    actor = _dev_actor()
+    overview = await get_user_role_admin_overview(db, actor)
+    try:
+        parsed_user_id = UUID(str(user_id))
+        detail = await get_user_role_admin_detail(db, parsed_user_id, actor)
+    except ValueError:
+        return _render_user_card_error(request, overview, status_code=404)
+    except HTTPException as exc:
+        return _render_user_card_error(request, overview, status_code=exc.status_code)
+    return templates.TemplateResponse(
+        request,
+        "admin_users_roles.html",
+        _module3_template_context(mode="detail", overview=overview, detail=detail),
+    )
+
+
+def _render_user_card_error(request: Request, overview: dict, *, status_code: int):
+    detail_error = {
+        "title": "Карточка не найдена",
+        "message": "Пользователь или компания недоступны для просмотра. Вернитесь к списку и выберите существующую запись.",
+        "backUrl": "/app/users-roles#users",
+    }
+    return templates.TemplateResponse(
+        request,
+        "admin_users_roles.html",
+        _module3_template_context(mode="detail", overview=overview, detail_error=detail_error),
+        status_code=status_code,
+    )
+
+
+@router.get("", response_class=HTMLResponse)
+async def admin_users_roles_view(request: Request, db: DBSession):
+    return await _render_users_roles_list(request, db)
+
+
+@ui_router.get("", response_class=HTMLResponse)
+async def admin_users_roles_app_view(request: Request, db: DBSession):
+    return await _render_users_roles_list(request, db)
+
+
+@ui_router.get("/users/{user_id}", response_class=HTMLResponse)
+async def admin_user_card_app_view(user_id: str, request: Request, db: DBSession):
+    return await _render_user_card(request, db, user_id)
 
 @router.get("/users")
 async def admin_users_tab_redirect():
@@ -103,22 +159,7 @@ async def admin_users_roles_docs_view(request: Request):
 
 @router.get("/users/{user_id}", response_class=HTMLResponse)
 async def admin_user_card_view(user_id: UUID, request: Request, db: DBSession):
-    actor = _dev_actor()
-    overview = await get_user_role_admin_overview(db, actor)
-    detail = await get_user_role_admin_detail(db, user_id, actor)
-    return templates.TemplateResponse(
-        request,
-        "admin_users_roles.html",
-        {
-            "mode": "detail",
-            "overview": overview,
-            "detail": detail,
-            "disable_confirmation": DISABLE_CONFIRMATION,
-            "atom_topbar_current_block": "Модуль №3: Пользователи и роли",
-            "atom_topbar_profile_name": "Admin",
-        },
-    )
-
+    return await _render_user_card(request, db, str(user_id))
 
 @router.post("/users/{user_id}/roles")
 async def admin_assign_user_role(

@@ -53,6 +53,15 @@ ROLE_LABELS: dict[str, str] = {
     role.roleCode: role.name for role in SYSTEM_ROLE_DEFINITIONS
 }
 
+ROLE_LABELS.update({
+    "COMPANY": "Компания",
+    "CONSTRUCTION_COMPANY": "Строительная компания",
+    "SUPPLIER": "Поставщик",
+    "CUSTOMER": "Заказчик",
+    "SPECIALIST": "Специалист",
+    "USER": "Пользователь",
+    "COMPANY_LEAD": "Руководитель компании",
+})
 ADMIN_UI_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
 PLATFORM_ADMIN_UI_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
 PROTECTED_ROLE_CODES = {"SUPER_ADMIN"}
@@ -774,6 +783,43 @@ def _latest_demo_activity_time(users: list[User], workspaces: list[Workspace]) -
     return max(values) if values else None
 
 
+def _russian_count_label(count: int | None, one: str, few: str, many: str) -> str:
+    value = int(count or 0)
+    tail = abs(value) % 100
+    if 11 <= tail <= 14:
+        word = many
+    else:
+        last = abs(value) % 10
+        if last == 1:
+            word = one
+        elif 2 <= last <= 4:
+            word = few
+        else:
+            word = many
+    return f"{value} {word}"
+
+
+def _module_count_label(count: int | None) -> str:
+    return _russian_count_label(count, "модуль", "модуля", "модулей")
+
+
+def _widget_count_label(count: int | None) -> str:
+    return _russian_count_label(count, "виджет", "виджета", "виджетов")
+
+
+def _directory_access_label(value: Any) -> str:
+    normalized = str(value or "").strip().lower()
+    if not normalized:
+        return "Не задано"
+    replacements = {
+        "закрыто: компания заблокирована": "Доступ закрыт",
+        "закрыто вместе с компанией": "Доступ закрыт",
+        "открыто в пределах платформы": "Доступ открыт",
+        "следует доступу компании к модулям": "По доступу компании",
+        "следует доступу workspace к модулям": "По доступу компании",
+    }
+    return replacements.get(normalized, str(value))
+
 def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[dict[str, Any]]:
     company_by_id = {
         str(workspace.id): company_summary(workspace)
@@ -795,7 +841,6 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 user_data["name"],
                 user_data["email"],
                 user_data.get("phone"),
-                user_data["id"],
                 primary_workspace.get("workspaceTitle") if primary_workspace else "",
                 company.get("title") if company else "",
             )
@@ -808,17 +853,17 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "typeCode": row_type["typeCode"],
                 "typeLabel": row_type["typeLabel"],
                 "displayName": user_data["name"],
-                "companyName": primary_workspace.get("workspaceTitle") if primary_workspace else "—",
-                "organizationLabel": primary_workspace.get("roleTitle") if primary_workspace else "не связан с компанией",
+                "companyName": primary_workspace.get("workspaceTitle") if primary_workspace else "Без компании",
+                "organizationLabel": primary_workspace.get("roleTitle") if primary_workspace else "Без компании",
                 "contacts": _contact_lines(user_data.get("email"), user_data.get("phone")),
                 "status": user_data["status"],
                 "statusLabel": _directory_status_label(user_data["status"], blocking_state),
                 "moduleCount": user_data["allowedModuleCount"],
                 "widgetCount": user_data["allowedWidgetCount"],
-                "moduleLabel": f"{user_data['allowedModuleCount']} модулей",
-                "widgetLabel": f"{user_data['allowedWidgetCount']} виджетов",
+                "moduleLabel": _module_count_label(user_data["allowedModuleCount"]),
+                "widgetLabel": _widget_count_label(user_data["allowedWidgetCount"]),
                 "blocking": blocking_state,
-                "blockingLabel": "Да" if blocking_state == "blocked" else "—",
+                "blockingLabel": "Да" if blocking_state == "blocked" else "Нет",
                 "activity": "has_activity" if last_activity else "no_activity",
                 "lastActivity": last_activity or "нет данных",
                 "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
@@ -831,7 +876,7 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "isSystemUser": _is_system_user_for_directory(user),
                 "sortName": user_data["name"].lower(),
                 "sortType": row_type["typeLabel"].lower(),
-                "cardUrl": f"/api/v1/admin/users-roles/view/users/{user_data['id']}",
+                "cardUrl": f"/app/users-roles/users/{user_data['id']}",
                 "searchBlob": search_blob.lower(),
             }
         )
@@ -849,8 +894,7 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
             _stringify_search_value(value)
             for value in (
                 company["title"],
-                company["id"],
-                company["type"],
+                company.get("typeLabel") or "",
                 company["adminTitle"],
                 _company_region_label(company),
                 _get_value(workspace, "organization_id"),
@@ -865,16 +909,16 @@ def user_directory_rows(users: list[User], workspaces: list[Workspace]) -> list[
                 "typeLabel": row_type_label,
                 "displayName": company["title"],
                 "companyName": company["title"],
-                "organizationLabel": company["type"],
+                "organizationLabel": company.get("typeLabel") or _company_type_label(str(company.get("type") or "")),
                 "contacts": _contact_lines(company["adminTitle"], _get_value(workspace, "organization_id")),
                 "status": str(company["status"] or "").lower(),
                 "statusLabel": _directory_status_label(company["status"], blocking_state),
                 "moduleCount": None,
                 "widgetCount": None,
-                "moduleLabel": company["moduleAccessState"],
-                "widgetLabel": company["widgetAccessState"],
+                "moduleLabel": company.get("moduleAccessLabel") or _directory_access_label(company["moduleAccessState"]),
+                "widgetLabel": company.get("widgetAccessLabel") or _directory_access_label(company["widgetAccessState"]),
                 "blocking": blocking_state,
-                "blockingLabel": "—" if blocking_state == "not_blocked" else "Да",
+                "blockingLabel": "Нет" if blocking_state == "not_blocked" else "Да",
                 "activity": "has_activity" if last_activity else "no_activity",
                 "lastActivity": last_activity or "нет данных",
                 "lastActivityCompact": _compact_datetime_label(last_activity) or "—",
@@ -968,15 +1012,14 @@ def verification_queue_summary(users: list[User], workspaces: list[Workspace]) -
 
     priority_order = {"high": 0, "normal": 1, "low": 2}
     items.sort(key=lambda item: (priority_order.get(item["priority"], 9), item["subject"].lower()))
-    visible_items = items[:6]
     return {
         "summary": {
             "total": len(items),
-            "visible": len(visible_items),
+            "visible": len(items),
             "high": len([item for item in items if item["priority"] == "high"]),
             "normal": len([item for item in items if item["priority"] == "normal"]),
         },
-        "items": visible_items,
+        "items": items,
         "allItems": items,
         "byKind": _verification_queue_kind_counts(items),
         "emptyState": "Очередь на модерацию пуста.",
@@ -1131,11 +1174,11 @@ async def get_user_role_admin_history(
         "adminScope": admin_scope,
         "auditPanel": audit_panel_summary(history, users=users, workspaces=workspaces),
         "fieldDescriptions": [
-            {"label": "Дата и время", "description": "Момент записи события в AuditLog."},
-            {"label": "Администратор", "description": "Кто выполнил изменение или системный источник события."},
+            {"label": "Дата и время", "description": "Когда было записано действие администратора."},
+            {"label": "Администратор", "description": "Кто выполнил изменение."},
             {"label": "Действие", "description": "Тип операции: изменение роли, доступа, модуля, виджета или статуса."},
             {"label": "Объект", "description": "Пользователь, компания, модуль, виджет или роль, к которым относится событие."},
-            {"label": "Старое / новое значение", "description": "Фиксация изменения без записи бизнес-payload."},
+            {"label": "Старое / новое значение", "description": "Что было до изменения и что стало после него."},
             {"label": "Причина", "description": "Комментарий администратора или системное объяснение изменения."},
             {"label": "Статус", "description": "Результат выполнения события."},
         ],
@@ -1717,12 +1760,15 @@ def user_summary(user: User, *, include_permissions: bool = False) -> dict[str, 
         "name": user.name or user.email,
         "phone": user.phone,
         "status": _enum_value(user.status),
+        "statusLabel": _profile_status_label(user.status),
         "roleCodes": role_codes,
         "roleTitle": ", ".join(role_label(code) for code in role_codes) or "Нет роли",
         "groupTitles": [role_label(code) for code in role_codes],
         "allowedModuleCount": len(allowed_module_codes),
+        "allowedModuleLabel": _module_count_label(len(allowed_module_codes)),
         "allowedFeatureCount": len(allowed_feature_codes),
         "allowedWidgetCount": len([widget_code for widget_code in allowed_widget_codes if widget_code]),
+        "allowedWidgetLabel": _widget_count_label(len([widget_code for widget_code in allowed_widget_codes if widget_code])),
         "workspaces": workspaces,
         "createdAt": user.created_at,
         "updatedAt": user.updated_at,
@@ -1741,6 +1787,7 @@ def workspace_member_summary(member: WorkspaceMember) -> dict[str, Any]:
         "roleCode": member.roleCode,
         "roleTitle": role_label(member.roleCode),
         "status": member.status,
+        "statusLabel": _profile_status_label(member.status),
     }
 
 
@@ -1760,7 +1807,10 @@ def apply_company_context_to_user_summary(user_data: dict[str, Any], workspaces:
             "employeeCount": company["employeeCount"],
             "adminTitle": company["adminTitle"],
             "moduleAccessState": company["moduleAccessState"],
+            "moduleAccessLabel": company.get("moduleAccessLabel") or _directory_access_label(company["moduleAccessState"]),
             "widgetAccessState": company["widgetAccessState"],
+            "widgetAccessLabel": company.get("widgetAccessLabel") or _directory_access_label(company["widgetAccessState"]),
+            "statusLabel": company.get("statusLabel") or _directory_status_label(company["status"], "not_blocked" if company["isActive"] else "blocked"),
         })
 
 
@@ -1769,6 +1819,7 @@ def workspace_summary(workspace: Workspace) -> dict[str, Any]:
         "id": str(workspace.id),
         "title": workspace.title,
         "type": workspace.type,
+        "typeLabel": _company_type_label(_workspace_type_value(workspace)),
         "isActive": workspace.isActive,
         "status": workspace.status,
     }
@@ -1781,18 +1832,22 @@ def company_summary(workspace: Workspace) -> dict[str, Any]:
         for member in members
         if is_company_admin_role(member.roleCode)
     ]
+    primary_user = _company_primary_user(workspace)
     settings = _dict_value(_get_value(workspace, "settings"))
     return {
         "id": str(workspace.id),
         "title": workspace.title,
         "type": workspace.type,
+        "typeLabel": _company_type_label(_workspace_type_value(workspace)),
         "status": workspace.status,
+        "statusLabel": _directory_status_label(workspace.status, "not_blocked" if workspace.isActive else "blocked"),
         "region": settings.get("region") or settings.get("regionCode") or settings.get("activeRegionCode"),
         "city": settings.get("city") or settings.get("cityName"),
         "isActive": workspace.isActive,
         "employeeCount": len(members),
         "adminCount": len(admins),
         "adminTitle": _company_admin_title(admins),
+        "cardUrl": _company_primary_user_card_url(primary_user),
         "moduleAccessState": "открыто в пределах платформы" if workspace.isActive else "закрыто: компания заблокирована",
         "widgetAccessState": "следует доступу компании к модулям" if workspace.isActive else "закрыто вместе с компанией",
     }
@@ -2177,6 +2232,7 @@ def _workspace_card_summary(workspace: Workspace, *, recent_history: list[AuditL
         "id": str(workspace.id),
         "title": workspace.title,
         "type": workspace.type,
+        "typeLabel": _company_type_label(_workspace_type_value(workspace)),
         "status": workspace.status,
         "isActive": workspace.isActive,
         "isCompany": _is_company_workspace(workspace),
@@ -2189,7 +2245,9 @@ def _workspace_card_summary(workspace: Workspace, *, recent_history: list[AuditL
                 "id": str(company.id),
                 "title": company.title,
                 "type": company.type,
+                "typeLabel": _company_type_label(_workspace_type_value(company)),
                 "status": company.status,
+                "statusLabel": _directory_status_label(company.status, "not_blocked" if company.isActive else "blocked"),
             }
             for company in companies
         ],
@@ -2208,6 +2266,7 @@ def _workspace_member_preview(member: WorkspaceMember) -> dict[str, Any]:
         "email": _get_value(user, "email"),
         "roleTitle": role_label(member.roleCode),
         "status": member.status,
+        "statusLabel": _profile_status_label(member.status),
     }
 
 
@@ -2968,24 +3027,29 @@ def widget_access_rows_for_user(
             "widgetCode": widget["widgetCode"],
             "title": widget["title"],
             "sourceModuleCode": widget["sourceModuleCode"],
+            "sourceModuleTitle": _get_value(module_item, "title") or widget["sourceModuleCode"],
             "canonicalModuleCode": widget.get("canonicalModuleCode") or widget["sourceModuleCode"],
             "featureCode": widget.get("featureCode"),
             "legacyModuleCode": widget.get("legacyModuleCode"),
             "status": widget["status"],
+            "statusLabel": _module3_registry_status_label(widget["status"]),
             "widgetType": widget["widgetType"],
+            "widgetTypeLabel": _module3_widget_type_label(widget["widgetType"]),
             "requiredAccessLevel": widget.get("requiredAccessLevel"),
+            "requiredAccessLevelLabel": _access_level_label(str(widget.get("requiredAccessLevel") or "VIEW")),
             "requiredScope": widget.get("requiredScope"),
             "requiredActionCode": widget.get("requiredActionCode"),
-            "allowedRoles": widget.get("allowedRoles") or ["через RoleDashboardAccessProfile"],
-            "allowedCabinetTypes": widget.get("allowedCabinetTypes") or ["Module №8 adapter / preset"],
+            "allowedRoles": [role_label(code) for code in (widget.get("allowedRoles") or [])][:4] or ["По роли пользователя"],
+            "allowedCabinetTypes": [_company_type_label(code) for code in (widget.get("allowedCabinetTypes") or [])][:2] or ["По типу кабинета"],
             "isAllowed": allowed,
             "unavailableReason": reason,
             "stateCode": state["code"],
+            "stateLabel": state["title"],
             "stateTitle": state["title"],
             "stateDescription": state["description"],
             "stateSeverity": state["severity"],
             "module8Recommendation": "рекомендован" if widget["widgetCode"] in recommended_widgets else "не выбран кабинетом",
-            "layoutRelation": "можно добавить в UserDashboardLayout" if allowed else "layout не может включить без доступа",
+            "layoutRelation": "можно добавить на панель" if allowed else "недоступен без прав",
             "isMock": widget.get("isMock", False),
             "settingsPreview": settings_preview,
         })
@@ -3057,6 +3121,7 @@ def quick_action_rows_for_user(
             "isAllowed": allowed,
             "unavailableReason": reason,
             "stateCode": state["code"],
+            "stateLabel": state["title"],
             "stateTitle": state["title"],
             "stateDescription": state["description"],
             "stateSeverity": state["severity"],
@@ -3354,6 +3419,32 @@ def _module3_status_open_state(value: Any) -> bool | None:
     if raw in {"ACTIVE", "ENABLED", "OPEN", "ALLOWED", "READ", "WRITE", "ADMIN", "OWNER", "TRUE", "1"}:
         return True
     return None
+def _module3_registry_status_label(value: Any) -> str:
+    labels = {
+        "ACTIVE": "Активен",
+        "AVAILABLE": "Доступен",
+        "BETA": "Бета",
+        "DRAFT": "Черновик",
+        "PLANNED": "Запланирован",
+        "DISABLED": "Отключен",
+        "ARCHIVED": "Архивный",
+        "DEPRECATED": "Устаревший",
+        "MERGED": "Объединен",
+    }
+    raw = str(value or "").strip().upper()
+    return labels.get(raw, raw.title() if raw else "Не задан")
+
+
+def _module3_widget_type_label(value: Any) -> str:
+    labels = {
+        "ADMINISTRATIVE": "Административный",
+        "ANALYTICS": "Аналитический",
+        "SUMMARY": "Сводный",
+        "STATUS": "Статусный",
+        "TABLE": "Табличный",
+    }
+    raw = str(value or "").strip().upper()
+    return labels.get(raw, raw.replace("_", " ").title() if raw else "Виджет")
 
 
 def _module3_history_subject_name(
@@ -3458,7 +3549,7 @@ def _module3_audit_display_fields(row: dict[str, Any], entry: dict[str, Any]) ->
 def _module3_actor_display_label(value: Any) -> str:
     label = str(value or "").strip()
     if not label or label.lower() in {"system/dev", "system", "dev"}:
-        return "Admin"
+        return "Администратор"
     if "@" in label:
         return label.split("@", 1)[0]
     return label
@@ -3541,6 +3632,8 @@ def _module3_value_display_label(value: Any) -> str:
             return _access_level_label(str(value.get("accessLevel") or ""))
         if "enabled" in value:
             return "Разрешено" if value.get("enabled") else "Запрещено"
+        if "allowed" in value:
+            return "Разрешено" if value.get("allowed") else "Запрещено"
         return f"{len(value)} поля"
     return _module3_compact_text(str(value), limit=120)
 
@@ -3549,6 +3642,8 @@ def _access_level_label(value: str) -> str:
     labels = {
         "NONE": "Нет доступа",
         "READ": "Просмотр",
+        "VIEW": "Просмотр",
+        "NO_ACCESS": "Нет доступа",
         "WRITE": "Редактирование",
         "ADMIN": "Администрирование",
         "OWNER": "Владелец",
@@ -3605,11 +3700,11 @@ def _module3_audit_details_text(row: dict[str, Any]) -> str:
     if reason:
         parts.append(reason)
     if old_value is not None and old_value != "":
-        parts.append(f"Старое значение: {old_value}")
+        parts.append(f"Было: {_module3_value_display_label(old_value)}")
     if new_value is not None and new_value != "":
-        parts.append(f"Новое значение: {new_value}")
+        parts.append(f"Стало: {_module3_value_display_label(new_value)}")
     if not parts:
-        parts.append(str(row.get("result") or "SUCCESS"))
+        parts.append(_module3_result_display_label(row.get("result")))
     return "; ".join(parts)
 
 
@@ -3618,16 +3713,16 @@ def change_history_for_admin_panel(history: list[AuditLog], user_data: dict[str,
     return {
         "rows": rows,
         "filters": {
-            "authors": _unique_sorted(row["actor"] for row in rows),
+            "authors": _unique_sorted(row.get("displayActor") or row["actor"] for row in rows),
             "dates": _unique_sorted(_date_filter_value(row["createdAt"]) for row in rows),
-            "actions": _unique_sorted(row["actionType"] for row in rows),
-            "objectTypes": _unique_sorted(row["objectType"] for row in rows),
-            "modules": _unique_sorted(row["moduleCode"] for row in rows if row.get("moduleCode")),
-            "widgets": _unique_sorted(row["widgetCode"] for row in rows if row.get("widgetCode")),
+            "actions": _unique_sorted(row.get("displayAction") or row["actionType"] for row in rows),
+            "objectTypes": _unique_sorted(row.get("displayObjectType") or row["objectType"] for row in rows),
+            "modules": _unique_sorted(row.get("displayModule") or row["moduleCode"] for row in rows if row.get("moduleCode")),
+            "widgets": _unique_sorted(row.get("displayWidget") or row["widgetCode"] for row in rows if row.get("widgetCode")),
         },
-        "bySubject": _history_bucket_counts(rows, "objectType"),
-        "byModule": _history_bucket_counts(rows, "moduleCode"),
-        "byWidget": _history_bucket_counts(rows, "widgetCode"),
+        "bySubject": _history_bucket_counts(rows, "displayObjectType"),
+        "byModule": _history_bucket_counts(rows, "displayModule"),
+        "byWidget": _history_bucket_counts(rows, "displayWidget"),
         "subject": {
             "userId": user_data.get("id"),
             "title": user_data.get("name") or user_data.get("email"),
@@ -3655,13 +3750,13 @@ def audit_panel_summary(
         "rows": rows,
         "selectedRecord": selected,
         "filters": {
-            "authors": _unique_sorted(row["actor"] for row in rows),
+            "authors": _unique_sorted(row.get("displayActor") or row["actor"] for row in rows),
             "dates": _unique_sorted(_date_filter_value(row["createdAt"]) for row in rows),
-            "actions": _unique_sorted(row["actionType"] for row in rows),
-            "objectTypes": _unique_sorted(row["objectType"] for row in rows),
-            "modules": _unique_sorted(row["moduleCode"] for row in rows if row.get("moduleCode")),
-            "widgets": _unique_sorted(row["widgetCode"] for row in rows if row.get("widgetCode")),
-            "subjects": _unique_sorted(row["subjectLabel"] for row in rows if row.get("subjectLabel")),
+            "actions": _unique_sorted(row.get("displayAction") or row["actionType"] for row in rows),
+            "objectTypes": _unique_sorted(row.get("displayObjectType") or row["objectType"] for row in rows),
+            "modules": _unique_sorted(row.get("displayModule") or row["moduleCode"] for row in rows if row.get("moduleCode")),
+            "widgets": _unique_sorted(row.get("displayWidget") or row["widgetCode"] for row in rows if row.get("widgetCode")),
+            "subjects": _unique_sorted(row.get("displaySubjectName") or row["subjectLabel"] for row in rows if row.get("subjectLabel")),
         },
         "summary": {
             "total": len(rows),
@@ -3669,8 +3764,8 @@ def audit_panel_summary(
             "failed": len([row for row in rows if str(row.get("result")).upper() not in {"", "SUCCESS"}]),
             "withReason": len([row for row in rows if row.get("reason")]),
         },
-        "byAction": _history_bucket_counts(rows, "actionType"),
-        "bySubject": _history_bucket_counts(rows, "objectType"),
+        "byAction": _history_bucket_counts(rows, "displayAction"),
+        "bySubject": _history_bucket_counts(rows, "displayObjectType"),
         "notes": {
             "oldNewValuesVisible": True,
             "actorVisible": True,
@@ -3687,7 +3782,7 @@ def settings_panel_summary(admin_scope: dict[str, Any]) -> dict[str, Any]:
         "normalSettings": [
             {
                 "title": "Правила рабочего меню",
-                "description": "Обычный администратор видит только рабочие разделы Module №3: пользователей, роли, рабочие области и журнал изменений.",
+                "description": "Обычный администратор видит только рабочие разделы: пользователей, роли, компании и историю изменений.",
                 "target": "#users",
             },
             {
@@ -3708,55 +3803,55 @@ def settings_panel_summary(admin_scope: dict[str, Any]) -> dict[str, Any]:
         ],
         "superAdminMode": {
             "enabled": is_super_admin,
-            "title": "Super Admin mode",
+            "title": "Расширенный режим администратора",
             "description": (
-                "Системные и developer-only инструменты доступны только Super Admin."
+                "Расширенные инструменты доступны только главному администратору."
                 if is_super_admin
-                else "Системные и developer-only инструменты скрыты от обычного администратора."
+                else "Расширенные инструменты скрыты от обычного администратора."
             ),
         },
         "developerDiagnostics": [
             {
-                "title": "Registry diagnostics",
-                "description": "Диагностика PlatformModuleRegistry, canonical mapping и legacy aliases.",
+                "title": "Проверка реестра модулей",
+                "description": "Служебная проверка списка модулей и их актуальных связей.",
                 "target": "/api/v1/admin/module-registry/view",
             },
             {
-                "title": "Widget diagnostics",
-                "description": "Диагностика WidgetRegistry, Widget Permission и связи с UserDashboardLayout.",
+                "title": "Проверка виджетов",
+                "description": "Служебная проверка виджетов, прав и отображения на панели.",
                 "target": "#widget-access",
             },
             {
-                "title": "Legacy aliases",
-                "description": "Проверка legacy/merged moduleCode и redirect/canonical mapping.",
+                "title": "Устаревшие связи",
+                "description": "Проверка старых ссылок и перенаправлений на актуальные разделы.",
                 "target": "#settings",
             },
             {
-                "title": "UI states",
-                "description": "Справочник empty/loading/error/no permission/future/archived states.",
+                "title": "Состояния интерфейса",
+                "description": "Проверка пустых, загрузочных, ошибочных и архивных состояний интерфейса.",
                 "target": "#settings",
             },
             {
-                "title": "Module lifecycle diagnostics",
-                "description": "Проверка PLANNED / DRAFT / ACTIVE / DISABLED / DEPRECATED / ARCHIVED / MERGED.",
+                "title": "Состояния модулей",
+                "description": "Проверка рабочих, будущих, отключенных и архивных модулей.",
                 "target": "#settings",
             },
             {
-                "title": "Widget lifecycle diagnostics",
-                "description": "Проверка статусов виджетов и причин недоступности.",
+                "title": "Состояния виджетов",
+                "description": "Проверка статусов виджетов и причин, по которым они недоступны.",
                 "target": "#widget-access",
             },
             {
-                "title": "Dashboard layout presets",
-                "description": "Технические presets и UserDashboardLayout без редактирования главного Dashboard.",
+                "title": "Макеты панели",
+                "description": "Служебная проверка сохраненных макетов без изменения главной панели.",
                 "target": "#dashboard-layouts",
             },
         ],
         "dangerZone": {
-            "title": "Danger zone",
+            "title": "Опасные действия",
             "requiresConfirmation": True,
             "confirmationText": DISABLE_CONFIRMATION,
-            "warning": "Опасные действия требуют явного подтверждения и записи в AuditLog.",
+            "warning": "Опасные действия требуют явного подтверждения и записи в историю изменений.",
             "actions": [
                 "Отключить пользователя",
                 "Архивировать компанию",
@@ -4163,7 +4258,7 @@ def _company_primary_user(workspace: Workspace) -> User | None:
 
 def _company_primary_user_card_url(user: User | None) -> str | None:
     user_id = _get_value(user, "id")
-    return f"/api/v1/admin/users-roles/view/users/{user_id}" if user_id else None
+    return f"/app/users-roles/users/{user_id}" if user_id else None
 
 
 def _directory_filter_options(rows: list[dict[str, Any]], value_key: str, label_key: str) -> list[dict[str, str]]:

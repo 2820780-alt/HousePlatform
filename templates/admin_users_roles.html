@@ -765,10 +765,14 @@
       overscroll-behavior: contain;
     }
     .verification-queue-row {
-      grid-template-columns: 34px minmax(0, 1fr) minmax(210px, auto);
-      align-items: center;
-      gap: 10px;
-      min-height: 62px;
+      grid-template-columns: 30px minmax(0, 1fr);
+      grid-template-areas:
+        "icon company"
+        ". actions";
+      align-items: start;
+      column-gap: 8px;
+      row-gap: 7px;
+      min-height: 0;
       padding: 9px 10px;
     }
     .verification-queue-icon {
@@ -796,8 +800,11 @@
       margin-top: 8px;
     }
     #verification-queue .system-card-icon {
-      width: 30px;
-      height: 30px;
+      grid-area: icon;
+      align-self: start;
+      width: 28px;
+      height: 28px;
+      margin-top: 1px;
       border-radius: 8px;
     }
     .verification-queue-row[data-company-type="SUPPLIER"],
@@ -810,6 +817,7 @@
       --card-accent: #18d7f2;
     }
     .verification-queue-company {
+      grid-area: company;
       display: grid;
       gap: 3px;
       min-width: 0;
@@ -830,18 +838,24 @@
       font-size: 11px;
     }
     .verification-queue-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-area: actions;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: flex-start;
       gap: 6px;
-      min-width: 210px;
+      min-width: 0;
+      max-width: 100%;
     }
     .verification-queue-actions form {
+      flex: 0 0 auto;
       margin: 0;
     }
     .verification-action-btn {
-      width: 100%;
+      width: auto;
+      min-width: 72px;
       min-height: 28px;
-      padding: 0 8px;
+      padding: 0 10px;
       border: 1px solid rgba(24, 215, 242, 0.28);
       border-radius: 7px;
       color: #54dfff;
@@ -2020,28 +2034,62 @@
       margin: 0 auto;
     }
     .access-matrix-table-wrap .matrix-check input {
-      width: 13px;
-      height: 13px;
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: 15px;
+      height: 15px;
+      margin: 0;
       appearance: none;
-      border: 1px solid rgba(119, 172, 255, 0.54);
-      border-radius: 3px;
-      background: rgba(7, 19, 43, 0.92);
-      box-shadow: inset 0 0 0 1px rgba(5, 12, 30, 0.72);
+      cursor: pointer;
+      border: 1px solid rgba(119, 172, 255, 0.5);
+      border-radius: 4px;
+      background: rgba(7, 19, 43, 0.88);
+      box-shadow: inset 0 0 0 1px rgba(5, 12, 30, 0.62);
+      transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+    }
+    .access-matrix-table-wrap .matrix-check input::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid #e8f8ff;
+      border-width: 0 2px 2px 0;
+      border-radius: 1px;
+      opacity: 0;
+      transform: rotate(42deg) scale(0.82);
+      transform-origin: center;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+    .access-matrix-table-wrap .matrix-check input:hover:not(:disabled) {
+      border-color: rgba(84, 223, 255, 0.72);
+      background: rgba(12, 34, 69, 0.92);
+      box-shadow: 0 0 10px rgba(24, 215, 242, 0.12), inset 0 0 0 1px rgba(5, 12, 30, 0.56);
+    }
+    .access-matrix-table-wrap .matrix-check input:focus-visible {
+      outline: 2px solid rgba(24, 215, 242, 0.34);
+      outline-offset: 2px;
     }
     .access-matrix-table-wrap .matrix-check input:checked {
-      border-color: #16bfff;
-      background:
-        linear-gradient(135deg, transparent 0 42%, #e8f8ff 42% 58%, transparent 58%),
-        linear-gradient(45deg, transparent 0 42%, #e8f8ff 42% 58%, transparent 58%),
-        #0ea5ff;
-      box-shadow: 0 0 7px rgba(14, 165, 255, 0.22);
+      border-color: rgba(24, 215, 242, 0.72);
+      background: linear-gradient(180deg, rgba(24, 215, 242, 0.32), rgba(14, 165, 255, 0.22)), rgba(7, 26, 54, 0.94);
+      box-shadow: 0 0 8px rgba(24, 215, 242, 0.16), inset 0 0 0 1px rgba(5, 12, 30, 0.48);
+    }
+    .access-matrix-table-wrap .matrix-check input:checked::after {
+      opacity: 1;
+      transform: rotate(42deg) scale(1);
     }
     .access-matrix-table-wrap .matrix-check input:disabled {
-      opacity: 0.62;
+      opacity: 0.56;
       cursor: not-allowed;
-      border-color: rgba(92, 121, 158, 0.5);
-      background: rgba(25, 42, 68, 0.46);
+      border-color: rgba(92, 121, 158, 0.42);
+      background: rgba(25, 42, 68, 0.36);
       box-shadow: none;
+    }
+    .access-matrix-table-wrap .matrix-check input:disabled::after {
+      border-color: rgba(184, 200, 238, 0.62);
     }
     .matrix-savebar {
       display: flex;
@@ -2721,11 +2769,11 @@
     class="module3-shell"
     data-module3-shell
     data-module3-mode="{{ mode }}"
-    data-active-tab="{% if detail %}detail{% else %}overview{% endif %}"
+    data-active-tab="{% if detail or detail_error %}detail{% else %}overview{% endif %}"
   >
     {% set company_mode = overview.adminScope.isCompanyAdminMode %}
     <div class="control-shell">
-      <nav class="module3-nav" aria-label="Разделы Module №3" data-module3-sidebar>
+      <nav class="module3-nav" aria-label="Разделы модуля пользователей и ролей" data-module3-sidebar>
         <div class="module3-nav-title">
           <strong>Пользователи и роли</strong>
         </div>
@@ -2758,7 +2806,7 @@
           hidden
         ></div>
 
-        <div class="system-grid overview-only" aria-label="Типы пользователей Module №3: Компании, Поставщики, Заказчики, Специалисты">
+        <div class="system-grid overview-only" aria-label="Типы пользователей: Компании, Поставщики, Заказчики, Специалисты">
           {% for widget in overview.userTypeSummaryWidgets %}
           <article class="system-card" data-user-type="{{ widget.userTypeCode }}" data-has-moderation="{% if widget.onModeration is defined %}true{% else %}false{% endif %}">
             <span class="system-card-atom" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -2907,7 +2955,7 @@
             <a class="overview-history-link" href="/api/v1/admin/users-roles/view/history" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="AUDIT_LOG" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть историю изменений" data-quick-action-route="/api/v1/admin/users-roles/view/history" data-quick-action-atom-card-accent="purple">Открыть полную историю</a>
           </div>
           <div class="overview-history-table">
-            <table class="entity-table overview-history-entity-table" data-resizable-table aria-label="История изменений Module №3">
+            <table class="entity-table overview-history-entity-table" data-resizable-table aria-label="История изменений">
               <colgroup>
                 <col style="width: 44px">
                 <col style="width: 118px">
@@ -2961,13 +3009,13 @@
           <div class="panel-head">
             <div>
               <h2 id="settings-title">Настройки</h2>
-              <div class="muted">Рабочее меню администратора не перегружается registry/debug-разделами. Системные инструменты остаются здесь для Super Admin / developer mode и не удаляются из платформы.</div>
+              <div class="muted">Рабочее меню администратора показывает только нужные разделы. Расширенные проверки доступны отдельно и не мешают ежедневной работе.</div>
             </div>
-            <span class="chip warn">system</span>
+            <span class="chip warn">служебно</span>
           </div>
           <div class="bridge-grid">
             <div class="bridge-card">
-              <h3>Обычные настройки Module №3</h3>
+              <h3>Рабочие настройки</h3>
               <div class="user-list">
                 {% for item in overview.settingsPanel.normalSettings %}
                 <a class="permission-row" href="{{ item.target }}">
@@ -2981,20 +3029,20 @@
               </div>
             </div>
             <div class="bridge-card">
-              <h3>Super Admin mode</h3>
+              <h3>Расширенный режим администратора</h3>
               <div class="muted">{{ overview.settingsPanel.superAdminMode.description }}</div>
               {% if overview.settingsPanel.superAdminMode.enabled %}
               <div class="code-list">
-                <span class="chip ok">Super Admin</span>
-                <span class="chip warn">developer-only diagnostics</span>
+                <span class="chip ok">главный администратор</span>
+                <span class="chip warn">расширенные проверки</span>
               </div>
               {% else %}
-              <div class="empty">Registry diagnostics, Widget diagnostics, Legacy aliases, UI states, Module lifecycle diagnostics и Widget lifecycle diagnostics скрыты от обычного администратора.</div>
+              <div class="empty">Расширенные проверки скрыты от обычного администратора.</div>
               {% endif %}
             </div>
             <div class="bridge-card">
-              <h3>Системные разделы</h3>
-              <div class="muted">Registry, diagnostics и layout-механика скрыты из рабочего меню, но доступны без удаления маршрутов.</div>
+              <h3>Расширенные проверки</h3>
+              <div class="muted">Служебные проверки скрыты из рабочего меню, но остаются доступны главному администратору.</div>
               {% if overview.settingsPanel.superAdminMode.enabled %}
               <div class="user-list">
                 {% for item in overview.settingsPanel.developerDiagnostics %}
@@ -3003,17 +3051,17 @@
                     <strong>{{ item.title }}</strong>
                     <small>{{ item.description }}</small>
                   </div>
-                  <span class="chip warn">diagnostics</span>
+                  <span class="chip warn">проверка</span>
                 </a>
                 {% endfor %}
-                <a class="chip warn" href="/api/v1/admin/module-registry/view">Registry / developer-only</a>
+                <a class="chip warn" href="/api/v1/admin/module-registry/view">Проверка реестра модулей</a>
               </div>
               {% else %}
-              <div class="empty">Системные / debug зоны не показываются обычному администратору и не перегружают рабочие настройки.</div>
+              <div class="empty">Расширенные проверки не показываются обычному администратору.</div>
               {% endif %}
             </div>
             <div class="bridge-card">
-              <h3>Danger zone</h3>
+              <h3>Опасные действия</h3>
               <div class="muted">{{ overview.settingsPanel.dangerZone.warning }}</div>
               <div class="code-list">
                 <span class="chip danger">подтверждение опасных действий</span>
@@ -3201,10 +3249,10 @@
                   {% for item in selected_role.history %}
                   <div class="history-row">
                     <div>
-                      <strong>{{ item.actionType }}</strong>
+                      <strong>{{ item.displayAction }}</strong>
                       <small>{{ item.actor }} · {{ item.createdAt }}</small>
                     </div>
-                    <span class="chip">{{ item.result }}</span>
+                    <span class="chip">{{ item.displayResult }}</span>
                   </div>
                   {% endfor %}
                   {% endif %}
@@ -3212,10 +3260,10 @@
                   {% for item in selected_group.history %}
                   <div class="history-row">
                     <div>
-                      <strong>{{ item.actionType }}</strong>
+                      <strong>{{ item.displayAction }}</strong>
                       <small>{{ item.actor }} · {{ item.createdAt }}</small>
                     </div>
-                    <span class="chip">{{ item.result }}</span>
+                    <span class="chip">{{ item.displayResult }}</span>
                   </div>
                   {% endfor %}
                   {% endif %}
@@ -3233,11 +3281,11 @@
           <div class="panel-head">
             <div>
               <h2 id="workspaces-title">Рабочие области</h2>
-              <div class="muted">Рабочие пространства платформы, связанные пользователи, компании и история изменений. Dashboard layout здесь не редактируется.</div>
+              <div class="muted">Рабочие пространства платформы, связанные пользователи, компании и история изменений. Макет панели здесь не редактируется.</div>
             </div>
             <div class="code-list">
               <span class="chip">{{ overview.workspacePanel.summary.total }} всего</span>
-              <span class="chip ok">{{ overview.workspacePanel.summary.active }} active</span>
+              <span class="chip ok">{{ overview.workspacePanel.summary.active }} активные</span>
               <span class="chip">{{ overview.workspacePanel.summary.linkedUsers }} связей</span>
             </div>
           </div>
@@ -3260,8 +3308,8 @@
             </div>
 
             <div class="role-card-stack">
-              <div class="role-card" aria-label="Карточка workspace">
-                <h3>Карточка workspace</h3>
+              <div class="role-card" aria-label="Карточка рабочей области">
+                <h3>Карточка рабочей области</h3>
                 {% set selected_workspace = overview.workspacePanel.selectedWorkspace %}
                 {% if selected_workspace %}
                 <strong>{{ selected_workspace.title }}</strong>
@@ -3291,7 +3339,7 @@
                   <div class="history-row">
                     <div>
                       <strong>{{ company.title }}</strong>
-                      <small>{{ company.type }} · {{ company.status }}</small>
+                      <small>{{ company.typeLabel }} · {{ company.statusLabel }}</small>
                     </div>
                     <span class="chip">компания</span>
                   </div>
@@ -3315,28 +3363,28 @@
                   <span class="chip">{{ selected_workspace.moduleAccessState }}</span>
                   <span class="chip">{{ selected_workspace.widgetAccessState }}</span>
                 </div>
-                <div class="muted">Workspace связывает пользователя, компанию и область работы. Технические Dashboard presets и layout registry скрыты из этой вкладки.</div>
+                <div class="muted">Компания / область связывает пользователя, компанию и область работы. Технические макеты панели скрыты из этой вкладки.</div>
                 {% else %}
                 <div class="empty">Нет выбранной рабочей области.</div>
                 {% endif %}
               </div>
 
               <div class="role-card">
-                <h3>История изменений workspace</h3>
+                <h3>История изменений рабочей области</h3>
                 {% set selected_workspace = overview.workspacePanel.selectedWorkspace %}
                 <div class="user-list">
                   {% if selected_workspace and selected_workspace.history %}
                   {% for item in selected_workspace.history %}
                   <div class="history-row">
                     <div>
-                      <strong>{{ item.actionType }}</strong>
+                      <strong>{{ item.displayAction }}</strong>
                       <small>{{ item.actor }} · {{ item.createdAt }}</small>
                     </div>
-                    <span class="chip">{{ item.result }}</span>
+                    <span class="chip">{{ item.displayResult }}</span>
                   </div>
                   {% endfor %}
                   {% else %}
-                  <div class="empty">История изменений workspace пока пуста.</div>
+                  <div class="empty">История изменений рабочей области пока пуста.</div>
                   {% endif %}
                 </div>
               </div>
@@ -3408,21 +3456,21 @@
                   {% for item in overview.auditPanel.rows %}
                   <tr class="{% if loop.first %}active{% endif %}">
                     <td>
-                      <strong>{{ item.actionType }}</strong>
-                      <small>{{ item.objectType }}{% if item.moduleCode %} · {{ item.moduleCode }}{% endif %}{% if item.widgetCode %} · {{ item.widgetCode }}{% endif %}</small>
+                      <strong>{{ item.displayAction }}</strong>
+                      <small>{{ item.displayObject }}{% if item.displayModuleWidget and item.displayModuleWidget != '—' %} · {{ item.displayModuleWidget }}{% endif %}</small>
                     </td>
                     <td>
-                      <span>{{ item.actor }}</span>
-                      <small>{{ item.actorUserId or 'system/dev' }}</small>
+                      <span>{{ item.displayActor }}</span>
+                      <small>{{ item.displayObjectType }}</small>
                     </td>
-                    <td>{{ item.createdAt }}</td>
+                    <td>{{ item.displayTimestampShort or item.timestampCompact or item.createdAt }}</td>
                     <td>
-                      <span>{{ item.subjectLabel }}</span>
-                      <small>{{ item.targetUserId or item.workspaceId or item.entityId or '—' }}</small>
+                      <span>{{ item.displaySubjectName or item.subjectLabel }}</span>
+                      <small>{{ item.displayDetails }}</small>
                     </td>
-                    <td><span class="audit-value-box">{{ item.oldValue or '—' }}</span></td>
-                    <td><span class="audit-value-box">{{ item.newValue or '—' }}</span></td>
-                    <td><span class="chip {% if item.result == 'SUCCESS' %}ok{% else %}danger{% endif %}">{{ item.result }}</span></td>
+                    <td><span class="audit-value-box">{{ item.displayOldValue }}</span></td>
+                    <td><span class="audit-value-box">{{ item.displayNewValue }}</span></td>
+                    <td><span class="chip {% if item.displayResult == 'Успешно' %}ok{% else %}danger{% endif %}">{{ item.displayResult }}</span></td>
                   </tr>
                   {% else %}
                   <tr>
@@ -3433,30 +3481,30 @@
               </table>
             </div>
 
-            <aside class="role-card audit-detail-drawer" aria-label="Detail drawer записи журнала">
-              <h3>Detail drawer записи</h3>
+            <aside class="role-card audit-detail-drawer" aria-label="Детали записи журнала">
+              <h3>Детали записи</h3>
               {% set selected_audit = overview.auditPanel.selectedRecord %}
               {% if selected_audit %}
-              <strong>{{ selected_audit.actionType }}</strong>
-              <small>{{ selected_audit.objectType }} · {{ selected_audit.createdAt }}</small>
+              <strong>{{ selected_audit.displayAction }}</strong>
+              <small>{{ selected_audit.displayObjectType }} · {{ selected_audit.displayTimestampShort or selected_audit.timestampCompact or selected_audit.createdAt }}</small>
               <div class="code-list">
-                <span class="chip {% if selected_audit.result == 'SUCCESS' %}ok{% else %}danger{% endif %}">{{ selected_audit.result }}</span>
-                {% if selected_audit.moduleCode %}<span class="chip" title="{{ selected_audit.moduleCode }}">модуль</span>{% endif %}
-                {% if selected_audit.widgetCode %}<span class="chip" title="{{ selected_audit.widgetCode }}">виджет</span>{% endif %}
-                {% if selected_audit.roleCode %}<span class="chip" title="{{ selected_audit.roleCode }}">роль</span>{% endif %}
+                <span class="chip {% if selected_audit.displayResult == 'Успешно' %}ok{% else %}danger{% endif %}">{{ selected_audit.displayResult }}</span>
+                {% if selected_audit.displayModule %}<span class="chip">{{ selected_audit.displayModule }}</span>{% endif %}
+                {% if selected_audit.displayWidget %}<span class="chip">{{ selected_audit.displayWidget }}</span>{% endif %}
+                {% if selected_audit.roleCode %}<span class="chip">роль</span>{% endif %}
               </div>
               <dl class="detail-kv">
-                <div><dt>Кто изменил</dt><dd>{{ selected_audit.actor }}</dd></div>
-                <div><dt>Когда изменил</dt><dd>{{ selected_audit.createdAt }}</dd></div>
-                <div><dt>Для кого изменил</dt><dd>{{ selected_audit.subjectLabel }}</dd></div>
-                <div><dt>Workspace</dt><dd>{{ selected_audit.workspaceId or '—' }}</dd></div>
+                <div><dt>Кто изменил</dt><dd>{{ selected_audit.displayActor }}</dd></div>
+                <div><dt>Когда изменил</dt><dd>{{ selected_audit.displayTimestampShort or selected_audit.timestampCompact or selected_audit.createdAt }}</dd></div>
+                <div><dt>Для кого изменил</dt><dd>{{ selected_audit.displaySubjectName or selected_audit.subjectLabel }}</dd></div>
+                <div><dt>Что изменено</dt><dd>{{ selected_audit.displayObject }}</dd></div>
                 <div><dt>Причина</dt><dd>{{ selected_audit.reason or 'не указана' }}</dd></div>
               </dl>
               <h4>Старое значение</h4>
-              <div class="audit-value-box">{{ selected_audit.oldValue or '—' }}</div>
+              <div class="audit-value-box">{{ selected_audit.displayOldValue }}</div>
               <h4>Новое значение</h4>
-              <div class="audit-value-box">{{ selected_audit.newValue or '—' }}</div>
-              <div class="muted">Журнал изменений не хранит приватный business payload полностью и не является источником прав.</div>
+              <div class="audit-value-box">{{ selected_audit.displayNewValue }}</div>
+              <div class="muted">Журнал показывает только сведения, нужные для проверки административного решения.</div>
               {% else %}
               <div class="empty">Выберите запись журнала.</div>
               {% endif %}
@@ -3473,7 +3521,7 @@
           </div>
           <span class="chip"><strong>{{ overview.users|length }}</strong> физлиц</span>
         </div>
-        <div class="user-directory-summary" aria-label="Summary chips по типам пользователей: Все, Компании, Поставщики, Заказчики, Специалисты">
+        <div class="user-directory-summary" aria-label="Сводка по типам пользователей: Все, Компании, Поставщики, Заказчики, Специалисты">
           {% for chip in overview.userDirectoryChips %}
           <button class="chip directory-chip {% if chip.typeCode == 'ALL' %}active{% endif %}" type="button" data-directory-chip data-type-filter-value="{{ chip.typeCode }}">
             <span class="directory-chip-icon {% if chip.typeCode == 'ALL' %}directory-chip-icon--all{% elif chip.typeCode == 'COMPANY' %}directory-chip-icon--company{% elif chip.typeCode == 'SUPPLIER' %}directory-chip-icon--supplier{% elif chip.typeCode == 'CUSTOMER' %}directory-chip-icon--customer{% else %}directory-chip-icon--specialist{% endif %}" aria-hidden="true"></span>
@@ -3487,7 +3535,7 @@
 
         <div class="directory-toolbar" aria-label="Поиск, фильтры и сортировка пользователей">
           <div class="filter-row">
-            <input class="directory-search" data-user-search aria-label="Поиск по ФИО, названию компании, email, телефону, ИНН или ID" placeholder="Поиск по ФИО, компании, email, телефону, ИНН / ID">
+            <input class="directory-search" data-user-search aria-label="Поиск по ФИО, названию компании, email, телефону или ИНН" placeholder="Поиск по ФИО, компании, email, телефону, ИНН">
             <select data-user-type-filter aria-label="Фильтр по типу пользователя">
               <option value="ALL">Все типы</option>
               <option value="COMPANY">Компании</option>
@@ -3576,7 +3624,7 @@
                 <td>
                   <div class="user-directory-cell-stack">
                     <a class="user-directory-name-link" href="{{ row.cardUrl }}">{{ row.displayName }}</a>
-                    <small>{{ row.subjectKind }} · ID: {{ row.id }}</small>
+                    <small>{{ row.typeLabel }}{% if row.registeredAtCompact %} · зарегистрирован {{ row.registeredAtCompact }}{% endif %}</small>
                   </div>
                 </td>
                 <td>
@@ -3649,7 +3697,7 @@
                 {% for user in overview.users %}
                 <tr class="{% if detail and detail.user.id == user.id %}active{% endif %}">
                   <td>
-                    <a href="/api/v1/admin/users-roles/view/users/{{ user.id }}">{{ user.name }}</a>
+                    <a href="/app/users-roles/users/{{ user.id }}">{{ user.name }}</a>
                     <small>{{ user.email }}</small>
                   </td>
                   <td>
@@ -3659,16 +3707,16 @@
                   <td>
                     {% if user.workspaces %}
                     <span>{{ user.workspaces[0].workspaceTitle }}</span>
-                    <small>{{ user.workspaces[0].status }}</small>
+                    <small>{{ user.workspaces[0].statusLabel }}</small>
                     {% else %}
-                    <span class="muted">не связан с компанией</span>
+                    <span class="muted">Без компании</span>
                     {% endif %}
                   </td>
                   <td>
-                    <span class="chip ok">{{ user.allowedModuleCount }} модулей</span>
-                    <span class="chip ok">{{ user.allowedFeatureCount }} feature</span>
+                    <span class="chip ok">{{ user.allowedModuleLabel }}</span>
+                    <span class="chip ok">{{ user.allowedWidgetLabel }}</span>
                   </td>
-                  <td><span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.status }}</span></td>
+                  <td><span class="chip {% if user.status == 'active' %}ok{% elif user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ user.statusLabel }}</span></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -3698,17 +3746,21 @@
                 {% for company in overview.companies %}
                 <tr>
                   <td>
+                    {% if company.cardUrl %}
+                    <a class="user-directory-name-link" href="{{ company.cardUrl }}"><strong>{{ company.title }}</strong></a>
+                    {% else %}
                     <strong>{{ company.title }}</strong>
+                    {% endif %}
                     <small>{{ company.city or company.region or 'регион не задан' }}</small>
                   </td>
-                  <td>{{ company.type }}</td>
+                  <td>{{ company.typeLabel }}</td>
                   <td>{{ company.adminTitle }}</td>
                   <td><span class="chip">{{ company.employeeCount }}</span></td>
                   <td>
-                    <span>{{ company.moduleAccessState }}</span>
-                    <small>{{ company.widgetAccessState }}</small>
+                    <span>{{ company.moduleAccessLabel }}</span>
+                    <small>{{ company.widgetAccessLabel }}</small>
                   </td>
-                  <td><span class="chip {% if company.isActive %}ok{% else %}danger{% endif %}">{{ company.status }}</span></td>
+                  <td><span class="chip {% if company.isActive %}ok{% else %}danger{% endif %}">{{ company.statusLabel }}</span></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -3945,10 +3997,10 @@
             {% for item in overview.recentAccessHistory[:4] %}
             <div class="history-row">
               <div>
-                <strong>{{ item.actionType }}</strong>
+                <strong>{{ item.displayAction }}</strong>
                 <small>{{ item.actor }} · {{ item.createdAt }}</small>
               </div>
-              <span class="chip">{{ item.result }}</span>
+              <span class="chip">{{ item.displayResult }}</span>
             </div>
             {% else %}
             <div class="empty">История изменений доступа пока пуста.</div>
@@ -3959,7 +4011,25 @@
       </section>
 
       <section class="detail detail-drawer">
-        {% if detail %}
+        {% if detail_error %}
+        <div class="profile-breadcrumb">
+          <span>Пользователи</span>
+          <span>/</span>
+          <strong>Карточка не открыта</strong>
+        </div>
+        <article class="hero-card" id="selected-user-access-card">
+          <div class="profile-hero-layout">
+            <div class="profile-avatar" aria-hidden="true">!</div>
+            <div class="card-title">
+              <strong>{{ detail_error.title }}</strong>
+              <div class="muted">{{ detail_error.message }}</div>
+            </div>
+            <div class="toolbar">
+              <a class="btn" href="{{ detail_error.backUrl }}">Вернуться к списку</a>
+            </div>
+          </div>
+        </article>
+        {% elif detail %}
         <div class="profile-breadcrumb">
           <span>Пользователи</span>
           <span>/</span>
@@ -4004,7 +4074,7 @@
                 <h3>Карточка пользователя</h3>
                 <div class="muted">Данные, роль, доступы, ограничения и история.</div>
               </div>
-              <span class="chip {% if detail.user.status == 'active' %}ok{% elif detail.user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ detail.user.status }}</span>
+              <span class="chip {% if detail.user.status == 'active' %}ok{% elif detail.user.status == 'blocked' %}danger{% else %}warn{% endif %}">{{ detail.user.statusLabel }}</span>
             </div>
             <dl class="detail-kv">
               {% for field in detail.profileCard.generalInfo %}
@@ -4012,7 +4082,7 @@
               {% endfor %}
               <div><dt>Роли</dt><dd>{{ detail.user.roleCodes|join(', ') or 'нет роли' }}</dd></div>
               <div><dt>Группы</dt><dd>{{ detail.user.groupTitles|join(', ') or 'не назначены' }}</dd></div>
-              <div><dt>Компания</dt><dd>{% if detail.user.workspaces %}{{ detail.user.workspaces[0].workspaceTitle }} · {{ detail.user.workspaces[0].status }}{% else %}не связан с компанией{% endif %}</dd></div>
+              <div><dt>Компания</dt><dd>{% if detail.user.workspaces %}{{ detail.user.workspaces[0].workspaceTitle }} · {{ detail.user.workspaces[0].statusLabel }}{% else %}Без компании{% endif %}</dd></div>
             </dl>
             <div class="detail-card-section">
               <h4>Модули и виджеты</h4>
@@ -4037,7 +4107,7 @@
                   <strong>{{ item.action }}</strong>
                   <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
-                <span class="chip">{{ item.result }}</span>
+                <span class="chip">{{ item.displayResult }}</span>
               </div>
               {% else %}
               <div class="empty">Изменений по пользователю пока нет.</div>
@@ -4096,8 +4166,8 @@
             <div class="detail-card-section">
               <h4>Модули и виджеты компании</h4>
               <div class="code-list">
-                <span class="chip ok">{{ active_company.moduleAccessState or 'открыто в пределах платформы' }}</span>
-                <span class="chip">{{ active_company.widgetAccessState or 'следует доступу компании к модулям' }}</span>
+                <span class="chip ok">{{ active_company.moduleAccessLabel or 'Доступ открыт' }}</span>
+                <span class="chip">{{ active_company.widgetAccessLabel or 'По доступу компании' }}</span>
               </div>
             </div>
             <div class="detail-card-section">
@@ -4116,7 +4186,7 @@
                   <strong>{{ item.action }}</strong>
                   <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
-                <span class="chip">{{ item.result }}</span>
+                <span class="chip">{{ item.displayResult }}</span>
               </div>
               {% else %}
               <div class="empty">Изменений по компании пока нет.</div>
@@ -4140,7 +4210,7 @@
               {% endif %}
             </div>
             {% else %}
-            <div class="empty">Пользователь пока не связан с компанией.</div>
+            <div class="empty">Пользователь пока без компании.</div>
             {% endif %}
           </section>
 
@@ -4186,7 +4256,7 @@
                   <strong>{{ item.action }}</strong>
                   <small>{{ item.actorName }} · {{ item.timestamp }} · {{ item.objectName }}</small>
                 </div>
-                <span class="chip">{{ item.result }}</span>
+                <span class="chip">{{ item.displayResult }}</span>
               </div>
               {% else %}
               <div class="empty">Изменений по сотруднику пока нет.</div>
@@ -4399,13 +4469,16 @@
                 {% endfor %}
               </div>
               <div class="muted">Закрытие модуля автоматически отзывает связанные виджеты в этом контексте. Администратор не закрывает каждый виджет вручную. Тарифное ограничение не равно ручному запрету администратора.</div>
-              <h3 aria-label="Future monetization fields: planCode, subscriptionCode, billingFeatureCode, billingRestrictionReason, tariffLevel, tariffExpiresAt, isBillingRestricted">Future monetization fields</h3>
-              <div class="code-list">
-                {% for field in detail.accessMatrix.monetizationReadyFields %}
-                <span class="chip">{{ field }}</span>
-                {% endfor %}
-              </div>
-              <div class="muted">Оплата, подписки, тарифные страницы и billing не реализуются в Module №3; здесь только future-ready поля ограничения.</div>
+              <h3>Будущие тарифные ограничения</h3>
+              <details>
+                <summary>Техническая информация</summary>
+                <div class="code-list">
+                  {% for field in detail.accessMatrix.monetizationReadyFields %}
+                  <span class="chip">{{ field }}</span>
+                  {% endfor %}
+                </div>
+              </details>
+              <div class="muted">Оплата, подписки и тарифные страницы здесь не настраиваются; раздел показывает только готовность ограничений доступа.</div>
             </div>
           </div>
         </section>
@@ -4419,15 +4492,15 @@
               <select id="role_code" name="role_code">
                 {% for role in detail.roles %}
                 <option value="{{ role.roleCode }}" {% if not role.isAssignable %}disabled{% endif %}>
-                  {{ role.title }} · {{ role.roleCode }}{% if not role.isAssignable %} · только SUPER_ADMIN{% endif %}
+                  {{ role.title }}{% if not role.isAssignable %} · только главный администратор{% endif %}
                 </option>
                 {% endfor %}
               </select>
-              <label for="workspace_id">Workspace для роли</label>
+              <label for="workspace_id">Компания / область для роли</label>
               <select id="workspace_id" name="workspace_id">
-                <option value="">Глобально / без workspace</option>
+                <option value="">Без компании</option>
                 {% for workspace in detail.workspaces %}
-                <option value="{{ workspace.id }}">{{ workspace.title }} · {{ workspace.type }}</option>
+                <option value="{{ workspace.id }}">{{ workspace.title }}{% if workspace.typeLabel %} · {{ workspace.typeLabel }}{% endif %}</option>
                 {% endfor %}
               </select>
               <button class="btn" type="submit">Назначить</button>
@@ -4435,15 +4508,15 @@
           </section>
 
           <section class="mini-card">
-            <h3>Назначить workspace</h3>
+            <h3>Связать с компанией</h3>
             <form method="post" action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/workspace">
-              <label for="member_workspace_id">Workspace</label>
+              <label for="member_workspace_id">Компания / область</label>
               <select id="member_workspace_id" name="workspace_id" required>
                 {% for workspace in detail.workspaces %}
-                <option value="{{ workspace.id }}">{{ workspace.title }} · {{ workspace.type }}</option>
+                <option value="{{ workspace.id }}">{{ workspace.title }}{% if workspace.typeLabel %} · {{ workspace.typeLabel }}{% endif %}</option>
                 {% endfor %}
               </select>
-              <label for="member_role_code">Роль в workspace</label>
+              <label for="member_role_code">Роль в компании</label>
               <select id="member_role_code" name="role_code">
                 {% for role in detail.roles %}
                 <option value="{{ role.roleCode }}" {% if not role.isAssignable %}disabled{% endif %}>
@@ -4459,7 +4532,7 @@
 
         <div class="grid-2">
           <section class="mini-card" id="user-workspaces">
-            <h3>Workspace пользователя</h3>
+            <h3>Компания / область пользователя</h3>
             <div class="permissions">
               {% for workspace in detail.user.workspaces %}
               <div class="permission-row">
@@ -4470,7 +4543,7 @@
                 <span class="chip">{{ workspace.status }}</span>
               </div>
               {% else %}
-              <div class="empty">Workspace пока не назначен.</div>
+              <div class="empty">Компания / область пока не назначен.</div>
               {% endfor %}
             </div>
           </section>
@@ -4568,14 +4641,14 @@
                   </div>
                   {% endfor %}
                 {% else %}
-                <div class="muted">Связанные объекты placeholder: объект хранится в Module №7, а связи и visibility preview приходят из будущего контура кабинетов. Module №3 их не хранит.</div>
+                <div class="muted">Связанные объекты будут показываться после подключения кабинетного контура. Сейчас раздел хранит только права и видимость.</div>
                 {% endif %}
               </div>
             </div>
 
             <div class="bridge-stack">
               <div class="bridge-card" id="preview-role">
-                <h3>Access context от Module №3</h3>
+                <h3>Контекст доступа</h3>
                 <div class="muted">
                   userId: {{ detail.accessContextForCabinet.userId or '—' }}<br>
                   workspaceId: {{ detail.accessContextForCabinet.workspaceId or '—' }}<br>
@@ -4585,7 +4658,7 @@
               </div>
 
               <div class="bridge-card">
-                <h3>Настройки видимости placeholder</h3>
+                <h3>Настройки видимости</h3>
                 <div class="muted">{{ detail.module8CabinetPreview.visibilitySettingsPreview.summary }}</div>
                 <div class="code-list">
                   {% for item in detail.module8CabinetPreview.visibilitySettingsPreview.visibleByDefault %}
@@ -4598,7 +4671,7 @@
               </div>
 
               <div class="bridge-card">
-                <h3>Настройки предложений placeholder</h3>
+                <h3>Настройки предложений</h3>
                 <div class="muted">{{ detail.module8CabinetPreview.offerSettingsPreview.summary }}</div>
                 <div class="code-list">
                   {% for item in detail.module8CabinetPreview.offerSettingsPreview.options %}
@@ -4609,27 +4682,27 @@
 
               <div class="bridge-card" id="module8-widget-recommendations">
                 <h3>Рекомендованные виджеты</h3>
-                <div class="muted">Module №3 разрешает widgetCode, а отдельный кабинетный контур позже определяет уместность для активного кабинета.</div>
+                <div class="muted">Модуль управляет доступом к виджетам, а кабинетный контур позже уточнит их уместность для активного кабинета.</div>
                 <div class="code-list">
                   {% for code in detail.module8CabinetPreview.dashboardContextPreview.recommendedWidgetCodes %}
                   <span class="chip">{{ code }}</span>
                   {% else %}
-                  <span class="muted">Нет разрешенных recommended widgets для текущего access context.</span>
+                  <span class="muted">Нет рекомендованных виджетов для текущего контекста доступа.</span>
                   {% endfor %}
                 </div>
               </div>
 
               <div class="bridge-card" id="module8-user-quick-actions-note">
                 <h3>Пользовательские быстрые действия</h3>
-                <div class="muted">Кабинетный контур не рекомендует и не создает быстрые действия. На карточках Dashboard показываются только shortcuts, которые пользователь сохранил и закрепил сам.</div>
+                <div class="muted">Кабинетный контур не рекомендует и не создает быстрые действия. На карточках панели показываются только действия, которые пользователь сохранил и закрепил сам.</div>
                 <div class="code-list">
-                  <span class="chip">user_module_quick_actions</span>
-                  <span class="chip">is_pinned_to_atom_card</span>
+                  <span class="chip">пользовательские действия</span>
+                  <span class="chip">закреплено на панели</span>
                 </div>
               </div>
 
               <div class="bridge-card">
-                <h3>Что можно редактировать в Module №3</h3>
+                <h3>Что можно редактировать</h3>
                 <div class="code-list">
                   {% for item in detail.module8CabinetPreview.editableInModule03 %}
                   <span class="chip">{{ item }}</span>
@@ -4646,10 +4719,10 @@
           <div class="panel-head">
             <div>
               <h2>Виджеты и доступ</h2>
-              <div class="muted">WidgetRegistry управляет metadata и доступом. Payload формирует модуль-владелец данных, Dashboard только отображает.</div>
+              <div class="muted">Реестр виджетов хранит названия и права доступа. Данные для карточек отдает модуль-владелец.</div>
             </div>
             <div class="toolbar">
-              <span class="chip"><strong>{{ detail.widgetAccessRows|length }}</strong> widgetCode</span>
+              <span class="chip"><strong>{{ detail.widgetAccessRows|length }}</strong> виджетов</span>
               <span class="chip ok"><strong>{{ detail.accessContextForCabinet.allowedWidgetCodes|length }}</strong> разрешено</span>
             </div>
           </div>
@@ -4658,23 +4731,23 @@
             <div class="widget-row {% if widget.isAllowed %}allowed{% else %}blocked{% endif %}">
               <div>
                 <strong>{{ widget.title }}</strong>
-                <small>{{ widget.widgetCode }}</small>
+                <small>{{ widget.sourceModuleTitle or widget.sourceModuleCode }}</small>
                 <div class="code-list">
-                  <span class="chip {% if widget.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ widget.status }}</span>
-                  <span class="chip">{{ widget.widgetType }}</span>
-                  {% if widget.isMock %}<span class="chip warn">mock</span>{% endif %}
+                  <span class="chip {% if widget.status == 'ACTIVE' %}ok{% else %}warn{% endif %}">{{ widget.statusLabel }}</span>
+                  <span class="chip">{{ widget.widgetTypeLabel }}</span>
+                  {% if widget.isMock %}<span class="chip warn">демо</span>{% endif %}
                 </div>
               </div>
               <div>
-                <strong>{{ widget.sourceModuleCode }}</strong>
-                <small>canonical: {{ widget.canonicalModuleCode }}</small>
-                {% if widget.featureCode %}<small>feature: {{ widget.featureCode }}</small>{% endif %}
-                {% if widget.legacyModuleCode %}<small>legacy: {{ widget.legacyModuleCode }}</small>{% endif %}
+                <strong>{{ widget.sourceModuleTitle or widget.sourceModuleCode }}</strong>
+                <small>Актуальная связь: {{ widget.sourceLabel or 'По правам доступа' }}</small>
+
+
               </div>
               <div>
-                <strong>Permissions</strong>
-                <small>{{ widget.requiredAccessLevel or 'VIEW' }} · {{ widget.requiredScope or 'LIMITED' }}</small>
-                {% if widget.requiredActionCode %}<small>action: {{ widget.requiredActionCode }}</small>{% endif %}
+                <strong>Права</strong>
+                <small>{{ widget.requiredAccessLevelLabel or widget.requiredAccessLevel or 'Просмотр' }}</small>
+
                 <div class="code-list">
                   {% for role in widget.allowedRoles[:3] %}
                   <span class="chip">{{ role }}</span>
@@ -4685,10 +4758,10 @@
                 <strong>{% if widget.isAllowed %}Доступен{% else %}Недоступен{% endif %}</strong>
                 <small>{{ widget.unavailableReason }}</small>
                 <small>{{ widget.stateDescription }}</small>
-                <small>Module №8: {{ widget.module8Recommendation }}</small>
-                <small>UserDashboardLayout: {{ widget.layoutRelation }}</small>
+                <small>Кабинет: {{ widget.module8Recommendation }}</small>
+                <small>Панель: {{ widget.layoutRelation }}</small>
                 <div class="code-list">
-                  <span class="chip state-{{ widget.stateSeverity }}">{{ widget.stateCode }}</span>
+                  <span class="chip state-{{ widget.stateSeverity }}">{{ widget.stateLabel or widget.stateDescription }}</span>
                   {% for cabinet in widget.allowedCabinetTypes[:2] %}
                   <span class="chip">{{ cabinet }}</span>
                   {% endfor %}
@@ -4697,31 +4770,31 @@
                   <summary title="Настройки конкретного экземпляра виджета">⚙ Настройки</summary>
                   <div class="widget-settings-panel">
                     <div>
-                      <strong>WidgetSettingsSchema</strong>
-                      <small>{{ widget.settingsPreview.schemaStatus }} · source: {{ widget.settingsPreview.schemaSourceModuleCode }}</small>
-                      <small>instance: {{ widget.settingsPreview.settingsInstanceKey }}</small>
-                      <small>storage: {{ widget.settingsPreview.storageLayer }}</small>
-                      <small>AuditLog: {{ widget.settingsPreview.auditEventType }}</small>
+                      <strong>Настройки виджета</strong>
+                      <small>{{ widget.settingsPreview.schemaStatusLabel or widget.settingsPreview.schemaStatus }}</small>
+
+
+
                     </div>
                     <div class="muted">{{ widget.settingsPreview.warning }}</div>
                     {% for field in widget.settingsPreview.fields %}
                     <div class="setting-row {% if field.isHidden %}hidden{% endif %}">
                       <div>
                         <strong>{{ field.title }}</strong>
-                        <small>{{ field.settingCode }} · {{ field.valueType }}</small>
+                        <small>{{ field.valueType }}</small>
                         {% if field.unavailableReason %}<small>{{ field.unavailableReason }}</small>{% endif %}
                       </div>
                       <span class="chip {% if field.isAllowed %}ok{% else %}warn{% endif %}">{% if field.isAllowed %}разрешено{% else %}скрыто{% endif %}</span>
                     </div>
                     {% else %}
-                    <div class="empty">Модуль-владелец еще не отдал schema для этого виджета.</div>
+                    <div class="empty">Для этого виджета пока нет дополнительных настроек.</div>
                     {% endfor %}
                   </div>
                 </details>
               </div>
             </div>
             {% else %}
-            <div class="empty">WidgetRegistry пока пуст. Виджеты должны регистрироваться через Module №3, а payload отдавать модуль-владелец данных.</div>
+            <div class="empty">Список виджетов пока пуст. Виджеты появятся здесь после регистрации в платформе.</div>
             {% endfor %}
           </div>
         </section>
@@ -4752,7 +4825,7 @@
           <div class="panel-head">
             <div>
               <h2>История изменений</h2>
-              <div class="muted">Здесь видно, кто, когда, что изменил, для какого пользователя, компании, сотрудника, модуля или виджета, а также старое значение, новое значение и причину. Структура записи Module3AuditLogEntry: id, timestamp, actorId, actorName, action, objectType, objectId, objectName, details.</div>
+              <div class="muted">Здесь видно, кто, когда, что изменил, для какого пользователя, компании, сотрудника, модуля или виджета, а также старое значение, новое значение и причину. История показывает, кто выполнил действие, что изменилось и к кому относится решение.</div>
             </div>
             <span class="chip">{{ detail.changeHistory.rows|length }} записей</span>
           </div>
@@ -4821,18 +4894,18 @@
             {% for item in detail.changeHistory.rows %}
             <div class="history-row">
               <div>
-                <strong>{{ item.action }} · {{ item.objectTypeCode }}</strong>
-                <small>Автор: {{ item.actorName }} · actorId: {{ item.actorId or 'system' }} · Дата: {{ item.timestamp }} · Объект: {{ item.objectName }}</small>
-                <small>objectId: {{ item.objectId or '—' }} · actionType: {{ item.actionType }}</small>
-                {% if item.moduleCode %}<small>moduleCode: {{ item.moduleCode }}{% if item.featureCode %} · featureCode: {{ item.featureCode }}{% endif %}</small>{% endif %}
-                {% if item.widgetCode %}<small>widgetCode: {{ item.widgetCode }}</small>{% endif %}
-                {% if item.roleCode %}<small>roleCode: {{ item.roleCode }}</small>{% endif %}
-                <small>Старое значение: {{ item.oldValue or '—' }}</small>
-                <small>Новое значение: {{ item.newValue or '—' }}</small>
-                <small>Детали: {{ item.detailsText }}</small>
+                <strong>{{ item.displayAction }} · {{ item.displayObjectType }}</strong>
+                <small>Автор: {{ item.displayActor }} · Дата: {{ item.displayTimestampShort or item.timestampCompact or item.timestamp }} · Объект: {{ item.displaySubjectName or item.objectName }}</small>
+                <small>Что изменено: {{ item.displayObject }} · Тип: {{ item.displayObjectType }}</small>
+                {% if item.displayModuleWidget and item.displayModuleWidget != '—' %}<small>Модуль / виджет: {{ item.displayModuleWidget }}</small>{% endif %}
+
+                {% if item.roleCode %}<small>Роль: {{ item.roleCode }}</small>{% endif %}
+                <small>Было: {{ item.displayOldValue }}</small>
+                <small>Стало: {{ item.displayNewValue }}</small>
+                <small>Детали: {{ item.displayDetails }}</small>
                 <small>Причина: {{ item.reason or 'не указана' }}</small>
               </div>
-              <span class="chip">{{ item.result }}</span>
+              <span class="chip">{{ item.displayResult }}</span>
             </div>
             {% else %}
             <div class="empty">Изменений по пользователю пока нет.</div>

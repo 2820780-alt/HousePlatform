@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.v1 import api_router
+from app.api.v1.admin_users_roles_view import ui_router as admin_users_roles_ui_router
 from app.config import settings
 from app.database import close_db, init_db
 
@@ -147,4 +148,5 @@ async def legacy_users_roles_view_nested_route(path: str, request: Request):
     return _redirect_to_module3_api_path(path=path, query_string=request.url.query)
 
 
+app.include_router(admin_users_roles_ui_router)
 app.include_router(api_router, prefix="/api/v1")

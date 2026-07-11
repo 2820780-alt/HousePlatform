@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>АТОМ · История Module №3</title>
+  <title>АТОМ · История изменений</title>
   <style>
     :root {
       --bg: #050917;
@@ -548,7 +548,7 @@
 <body data-atom-page>
   {% include "_atom_platform_topbar.html" %}
   <main class="history-shell">
-    <aside class="history-sidebar" aria-label="История Module №3">
+    <aside class="history-sidebar" aria-label="История изменений">
       <div class="history-sidebar-title">
         <strong>Пользователи и роли</strong>
       </div>
@@ -558,7 +558,7 @@
       <a class="active" href="/api/v1/admin/users-roles/view/history"><span class="history-icon" aria-hidden="true">◷</span><span>История</span></a>
       <div class="history-help">
         <strong>Принцип журнала</strong>
-        <span>История фиксирует административные решения Module №3 и не хранит business-payload других модулей.</span>
+        <span>История показывает административные действия: изменения доступов, ролей, блокировки и события модерации.</span>
       </div>
     </aside>
 
@@ -671,7 +671,7 @@
               </tr>
               {% else %}
               <tr data-history-empty>
-                <td colspan="6"><div class="empty">История изменений Module №3 пока пуста.</div></td>
+                <td colspan="6"><div class="empty">История изменений пока пуста.</div></td>
               </tr>
               {% endfor %}
               <tr data-history-filter-empty hidden>
