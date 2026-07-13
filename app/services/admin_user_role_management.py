@@ -60,6 +60,8 @@ ROLE_LABELS.update({
     "CUSTOMER": "Заказчик",
     "SPECIALIST": "Специалист",
     "USER": "Пользователь",
+    "CONTRACTOR": "Подрядчик",
+    "ESTIMATOR": "Сметчик",
     "COMPANY_LEAD": "Руководитель компании",
 })
 ADMIN_UI_ROLE_CODES = {"SUPER_ADMIN", "PLATFORM_ADMIN"}
