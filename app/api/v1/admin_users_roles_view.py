@@ -280,7 +280,7 @@ async def admin_set_user_module_access(
     )
     await db.commit()
     return RedirectResponse(
-        f"/api/v1/admin/users-roles/view/users/{user_id}#access-matrix-detail",
+        f"/api/v1/admin/users-roles/view/users/{user_id}#profile-module-access",
         status_code=303,
     )
 
@@ -305,7 +305,7 @@ async def admin_set_user_widget_access(
     )
     await db.commit()
     return RedirectResponse(
-        f"/api/v1/admin/users-roles/view/users/{user_id}#access-matrix-detail",
+        f"/api/v1/admin/users-roles/view/users/{user_id}#profile-module-access",
         status_code=303,
     )
 

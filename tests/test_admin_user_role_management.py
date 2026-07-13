@@ -1274,6 +1274,8 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
     company.name = "ООО СтройПроект Юг"
     company.workspace_type = "CONTRACTOR"
     company.organization_id = "2312345678"
+    company.created_at = datetime(2024, 4, 15, 10, 32, 55, 123456)
+    company.updated_at = datetime(2024, 4, 20, 9, 5, 1, 123456)
     company.settings = {
         "inn": "2312345678",
         "kpp": "231201001",
@@ -1281,6 +1283,8 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
         "legalAddress": "Краснодар, ул. Красная, д. 123",
         "region": "Краснодарский край",
         "city": "Краснодар",
+        "email": "office@sp-ug.ru",
+        "phone": "+7 (861) 123-45-67",
         "assignedManager": "Сидоров И. И.",
     }
     engineer = _user(UserRole.CONTRACTOR)
@@ -1321,24 +1325,43 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
 
     assert card["header"]["title"] == "ООО СтройПроект Юг"
     assert card["header"]["initials"] == "ОС"
+    assert card["header"]["subtitle"] == ""
+    assert card["header"]["primaryContact"] == "office@sp-ug.ru"
+    assert card["header"]["phone"] == "+7 (861) 123-45-67"
     assert card["header"]["assignedManager"] == "Сидоров И. И."
+    assert card["header"]["registeredAt"] == "2024.04.15 10:32"
+    assert card["header"]["lastActivity"] == "2024.04.20 09:05"
+    assert "2024-04-15" not in card["header"]["registeredAt"]
     assert card["employeeRoles"]["visibleCount"] == 3
     assert card["employeeRoles"]["remainingCount"] == 0
     assert {item["name"] for item in card["employeeRoles"]["all"]} >= {"Сидоров Иван", "Петрова Елена"}
     assert card["header"]["blockLabel"] == "Без блокировки"
-    assert [action["label"] for action in card["header"]["actions"]] == [
-        "Редактировать доступы",
-        "Заблокировать",
-        "Назначить доступ",
+    assert card["header"]["actions"] == [
+        {
+            "id": "toggle-block",
+            "label": "Заблокировать",
+            "actionType": "modal",
+            "target": "#danger-zone",
+            "enabled": True,
+            "tone": "danger",
+        }
     ]
-    assert {field["label"]: field["value"] for field in card["companyInfo"]}["ИНН"] == "2312345678"
-    assert {field["label"]: field["value"] for field in card["companyInfo"]}["Юридический адрес"] == "Краснодар, ул. Красная, д. 123"
+    company_fields = {field["label"]: field["value"] for field in card["companyInfo"]}
+    assert list(company_fields) == ["Тип компании", "ИНН", "КПП", "ОГРН", "Email", "Телефон", "Регион", "Юридический адрес"]
+    assert company_fields["ИНН"] == "2312345678"
+    assert company_fields["Email"] == "office@sp-ug.ru"
+    assert company_fields["Телефон"] == "+7 (861) 123-45-67"
+    assert company_fields["Регион"] == "Краснодарский край, Краснодар"
+    assert company_fields["Юридический адрес"] == "Краснодар, ул. Красная, д. 123"
     role_summary = {item["label"]: item["value"] for item in card["employeeRoles"]["summary"]}
     assert role_summary["Сотрудники"] == 3
     assert role_summary["Руководители"] == 1
     assert role_summary["Инженеры"] == 1
     assert role_summary["Менеджеры"] == 1
     assert {item["roleTitle"] for item in card["employeeRoles"]["recent"]} >= {"Администратор компании", "Инженер-проектировщик"}
+    assert any(item["contact"] for item in card["employeeRoles"]["all"])
+    assert all(item["profileUrl"].startswith("/app/users-roles/users/") for item in card["employeeRoles"]["all"])
+    assert all("/api/" not in item["profileUrl"] for item in card["employeeRoles"]["all"])
 
     module_row = next(row for row in card["moduleAccessRows"] if row["moduleCode"] == "MODULE_11_ANALYTICS")
     assert module_row["subjectType"] == "USER"
@@ -1351,6 +1374,109 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
         {"source": "TYPE_TEMPLATE", "label": "По типу пользователя"},
         {"source": "USER_OVERRIDE", "label": "Индивидуально переопределен"},
         {"source": "SYSTEM", "label": "Системный"},
+    ]
+
+def test_user_profile_card_summary_exposes_individual_engineer_roles_without_company():
+    user = _user(UserRole.CUSTOMER)
+    user.name = "Иванов Иван Иванович"
+    user.phone = "+7 918 123-45-67"
+    user.created_at = datetime(2026, 7, 3, 11, 16, 37, 461318)
+    user.updated_at = datetime(2026, 7, 11, 15, 42, 10, 123456)
+    engineer_role = Role(role_key="ENGINEER_DESIGNER", name="ENGINEER_DESIGNER", is_system=True)
+    user.role_assignments = [
+        UserRoleAssignment(
+            id=uuid.uuid4(),
+            user_id=user.id,
+            role_id=uuid.uuid4(),
+            role=engineer_role,
+            status="ACTIVE",
+        )
+    ]
+
+    user_data = user_summary(user, include_permissions=True)
+    matrix = access_matrix_for_subject(
+        user_data,
+        workspaces=[],
+        roles=[],
+        permissions=active_permissions_for_user(user),
+    )
+    card = user_profile_card_summary(
+        user,
+        user_data=user_data,
+        workspaces=[],
+        access_matrix=matrix,
+        history=[],
+    )
+
+    assert card["subjectType"] == "USER"
+    assert card["header"]["title"] == "Иванов Иван Иванович"
+    assert card["header"]["typeLabel"] == "Физ лицо / Инженер"
+    assert [item["typeLabel"] for item in card["roleChips"]] == ["Физ лицо", "Инженер"]
+    assert [item["typeLabel"] for item in card["header"]["roleChips"]] == ["Физ лицо", "Инженер"]
+    general_fields = {field["label"]: field["value"] for field in card["generalInfo"]}
+    assert list(general_fields) == [
+        "Тип",
+        "ФИО",
+        "Email",
+        "Телефон",
+        "Регион",
+        "Дата регистрации",
+        "Последняя активность",
+        "Статус",
+        "Блокировка",
+    ]
+    assert general_fields["ФИО"] == "Иванов Иван Иванович"
+    assert list(general_fields.values())[5] == "2026.07.03 11:16"
+    assert list(general_fields.values())[6] == "2026.07.11 15:42"
+    assert "2026-07-03" not in list(general_fields.values())[5]
+    assert general_fields["Телефон"] == "+7 918 123-45-67"
+    assert "CUSTOMER" not in general_fields.values()
+    assert "ENGINEER_DESIGNER" not in general_fields.values()
+    assert card["companyInfo"] == []
+    assert card["employeeRoles"]["total"] == 0
+    assert card["selectedWorkspaceId"] is None
+    assert card["moduleAccessRows"]
+    assert any(
+        row["disabledReason"] == "Сначала привяжите пользователя к компании."
+        for row in card["moduleAccessRows"]
+        if not row["workspaceId"]
+    )
+    assert card["widgetAccessGroups"]
+    assert any(
+        widget["disabledReason"] == "Сначала привяжите пользователя к компании."
+        for group in card["widgetAccessGroups"]
+        for widget in group["widgets"]
+        if not group["workspaceId"] and group["moduleAllowed"]
+    )
+
+def test_user_profile_card_summary_exposes_unblock_action_for_blocked_user():
+    user = _user(UserRole.CUSTOMER)
+    user.status = UserStatus.BLOCKED
+    user_data = user_summary(user, include_permissions=True)
+    matrix = access_matrix_for_subject(
+        user_data,
+        workspaces=[],
+        roles=[],
+        permissions=active_permissions_for_user(user),
+    )
+    card = user_profile_card_summary(
+        user,
+        user_data=user_data,
+        workspaces=[],
+        access_matrix=matrix,
+        history=[],
+    )
+
+    assert card["header"]["blockLabel"] == "Заблокирован"
+    assert card["header"]["actions"] == [
+        {
+            "id": "toggle-block",
+            "label": "Разблокировать",
+            "actionType": "modal",
+            "target": "#danger-zone",
+            "enabled": True,
+            "tone": "success",
+        }
     ]
 
 
@@ -1451,9 +1577,12 @@ def test_admin_users_roles_template_has_sprint8_responsive_contracts():
     assert "position: sticky" in template
     assert ".overview-dashboard-grid" in template
     assert ".profile-hero-layout" in template
-    assert ".profile-meta-row" in template
+    assert ".profile-meta-row" not in template
     assert "data-active-tab" in template
     assert "data-module3-tab-link" in template
+    assert 'if (hash.startsWith("access-matrix")) return "access";' in template
+    assert 'if (hash.startsWith("overview")) return "overview";' in template
+    assert 'if (shell.dataset.module3Mode === "detail") return "detail";' in template
     assert "@media (max-width: 1440px)" in template
     assert "@media (max-width: 1366px)" in template
     assert ".ui-state.loading" in template
@@ -1471,6 +1600,16 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
         '<section class="detail">',
         1,
     )[0]
+    nav_section = template.split('<nav class="module3-nav"', 1)[1].split("</nav>", 1)[0]
+    detail_section = template.split('<section class="detail detail-drawer">', 1)[1].split("</section>", 1)[0]
+
+    assert 'href="#overview" data-module3-tab-link="overview"' in nav_section
+    assert 'href="#users" data-module3-tab-link="users"' in nav_section
+    assert 'href="#access-matrix" data-module3-tab-link="access"' in nav_section
+    assert "#profile-module-access" not in nav_section
+    assert 'href="/app/users-roles#users" data-module3-tab-link="users"' in detail_section
+    assert 'href="/api/' not in detail_section
+    assert 'data-module3-tab-link="users">Пользователи</a>' in detail_section
 
     assert "profile-card-shell" in template
     assert "profile-card-grid" in template
@@ -1696,18 +1835,26 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'profile-card-grid' in template
     assert 'card-scroll-list' in template
     assert 'profile-access-toggle' in template
+    assert 'access-state-chip' in template
     assert 'data-detail-row-toggle' not in template
     assert 'data-detail-access-kind="module"' in template
     assert 'data-detail-access-kind="widget"' in template
+    assert 'id="profile-widget-access"' in template
+    assert 'changes.some((checkbox) => checkbox.dataset.rowType === "WIDGET")' in template
+    assert 'window.location.hash = targetHash' in template
     assert 'data-detail-access-save' in template
     assert 'data-detail-access-reset' in template
     assert 'data-detail-access-save-status' in template
-    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access"' in template
-    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/widget-access"' in template
+    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access"' not in template
+    assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/widget-access"' not in template
     assert "applyModuleDependency" in template
     assert "requestForCheckbox" in template
+    assert "actionUrlForCheckbox" in template
+    assert "data-access-locked" in template
     assert "module3-detail-access-matrix-widths" not in template
     assert "row.reason" in template
+    assert "module_reason = row.reason or row.disabledReason" in template
+    assert "widget_reason = 'Недоступно: модуль закрыт' if not group.moduleAllowed else (widget.reason or widget.disabledReason)" in template
     assert "widget.reason" in template
     assert "ручной запрет ≠ тарифное ограничение" not in template
     assert "Тарифное ограничение не равно ручному запрету администратора" not in template
@@ -1715,24 +1862,27 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Оплата, подписки и тарифные страницы здесь не настраиваются" not in template
     assert "billing не реализуется" not in template
     assert "Открыть модуль" not in users_section
+    assert "Открыть все модули" not in users_section
+    assert "Открыть все виджеты" not in users_section
     assert "наследуется" not in template.lower()
     assert "Добавить пользователя" not in users_section
     assert "Создать пользователя" not in users_section
     assert "Основная информация" in template
     assert "Техническая информация" not in template
     assert "Показать технические сведения" not in template
+    assert "workspace, активными правами" not in template
     assert "Карточка компании" not in template
     assert "Карточка сотрудника компании" not in template
-    assert "Основной контакт" in template
+    assert "Основной контакт" not in template
     assert "Назначенный менеджер" in template
     assert "{{ detail.profileCard.header.initials }}" in template
     assert "{{ detail.profileCard.header.title[:18] }}" not in template
     assert 'data-profile-action="{{ action.id }}"' in template
     assert "{{ action.label }}" in template
-    assert "Редактировать доступы" in template
+    assert "Редактировать доступы" not in template
     assert "Заблокировать" in template
     assert "Разблокировать" in template
-    assert "Назначить доступ" in template
+    assert "Назначить доступ" not in template
     assert "Сотрудники и роли" in template
     assert "Роли и связи" in template
     assert "detail.profileCard.companyInfo" in template
@@ -1746,6 +1896,11 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Сотрудники пока не добавлены." in template
     assert "Показать всех" not in template
     assert "workspaceTypeLabel" in template
+    assert "employee.profileUrl" in template
+    assert "active_company.cardUrl" in template
+    assert "detail.profileCard.header.lastActivity" in template
+    assert "detail.profileCard.roleChips" in template
+    assert "Роли пользователя" in template
     assert "Индивидуальная матрица доступа пользователя" not in template
     assert "Источник доступа" not in template
     assert "По типу пользователя, Индивидуально переопределен или Системный" not in template

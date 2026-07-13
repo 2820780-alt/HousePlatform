@@ -1189,7 +1189,7 @@ async def get_user_role_admin_history(
     return {
         "actorRoleCodes": sorted(active_role_codes_for_user(actor)),
         "adminScope": admin_scope,
-        "auditPanel": audit_panel_summary(history, users=users, workspaces=workspaces),
+        "auditPanel": audit_panel_summary(history, users=[user], workspaces=workspaces),
         "fieldDescriptions": [
             {"label": "Дата и время", "description": "Когда было записано действие администратора."},
             {"label": "Администратор", "description": "Кто выполнил изменение."},
@@ -1294,7 +1294,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         "stateLegend": list(ADMIN_UI_STATE_LEGEND),
         "history": [audit_log_summary(item) for item in history],
         "changeHistory": change_history_for_admin_panel(history, user_data),
-        "auditPanel": audit_panel_summary(history, users=users, workspaces=workspaces),
+        "auditPanel": audit_panel_summary(history, users=[user], workspaces=workspaces),
         "settingsPanel": settings_panel_summary(admin_scope),
         "canDisable": can_disable_user(actor, user),
         "disableConfirmation": DISABLE_CONFIRMATION,
@@ -1917,27 +1917,33 @@ def user_profile_card_summary(
     status = str(user_data.get("status") or "").lower()
     is_blocked = status in {"blocked", "disabled", "deleted"}
     registered_at = _get_value(user, "created_at") or user_data.get("createdAt")
+    last_activity = user_data.get("updatedAt") or _get_value(user, "updated_at") or registered_at
+    registered_at_label = _profile_datetime_label(registered_at) or "не задана"
+    last_activity_label = _profile_datetime_label(last_activity) or "не задана"
     region = company_details.get("region") or primary_workspace.get("region") or "не задан"
+    role_chips = _profile_user_role_chips(user_data)
 
     return {
         "subjectType": "COMPANY" if company else "USER",
         "header": {
             "title": company_details.get("title") or user_data["name"],
             "initials": _profile_initials(company_details.get("title") or user_data["name"]),
-            "subtitle": user_data["name"] if company else user_data.get("email"),
+            "subtitle": "" if company else user_data.get("email"),
             "typeLabel": subject_type["typeLabel"],
             "typeCode": subject_type["typeCode"],
+            "roleChips": role_chips,
             "status": status,
             "statusLabel": _profile_status_label(status),
             "blockLabel": "Заблокирован" if is_blocked else "Без блокировки",
-            "primaryContact": user_data.get("email") or company_details.get("adminTitle") or "не задан",
-            "phone": user_data.get("phone") or "не задан",
+            "primaryContact": (company_details.get("contactEmail") if company else user_data.get("email")) or "не задан",
+            "phone": (company_details.get("contactPhone") if company else user_data.get("phone")) or "не задан",
             "region": region,
-            "registeredAt": registered_at or "не задана",
+            "registeredAt": company_details.get("registeredAtLabel") if company else registered_at_label,
+            "lastActivity": company_details.get("lastActivityLabel") if company else last_activity_label,
             "assignedManager": company_details.get("assignedManager") or "не назначен",
             "actions": _profile_header_actions(is_blocked),
         },
-        "generalInfo": _profile_general_info(user_data, subject_type, region, registered_at, is_blocked),
+        "generalInfo": _profile_general_info(user_data, subject_type, region, registered_at_label, last_activity_label, is_blocked),
         "companyInfo": company_details.get("fields") or [],
         "employeeRoles": employee_block,
         "moduleAccessRows": _profile_module_access_rows(user_data, access_matrix),
@@ -1953,6 +1959,7 @@ def user_profile_card_summary(
             ],
         },
         "selectedWorkspaceId": primary_workspace.get("workspaceId"),
+        "roleChips": role_chips,
     }
 
 
@@ -1964,28 +1971,12 @@ def _profile_initials(value: Any) -> str:
 def _profile_header_actions(is_blocked: bool) -> list[dict[str, Any]]:
     return [
         {
-            "id": "edit-access",
-            "label": "Редактировать доступы",
-            "actionType": "navigate",
-            "target": "#access-matrix-detail",
-            "enabled": True,
-            "tone": "default",
-        },
-        {
             "id": "toggle-block",
             "label": "Разблокировать" if is_blocked else "Заблокировать",
             "actionType": "modal",
             "target": "#danger-zone",
             "enabled": True,
-            "tone": "default" if is_blocked else "danger",
-        },
-        {
-            "id": "assign-access",
-            "label": "Назначить доступ",
-            "actionType": "navigate",
-            "target": "#access-matrix-detail",
-            "enabled": True,
-            "tone": "default",
+            "tone": "success" if is_blocked else "danger",
         },
     ]
 
@@ -1999,19 +1990,37 @@ def _profile_subject_type(user_data: dict[str, Any], company_details: dict[str, 
     return _directory_user_type(user_data)
 
 
+def _profile_user_role_chips(user_data: dict[str, Any]) -> list[dict[str, str]]:
+    type_order = {"PERSON": 0, "ENGINEER": 1, "CONTRACTOR": 2, "SUPPLIER": 3}
+    return sorted(_directory_user_types(user_data), key=lambda item: type_order.get(item["typeCode"], 99))
+
+
+def _directory_user_type(user_data: dict[str, Any]) -> dict[str, str]:
+    chips = _profile_user_role_chips(user_data)
+    if not chips:
+        return {"typeCode": "PERSON", "typeLabel": "Физ лицо"}
+    return {
+        "typeCode": chips[0]["typeCode"],
+        "typeLabel": " / ".join(item["typeLabel"] for item in chips),
+    }
+
+
 def _profile_general_info(
     user_data: dict[str, Any],
     subject_type: dict[str, str],
     region: str,
     registered_at: Any,
+    last_activity: Any,
     is_blocked: bool,
 ) -> list[dict[str, Any]]:
     return [
         _profile_field("Тип", subject_type["typeLabel"]),
+        _profile_field("ФИО", user_data.get("name") or "не задано"),
         _profile_field("Email", user_data.get("email") or "не задан"),
         _profile_field("Телефон", user_data.get("phone") or "не задан"),
         _profile_field("Регион", region or "не задан"),
         _profile_field("Дата регистрации", registered_at or "не задана"),
+        _profile_field("Последняя активность", last_activity or "не задана"),
         _profile_field("Статус", _profile_status_label(user_data.get("status"))),
         _profile_field("Блокировка", "Заблокирован" if is_blocked else "Без блокировки"),
     ]
@@ -2023,16 +2032,23 @@ def _profile_company_details(workspace: Workspace | None, company: dict[str, Any
     settings = _dict_value(_get_value(workspace, "settings"))
     company_type_label = _company_type_label(_workspace_type_value(workspace))
     inn = _settings_first(settings, "inn", "INN", "taxId", "tax_id") or _get_value(workspace, "organization_id")
+    contact_email = _settings_first(settings, "email", "contactEmail", "contact_email")
+    contact_phone = _settings_first(settings, "phone", "contactPhone", "contact_phone")
+    settings_region = _settings_first(settings, "region", "regionName", "activeRegion")
+    settings_city = _settings_first(settings, "city", "cityName")
+    region_label = ", ".join(part for part in [settings_region, settings_city] if part) or _company_region_label(company) or "не задан"
+    registered_at = _get_value(workspace, "created_at") or _get_value(workspace, "createdAt")
+    last_activity = _get_value(workspace, "updated_at") or _get_value(workspace, "updatedAt") or registered_at
+    registered_at_label = _profile_datetime_label(registered_at) or "не задана"
+    last_activity_label = _profile_datetime_label(last_activity) or "не задана"
     fields = [
-        _profile_field("Название компании", company["title"]),
         _profile_field("Тип компании", company_type_label),
-        _profile_field("Статус", company.get("statusLabel") or _profile_status_label(company.get("status"))),
-        _profile_field("Регион / город", _company_region_label(company) or "не задан"),
         _profile_field("ИНН", inn or "не задан"),
-        _profile_field("Email", _settings_first(settings, "email", "contactEmail", "contact_email") or "не задан"),
-        _profile_field("Телефон", _settings_first(settings, "phone", "contactPhone", "contact_phone") or "не задан"),
         _profile_field("КПП", _settings_first(settings, "kpp", "KPP") or "не задан"),
         _profile_field("ОГРН", _settings_first(settings, "ogrn", "OGRN") or "не задан"),
+        _profile_field("Email", contact_email or "не задан"),
+        _profile_field("Телефон", contact_phone or "не задан"),
+        _profile_field("Регион", region_label),
         _profile_field(
             "Юридический адрес",
             _settings_first(settings, "legalAddress", "legal_address", "juridicalAddress", "address") or "не задан",
@@ -2044,8 +2060,14 @@ def _profile_company_details(workspace: Workspace | None, company: dict[str, Any
         "typeCode": "SUPPLIER" if _workspace_type_value(workspace) in {"SUPPLIER", "MATERIAL_SUPPLIER"} else "COMPANY",
         "companyTypeLabel": company_type_label,
         "status": company.get("status"),
-        "region": _company_region_label(company),
+        "region": region_label,
         "adminTitle": company.get("adminTitle"),
+        "contactEmail": contact_email,
+        "contactPhone": contact_phone,
+        "registeredAt": registered_at,
+        "registeredAtLabel": registered_at_label,
+        "lastActivity": last_activity,
+        "lastActivityLabel": last_activity_label,
         "assignedManager": _settings_first(settings, "assignedManager", "assignedManagerName", "managerName", "manager"),
         "fields": fields,
     }
@@ -2076,23 +2098,28 @@ def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
         "remainingCount": max(0, len(active_members) - 5),
         "all": [
             {
+                "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
+                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId")),
                 "name": _get_value(_get_value(member, "user"), "name")
                 or _get_value(_get_value(member, "user"), "email")
                 or "Пользователь",
                 "roleTitle": role_label(_get_value(member, "roleCode") or _get_value(member, "role_code")),
                 "statusLabel": _profile_status_label(_get_value(member, "status")),
+                "contact": _get_value(_get_value(member, "user"), "email") or _get_value(_get_value(member, "user"), "phone") or "",
             }
             for member in active_members
         ],
         "recent": [
             {
                 "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
+                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId")),
                 "name": _get_value(_get_value(member, "user"), "name")
                 or _get_value(_get_value(member, "user"), "email")
                 or "Пользователь",
                 "roleTitle": role_label(_get_value(member, "roleCode") or _get_value(member, "role_code")),
                 "status": _enum_value(_get_value(member, "status")) or "ACTIVE",
                 "statusLabel": _profile_status_label(_get_value(member, "status")),
+                "contact": _get_value(_get_value(member, "user"), "email") or _get_value(_get_value(member, "user"), "phone") or "",
             }
             for member in active_members[:5]
         ],
@@ -2124,7 +2151,7 @@ def _profile_module_access_rows(user_data: dict[str, Any], access_matrix: dict[s
                 "workspaceId": row.get("workspaceId"),
                 "canOpen": bool(editable_cell.get("canOpen")),
                 "canClose": bool(editable_cell.get("canClose")),
-                "disabledReason": editable_cell.get("disabledReason") or (cell or {}).get("reason"),
+                "disabledReason": editable_cell.get("disabledReason") or (cell or {}).get("reason") or ("Сначала привяжите пользователя к компании." if not row.get("workspaceId") else ""),
             }
         )
     return rows
@@ -2157,7 +2184,9 @@ def _profile_widget_access_groups(access_matrix: dict[str, Any]) -> list[dict[st
                         "sourceLabel": _effective_access_source_label(_effective_access_source(widget)),
                         "canOpen": bool(widget.get("canOpen")),
                         "canClose": bool(widget.get("canClose")),
-                        "disabledReason": widget.get("disabledReason") or ("" if module_allowed else ACCESS_DENY_REASONS["WIDGET_REVOKED_BY_MODULE_DENY"]),
+                        "disabledReason": widget.get("disabledReason")
+                        or ("" if module_allowed else ACCESS_DENY_REASONS["WIDGET_REVOKED_BY_MODULE_DENY"])
+                        or ("Сначала привяжите пользователя к компании." if not row.get("workspaceId") else ""),
                     }
                     for widget in widgets
                 ],
@@ -2168,6 +2197,32 @@ def _profile_widget_access_groups(access_matrix: dict[str, Any]) -> list[dict[st
 
 def _profile_field(label: str, value: Any) -> dict[str, Any]:
     return {"label": label, "value": value if value not in {None, ""} else "не задан"}
+
+
+def _user_card_url(user_id: Any) -> str | None:
+    return f"/app/users-roles/users/{user_id}" if user_id not in {None, ""} else None
+
+
+def _profile_datetime_label(value: Any) -> str:
+    if value in {None, ""}:
+        return ""
+    parsed: datetime | None = None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        raw = str(value).strip()
+        for candidate in (raw, raw.replace("Z", "+00:00"), raw.replace(" ", "T", 1)):
+            try:
+                parsed = datetime.fromisoformat(candidate)
+                break
+            except ValueError:
+                continue
+    if parsed:
+        return parsed.strftime("%Y.%m.%d %H:%M")
+    raw_label = str(value).strip()
+    if len(raw_label) >= 16 and raw_label[4:5] == "." and raw_label[7:8] == ".":
+        return raw_label[:16]
+    return ""
 
 
 def _profile_status_label(status: Any) -> str:

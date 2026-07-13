@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -244,7 +244,7 @@
     }
     .system-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 16px;
     }
     .system-card {
@@ -1198,7 +1198,7 @@
     }
     .state-legend {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 8px;
     }
     .state-card {
@@ -1274,7 +1274,7 @@
     }
     .user-directory-summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 16px;
       padding: 16px 10px 22px;
     }
@@ -2392,24 +2392,7 @@
       font-weight: 700;
       overflow-wrap: anywhere;
     }
-    .profile-meta-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(119, 172, 255, 0.12);
-    }
-    .profile-meta-row div {
-      display: grid;
-      gap: 4px;
-      color: var(--text);
-      min-width: 0;
-    }
-    .profile-meta-row span {
-      color: var(--muted);
-      font-size: 12px;
-    }
+
     .hero-top {
       display: flex;
       justify-content: space-between;
@@ -2454,12 +2437,17 @@
     .access-card-row,
     .relation-card-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
       gap: 10px;
       align-items: center;
       min-width: 0;
       padding: 8px 0;
       border-bottom: 1px solid rgba(119, 172, 255, 0.08);
+    }
+    .access-card-row {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+    .relation-card-row {
+      grid-template-columns: minmax(0, 1fr) auto;
     }
     .access-card-row small,
     .relation-card-row small {
@@ -2468,10 +2456,27 @@
       color: var(--muted);
       overflow-wrap: anywhere;
     }
+    .profile-relation-link {
+      color: var(--text);
+      font-weight: 800;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(24, 215, 242, 0.34);
+      transition: color 0.18s ease, border-color 0.18s ease;
+    }
+    .profile-relation-link:hover,
+    .profile-relation-link:focus-visible {
+      color: var(--cyan);
+      border-color: rgba(24, 215, 242, 0.76);
+      outline: none;
+    }
     .access-row-title {
       display: grid;
       gap: 2px;
       min-width: 0;
+    }
+    .access-state-chip {
+      justify-self: end;
+      white-space: nowrap;
     }
     .profile-access-tools {
       display: flex;
@@ -2567,6 +2572,10 @@
     .btn.danger {
       border-color: rgba(255, 59, 127, 0.46);
       background: rgba(255, 59, 127, 0.1);
+    }
+    .btn.success {
+      border-color: rgba(33, 214, 142, 0.48);
+      background: rgba(33, 214, 142, 0.12);
     }
     .btn:disabled,
     select:disabled {
@@ -2772,7 +2781,6 @@
       .profile-hero-layout { grid-template-columns: 72px minmax(0, 1fr); }
       .profile-hero-layout .toolbar { grid-column: 1 / -1; }
       .profile-avatar { width: 72px; height: 72px; }
-      .profile-meta-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bulk-access-controls { grid-template-columns: 1fr; }
     }
     @media (max-width: 980px) {
@@ -2783,8 +2791,9 @@
       .module3-nav { position: static; min-height: auto; }
       .control-main { padding: 14px; }
       .user-directory-summary { grid-template-columns: 1fr; }
-      .profile-hero-layout,
-      .profile-meta-row { grid-template-columns: 1fr; }
+      .profile-hero-layout { grid-template-columns: 1fr; }
+      .access-card-row { grid-template-columns: minmax(0, 1fr) auto; }
+      .access-state-chip { justify-self: start; }
     }
     .module3-shell[data-active-tab="overview"] #users,
     .module3-shell[data-active-tab="overview"] .detail,
@@ -2893,7 +2902,7 @@
         </div>
         <a class="active" href="#overview" data-module3-tab-link="overview"><span class="module3-nav-icon" aria-hidden="true">▦</span><span>Обзор модуля</span></a>
         <a href="#users" data-module3-tab-link="users" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="USERS_DIRECTORY" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть пользователей" data-quick-action-route="/api/v1/admin/users-roles/view#users" data-quick-action-atom-card-accent="cyan"><span class="module3-nav-icon" aria-hidden="true">♙</span><span>Пользователи</span></a>
-        <a href="{% if detail %}#profile-module-access{% else %}#access-matrix{% endif %}" data-module3-tab-link="access" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="ACCESS_MATRIX" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть матрицу доступов" data-quick-action-route="/api/v1/admin/users-roles/view#access-matrix" data-quick-action-atom-card-accent="blue"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
+        <a href="#access-matrix" data-module3-tab-link="access" data-quick-action-candidate data-quick-action-source-module-code="MODULE_03_USERS_ROLES" data-quick-action-feature-code="ACCESS_MATRIX" data-quick-action-key="VIEW" data-quick-action-permission-key="VIEW" data-quick-action-title="Открыть матрицу доступов" data-quick-action-route="/api/v1/admin/users-roles/view#access-matrix" data-quick-action-atom-card-accent="blue"><span class="module3-nav-icon" aria-hidden="true">◇</span><span>Доступы</span></a>
         <div class="module3-nav-footer">
           <span>ATOM — единая платформа управления строительством</span>
           <span>Версия 1.0.0 · Май 2025</span>
@@ -4156,17 +4165,11 @@
                 <span class="chip {% if detail.profileCard.header.blockLabel == 'Без блокировки' %}ok{% else %}danger{% endif %}">{{ detail.profileCard.header.blockLabel }}</span>
               </div>
             </div>
-            <div class="toolbar" aria-label="Действия карточки: Редактировать доступы; Заблокировать или Разблокировать; Назначить доступ">
+            <div class="toolbar" aria-label="Действие карточки: Заблокировать или Разблокировать">
               {% for action in detail.profileCard.header.actions %}
-              <a class="btn {% if action.tone == 'danger' %}danger{% endif %}" href="{% if action.id in ['edit-access', 'assign-access'] %}#profile-module-access{% else %}{{ action.target }}{% endif %}" data-profile-action="{{ action.id }}">{{ action.label }}</a>
+              <a class="btn {% if action.tone == 'danger' %}danger{% elif action.tone == 'success' %}success{% endif %}" href="{{ action.target }}" data-profile-action="{{ action.id }}">{{ action.label }}</a>
               {% endfor %}
             </div>
-          </div>
-          <div class="profile-meta-row">
-            <div><span>Основной контакт</span><strong>{{ detail.profileCard.header.primaryContact }}</strong></div>
-            <div><span>Телефон</span><strong>{{ detail.profileCard.header.phone }}</strong></div>
-            <div><span>Регион</span><strong>{{ detail.profileCard.header.region }}</strong></div>
-            <div><span>Дата регистрации</span><strong>{{ detail.profileCard.header.registeredAt }}</strong></div>
           </div>
 
         </article>
@@ -4189,13 +4192,11 @@
                     {% endfor %}
                     <div><dt>Назначенный менеджер</dt><dd>{{ detail.profileCard.header.assignedManager }}</dd></div>
                     <div><dt>Дата регистрации</dt><dd>{{ detail.profileCard.header.registeredAt }}</dd></div>
-                    <div><dt>Последняя активность</dt><dd>{% if detail.changeHistory.rows %}{{ detail.changeHistory.rows[0].displayTimestampShort or detail.changeHistory.rows[0].timestampCompact or detail.changeHistory.rows[0].timestamp }}{% else %}не зафиксирована{% endif %}</dd></div>
+                    <div><dt>Последняя активность</dt><dd>{{ detail.profileCard.header.lastActivity }}</dd></div>
                   {% else %}
                     {% for field in detail.profileCard.generalInfo %}
                     <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div>
                     {% endfor %}
-                    <div><dt>ФИО</dt><dd>{{ detail.user.name }}</dd></div>
-                    <div><dt>Последняя активность</dt><dd>{% if detail.changeHistory.rows %}{{ detail.changeHistory.rows[0].displayTimestampShort or detail.changeHistory.rows[0].timestampCompact or detail.changeHistory.rows[0].timestamp }}{% else %}не зафиксирована{% endif %}</dd></div>
                   {% endif %}
                 </dl>
               </div>
@@ -4226,8 +4227,12 @@
                   {% for employee in detail.profileCard.employeeRoles.all %}
                   <div class="relation-card-row">
                     <div>
+                      {% if employee.profileUrl %}
+                      <a class="profile-relation-link" href="{{ employee.profileUrl }}">{{ employee.name }}</a>
+                      {% else %}
                       <strong>{{ employee.name }}</strong>
-                      <small>{{ employee.roleTitle }}</small>
+                      {% endif %}
+                      <small>{{ employee.roleTitle }}{% if employee.contact %} · {{ employee.contact }}{% endif %}</small>
                     </div>
                     <span class="chip ok">{{ employee.statusLabel }}</span>
                   </div>
@@ -4238,17 +4243,16 @@
                   <div class="detail-card-section">
                     <h4>Роли пользователя</h4>
                     <div class="code-list">
-                      {% if detail.user.roleTitle %}<span class="chip">{{ detail.user.roleTitle }}</span>{% endif %}
-                      {% for group in detail.user.groupTitles %}
-                      <span class="chip">{{ group }}</span>
+                      {% for role in detail.profileCard.roleChips %}
+                      <span class="chip">{{ role.typeLabel }}</span>
                       {% endfor %}
-                      {% if not detail.user.roleTitle and not detail.user.groupTitles %}<span class="muted">Роли пока не назначены.</span>{% endif %}
+                      {% if not detail.profileCard.roleChips %}<span class="muted">Роли пока не назначены.</span>{% endif %}
                     </div>
                   </div>
                   {% if detail.user.workspaces %}
                     {% set active_company = detail.user.workspaces[0] %}
                     <dl class="detail-kv">
-                      <div><dt>Компания</dt><dd>{{ active_company.workspaceTitle }}</dd></div>
+                      <div><dt>Компания</dt><dd>{% if active_company.cardUrl %}<a class="profile-relation-link" href="{{ active_company.cardUrl }}">{{ active_company.workspaceTitle }}</a>{% else %}{{ active_company.workspaceTitle }}{% endif %}</dd></div>
                       <div><dt>Тип компании</dt><dd>{{ active_company.workspaceTypeLabel or 'Компания' }}</dd></div>
                       <div><dt>Роль в компании</dt><dd>{{ active_company.roleTitle }}</dd></div>
                       <div><dt>Статус связи</dt><dd>{{ active_company.statusLabel }}</dd></div>
@@ -4259,8 +4263,12 @@
                       {% for employee in detail.profileCard.employeeRoles.all %}
                       <div class="relation-card-row">
                         <div>
+                          {% if employee.profileUrl %}
+                          <a class="profile-relation-link" href="{{ employee.profileUrl }}">{{ employee.name }}</a>
+                          {% else %}
                           <strong>{{ employee.name }}</strong>
-                          <small>{{ employee.roleTitle }}</small>
+                          {% endif %}
+                          <small>{{ employee.roleTitle }}{% if employee.contact %} · {{ employee.contact }}{% endif %}</small>
                         </div>
                         <span class="chip ok">{{ employee.statusLabel }}</span>
                       </div>
@@ -4296,8 +4304,10 @@
                      data-search-text="{{ row.moduleTitle|lower }} {{ row.accessLabel|lower }}">
                   <div class="access-row-title">
                     <strong>{{ row.moduleTitle }}</strong>
-                    <small>{% if row.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}{% if row.reason %} · {{ row.reason }}{% endif %}</small>
+                    {% set module_reason = row.reason or row.disabledReason %}
+                    {% if module_reason %}<small>{{ module_reason }}</small>{% endif %}
                   </div>
+                  <span class="chip access-state-chip {% if row.allowed %}ok{% elif row.disabledReason %}warn{% else %}danger{% endif %}">{% if row.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}</span>
                   <label class="profile-access-toggle" title="{{ row.disabledReason or row.reason }}">
                     <input type="checkbox"
                            data-detail-access-checkbox
@@ -4307,8 +4317,8 @@
                            data-module-code="{{ row.moduleCode }}"
                            data-workspace-id="{{ row.workspaceId or '' }}"
                            data-original="{{ 'true' if row.allowed else 'false' }}"
-                           data-system-disabled="{{ 'true' if not can_change else 'false' }}"
-                           data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access"
+                           data-access-locked="{{ 'true' if not can_change else 'false' }}"
+
                            {% if row.allowed %}checked{% endif %}
                            {% if not can_change %}disabled{% endif %}>
                     <span aria-hidden="true"></span>
@@ -4342,9 +4352,11 @@
                        data-search-text="{{ group.moduleTitle|lower }} {{ widget.title|lower }}">
                     <div class="access-row-title">
                       <strong>{{ widget.title }}</strong>
-                      <small>{{ group.moduleTitle }} · {% if widget.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}{% if not group.moduleAllowed %} · Недоступно: модуль закрыт{% elif widget.reason %} · {{ widget.reason }}{% endif %}</small>
+                      {% set widget_reason = 'Недоступно: модуль закрыт' if not group.moduleAllowed else (widget.reason or widget.disabledReason) %}
+                      <small>{{ group.moduleTitle }}{% if widget_reason %} · {{ widget_reason }}{% endif %}</small>
                     </div>
-                    <label class="profile-access-toggle" title="{{ widget.disabledReason or widget.reason }}">
+                    <span class="chip access-state-chip {% if widget.allowed %}ok{% elif widget_reason %}warn{% else %}danger{% endif %}">{% if widget.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}</span>
+                    <label class="profile-access-toggle" title="{{ widget_reason }}">
                       <input type="checkbox"
                              data-detail-access-checkbox
                              data-detail-access-kind="widget"
@@ -4354,8 +4366,8 @@
                              data-widget-code="{{ widget.widgetCode }}"
                              data-workspace-id="{{ group.workspaceId or '' }}"
                              data-original="{{ 'true' if widget.allowed else 'false' }}"
-                             data-system-disabled="{{ 'true' if (not group.workspaceId or (group.moduleAllowed and not widget_can_change)) else 'false' }}"
-                             data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/widget-access"
+                             data-access-locked="{{ 'true' if (not group.workspaceId or (group.moduleAllowed and not widget_can_change)) else 'false' }}"
+
                              {% if widget.allowed %}checked{% endif %}
                              {% if not widget_can_change %}disabled{% endif %}>
                       <span aria-hidden="true"></span>
@@ -4372,7 +4384,7 @@
         {% else %}
         <article class="hero-card">
           <h2>Выберите пользователя</h2>
-          <div class="muted">Откроется карточка с ролями, workspace, активными правами, формами назначения и журналом изменений.</div>
+          <div class="muted">Откроется карточка с ролями, активными правами, формами назначения и журналом изменений.</div>
         </article>
         {% endif %}
       </section>
@@ -4386,10 +4398,11 @@
       if (!shell) return;
 
       const tabForHash = () => {
-        if (shell.dataset.module3Mode === "detail") return "detail";
-        const hash = (window.location.hash || "#overview").replace("#", "");
+        const hash = (window.location.hash || "").replace("#", "");
         if (hash.startsWith("access-matrix")) return "access";
         if (hash.startsWith("users") || hash.startsWith("companies") || hash.startsWith("company-employees") || hash.startsWith("physical-users")) return "users";
+        if (hash.startsWith("overview")) return "overview";
+        if (shell.dataset.module3Mode === "detail") return "detail";
         return "overview";
       };
 
@@ -4609,7 +4622,7 @@
         checks
           .filter((checkbox) => checkbox.dataset.rowType === "WIDGET" && checkbox.dataset.parentId === moduleRowId && checkbox.dataset.userTypeCode === userTypeCode)
           .forEach((widgetCheckbox) => {
-            const systemDisabled = widgetCheckbox.dataset.systemDisabled === "true";
+            const accessLocked = widgetCheckbox.dataset.accessLocked === "true";
             const blockedByModule = !moduleAllowed;
             const cell = widgetCheckbox.closest("[data-access-user-type-cell]");
             widgetCheckbox.dataset.blockedByModule = String(blockedByModule);
@@ -4875,6 +4888,11 @@
       const statusText = matrix.querySelector("[data-detail-access-save-status]");
 
       const originalValue = (checkbox) => checkbox.dataset.original === "true";
+      const actionUrlForCheckbox = (checkbox) => {
+        const userId = (window.location.pathname.match(/\/users\/([^\/?#]+)/) || [])[1] || "";
+        const suffix = checkbox.dataset.detailAccessKind === "module" ? "module-access" : "widget-access";
+        return ["", "api", "v1", "admin", "users-roles", "view", "users", encodeURIComponent(userId), suffix].join("/");
+      };
       const setStatus = (state) => {
         if (!statusText) return;
         statusText.dataset.state = state;
@@ -4904,7 +4922,7 @@
         checks
           .filter((checkbox) => checkbox.dataset.rowType === "WIDGET" && checkbox.dataset.parentId === moduleRowId)
           .forEach((widgetCheckbox) => {
-            const systemDisabled = widgetCheckbox.dataset.systemDisabled === "true";
+            const accessLocked = widgetCheckbox.dataset.accessLocked === "true";
             const cell = widgetCheckbox.closest(".matrix-access-cell");
             widgetCheckbox.dataset.blockedByModule = String(!moduleAllowed);
             if (cell) cell.dataset.blockedByModule = String(!moduleAllowed);
@@ -4920,7 +4938,7 @@
               widgetCheckbox.checked = widgetCheckbox.dataset.moduleDisabledValue === "true";
               delete widgetCheckbox.dataset.moduleDisabledValue;
             }
-            widgetCheckbox.disabled = systemDisabled;
+            widgetCheckbox.disabled = accessLocked;
           });
       };
       const syncDependencies = () => {
@@ -4932,9 +4950,9 @@
         });
       };
       const requestForCheckbox = async (checkbox) => {
-        const actionUrl = checkbox.getAttribute("data-detail-access-action-url");
+        const actionUrl = actionUrlForCheckbox(checkbox);
         const workspaceId = checkbox.dataset.workspaceId || "";
-        if (!actionUrl || !workspaceId) throw new Error("Нет доступного контекста для сохранения.");
+        if (!workspaceId) throw new Error("Нет доступного контекста для сохранения.");
         const body = new URLSearchParams();
         body.set("workspace_id", workspaceId);
         body.set("access_level", checkbox.checked ? "VIEW" : "NO_ACCESS");
@@ -4993,7 +5011,10 @@
             await requestForCheckbox(checkbox);
           }
           setStatus("success");
-          window.location.hash = "profile-module-access";
+          const targetHash = changes.some((checkbox) => checkbox.dataset.rowType === "WIDGET")
+            ? "profile-widget-access"
+            : "profile-module-access";
+          window.location.hash = targetHash;
           window.location.reload();
         } catch (error) {
           setStatus("error");
