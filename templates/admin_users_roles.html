@@ -2434,14 +2434,18 @@
     .profile-card-relations .card-scroll-list {
       max-height: 250px;
     }
+    .profile-access-list {
+      max-height: 268px;
+    }
     .access-card-row,
     .relation-card-row {
       display: grid;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
       min-width: 0;
-      padding: 8px 0;
+      padding: 6px 0;
       border-bottom: 1px solid rgba(119, 172, 255, 0.08);
+      font-size: 13px;
     }
     .access-card-row {
       grid-template-columns: minmax(0, 1fr) auto auto;
@@ -2452,8 +2456,10 @@
     .access-card-row small,
     .relation-card-row small {
       display: block;
-      margin-top: 2px;
+      margin-top: 1px;
       color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
       overflow-wrap: anywhere;
     }
     .profile-relation-link {
@@ -2471,12 +2477,24 @@
     }
     .access-row-title {
       display: grid;
-      gap: 2px;
+      gap: 1px;
       min-width: 0;
+    }
+    .access-row-title strong {
+      font-size: 13px;
+      line-height: 1.25;
     }
     .access-state-chip {
       justify-self: end;
       white-space: nowrap;
+      padding: 3px 7px;
+      font-size: 10px;
+      line-height: 1.2;
+    }
+    .access-state-chip.muted {
+      border-color: rgba(119, 172, 255, 0.18);
+      color: #7385a4;
+      background: rgba(119, 172, 255, 0.04);
     }
     .profile-access-tools {
       display: flex;
@@ -2494,8 +2512,8 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 42px;
-      height: 24px;
+      width: 36px;
+      height: 20px;
       flex: 0 0 auto;
     }
     .profile-access-toggle input {
@@ -2505,11 +2523,11 @@
       cursor: pointer;
     }
     .profile-access-toggle span {
-      width: 42px;
-      height: 24px;
-      border: 1px solid rgba(119, 172, 255, 0.32);
+      width: 36px;
+      height: 20px;
+      border: 1px solid rgba(255, 89, 89, 0.42);
       border-radius: 999px;
-      background: rgba(10, 20, 44, 0.86);
+      background: rgba(255, 89, 89, 0.12);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
       transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
     }
@@ -2518,10 +2536,10 @@
       position: absolute;
       top: 4px;
       left: 5px;
-      width: 16px;
-      height: 16px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      background: #6f87a8;
+      background: #ff8a8a;
       transition: transform .16s ease, background .16s ease;
     }
     .profile-access-toggle input:checked + span {
@@ -2530,12 +2548,18 @@
       box-shadow: 0 0 16px rgba(24, 215, 242, 0.2);
     }
     .profile-access-toggle input:checked + span::after {
-      transform: translateX(16px);
+      transform: translateX(14px);
       background: var(--cyan);
     }
     .profile-access-toggle input:disabled + span {
-      opacity: 0.45;
-      filter: grayscale(0.25);
+      opacity: 0.42;
+      border-color: rgba(119, 172, 255, 0.18);
+      background: rgba(119, 172, 255, 0.07);
+      box-shadow: none;
+      filter: grayscale(0.35);
+    }
+    .profile-access-toggle input:disabled + span::after {
+      background: #72839f;
     }
     .profile-access-toggle input:disabled {
       cursor: not-allowed;
@@ -4255,7 +4279,7 @@
                       <div><dt>Компания</dt><dd>{% if active_company.cardUrl %}<a class="profile-relation-link" href="{{ active_company.cardUrl }}">{{ active_company.workspaceTitle }}</a>{% else %}{{ active_company.workspaceTitle }}{% endif %}</dd></div>
                       <div><dt>Тип компании</dt><dd>{{ active_company.workspaceTypeLabel or 'Компания' }}</dd></div>
                       <div><dt>Роль в компании</dt><dd>{{ active_company.roleTitle }}</dd></div>
-                      <div><dt>Статус связи</dt><dd>{{ active_company.statusLabel }}</dd></div>
+                      <div><dt>Статус связи</dt><dd>{{ active_company.relationshipStatusLabel or active_company.statusLabel }}</dd></div>
                     </dl>
                     {% if detail.profileCard.employeeRoles.all %}
                     <div class="detail-card-section">
@@ -4287,11 +4311,6 @@
                 <div>
                   <h3>Доступ к модулям</h3>
                 </div>
-                <div class="profile-access-tools">
-                  <span class="chip"><strong>{{ detail.accessContextForCabinet.allowedModuleCodes|length }}</strong> открыто</span>
-                  <button class="btn" type="submit" data-detail-access-save disabled>Сохранить</button>
-                  <button class="btn" type="button" data-detail-access-reset disabled>Сбросить</button>
-                </div>
               </div>
               <div class="card-scroll-list profile-access-list">
                 {% for row in detail.profileCard.moduleAccessRows %}
@@ -4307,7 +4326,8 @@
                     {% set module_reason = row.reason or row.disabledReason %}
                     {% if module_reason %}<small>{{ module_reason }}</small>{% endif %}
                   </div>
-                  <span class="chip access-state-chip {% if row.allowed %}ok{% elif row.disabledReason %}warn{% else %}danger{% endif %}">{% if row.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}</span>
+                  {% set module_unavailable = (not can_change) and module_reason %}
+                  <span class="chip access-state-chip {% if row.allowed %}ok{% elif module_unavailable %}muted{% else %}warn{% endif %}">{% if row.allowed %}Доступ предоставлен{% elif module_unavailable %}Недоступно{% else %}Доступ ограничен{% endif %}</span>
                   <label class="profile-access-toggle" title="{{ row.disabledReason or row.reason }}">
                     <input type="checkbox"
                            data-detail-access-checkbox
@@ -4328,7 +4348,6 @@
                 <div class="empty">Модули для доступа пока не найдены.</div>
                 {% endfor %}
               </div>
-              <div class="profile-access-save-status" data-detail-access-save-status data-state="clean">Изменения не сохранены</div>
             </section>
 
             <section class="detail-card profile-access-card" id="profile-widget-access">
@@ -4336,7 +4355,6 @@
                 <div>
                   <h3>Доступ к виджетам</h3>
                 </div>
-                <span class="chip"><strong>{{ detail.accessContextForCabinet.allowedWidgetCodes|length }}</strong> открыто</span>
               </div>
               <div class="card-scroll-list profile-access-list">
                 {% for group in detail.profileCard.widgetAccessGroups %}
@@ -4355,7 +4373,8 @@
                       {% set widget_reason = 'Недоступно: модуль закрыт' if not group.moduleAllowed else (widget.reason or widget.disabledReason) %}
                       <small>{{ group.moduleTitle }}{% if widget_reason %} · {{ widget_reason }}{% endif %}</small>
                     </div>
-                    <span class="chip access-state-chip {% if widget.allowed %}ok{% elif widget_reason %}warn{% else %}danger{% endif %}">{% if widget.allowed %}Доступ предоставлен{% else %}Доступ закрыт{% endif %}</span>
+                    {% set widget_unavailable = ((not widget_can_change) and widget_reason) or (not group.moduleAllowed) %}
+                    <span class="chip access-state-chip {% if widget.allowed %}ok{% elif widget_unavailable %}muted{% else %}warn{% endif %}">{% if widget.allowed %}Доступ предоставлен{% elif widget_unavailable %}Недоступно{% else %}Доступ ограничен{% endif %}</span>
                     <label class="profile-access-toggle" title="{{ widget_reason }}">
                       <input type="checkbox"
                              data-detail-access-checkbox
@@ -4971,34 +4990,7 @@
         if (!response.ok) throw new Error("Не удалось сохранить изменение доступа.");
       };
 
-      checks.forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-          if (checkbox.dataset.rowType === "MODULE") {
-            applyModuleDependency(checkbox);
-          } else if (checkbox.checked) {
-            const parent = matchingModuleCheckbox(checkbox.dataset.parentId || "");
-            if (!parent || !parent.checked) {
-              checkbox.checked = false;
-              checkbox.disabled = true;
-            }
-          }
-          updateDirtyState();
-        });
-      });
-
-      resetButton?.addEventListener("click", () => {
-        checks.forEach((checkbox) => {
-          checkbox.checked = originalValue(checkbox);
-          delete checkbox.dataset.moduleDisabledValue;
-          delete checkbox.dataset.blockedByModule;
-          const cell = checkbox.closest(".matrix-access-cell");
-          if (cell) delete cell.dataset.blockedByModule;
-        });
-        syncDependencies();
-        updateDirtyState();
-      });
-      form?.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      const persistChanges = async () => {
         const changes = changedChecks().sort((left, right) => {
           if (left.dataset.rowType === right.dataset.rowType) return 0;
           return left.dataset.rowType === "MODULE" ? -1 : 1;
@@ -5020,6 +5012,38 @@
           setStatus("error");
           if (saveButton) saveButton.disabled = false;
         }
+      };
+
+      checks.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          if (checkbox.dataset.rowType === "MODULE") {
+            applyModuleDependency(checkbox);
+          } else if (checkbox.checked) {
+            const parent = matchingModuleCheckbox(checkbox.dataset.parentId || "");
+            if (!parent || !parent.checked) {
+              checkbox.checked = false;
+              checkbox.disabled = true;
+            }
+          }
+          updateDirtyState();
+          persistChanges();
+        });
+      });
+
+      resetButton?.addEventListener("click", () => {
+        checks.forEach((checkbox) => {
+          checkbox.checked = originalValue(checkbox);
+          delete checkbox.dataset.moduleDisabledValue;
+          delete checkbox.dataset.blockedByModule;
+          const cell = checkbox.closest(".matrix-access-cell");
+          if (cell) delete cell.dataset.blockedByModule;
+        });
+        syncDependencies();
+        updateDirtyState();
+      });
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await persistChanges();
       });
 
       syncDependencies();

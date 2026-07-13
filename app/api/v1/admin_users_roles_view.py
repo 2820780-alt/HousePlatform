@@ -65,7 +65,12 @@ async def _render_user_card(request: Request, db: DBSession, user_id: str):
     overview = await get_user_role_admin_overview(db, actor)
     try:
         parsed_user_id = UUID(str(user_id))
-        detail = await get_user_role_admin_detail(db, parsed_user_id, actor)
+        detail = await get_user_role_admin_detail(
+            db,
+            parsed_user_id,
+            actor,
+            profile_subject=request.query_params.get("profile"),
+        )
     except ValueError:
         return _render_user_card_error(request, overview, status_code=404)
     except HTTPException as exc:

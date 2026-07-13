@@ -1361,6 +1361,7 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
     assert {item["roleTitle"] for item in card["employeeRoles"]["recent"]} >= {"Администратор компании", "Инженер-проектировщик"}
     assert any(item["contact"] for item in card["employeeRoles"]["all"])
     assert all(item["profileUrl"].startswith("/app/users-roles/users/") for item in card["employeeRoles"]["all"])
+    assert all(item["profileUrl"].endswith("?profile=user") for item in card["employeeRoles"]["all"])
     assert all("/api/" not in item["profileUrl"] for item in card["employeeRoles"]["all"])
 
     module_row = next(row for row in card["moduleAccessRows"] if row["moduleCode"] == "MODULE_11_ANALYTICS")
@@ -1375,6 +1376,67 @@ def test_user_profile_card_summary_exposes_company_roles_and_effective_access():
         {"source": "USER_OVERRIDE", "label": "Индивидуально переопределен"},
         {"source": "SYSTEM", "label": "Системный"},
     ]
+
+def test_company_employee_profile_route_opens_person_card_with_company_link():
+    company_admin = _user(UserRole.CUSTOMER)
+    company_admin.name = "Сидоров Иван"
+    company = _company_workspace()
+    company.name = "ООО СтройПроект Юг"
+    company.workspace_type = "CONTRACTOR"
+    employee = _user(UserRole.CONTRACTOR)
+    employee.name = "Иванов Петр Сергеевич"
+    admin_member = _workspace_member(company_admin, company, COMPANY_ADMIN_ROLE_CODE)
+    employee_member = _workspace_member(employee, company, "COMPANY_MANAGER")
+    company_admin.workspace_members = [admin_member]
+    employee.workspace_members = [employee_member]
+    company.members = [admin_member, employee_member]
+
+    company_user_data = user_summary(company_admin, include_permissions=True)
+    apply_company_context_to_user_summary(company_user_data, [company])
+    company_matrix = access_matrix_for_subject(
+        company_user_data,
+        workspaces=[company],
+        roles=[],
+        permissions=active_permissions_for_user(company_admin),
+    )
+    company_card = user_profile_card_summary(
+        company_admin,
+        user_data=company_user_data,
+        workspaces=[company],
+        access_matrix=company_matrix,
+        history=[],
+    )
+    employee_link = next(item for item in company_card["employeeRoles"]["all"] if item["name"] == "Иванов Петр Сергеевич")
+    assert employee_link["userId"] == str(employee.id)
+    assert employee_link["profileUrl"] == f"/app/users-roles/users/{employee.id}?profile=user"
+    assert "/api/" not in employee_link["profileUrl"]
+
+    employee_user_data = user_summary(employee, include_permissions=True)
+    apply_company_context_to_user_summary(employee_user_data, [company])
+    employee_matrix = access_matrix_for_subject(
+        employee_user_data,
+        workspaces=[company],
+        roles=[],
+        permissions=active_permissions_for_user(employee),
+    )
+    employee_card = user_profile_card_summary(
+        employee,
+        user_data=employee_user_data,
+        workspaces=[company],
+        access_matrix=employee_matrix,
+        history=[],
+        profile_subject="user",
+    )
+
+    assert employee_card["subjectType"] == "USER"
+    assert employee_card["header"]["title"] == "Иванов Петр Сергеевич"
+    assert employee_card["companyInfo"] == []
+    active_company = employee_user_data["workspaces"][0]
+    assert active_company["workspaceTitle"] == "ООО СтройПроект Юг"
+    assert active_company["roleTitle"] == "Руководитель компании"
+    assert active_company["relationshipStatusLabel"] == "Активна"
+    assert active_company["cardUrl"] == f"/app/users-roles/users/{company_admin.id}"
+    assert "/api/" not in active_company["cardUrl"]
 
 def test_user_profile_card_summary_exposes_individual_engineer_roles_without_company():
     user = _user(UserRole.CUSTOMER)

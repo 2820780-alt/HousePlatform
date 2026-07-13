@@ -272,6 +272,7 @@ MONETIZATION_READY_FIELDS: tuple[str, ...] = (
 )
 
 ROLE_LABELS[COMPANY_ADMIN_ROLE_CODE] = "Администратор компании"
+ROLE_LABELS["COMPANY_MANAGER"] = "Руководитель компании"
 ROLE_LABELS["ENGINEER_DESIGNER"] = "Инженер-проектировщик"
 ROLE_LABELS["PROCUREMENT_MANAGER"] = "Менеджер закупок"
 ROLE_LABELS["PROJECT_MANAGER"] = "Менеджер проекта"
@@ -1202,7 +1203,13 @@ async def get_user_role_admin_history(
     }
 
 
-async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any) -> dict[str, Any]:
+async def get_user_role_admin_detail(
+    db: AsyncSession,
+    user_id: UUID,
+    actor: Any,
+    *,
+    profile_subject: str | None = None,
+) -> dict[str, Any]:
     require_user_role_admin(actor)
     admin_scope = admin_scope_for_actor(actor)
     user = await _get_user(db, user_id)
@@ -1235,6 +1242,7 @@ async def get_user_role_admin_detail(db: AsyncSession, user_id: UUID, actor: Any
         workspaces=workspaces,
         access_matrix=access_matrix,
         history=history,
+        profile_subject=profile_subject,
     )
     await write_audit_event(
         db,
@@ -1807,6 +1815,7 @@ def workspace_member_summary(member: WorkspaceMember) -> dict[str, Any]:
         "roleTitle": role_label(member.roleCode),
         "status": member.status,
         "statusLabel": _profile_status_label(member.status),
+        "relationshipStatusLabel": _profile_relationship_status_label(member.status),
     }
 
 
@@ -1907,10 +1916,12 @@ def user_profile_card_summary(
     workspaces: list[Workspace],
     access_matrix: dict[str, Any],
     history: list[AuditLog],
+    profile_subject: str | None = None,
 ) -> dict[str, Any]:
     primary_workspace = _primary_user_workspace(user_data)
     workspace = _find_workspace_by_id(workspaces, primary_workspace.get("workspaceId"))
-    company = company_summary(workspace) if workspace and _is_company_workspace(workspace) else None
+    force_user_profile = str(profile_subject or "").lower() in {"user", "person", "employee"}
+    company = company_summary(workspace) if workspace and _is_company_workspace(workspace) and not force_user_profile else None
     company_details = _profile_company_details(workspace, company)
     employee_block = _profile_employee_role_block(workspace)
     subject_type = _profile_subject_type(user_data, company_details)
@@ -2099,7 +2110,7 @@ def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
         "all": [
             {
                 "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
-                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId")),
+                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId"), force_user_profile=True),
                 "name": _get_value(_get_value(member, "user"), "name")
                 or _get_value(_get_value(member, "user"), "email")
                 or "Пользователь",
@@ -2112,7 +2123,7 @@ def _profile_employee_role_block(workspace: Workspace | None) -> dict[str, Any]:
         "recent": [
             {
                 "userId": str(_get_value(member, "user_id") or _get_value(member, "userId") or ""),
-                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId")),
+                "profileUrl": _user_card_url(_get_value(member, "user_id") or _get_value(member, "userId"), force_user_profile=True),
                 "name": _get_value(_get_value(member, "user"), "name")
                 or _get_value(_get_value(member, "user"), "email")
                 or "Пользователь",
@@ -2199,8 +2210,22 @@ def _profile_field(label: str, value: Any) -> dict[str, Any]:
     return {"label": label, "value": value if value not in {None, ""} else "не задан"}
 
 
-def _user_card_url(user_id: Any) -> str | None:
-    return f"/app/users-roles/users/{user_id}" if user_id not in {None, ""} else None
+def _user_card_url(user_id: Any, *, force_user_profile: bool = False) -> str | None:
+    if user_id in {None, ""}:
+        return None
+    suffix = "?profile=user" if force_user_profile else ""
+    return f"/app/users-roles/users/{user_id}{suffix}"
+
+
+def _profile_relationship_status_label(status: Any) -> str:
+    normalized = str(_enum_value(status) or status or "").lower()
+    if normalized == "active":
+        return "Активна"
+    if normalized in {"blocked", "disabled", "deleted"}:
+        return "Заблокирована"
+    if normalized in {"pending", "invited", "moderation", "on_moderation"}:
+        return "На модерации"
+    return _profile_status_label(status)
 
 
 def _profile_datetime_label(value: Any) -> str:
