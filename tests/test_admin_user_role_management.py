@@ -1472,28 +1472,23 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
         1,
     )[0]
 
-    assert "Кабинеты и контекст" in template
-    assert 'hidden data-system-section="module8-context-diagnostics"' in template
-    assert "MODULE_08_PARTNER_PORTAL" in template
-    assert "Кабинетный контур не рекомендует и не создает быстрые действия" in template
-    assert "Кабинетный контекст хранится как техническая информация" in template
-    assert "Список кабинетов пользователя" in template
-    assert "Настройки видимости" in template
-    assert "Настройки видимости placeholder" not in template
-    assert "Настройки предложений" in template
-    assert "Настройки предложений placeholder" not in template
-    assert "Рекомендованные виджеты" in template
-    assert "Пользовательские быстрые действия" in template
+    assert "profile-card-shell" in template
+    assert "profile-card-grid" in template
+    assert "Доступ к модулям" in template
+    assert "Доступ к виджетам" in template
+    assert "Роли и связи" in template
+    assert "Сотрудники и роли" in template
+    assert "card-scroll-list" in template
+    assert "profile-access-toggle" in template
+    assert "Кабинеты и контекст" not in template
+    assert 'hidden data-system-section="module8-context-diagnostics"' not in template
+    assert "MODULE_08_PARTNER_PORTAL" not in template
+    assert "Кабинетный контекст хранится как техническая информация" not in template
     assert "Рекомендованные быстрые действия" not in template
-    assert "Виджеты и доступ" in template
-    assert "Реестр виджетов хранит названия и права доступа" in template
-    assert "Данные для карточек отдает модуль-владелец" in template
-    assert "Панель:" in template
-    assert "Настройки конкретного экземпляра виджета" in template
+    assert "Виджеты и доступ" not in template
+    assert "Реестр виджетов хранит названия и права доступа" not in template
+    assert "Настройки конкретного экземпляра виджета" not in template
     assert "WidgetSettingsSchema" not in template
-    assert "Для этого виджета пока нет дополнительных настроек." in template
-    assert "пользовательские действия" in template
-    assert "закреплено на панели" in template
     assert "QuickActionRegistry управляет" not in template
     assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' not in template
     assert "Обзор модуля" in overview
@@ -1611,11 +1606,9 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Кто изменил" in template
     assert "Когда изменил" in template
     assert "Для кого изменил" in template
-    assert "История показывает, кто выполнил действие, что изменилось и к кому относится решение" in template
     assert "Module3AuditLogEntry" not in template
     assert "actorId:" not in template
     assert "objectId:" not in template
-    assert "Детали:" in template
     assert "Реестр модулей" not in nav
     assert "Виджеты и доступ" not in nav
     assert "Быстрые действия" not in nav
@@ -1692,20 +1685,18 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Виджет недоступен, потому что модуль выключен" in template
     assert "widgetCheckbox.disabled = systemDisabled || blockedByModule;" in template
     assert "JSON.stringify(buildPayload())" in template
-    assert "Матрица доступа выбранного пользователя" in template
-    assert "{% for column in detail.accessMatrix.columns %}" in template
-    assert "{{ column }}" in template
-    assert "{% for cell in row.cells %}" in template
-    assert 'id="access-matrix-detail"' in template
-    assert "Матрица доступа для выбранного пользователя" in template
-    assert "Если модуль закрыт для сотрудника" in template
-    assert "Нередактируемые ячейки показывают причину ограничения" in template
+    assert 'id="profile-module-access"' in template
+    assert 'id="profile-widget-access"' in template
+    assert "Карточка пользователя: информация, связи, модули и виджеты" in template
+    assert "Недоступно: модуль закрыт" in template
+    assert "Доступ к модулям" in template
+    assert "Доступ к виджетам" in template
     assert 'data-detail-access-matrix' in template
     assert 'data-detail-access-form' in template
-    assert 'data-detail-access-table' in template
-    assert 'data-detail-access-search' in template
-    assert 'data-detail-access-toggle-all' in template
-    assert 'data-detail-row-toggle' in template
+    assert 'profile-card-grid' in template
+    assert 'card-scroll-list' in template
+    assert 'profile-access-toggle' in template
+    assert 'data-detail-row-toggle' not in template
     assert 'data-detail-access-kind="module"' in template
     assert 'data-detail-access-kind="widget"' in template
     assert 'data-detail-access-save' in template
@@ -1713,11 +1704,10 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert 'data-detail-access-save-status' in template
     assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/module-access"' in template
     assert 'data-detail-access-action-url="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/widget-access"' in template
-    assert "Виджет:" in template
     assert "applyModuleDependency" in template
     assert "requestForCheckbox" in template
-    assert "module3-detail-access-matrix-widths" in template
-    assert "cell.reason" in template
+    assert "module3-detail-access-matrix-widths" not in template
+    assert "row.reason" in template
     assert "widget.reason" in template
     assert "ручной запрет ≠ тарифное ограничение" not in template
     assert "Тарифное ограничение не равно ручному запрету администратора" not in template
@@ -1729,12 +1719,12 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Добавить пользователя" not in users_section
     assert "Создать пользователя" not in users_section
     assert "Основная информация" in template
-    assert "Техническая информация" in template
-    assert "Показать технические сведения" in template
+    assert "Техническая информация" not in template
+    assert "Показать технические сведения" not in template
     assert "Карточка компании" not in template
     assert "Карточка сотрудника компании" not in template
     assert "Основной контакт" in template
-    assert "Назначенный менеджер" not in template
+    assert "Назначенный менеджер" in template
     assert "{{ detail.profileCard.header.initials }}" in template
     assert "{{ detail.profileCard.header.title[:18] }}" not in template
     assert 'data-profile-action="{{ action.id }}"' in template
@@ -1743,45 +1733,44 @@ def test_admin_users_roles_template_contains_module8_bridge_copy():
     assert "Заблокировать" in template
     assert "Разблокировать" in template
     assert "Назначить доступ" in template
-    assert "Сотрудники компании" in template
+    assert "Сотрудники и роли" in template
+    assert "Роли и связи" in template
     assert "detail.profileCard.companyInfo" in template
+    assert "detail.profileCard.employeeRoles.all" in template
     assert "Статус связи" in template
-    assert "Администрирование компании" in template
+    assert "Администрирование компании" not in template
     assert "Роль в компании" in template
-    assert "Статус связи" in template
-    assert "Данные компании" in template
-    assert "Перейти к компании" in template
+    assert "Данные компании" not in template
+    assert "Перейти к компании" not in template
     assert "Пользователь пока не связан с компанией." in template
     assert "Сотрудники пока не добавлены." in template
-    assert "Показать всех" in template
+    assert "Показать всех" not in template
     assert "workspaceTypeLabel" in template
-    assert "Индивидуальная матрица доступа пользователя" in template
-    assert "Источник доступа" in template
-    assert "По типу пользователя, Индивидуально переопределен или Системный" in template
+    assert "Индивидуальная матрица доступа пользователя" not in template
+    assert "Источник доступа" not in template
+    assert "По типу пользователя, Индивидуально переопределен или Системный" not in template
     assert "Включить модуль" not in template
     assert "Выключить модуль" not in template
     assert "Если модуль не разрешен, его виджеты нельзя включить" not in template
-    assert "Назначить роль" in template
-    assert "Связать с компанией" in template
-    assert "Назначить администратора" in template
-    assert "Назначить администратора компании" in template
-    assert "Снять администратора компании" in template
-    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin"' in template
-    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin/revoke"' in template
-    assert "Доступы сотрудников можно менять только в пределах доступа своей компании" in template
+    assert "Назначить роль" not in template
+    assert "Связать с компанией" not in template
+    assert "Назначить администратора" not in template
+    assert "Назначить администратора компании" not in template
+    assert "Снять администратора компании" not in template
+    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin"' not in template
+    assert 'action="/api/v1/admin/users-roles/view/users/{{ detail.user.id }}/company-admin/revoke"' not in template
+    assert "Доступы сотрудников можно менять только в пределах доступа своей компании" not in template
     assert "тарифные ограничения: внутри карточки" not in template
-    assert "кто, когда, что изменил" in template
-    assert "Фильтр истории по автору" in template
-    assert "Фильтр истории по дате" in template
-    assert "Фильтр истории по действию" in template
-    assert "Фильтр истории по типу объекта" in template
-    assert "Фильтр истории по модулю" in template
-    assert "Фильтр истории по виджету" in template
-    assert "Срез по объектам" in template
-    assert "Модули и виджеты" in template
-    assert "Было" in template
-    assert "Стало" in template
-    assert "Причина:" in template
+    assert "Фильтр истории по автору" not in template
+    assert "Фильтр истории по дате" not in template
+    assert "Фильтр истории по действию" not in template
+    assert "Фильтр истории по типу объекта" not in template
+    assert "Фильтр истории по модулю" not in template
+    assert "Фильтр истории по виджету" not in template
+    assert "Срез по объектам" not in template
+    assert "Было" not in template
+    assert "Стало" not in template
+    assert "Причина:" not in template
 
     state_text = " ".join(state["description"] for state in ADMIN_UI_STATE_LEGEND)
     assert "Виджет недоступен: нет прав на данные модуля" in state_text
@@ -1843,7 +1832,7 @@ def test_module3_final_visual_unification_contract():
     assert "орбита" not in template.lower()
     assert "Dashboard-клон" not in template
     assert 'id="quick-actions" hidden data-system-section="quick-action-diagnostics"' not in template
-    assert 'hidden data-system-section="module8-context-diagnostics"' in template
+    assert 'hidden data-system-section="module8-context-diagnostics"' not in template
 
 
 def test_module8_cabinet_admin_preview_exposes_context_placeholders():
