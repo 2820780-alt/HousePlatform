@@ -22,7 +22,7 @@ def test_material_knowledge_seed_loads_from_repository():
     assert registry.module == "Module 1 Material Knowledge Core"
     assert len(registry.taxonomy) == 19
     assert len(registry.characteristic_schemas) == 12
-    assert len(registry.role_mappings) == 6
+    assert len(registry.role_mappings) == 10
     assert len(registry.compatibility_rules) == 6
     assert len(registry.alternative_rules) == 5
     assert len(registry.unit_conversions) == 7
@@ -76,6 +76,10 @@ def test_registry_returns_role_mappings_and_rules():
 
     assert board_roles is not None
     assert "formwork_board" in board_roles.roles
+    assert "roof_batten" in board_roles.roles
+    assert "foundation_reinforcement" in registry.role_mapping("rebar").roles
+    assert "outer_wall_block" in registry.role_mapping("aerated_concrete_block").roles
+    assert "facade_insulation" in registry.role_mapping("mineral_wool_slab").roles
     assert any(rule.status == "warning" for rule in gypsum_rules)
     assert any(rule.to_material == "gypsum_board_moisture_resistant" for rule in gkl_alternatives)
 

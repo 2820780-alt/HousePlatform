@@ -532,9 +532,10 @@
       "materialGroup": "board",
       "roles": [
         "formwork_board",
-        "roof_batten_candidate",
-        "temporary_structure",
-        "auxiliary_lumber"
+        "roof_batten",
+        "temporary_flooring",
+        "auxiliary_lumber",
+        "fence_structure"
       ]
     },
     {
@@ -542,12 +543,31 @@
       "roles": [
         "strip_foundation_concrete",
         "slab_foundation_concrete",
+        "pile_concrete",
         "bond_beam_concrete",
         "lintel_concrete",
         "blind_area_concrete",
         "concrete_path",
         "fence_post_concrete",
         "porch_concrete"
+      ]
+    },
+    {
+      "materialGroup": "rebar",
+      "roles": [
+        "foundation_reinforcement",
+        "slab_reinforcement",
+        "bond_beam_reinforcement",
+        "lintel_reinforcement",
+        "masonry_reinforcement"
+      ]
+    },
+    {
+      "materialGroup": "aerated_concrete_block",
+      "roles": [
+        "outer_wall_block",
+        "inner_wall_block",
+        "partition_block"
       ]
     },
     {
@@ -562,16 +582,34 @@
     {
       "materialGroup": "gypsum_board_moisture_resistant",
       "roles": [
-        "wet_zone_sheeting_candidate",
-        "bathroom_partition_sheet",
-        "ceiling_sheet"
+        "wall_lining",
+        "partition_sheathing",
+        "ceiling_sheathing",
+        "wet_room_sheathing"
       ]
     },
     {
       "materialGroup": "metal_tile",
       "roles": [
         "roof_covering",
-        "requires_fastening_pattern"
+        "mansard_roof_covering"
+      ]
+    },
+    {
+      "materialGroup": "mineral_wool_slab",
+      "roles": [
+        "facade_insulation",
+        "roof_insulation",
+        "partition_sound_insulation",
+        "floor_insulation"
+      ]
+    },
+    {
+      "materialGroup": "deep_penetration_primer",
+      "roles": [
+        "plaster_substrate_primer",
+        "tile_substrate_primer",
+        "absorbent_substrate_primer"
       ]
     },
     {
