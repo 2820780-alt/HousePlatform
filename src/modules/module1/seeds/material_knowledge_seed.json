@@ -630,7 +630,7 @@
       "requiredAdditionalResources": [
         "deep_penetration_primer"
       ],
-      "explanation": "Газоблок требует грунтовки глубокого проникновения перед штукатуркой."
+      "explanation": "Aerated concrete substrate requires deep penetration primer before plaster."
     },
     {
       "context": "plaster",
@@ -641,7 +641,7 @@
         "adhesion_primer",
         "concrete_contact"
       ],
-      "explanation": "Гладкий бетон требует адгезионной подготовки."
+      "explanation": "Smooth concrete needs adhesion primer or concrete contact before plaster."
     },
     {
       "context": "bathroom_tile",
@@ -651,13 +651,63 @@
         "liquid_waterproofing",
         "waterproofing_tape"
       ],
-      "explanation": "Мокрые зоны требуют гидроизоляции."
+      "explanation": "Wet tile zones require waterproofing system before tile installation."
     },
     {
       "context": "wet_zone",
       "material": "gypsum_board_regular",
       "status": "forbidden",
-      "explanation": "Обычный ГКЛ нельзя использовать в мокрых зонах."
+      "explanation": "Regular gypsum board is forbidden in wet zones."
+    },
+    {
+      "context": "wet_zone",
+      "material": "gypsum_board_moisture_resistant",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "liquid_waterproofing",
+        "waterproofing_tape"
+      ],
+      "explanation": "Moisture-resistant gypsum board is allowed in wet rooms with waterproofing in wet zones."
+    },
+    {
+      "context": "exterior_tile",
+      "material": "tile_adhesive",
+      "status": "forbidden",
+      "explanation": "Indoor-only tile adhesive must not be used for exterior tile context."
+    },
+    {
+      "context": "warm_floor_tile",
+      "material": "tile_adhesive",
+      "status": "warning",
+      "explanation": "Warm floor tile context requires adhesive support for heated floors."
+    },
+    {
+      "context": "facade_insulation",
+      "material": "mineral_wool_slab",
+      "status": "allowed",
+      "requiredAdditionalResources": [
+        "facade_adhesive",
+        "facade_dowel"
+      ],
+      "explanation": "Facade mineral wool requires facade adhesive and dowels."
+    },
+    {
+      "context": "facade_insulation",
+      "material": "acoustic_wool",
+      "status": "forbidden",
+      "explanation": "Soft acoustic wool must not be auto-approved for facade insulation."
+    },
+    {
+      "context": "foundation_insulation",
+      "material": "xps_board",
+      "status": "allowed",
+      "explanation": "XPS can be used for foundation insulation when strength and water resistance are confirmed."
+    },
+    {
+      "context": "foundation",
+      "material": "ready_mix_concrete",
+      "status": "allowed",
+      "explanation": "Ready-mix concrete can be evaluated for foundation contexts by class and mobility without Module 1 quantity calculation."
     },
     {
       "context": "metal_tile_roof",
@@ -669,7 +719,19 @@
         "windproof_membrane",
         "roofing_fastener"
       ],
-      "explanation": "Металлочерепица требует кровельного пирога и fastening pattern."
+      "explanation": "Metal tile roof requires roof build-up resources and fastening pattern hint."
+    },
+    {
+      "context": "roof_batten",
+      "material": "board",
+      "status": "allowed",
+      "explanation": "Board can be used as roof batten when width, thickness and length are known."
+    },
+    {
+      "context": "formwork_board",
+      "material": "board",
+      "status": "allowed",
+      "explanation": "Board can be used for formwork when dimensions are known."
     },
     {
       "context": "flexible_shingle_roof",
@@ -680,10 +742,9 @@
         "roofing_underlayment",
         "roofing_nail"
       ],
-      "explanation": "Мягкая кровля требует сплошного основания и подкладочного ковра."
+      "explanation": "Flexible shingle roof requires solid base and underlayment."
     }
-  ],
-  "alternativeRules": [
+  ],  "alternativeRules": [
     {
       "from": "gypsum_plaster",
       "to": "gypsum_plaster",

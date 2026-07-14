@@ -23,7 +23,7 @@ def test_material_knowledge_seed_loads_from_repository():
     assert len(registry.taxonomy) == 19
     assert len(registry.characteristic_schemas) == 12
     assert len(registry.role_mappings) == 10
-    assert len(registry.compatibility_rules) == 6
+    assert len(registry.compatibility_rules) == 15
     assert len(registry.alternative_rules) == 13
     assert len(registry.unit_conversions) == 7
 
@@ -81,6 +81,10 @@ def test_registry_returns_role_mappings_and_rules():
     assert "outer_wall_block" in registry.role_mapping("aerated_concrete_block").roles
     assert "facade_insulation" in registry.role_mapping("mineral_wool_slab").roles
     assert any(rule.status == "warning" for rule in gypsum_rules)
+    assert any(rule.material == "gypsum_board_moisture_resistant" and rule.context == "wet_zone" for rule in registry.compatibility_rules)
+    assert any(rule.material == "mineral_wool_slab" and rule.context == "facade_insulation" for rule in registry.compatibility_rules)
+    assert any(rule.material == "board" and rule.context == "roof_batten" for rule in registry.compatibility_rules)
+    assert any(rule.material == "ready_mix_concrete" and rule.context == "foundation" for rule in registry.compatibility_rules)
     assert any(rule.to_material == "gypsum_board_moisture_resistant" for rule in gkl_alternatives)
     assert any(rule.alternative_type == "full_analog" for rule in registry.alternative_rules)
     assert any(rule.alternative_type == "conditional_replacement" for rule in registry.alternative_rules)
