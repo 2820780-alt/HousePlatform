@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -383,8 +383,40 @@
       color: var(--muted);
       display: none;
     }
+    .m1-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .m1-preview-card {
+      min-height: 180px;
+      border: 1px solid rgba(125, 156, 255, 0.2);
+      border-radius: 6px;
+      padding: 12px;
+      background: rgba(7, 13, 33, 0.46);
+      overflow: hidden;
+    }
+    .m1-preview-card h3 { margin: 0 0 8px; font-size: 15px; }
+    .m1-preview-list { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; scrollbar-width: none; }
+    .m1-preview-list::-webkit-scrollbar { width: 0; height: 0; }
+    .m1-preview-row { border-top: 1px solid rgba(125, 156, 255, 0.14); padding-top: 8px; }
+    .m1-preview-row:first-child { border-top: 0; padding-top: 0; }
+    .m1-preview-title { font-weight: 700; line-height: 1.25; }
+    .m1-preview-meta { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .m1-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .m1-chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px; background: rgba(7, 13, 33, 0.72); color: var(--muted); font-size: 12px; }
+    .m1-chip.ok { border-color: rgba(44, 210, 132, 0.46); color: #8bf0bd; background: rgba(44, 210, 132, 0.1); }
+    .m1-chip.warn { border-color: rgba(245, 165, 36, 0.48); color: #ffd38b; background: rgba(245, 165, 36, 0.1); }
+    .m1-chip.danger { border-color: rgba(255, 59, 127, 0.48); color: #ff9dbc; background: rgba(255, 59, 127, 0.1); }
+    .m1-quality-bar { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(125, 156, 255, 0.14); margin-top: 7px; }
+    .m1-quality-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #10d7e8, #2cd284); }
+    .m1-quality-bar.warn span { background: linear-gradient(90deg, #f5a524, #10d7e8); }
+    .m1-quality-bar.danger span { background: linear-gradient(90deg, #ff3b7f, #f5a524); }
+    .m1-preview-note { margin-top: 10px; color: var(--muted); line-height: 1.4; }
     @media (max-width: 1180px) {
       .form-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .m1-preview-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .run-action-row { grid-template-columns: 1fr; }
       .file-source-fields { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .run-button { min-width: 0; }
@@ -393,6 +425,7 @@
       main, header { padding-left: 14px; padding-right: 14px; }
       table { min-width: 680px; }
       .form-grid { grid-template-columns: 1fr; }
+      .m1-preview-grid { grid-template-columns: 1fr !important; }
       .file-source-fields { grid-template-columns: 1fr; }
       .run-head { display: block; }
       .run-button { min-width: 0; }
@@ -690,6 +723,129 @@
       {% endfor %}
     </div>
 
+    {% if module1_ui_preview %}
+    <section id="m1-ui-preview">
+      <h2>Лаборатория данных Module №1</h2>
+      <div class="muted">Предпросмотр только для чтения: новые слои Material Data Hub поверх существующего Material Hub. Здесь нет автозаписи, объединения дублей, запуска парсинга или генерации файлов.</div>
+      <div class="m1-chip-row">
+        {% for section_name in module1_ui_preview.sections %}
+          <span class="m1-chip">{{ section_name }}</span>
+        {% endfor %}
+      </div>
+      <div class="m1-preview-grid">
+        <div class="m1-preview-card">
+          <h3>Материалы</h3>
+          <div class="m1-preview-list">
+            {% for item in module1_ui_preview.materials %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ item.title }}</div>
+                <div class="m1-preview-meta">{{ item.category or item.group }} · {{ item.status }}</div>
+                <div class="m1-quality-bar {{ item.qualityTone }}"><span style="width: {{ item.qualityScore }}%"></span></div>
+                <div class="m1-chip-row">
+                  <span class="m1-chip {{ 'ok' if item.readyForModule2 else 'warn' }}">{{ 'Готовность к расчетам' if item.readyForModule2 else 'Не хватает данных' }}</span>
+                  <span class="m1-chip {{ 'ok' if item.readyForModule5 else 'warn' }}">{{ 'Готово для смет' if item.readyForModule5 else 'Нужны цена/участник' }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="m1-preview-card">
+          <h3>Качество данных</h3>
+          <div class="m1-preview-list">
+            {% for item in module1_ui_preview.quality.readiness %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ item.label }}</div>
+                <div class="m1-preview-meta">Материалов: {{ item.count }}</div>
+              </div>
+            {% endfor %}
+            {% for issue in module1_ui_preview.quality.topIssues %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ issue.title }}</div>
+                <div class="m1-preview-meta">{{ issue.dimension }} · {{ issue.severity }}</div>
+              </div>
+            {% endfor %}
+            {% if not module1_ui_preview.quality.topIssues %}
+              <div class="empty">Критичных проблем в предпросмотре нет.</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="m1-preview-card">
+          <h3>Лаборатория извлечения</h3>
+          <div class="m1-preview-title">{{ module1_ui_preview.workbench.sampleTitle }}</div>
+          <div class="m1-preview-meta">{{ module1_ui_preview.workbench.source }} · {{ module1_ui_preview.workbench.materialGroup }}</div>
+          <div class="m1-preview-list" style="margin-top:10px">
+            {% for trace in module1_ui_preview.workbench.fieldTrace %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ trace.field }}</div>
+                <div class="m1-preview-meta">→ {{ trace.mappedTo }} · {{ trace.status }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="m1-chip-row">
+            <span class="m1-chip ok">без HTTP</span>
+            <span class="m1-chip ok">без OCR</span>
+            <span class="m1-chip ok">без записи</span>
+          </div>
+        </div>
+
+        <div class="m1-preview-card">
+          <h3>Эталонные материалы</h3>
+          <div class="m1-preview-list">
+            {% for item in module1_ui_preview.goldenMaterials['items'] %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ item.title }}</div>
+                <div class="m1-preview-meta">{{ item.group }} · {{ item.validationStatus }} · качество {{ item.qualityScore }}%</div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% if module1_ui_preview.selectedMaterial %}
+      <div class="m1-preview-grid" style="grid-template-columns: repeat(3, minmax(240px, 1fr));">
+        <div class="m1-preview-card">
+          <h3>Карточка материала</h3>
+          <div class="m1-preview-title">{{ module1_ui_preview.selectedMaterial.mainInfo.name }}</div>
+          <div class="m1-preview-meta">{{ module1_ui_preview.selectedMaterial.mainInfo.category or module1_ui_preview.selectedMaterial.mainInfo.group }} · {{ module1_ui_preview.selectedMaterial.mainInfo.baseUnit }}</div>
+          <div class="m1-preview-list" style="margin-top:10px">
+            {% for characteristic in module1_ui_preview.selectedMaterial.characteristics[:6] %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ characteristic.name }}</div>
+                <div class="m1-preview-meta">{{ characteristic.value }}{% if characteristic.unit %} {{ characteristic.unit }}{% endif %}</div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="m1-preview-card">
+          <h3>Документы, участники и цены</h3>
+          <div class="m1-chip-row">
+            <span class="m1-chip">Документы: {{ module1_ui_preview.selectedMaterial.documents.count }}</span>
+            <span class="m1-chip">Участники: {{ module1_ui_preview.selectedMaterial.participants.count }}</span>
+            <span class="m1-chip">Наблюдения цен: {{ module1_ui_preview.selectedMaterial.priceObservations.count }}</span>
+          </div>
+          <div class="m1-preview-note">Документы и источники отображаются как evidence/preview. Сайт не считается документом, файлы не скачиваются.</div>
+        </div>
+        <div class="m1-preview-card">
+          <h3>Экспортные пакеты</h3>
+          <div class="m1-preview-list">
+            {% for package in module1_ui_preview.exportPreview.packages %}
+              <div class="m1-preview-row">
+                <div class="m1-preview-title">{{ package.title }}</div>
+                <div class="m1-preview-meta">{{ package.readiness }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="m1-chip-row">
+            <span class="m1-chip ok">без PDF/XLS/CSV</span>
+            <span class="m1-chip ok">без записи</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
     <section>
       <h2>Блок 4 · Поставщики и источники</h2>
       <div class="muted">Карточка поставщика готовится внутри Material Hub. Будущая связь с кабинетами хранится только как link metadata; Module №8 здесь не создается и не редактируется.</div>

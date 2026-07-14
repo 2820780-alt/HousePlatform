@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
@@ -42,6 +42,7 @@ from app.services.material_hub_first_wave import (
     first_wave_source_status_label,
     is_first_wave_blocked_source,
 )
+from app.services.module1_ui_view_models import build_module1_ui_preview_context
 from app.services.supplier_price_standard import (
     TEMPLATE_BASENAME,
     build_supplier_price_template_csv,
@@ -255,6 +256,7 @@ async def material_hub_view(
             "supplier_workspace_summary": await load_supplier_workspace_summary(db),
             "supplier_cards": await load_supplier_cards(db),
             "work_rates_workspace_summary": await load_work_rates_workspace_summary(db),
+            "module1_ui_preview": build_module1_ui_preview_context(),
             "in_stock_only": in_stock_only,
         },
     )
