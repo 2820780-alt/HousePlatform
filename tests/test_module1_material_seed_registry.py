@@ -24,7 +24,7 @@ def test_material_knowledge_seed_loads_from_repository():
     assert len(registry.characteristic_schemas) == 12
     assert len(registry.role_mappings) == 10
     assert len(registry.compatibility_rules) == 6
-    assert len(registry.alternative_rules) == 5
+    assert len(registry.alternative_rules) == 13
     assert len(registry.unit_conversions) == 7
 
 
@@ -82,6 +82,9 @@ def test_registry_returns_role_mappings_and_rules():
     assert "facade_insulation" in registry.role_mapping("mineral_wool_slab").roles
     assert any(rule.status == "warning" for rule in gypsum_rules)
     assert any(rule.to_material == "gypsum_board_moisture_resistant" for rule in gkl_alternatives)
+    assert any(rule.alternative_type == "full_analog" for rule in registry.alternative_rules)
+    assert any(rule.alternative_type == "conditional_replacement" for rule in registry.alternative_rules)
+    assert all(rule.alternative_type != "conditional_alternative" for rule in registry.alternative_rules)
 
 
 def test_registry_returns_unit_conversions():
@@ -112,6 +115,15 @@ def test_seed_validation_reports_invalid_schema_shape():
 
     assert "characteristicSchemas[rebar].required must not be empty" in errors
     assert "key material group has no required characteristics: rebar" in errors
+
+
+def test_seed_validation_rejects_legacy_alternative_type():
+    raw = json.loads(SEED_PATH.read_text(encoding="utf-8"))
+    raw["alternativeRules"][0]["type"] = "conditional_alternative"
+
+    errors = validate_material_knowledge_seed(raw)
+
+    assert any("alternativeRules[0].type must be one of" in error for error in errors)
 
 
 def test_invalid_seed_file_raises_without_side_effects(tmp_path):

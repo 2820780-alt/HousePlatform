@@ -686,11 +686,27 @@
   "alternativeRules": [
     {
       "from": "gypsum_plaster",
+      "to": "gypsum_plaster",
+      "type": "technical_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "compare_consumption_and_layer_limits"
+    },
+    {
+      "from": "gypsum_plaster",
       "to": "cement_plaster",
-      "type": "conditional_alternative",
+      "type": "conditional_replacement",
       "recalculationRequired": true,
       "technologyChangeRequired": false,
       "condition": "depends_on_room_and_substrate"
+    },
+    {
+      "from": "gypsum_board_moisture_resistant",
+      "to": "gypsum_board_moisture_resistant",
+      "type": "full_analog",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "match_thickness_type_and_application"
     },
     {
       "from": "gypsum_board_regular",
@@ -711,7 +727,7 @@
     {
       "from": "xps_board",
       "to": "eps_board",
-      "type": "conditional_alternative",
+      "type": "conditional_replacement",
       "recalculationRequired": true,
       "technologyChangeRequired": false,
       "condition": "not_foundation_or_high_moisture_or_high_load"
@@ -723,6 +739,54 @@
       "recalculationRequired": true,
       "technologyChangeRequired": true,
       "condition": "user_changes_floor_technology"
+    },
+    {
+      "from": "ready_mix_concrete",
+      "to": "ready_mix_concrete",
+      "type": "full_analog",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "match_class_mobility_frost_and_water_resistance"
+    },
+    {
+      "from": "rebar",
+      "to": "rebar",
+      "type": "full_analog",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "match_diameter_steel_class_and_profile"
+    },
+    {
+      "from": "board",
+      "to": "board",
+      "type": "conditional_replacement",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "depends_on_usage_role_and_dimensions"
+    },
+    {
+      "from": "mineral_wool_slab",
+      "to": "mineral_wool_slab",
+      "type": "technical_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "match_density_thickness_and_application"
+    },
+    {
+      "from": "metal_tile",
+      "to": "metal_tile",
+      "type": "technical_alternative",
+      "recalculationRequired": true,
+      "technologyChangeRequired": false,
+      "condition": "match_profile_effective_width_coating_and_thickness"
+    },
+    {
+      "from": "tile_adhesive",
+      "to": "tile_adhesive",
+      "type": "full_analog",
+      "recalculationRequired": false,
+      "technologyChangeRequired": false,
+      "condition": "match_indoor_outdoor_frost_and_heated_floor_support"
     }
   ],
   "unitConversions": [

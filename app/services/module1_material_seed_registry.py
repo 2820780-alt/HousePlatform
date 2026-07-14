@@ -325,12 +325,24 @@ def validate_material_knowledge_seed(raw: Mapping[str, Any]) -> tuple[str, ...]:
         if item.get("status") not in {"allowed", "warning", "forbidden"}:
             errors.append(f"compatibilityRules[{index}].status must be allowed, warning, or forbidden")
 
+    allowed_alternative_types = {
+        "full_analog",
+        "technical_alternative",
+        "functional_alternative",
+        "conditional_replacement",
+        "forbidden_replacement",
+    }
     for index, item in enumerate(raw["alternativeRules"]):
         if not isinstance(item, dict):
             errors.append(f"alternativeRules[{index}] must be an object")
             continue
         for key in ("from", "to", "type"):
             _validate_required_str(item, key, f"alternativeRules[{index}]", errors)
+        if item.get("type") not in allowed_alternative_types:
+            errors.append(
+                f"alternativeRules[{index}].type must be one of: "
+                f"{', '.join(sorted(allowed_alternative_types))}"
+            )
 
     for index, item in enumerate(raw["unitConversions"]):
         if not isinstance(item, dict):
