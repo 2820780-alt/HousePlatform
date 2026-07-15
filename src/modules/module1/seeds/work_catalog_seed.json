@@ -1,0 +1,3269 @@
+{
+  "version": "1.0",
+  "module": "module1",
+  "domain": "work_catalog",
+  "description": "Нормализованный справочник работ для ИЖС и ремонта квартир. Не содержит цен, исполнителей, контактов, источников сайтов или данных парсинга.",
+  "rules": {
+    "work_cost_source": "Стоимость работ вводится только исполнителем / подрядчиком в будущем личном кабинете.",
+    "forbidden_sources": [
+      "site_parsing",
+      "web_scraping",
+      "analyzer_collection",
+      "external_work_price_observation"
+    ],
+    "no_prices_in_catalog": true,
+    "no_providers_in_catalog": true,
+    "no_contacts_in_catalog": true
+  },
+  "units": {
+    "m2": "м²",
+    "m3": "м³",
+    "linear_meter": "м.п.",
+    "piece": "шт",
+    "point": "точка",
+    "set": "комплект",
+    "visit": "выезд",
+    "object": "объект",
+    "hour": "час",
+    "shift": "смена",
+    "kg": "кг",
+    "ton": "т",
+    "bag": "мешок",
+    "trip": "рейс"
+  },
+  "groups": [
+    {
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы"
+    },
+    {
+      "work_group": "demolition",
+      "work_category": "Демонтаж"
+    },
+    {
+      "work_group": "earthworks",
+      "work_category": "Земляные работы"
+    },
+    {
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы"
+    },
+    {
+      "work_group": "reinforcement",
+      "work_category": "Армирование"
+    },
+    {
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка"
+    },
+    {
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы"
+    },
+    {
+      "work_group": "roofing",
+      "work_category": "Кровля"
+    },
+    {
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление"
+    },
+    {
+      "work_group": "facade",
+      "work_category": "Фасад"
+    },
+    {
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы"
+    },
+    {
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены"
+    },
+    {
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки"
+    },
+    {
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы"
+    },
+    {
+      "work_group": "ceilings",
+      "work_category": "Потолки"
+    },
+    {
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны"
+    },
+    {
+      "work_group": "electrical",
+      "work_category": "Электрика"
+    },
+    {
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение"
+    },
+    {
+      "work_group": "sewerage",
+      "work_category": "Канализация"
+    },
+    {
+      "work_group": "heating",
+      "work_category": "Отопление"
+    },
+    {
+      "work_group": "ventilation",
+      "work_category": "Вентиляция"
+    },
+    {
+      "work_group": "landscaping",
+      "work_category": "Благоустройство"
+    },
+    {
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота"
+    },
+    {
+      "work_group": "waste_disposal",
+      "work_category": "Вывоз мусора"
+    }
+  ],
+  "works": [
+    {
+      "work_code": "preparation_vyezd_specialista_na_obekt",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Выезд специалиста на объект",
+      "default_unit": "visit",
+      "allowed_units": [
+        "visit"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "site_specialist_visit",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Выезд специалиста на объект. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_obmer_pomescheniya",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Обмер помещения",
+      "default_unit": "object",
+      "allowed_units": [
+        "object"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "apartment",
+      "module2_usage_hint": "apartment_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Обмер помещения. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_obmer_chastnogo_doma_obekta",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Обмер частного дома / объекта",
+      "default_unit": "object",
+      "allowed_units": [
+        "object"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "private_house_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Обмер частного дома / объекта. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_razmetka_pyatna_zastroyki",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Разметка пятна застройки",
+      "default_unit": "object",
+      "allowed_units": [
+        "object"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "building_footprint_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Разметка пятна застройки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_razmetka_pomescheniy",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Разметка помещений",
+      "default_unit": "object",
+      "allowed_units": [
+        "object"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "room_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Разметка помещений. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_raschistka_uchastka",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Расчистка участка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "site_clearing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Расчистка участка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_vremennoe_ukrytie_i_zaschita_poverhnostey",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Временное укрытие и защита поверхностей",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "surface_protection",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Временное укрытие и защита поверхностей. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_uborka_stroitelnogo_musora_vruchnuyu",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Уборка строительного мусора вручную",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "manual_waste_cleanup",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Уборка строительного мусора вручную. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "preparation_pogruzka_stroitelnogo_musora",
+      "work_group": "preparation",
+      "work_category": "Подготовительные работы",
+      "work_name": "Погрузка строительного мусора",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waste_loading",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Погрузка строительного мусора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_oboev",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж обоев",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "apartment",
+      "module2_usage_hint": "wallpaper_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж обоев. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_plitki_so_sten",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж плитки со стен",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж плитки со стен. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_plitki_s_pola",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж плитки с пола",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж плитки с пола. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_shtukaturki",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж штукатурки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "plaster_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж штукатурки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_shpaklevki_kraski",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж шпаклевки / краски",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "paint_putty_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж шпаклевки / краски. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_styazhki",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж стяжки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "screed_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж стяжки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_peregorodok_gkl",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж перегородок ГКЛ",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "gkl_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж перегородок ГКЛ. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_kirpichnyh_peregorodok",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж кирпичных перегородок",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "brick_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж кирпичных перегородок. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_dvernogo_bloka",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж дверного блока",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "door_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж дверного блока. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_okonnogo_bloka",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж оконного блока",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "window_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж оконного блока. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_napolnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж напольного покрытия",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_covering_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж напольного покрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_potolochnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж потолочного покрытия",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "ceiling_finish_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж потолочного покрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_santehniki",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж сантехники",
+      "default_unit": "point",
+      "allowed_units": [
+        "point"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "plumbing_fixture_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж сантехники. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "demolition_demontazh_elektriki",
+      "work_group": "demolition",
+      "work_category": "Демонтаж",
+      "work_name": "Демонтаж электрики",
+      "default_unit": "point",
+      "allowed_units": [
+        "point"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "electrical_point_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж электрики. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_razrabotka_grunta_vruchnuyu",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Разработка грунта вручную",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "manual_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Разработка грунта вручную. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_razrabotka_grunta_tehnikoy",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Разработка грунта техникой",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "machine_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Разработка грунта техникой. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_ryte_transhei_vruchnuyu",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Рытье траншеи вручную",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "manual_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Рытье траншеи вручную. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_ryte_transhei_tehnikoy",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Рытье траншеи техникой",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "machine_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Рытье траншеи техникой. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_planirovka_osnovaniya",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Планировка основания",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "base_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Планировка основания. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_obratnaya_zasypka",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Обратная засыпка",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "backfilling",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Обратная засыпка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_ustroystvo_peschanoy_podushki",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Устройство песчаной подушки",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "sand_bedding",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство песчаной подушки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_ustroystvo_schebenochnoy_podushki",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Устройство щебеночной подушки",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "gravel_bedding",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство щебеночной подушки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_ukladka_geotekstilya",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Укладка геотекстиля",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "geotextile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка геотекстиля. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "earthworks_vyvoz_grunta",
+      "work_group": "earthworks",
+      "work_category": "Земляные работы",
+      "work_name": "Вывоз грунта",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "soil_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вывоз грунта. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_lentochnogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство ленточного фундамента",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "strip_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство ленточного фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_plitnogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство плитного фундамента",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "slab_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство плитного фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_svayno_rostverkovogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство свайно-ростверкового фундамента",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "pile_grillage_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство свайно-ростверкового фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_montazh_vintovyh_svay",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Монтаж винтовых свай",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "screw_pile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж винтовых свай. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_burenie_pod_svai",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Бурение под сваи",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "pile_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Бурение под сваи. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_podbetonki",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство подбетонки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "lean_concrete",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство подбетонки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_montazh_opalubki_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Монтаж опалубки фундамента",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "foundation_formwork",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж опалубки фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_demontazh_opalubki",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Демонтаж опалубки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "formwork_removal",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Демонтаж опалубки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_betonirovanie_konstrukciy",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Бетонирование конструкций",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "concrete_placing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Бетонирование конструкций. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_vibrirovanie_betona",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Вибрирование бетона",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "concrete_vibration",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вибрирование бетона. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_gidroizolyaciya_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Гидроизоляция фундамента",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "foundation_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Гидроизоляция фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_uteplenie_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Утепление фундамента",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "foundation_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_otmostki_betonnoy",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство отмостки бетонной",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "concrete_blind_area",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство отмостки бетонной. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "foundations_concrete_ustroystvo_betonnogo_krylca",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Устройство бетонного крыльца",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "concrete_porch",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство бетонного крыльца. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_vyazka_armaturnogo_karkasa",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Вязка арматурного каркаса",
+      "default_unit": "kg",
+      "allowed_units": [
+        "kg"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "rebar_cage_binding",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вязка арматурного каркаса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_montazh_armaturnoy_setki",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Монтаж арматурной сетки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "rebar_mesh_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж арматурной сетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_armirovanie_fundamenta",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Армирование фундамента",
+      "default_unit": "kg",
+      "allowed_units": [
+        "kg"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "foundation_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Армирование фундамента. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_armirovanie_plity",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Армирование плиты",
+      "default_unit": "kg",
+      "allowed_units": [
+        "kg"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "slab_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Армирование плиты. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_armirovanie_armopoyasa",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Армирование армопояса",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "bond_beam_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Армирование армопояса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "reinforcement_armirovanie_peremychek",
+      "work_group": "reinforcement",
+      "work_category": "Армирование",
+      "work_name": "Армирование перемычек",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "lintel_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Армирование перемычек. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_kladka_gazobloka_naruzhnyh_sten",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Кладка газоблока наружных стен",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "aerated_concrete_outer_wall_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Кладка газоблока наружных стен. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_kladka_peregorodok_iz_gazobloka",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Кладка перегородок из газоблока",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "aerated_concrete_partition_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Кладка перегородок из газоблока. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_kladka_kirpicha",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Кладка кирпича",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "brick_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Кладка кирпича. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_kladka_oblicovochnogo_kirpicha",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Кладка облицовочного кирпича",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "facing_brick_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Кладка облицовочного кирпича. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_kladka_keramicheskogo_bloka",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Кладка керамического блока",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "ceramic_block_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Кладка керамического блока. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_ustroystvo_armopoyasa",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Устройство армопояса",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "bond_beam",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство армопояса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_montazh_peremychek",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Монтаж перемычек",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "lintel_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж перемычек. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_ustroystvo_monolitnyh_uchastkov",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Устройство монолитных участков",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "monolithic_inserts",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство монолитных участков. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_montazh_gkl_peregorodki",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Монтаж ГКЛ-перегородки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "gypsum_board_partition",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж ГКЛ-перегородки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_montazh_karkasnoy_steny",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Монтаж каркасной стены",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "frame_wall",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж каркасной стены. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "walls_masonry_zvukoizolyaciya_peregorodok",
+      "work_group": "walls_masonry",
+      "work_category": "Стены и кладка",
+      "work_name": "Звукоизоляция перегородок",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "partition_sound_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Звукоизоляция перегородок. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_montazh_derevyannyh_balok_perekrytiya",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Монтаж деревянных балок перекрытия",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "wood_floor_beams",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж деревянных балок перекрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_ustroystvo_chernovogo_pola_po_lagam",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Устройство чернового пола по лагам",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "subfloor_on_joists",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство чернового пола по лагам. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_uteplenie_perekrytiya",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Утепление перекрытия",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "floor_structure_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление перекрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_montazh_paroizolyacii_perekrytiya",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Монтаж пароизоляции перекрытия",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "floor_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж пароизоляции перекрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_montazh_plit_perekrytiya",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Монтаж плит перекрытия",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "precast_slab_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж плит перекрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_structural_ustroystvo_monolitnogo_perekrytiya",
+      "work_group": "floors_structural",
+      "work_category": "Перекрытия и черновые полы",
+      "work_name": "Устройство монолитного перекрытия",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "monolithic_floor_slab",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство монолитного перекрытия. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_mauerlata",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж мауэрлата",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mauerlat_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж мауэрлата. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_stropilnoy_sistemy",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж стропильной системы",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "rafter_system",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж стропильной системы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_obreshetki",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж обрешетки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "roof_batten_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж обрешетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_kontrobreshetki",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж контробрешетки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "counter_batten_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж контробрешетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_gidro_vetrozaschity_krovli",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж гидро-ветрозащиты кровли",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "roof_wind_membrane",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж гидро-ветрозащиты кровли. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_paroizolyacii_krovli",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж пароизоляции кровли",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "roof_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж пароизоляции кровли. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_metallocherepicy",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж металлочерепицы",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "metal_tile_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж металлочерепицы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_myagkoy_krovli",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж мягкой кровли",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "flexible_shingle_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж мягкой кровли. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_profnastila_na_krovlyu",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж профнастила на кровлю",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "profiled_sheet_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж профнастила на кровлю. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_osb_pod_myagkuyu_krovlyu",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж OSB под мягкую кровлю",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "osb_roof_decking",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж OSB под мягкую кровлю. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_konkov_i_dobornyh_elementov",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж коньков и доборных элементов",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "roof_ridge_accessories",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж коньков и доборных элементов. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_endovy",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж ендовы",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "roof_valley_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж ендовы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_snegozaderzhateley",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж снегозадержателей",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "snow_guard_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж снегозадержателей. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_montazh_vodostochnoy_sistemy",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Монтаж водосточной системы",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "gutter_system_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж водосточной системы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "roofing_podshivka_svesov_sofity",
+      "work_group": "roofing",
+      "work_category": "Кровля",
+      "work_name": "Подшивка свесов / софиты",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "soffit_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Подшивка свесов / софиты. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_uteplenie_krovli_po_stropilam",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Утепление кровли по стропилам",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_rafter_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление кровли по стропилам. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_perekrestnoe_uteplenie_mansardy",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Перекрестное утепление мансарды",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_cross_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Перекрестное утепление мансарды. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_montazh_paroizolyacii_mansardy",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Монтаж пароизоляции мансарды",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж пароизоляции мансарды. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_montazh_vnutrenney_obreshetki_mansardy",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Монтаж внутренней обрешетки мансарды",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_inner_batten",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж внутренней обрешетки мансарды. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_obshivka_mansardy_gkl",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Обшивка мансарды ГКЛ",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_gkl_lining",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Обшивка мансарды ГКЛ. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "mansard_insulation_obshivka_mansardy_vagonkoy_imitaciey_brusa",
+      "work_group": "mansard_insulation",
+      "work_category": "Мансарда и утепление",
+      "work_name": "Обшивка мансарды вагонкой / имитацией бруса",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mansard_wood_lining",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Обшивка мансарды вагонкой / имитацией бруса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_uteplenie_fasada_minvatoy",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Утепление фасада минватой",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "facade_mineral_wool_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление фасада минватой. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_uteplenie_fasada_penopolistirolom",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Утепление фасада пенополистиролом",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "facade_eps_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление фасада пенополистиролом. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_montazh_fasadnoy_setki_i_bazovogo_sloya",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Монтаж фасадной сетки и базового слоя",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "facade_basecoat_mesh",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж фасадной сетки и базового слоя. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_dekorativnaya_shtukaturka_fasada",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Декоративная штукатурка фасада",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "facade_decorative_plaster",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Декоративная штукатурка фасада. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_montazh_saydinga",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Монтаж сайдинга",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "siding_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж сайдинга. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_montazh_ventiliruemogo_fasada",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Монтаж вентилируемого фасада",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "ventilated_facade",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж вентилируемого фасада. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_otdelka_cokolya",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Отделка цоколя",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "plinth_finish",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Отделка цоколя. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "facade_naruzhnye_otkosy",
+      "work_group": "facade",
+      "work_category": "Фасад",
+      "work_name": "Наружные откосы",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "external_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Наружные откосы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_montazh_okna",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Монтаж окна",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "window_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж окна. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_montazh_vhodnoy_dveri",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Монтаж входной двери",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "entrance_door_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж входной двери. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_montazh_mezhkomnatnoy_dveri",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Монтаж межкомнатной двери",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "interior_door_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж межкомнатной двери. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_ustroystvo_okonnyh_otkosov",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Устройство оконных откосов",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "window_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство оконных откосов. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_ustroystvo_dvernyh_otkosov",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Устройство дверных откосов",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "door_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство дверных откосов. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_montazh_podokonnika",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Монтаж подоконника",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "window_sill_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж подоконника. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "windows_doors_slopes_montazh_otliva",
+      "work_group": "windows_doors_slopes",
+      "work_category": "Окна, двери, откосы",
+      "work_name": "Монтаж отлива",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "external_sill_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж отлива. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_gruntovka_sten",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Грунтовка стен",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_primer",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Грунтовка стен. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_shtukaturka_sten_gipsovaya",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Штукатурка стен гипсовая",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_plaster_gypsum",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Штукатурка стен гипсовая. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_shtukaturka_sten_cementnaya",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Штукатурка стен цементная",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_plaster_cement",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Штукатурка стен цементная. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_montazh_shtukaturnoy_setki",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Монтаж штукатурной сетки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "plaster_mesh_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж штукатурной сетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_ustanovka_mayakov",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Установка маяков",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "plaster_beacon_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Установка маяков. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_shpaklevka_startovaya",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Шпаклевка стартовая",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "start_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Шпаклевка стартовая. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_shpaklevka_finishnaya",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Шпаклевка финишная",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "finish_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Шпаклевка финишная. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_shlifovka_sten",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Шлифовка стен",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_sanding",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Шлифовка стен. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_pokraska_sten",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Покраска стен",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_painting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Покраска стен. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_pokleyka_oboev",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Поклейка обоев",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wallpaper_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Поклейка обоев. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "wall_finishing_montazh_dekorativnyh_paneley_na_steny",
+      "work_group": "wall_finishing",
+      "work_category": "Штукатурка, шпаклевка, стены",
+      "work_name": "Монтаж декоративных панелей на стены",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "decorative_wall_panels",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж декоративных панелей на стены. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_gruntovka_pola",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Грунтовка пола",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_primer",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Грунтовка пола. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_gidroizolyaciya_pola",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Гидроизоляция пола",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Гидроизоляция пола. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ustroystvo_cementno_peschanoy_styazhki",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Устройство цементно-песчаной стяжки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "cement_screed",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство цементно-песчаной стяжки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ustroystvo_polusuhoy_styazhki",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Устройство полусухой стяжки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "semi_dry_screed",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство полусухой стяжки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ustroystvo_nalivnogo_pola",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Устройство наливного пола",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "self_leveling_floor",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство наливного пола. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ukladka_armiruyuschey_setki",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Укладка армирующей сетки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_reinforcement_mesh",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка армирующей сетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_montazh_dempfernoy_lenty",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Монтаж демпферной ленты",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "damper_tape_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж демпферной ленты. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ukladka_laminata",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Укладка ламината",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "laminate_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка ламината. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ukladka_kvarcvinila",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Укладка кварцвинила",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "vinyl_floor_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка кварцвинила. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_ukladka_linoleuma",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Укладка линолеума",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "linoleum_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка линолеума. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_montazh_plintusa",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Монтаж плинтуса",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "skirting_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж плинтуса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "floors_screeds_montazh_porozhkov",
+      "work_group": "floors_screeds",
+      "work_category": "Полы и стяжки",
+      "work_name": "Монтаж порожков",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "threshold_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж порожков. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_ukladka_plitki_na_pol",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Укладка плитки на пол",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "floor_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка плитки на пол. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_ukladka_plitki_na_steny",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Укладка плитки на стены",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wall_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка плитки на стены. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_ukladka_keramogranita",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Укладка керамогранита",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "porcelain_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка керамогранита. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_ukladka_plitki_po_diagonali",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Укладка плитки по диагонали",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "diagonal_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка плитки по диагонали. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_podrezka_plitki",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Подрезка плитки",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "tile_cutting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Подрезка плитки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_zatirka_shvov",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Затирка швов",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "tile_grouting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Затирка швов. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_sverlenie_otverstiy_v_plitke",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Сверление отверстий в плитке",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "tile_hole_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Сверление отверстий в плитке. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "tile_works_ustanovka_plitochnogo_ugolka",
+      "work_group": "tile_works",
+      "work_category": "Плиточные работы",
+      "work_name": "Установка плиточного уголка",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "tile_corner_profile",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Установка плиточного уголка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_montazh_gkl_potolka",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Монтаж ГКЛ-потолка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "gkl_ceiling",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж ГКЛ-потолка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_shpaklevka_potolka",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Шпаклевка потолка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "ceiling_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Шпаклевка потолка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_pokraska_potolka",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Покраска потолка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "ceiling_painting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Покраска потолка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_montazh_natyazhnogo_potolka",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Монтаж натяжного потолка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "stretch_ceiling",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж натяжного потолка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_montazh_potolochnogo_plintusa",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Монтаж потолочного плинтуса",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "ceiling_skirting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж потолочного плинтуса. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ceilings_montazh_zakladnyh_pod_svetilniki",
+      "work_group": "ceilings",
+      "work_category": "Потолки",
+      "work_name": "Монтаж закладных под светильники",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "ceiling_light_backing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж закладных под светильники. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_gidroizolyaciya_pola_sanuzla",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Гидроизоляция пола санузла",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "bathroom_floor_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Гидроизоляция пола санузла. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_gidroizolyaciya_sten_mokroy_zony",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Гидроизоляция стен мокрой зоны",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wet_zone_wall_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Гидроизоляция стен мокрой зоны. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_montazh_gidroizolyacionnoy_lenty",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Монтаж гидроизоляционной ленты",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waterproofing_tape",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж гидроизоляционной ленты. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_montazh_koroba_gkl_gvl",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Монтаж короба ГКЛ/ГВЛ",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "bathroom_gkl_box",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж короба ГКЛ/ГВЛ. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_montazh_installyacii",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Монтаж инсталляции",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "toilet_installation_frame",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж инсталляции. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_montazh_dushevogo_trapa",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Монтаж душевого трапа",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "shower_drain_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж душевого трапа. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_germetizaciya_primykaniy",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Герметизация примыканий",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "wet_zone_sealing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Герметизация примыканий. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "bathroom_wet_zones_montazh_ekrana_pod_vannu",
+      "work_group": "bathroom_wet_zones",
+      "work_category": "Санузлы и мокрые зоны",
+      "work_name": "Монтаж экрана под ванну",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "bath_screen_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж экрана под ванну. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_elektricheskoy_tochki",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж электрической точки",
+      "default_unit": "point",
+      "allowed_units": [
+        "point"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "electrical_point",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж электрической точки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_shtroblenie_pod_kabel",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Штробление под кабель",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "cable_chasing",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Штробление под кабель. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_prokladka_kabelya",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Прокладка кабеля",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "cable_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Прокладка кабеля. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_podrozetnika",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж подрозетника",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "socket_box_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж подрозетника. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_ustanovka_rozetki",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Установка розетки",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "socket_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Установка розетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_ustanovka_vyklyuchatelya",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Установка выключателя",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "switch_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Установка выключателя. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_raspredelitelnoy_korobki",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж распределительной коробки",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "junction_box_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж распределительной коробки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_sborka_elektroschita",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Сборка электрощита",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "electrical_panel_assembly",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Сборка электрощита. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_avtomata_uzo",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж автомата / УЗО",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "breaker_rcd_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж автомата / УЗО. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_svetilnika",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж светильника",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "light_fixture_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж светильника. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_teplogo_pola_elektricheskogo",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж теплого пола электрического",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "electric_underfloor_heating",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж теплого пола электрического. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "electrical_montazh_zazemleniya_chastnogo_doma",
+      "work_group": "electrical",
+      "work_category": "Электрика",
+      "work_name": "Монтаж заземления частного дома",
+      "default_unit": "set",
+      "allowed_units": [
+        "set"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "house_grounding",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж заземления частного дома. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_montazh_tochki_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Монтаж точки водоснабжения",
+      "default_unit": "point",
+      "allowed_units": [
+        "point"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_supply_point",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж точки водоснабжения. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_prokladka_trub_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Прокладка труб водоснабжения",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Прокладка труб водоснабжения. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_montazh_kollektora_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Монтаж коллектора водоснабжения",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_manifold_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж коллектора водоснабжения. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_montazh_filtra",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Монтаж фильтра",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_filter_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж фильтра. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_montazh_santehnicheskogo_pribora",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Монтаж сантехнического прибора",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "plumbing_fixture_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж сантехнического прибора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_montazh_vodonagrevatelya",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Монтаж водонагревателя",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_heater_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж водонагревателя. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_vvod_vody_v_dom",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Ввод воды в дом",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "house_water_entry",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Ввод воды в дом. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "water_supply_uteplenie_vodoprovodnoy_truby",
+      "work_group": "water_supply",
+      "work_category": "Водоснабжение",
+      "work_name": "Утепление водопроводной трубы",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "water_pipe_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Утепление водопроводной трубы. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_montazh_tochki_kanalizacii",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Монтаж точки канализации",
+      "default_unit": "point",
+      "allowed_units": [
+        "point"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "sewer_point",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж точки канализации. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_prokladka_trub_kanalizacii",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Прокладка труб канализации",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "sewer_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Прокладка труб канализации. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_montazh_stoyaka_kanalizacii",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Монтаж стояка канализации",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "sewer_riser",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж стояка канализации. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_montazh_septika",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Монтаж септика",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "septic_tank_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж септика. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_prokladka_naruzhnoy_kanalizacii",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Прокладка наружной канализации",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "external_sewer_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Прокладка наружной канализации. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "sewerage_montazh_revizionnogo_kolodca",
+      "work_group": "sewerage",
+      "work_category": "Канализация",
+      "work_name": "Монтаж ревизионного колодца",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "sewer_inspection_well",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж ревизионного колодца. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_radiatora",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж радиатора",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "radiator_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж радиатора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_prokladka_trub_otopleniya",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Прокладка труб отопления",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "heating_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Прокладка труб отопления. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_kollektora_otopleniya",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж коллектора отопления",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "heating_manifold",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж коллектора отопления. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_vodyanogo_teplogo_pola",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж водяного теплого пола",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "water_underfloor_heating",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж водяного теплого пола. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_kotla",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж котла",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "boiler_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж котла. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_gruppy_bezopasnosti",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж группы безопасности",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "heating_safety_group",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж группы безопасности. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "heating_montazh_rasshiritelnogo_baka",
+      "work_group": "heating",
+      "work_category": "Отопление",
+      "work_name": "Монтаж расширительного бака",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "expansion_tank_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж расширительного бака. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ventilation_montazh_ventilyacionnogo_kanala",
+      "work_group": "ventilation",
+      "work_category": "Вентиляция",
+      "work_name": "Монтаж вентиляционного канала",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "vent_duct_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж вентиляционного канала. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ventilation_montazh_ventilyacionnoy_reshetki",
+      "work_group": "ventilation",
+      "work_category": "Вентиляция",
+      "work_name": "Монтаж вентиляционной решетки",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "vent_grille_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж вентиляционной решетки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ventilation_montazh_vytyazhnogo_ventilyatora",
+      "work_group": "ventilation",
+      "work_category": "Вентиляция",
+      "work_name": "Монтаж вытяжного вентилятора",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "exhaust_fan_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж вытяжного вентилятора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "ventilation_montazh_kuhonnoy_vytyazhki",
+      "work_group": "ventilation",
+      "work_category": "Вентиляция",
+      "work_name": "Монтаж кухонной вытяжки",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "kitchen_hood_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж кухонной вытяжки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustroystvo_otmostki",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Устройство отмостки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "blind_area",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство отмостки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ukladka_trotuarnoy_plitki",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Укладка тротуарной плитки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "paving_slabs",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Укладка тротуарной плитки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustanovka_bordyura",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Установка бордюра",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "curb_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Установка бордюра. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustroystvo_betonnoy_dorozhki",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Устройство бетонной дорожки",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "concrete_path",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство бетонной дорожки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustroystvo_drenazha_uchastka",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Устройство дренажа участка",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "site_drainage",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство дренажа участка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustroystvo_livnevoy_kanalizacii",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Устройство ливневой канализации",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "stormwater_drainage",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство ливневой канализации. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_planirovka_uchastka",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Планировка участка",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "site_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Планировка участка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_ustroystvo_gazona",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Устройство газона",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "lawn_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Устройство газона. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "landscaping_montazh_terrasy_nastila",
+      "work_group": "landscaping",
+      "work_category": "Благоустройство",
+      "work_name": "Монтаж террасы / настила",
+      "default_unit": "m2",
+      "allowed_units": [
+        "m2"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "deck_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж террасы / настила. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_zabora_iz_profnastila",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж забора из профнастила",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "profiled_sheet_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж забора из профнастила. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_zabora_iz_evroshtaketnika",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж забора из евроштакетника",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "euro_picket_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж забора из евроштакетника. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_zabora_3d_setka",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж забора 3D-сетка",
+      "default_unit": "linear_meter",
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "mesh_3d_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж забора 3D-сетка. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_stolbov_zabora",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж столбов забора",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "fence_post_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж столбов забора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_betonirovanie_stolbov",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Бетонирование столбов",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "fence_post_concreting",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Бетонирование столбов. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_vorot",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж ворот",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "gate_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж ворот. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_kalitki",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж калитки",
+      "default_unit": "piece",
+      "allowed_units": [
+        "piece"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "wicket_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж калитки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "fences_gates_montazh_avtomatiki_vorot",
+      "work_group": "fences_gates",
+      "work_category": "Заборы и ворота",
+      "work_name": "Монтаж автоматики ворот",
+      "default_unit": "set",
+      "allowed_units": [
+        "set"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "gate_automation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Монтаж автоматики ворот. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "waste_disposal_vynos_stroitelnogo_musora",
+      "work_group": "waste_disposal",
+      "work_category": "Вывоз мусора",
+      "work_name": "Вынос строительного мусора",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waste_carrying",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вынос строительного мусора. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_konteynerom",
+      "work_group": "waste_disposal",
+      "work_category": "Вывоз мусора",
+      "work_name": "Вывоз строительного мусора контейнером",
+      "default_unit": "m3",
+      "allowed_units": [
+        "m3"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waste_container_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вывоз строительного мусора контейнером. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_mashinoy",
+      "work_group": "waste_disposal",
+      "work_category": "Вывоз мусора",
+      "work_name": "Вывоз строительного мусора машиной",
+      "default_unit": "trip",
+      "allowed_units": [
+        "trip"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waste_truck_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Вывоз строительного мусора машиной. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    },
+    {
+      "work_code": "waste_disposal_upakovka_musora_v_meshki",
+      "work_group": "waste_disposal",
+      "work_category": "Вывоз мусора",
+      "work_name": "Упаковка мусора в мешки",
+      "default_unit": "bag",
+      "allowed_units": [
+        "bag"
+      ],
+      "is_range_allowed": true,
+      "applies_to": "both",
+      "module2_usage_hint": "waste_bagging",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Нормализованная работа: Упаковка мусора в мешки. Стоимость вводится исполнителем, не парсится и не ищется анализатором."
+    }
+  ]
+}
