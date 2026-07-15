@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from uuid import UUID
 
@@ -297,8 +297,21 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
     unchanged = 0
     price_changes = 0
     candidates = 0
+    rejected_no_price = 0
 
     for product in products:
+        if not _has_positive_product_price(product):
+            rejected_no_price += 1
+            await _result(
+                db,
+                task,
+                TaskResultType.NEEDS_REVIEW,
+                entity_type="SourceProduct",
+                status="rejected_no_positive_price",
+                new_value=_source_product_snapshot(product),
+            )
+            continue
+
         catalog_product, result_type, price_changed = await _upsert_catalog_product(db, task, product)
         if result_type == TaskResultType.CREATED:
             created += 1
@@ -332,6 +345,7 @@ async def _run_product_scan(db: AsyncSession, task: SourceTask, integration) -> 
         "unchanged": unchanged,
         "price_changes": price_changes,
         "match_candidates": candidates,
+        "rejected_no_price": rejected_no_price,
     }
     summary["quality_report"] = source_quality_report_dict(
         build_source_quality_report(source=task.source, parameters=task.parameters, products=products, summary=summary)
@@ -728,6 +742,11 @@ async def _upsert_catalog_product(
     product: SourceProduct,
 ) -> tuple[CatalogProduct, TaskResultType, bool]:
     existing = await _find_catalog_product(db, task.source_id, product)
+    if not _has_positive_product_price(product):
+        if existing:
+            return existing, TaskResultType.UNCHANGED, False
+        raise ValueError("SourceProduct requires positive price before CatalogProduct can be created")
+
     normalization = normalize_material_title(
         product.raw_name,
         brand=product.raw_brand,
@@ -1240,6 +1259,47 @@ def _source_product_preview(product: SourceProduct) -> dict:
         "region": product.region,
         "region_status": "ACTIVE" if product.region else "needs_review",
     }
+
+
+def _source_product_snapshot(product: SourceProduct) -> dict:
+    return {
+        "external_id": product.external_id,
+        "external_url": product.external_url,
+        "raw_name": product.raw_name,
+        "raw_category": product.raw_category,
+        "raw_brand": product.raw_brand,
+        "raw_manufacturer": product.raw_manufacturer,
+        "price": str(product.price) if product.price is not None else None,
+        "currency": product.currency,
+        "unit": product.unit,
+        "availability": product.availability,
+        "region": product.region,
+        "rejection_reason": _product_price_gate_reason(product),
+    }
+
+
+def _has_positive_product_price(product: SourceProduct) -> bool:
+    return _product_price_decimal(product.price) is not None
+
+
+def _product_price_gate_reason(product: SourceProduct) -> str | None:
+    if product.price is None:
+        return "missing_price"
+    if _product_price_decimal(product.price) is None:
+        return "invalid_or_non_positive_price"
+    return None
+
+
+def _product_price_decimal(value) -> Decimal | None:
+    if value is None:
+        return None
+    try:
+        price = value if isinstance(value, Decimal) else Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+    if price <= 0:
+        return None
+    return price
 
 
 def _source_document_preview(document: SourceDocument) -> dict:
