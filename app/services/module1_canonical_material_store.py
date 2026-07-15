@@ -330,9 +330,19 @@ def _view_warnings(
         warnings.append("Category is missing.")
     if not characteristics:
         warnings.append("No characteristics are linked.")
+    if not _has_positive_supplier_price_ref(material):
+        warnings.append("No positive price observation is linked.")
     warnings.extend(evidence.warnings)
     warnings.extend(quality.warnings)
     return tuple(warnings)
+
+
+def _has_positive_supplier_price_ref(material: Any) -> bool:
+    for price in _iter_relation(material, "supplier_prices"):
+        value = _decimal_or_none(_value(price, "price", "price_value", "priceValue"))
+        if value is not None and value > 0:
+            return True
+    return False
 
 
 def _technical_profile_hints(

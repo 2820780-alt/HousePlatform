@@ -1,7 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from decimal import Decimal
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
@@ -303,10 +304,22 @@ def collect_participant_quality_issues(canonical_material_view: MaterialCanonica
 
 
 def collect_price_observation_quality_issues(canonical_material_view: MaterialCanonicalView) -> tuple[DataQualityIssue, ...]:
-    readiness = build_price_observation_package(canonical_material_view).readiness
+    package = build_price_observation_package(canonical_material_view)
+    readiness = package.readiness
+    positive_observations = _positive_price_observations(package.observations)
     issues: list[DataQualityIssue] = []
     if "price_observations" in readiness.missing_details:
         issues.append(_issue("price_observations", "missing_price_observation", "high", "Price observation is missing."))
+    if package.observations and not positive_observations:
+        issues.append(
+            _issue(
+                "price_observations",
+                "missing_positive_price_observation",
+                "high",
+                "Positive price observation is required before material readiness.",
+                "price_value",
+            )
+        )
     if "regional_binding" in readiness.missing_details:
         issues.append(_issue("price_observations", "missing_region", "medium", "Price observation region is missing."))
     for key in readiness.duplicate_stable_keys:
@@ -314,8 +327,6 @@ def collect_price_observation_quality_issues(canonical_material_view: MaterialCa
     for key in readiness.suspicious_observations:
         issues.append(_issue("price_observations", "suspicious_price_observation", "high", f"Suspicious price observation: {key}."))
     return tuple(issues)
-
-
 def collect_source_provenance_quality_issues(canonical_material_view: MaterialCanonicalView) -> tuple[DataQualityIssue, ...]:
     issues: list[DataQualityIssue] = []
     if canonical_material_view.evidence.source_ref_count == 0:
@@ -432,16 +443,21 @@ def _readiness_status(canonical_material_view: MaterialCanonicalView, issues: tu
 
 def _module2_readiness(canonical_material_view: MaterialCanonicalView, issues: tuple[DataQualityIssue, ...]) -> Mapping[str, Any]:
     profile = build_material_technical_profile(canonical_material_view)
+    has_price_blocker = any(
+        issue.issue_type in {"missing_price_observation", "missing_positive_price_observation"}
+        for issue in issues
+    )
+    missing_fields = profile.missing_module2_fields + (("positive_price_observation",) if has_price_blocker else tuple())
     return MappingProxyType(
         {
-            "ready": profile.readiness.ready_for_module2 and not any(issue.issue_type == "missing_module2_field" for issue in issues),
-            "status": profile.readiness.status,
-            "missingFields": profile.missing_module2_fields,
+            "ready": profile.readiness.ready_for_module2
+            and not any(issue.issue_type == "missing_module2_field" for issue in issues)
+            and not has_price_blocker,
+            "status": "missing_positive_price" if has_price_blocker else profile.readiness.status,
+            "missingFields": missing_fields,
             "module2Calculations": "not_performed_by_module1",
         }
     )
-
-
 def _module5_readiness_hint(canonical_material_view: MaterialCanonicalView, issues: tuple[DataQualityIssue, ...]) -> Mapping[str, Any]:
     has_price_issue = any(issue.dimension == "price_observations" for issue in issues)
     has_participant_issue = any(issue.dimension == "participants" for issue in issues)
@@ -455,6 +471,17 @@ def _module5_readiness_hint(canonical_material_view: MaterialCanonicalView, issu
     )
 
 
+def _positive_price_observations(observations: Iterable[Any]) -> tuple[Any, ...]:
+    return tuple(observation for observation in observations if _positive_decimal(_value(observation, "price_value", "priceValue", "price")))
+
+
+def _positive_decimal(value: Any) -> bool:
+    try:
+        if value in (None, ""):
+            return False
+        return Decimal(str(value).replace(",", ".")) > 0
+    except Exception:
+        return False
 def _aggregate_export_readiness(snapshots: tuple[MaterialDataQualitySnapshot, ...]) -> Mapping[str, Any]:
     ready = tuple(snapshot for snapshot in snapshots if snapshot.export_readiness.get("ready"))
     blocked = tuple(snapshot for snapshot in snapshots if snapshot.readiness_status == "blocked")
@@ -475,6 +502,8 @@ def _action_title(issue: DataQualityIssue) -> str:
         return f"Clarify {issue.field or issue.issue_type.replace('missing_', '')}."
     if issue.issue_type == "suspicious_price_observation":
         return "Review suspicious price observation."
+    if issue.issue_type == "missing_positive_price_observation":
+        return "Add a positive price observation before readiness handoff."
     if issue.issue_type in {"pending_moderation", "possible_duplicate", "duplicate_candidate"}:
         return "Send to moderation review."
     return f"Review {issue.issue_type}."

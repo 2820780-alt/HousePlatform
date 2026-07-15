@@ -54,7 +54,9 @@ def test_quality_view_translates_issues_and_does_not_auto_fix() -> None:
     assert quality["exportReadiness"]["autoFixApplied"] is False
     assert translate_module1_status("needs_review") == "Требует проверки"
     assert translate_module1_readiness("ready_for_module2") == "Готовность к расчетам"
+    assert translate_module1_readiness("missing_positive_price") == "Нет положительной цены"
     assert translate_module1_issue({"issue_type": "missing_price", "severity": "medium", "dimension": "price_observations"})["title"] == "Нет наблюдения цены"
+    assert translate_module1_issue({"issue_type": "missing_positive_price_observation", "severity": "high", "dimension": "price_observations"})["title"] == "Нет положительного наблюдения цены"
 
 
 def test_workbench_preview_is_dry_run_and_hides_raw_payload() -> None:

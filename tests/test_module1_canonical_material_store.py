@@ -106,6 +106,20 @@ def _material(**overrides) -> SimpleNamespace:
     return SimpleNamespace(**base)
 
 
+
+def _supplier_price(price: Decimal | None, price_id: str = "price-custom") -> SimpleNamespace:
+    supplier = SimpleNamespace(id="supplier-1", name="Supplier One")
+    return SimpleNamespace(
+        id=price_id,
+        supplier=supplier,
+        supplier_id=supplier.id,
+        price=price,
+        currency="RUB",
+        unit="pcs",
+        region="Krasnodar",
+        availability="in_stock",
+        valid_until=date(2026, 8, 1),
+    )
 def test_existing_material_is_exposed_as_canonical_compatibility_view() -> None:
     view = build_canonical_material_view(_material())
 
@@ -219,6 +233,25 @@ def test_moderation_preview_is_attached_only_as_evidence_not_canonical_data() ->
     assert view.source_provenance["rawDataIsCanonical"] is False
 
 
+
+def test_canonical_store_keeps_legacy_records_but_warns_without_positive_price_observation() -> None:
+    no_price = _material(id="mat-no-price", supplier_prices=[])
+    zero_price = _material(id="mat-zero-price", supplier_prices=[_supplier_price(Decimal("0"), "price-zero")])
+    negative_price = _material(id="mat-negative-price", supplier_prices=[_supplier_price(Decimal("-1"), "price-negative")])
+    positive_price = _material(id="mat-positive-price", supplier_prices=[_supplier_price(Decimal("1"), "price-positive")])
+
+    blocked_views = [build_canonical_material_view(material) for material in (no_price, zero_price, negative_price)]
+    positive_view = build_canonical_material_view(positive_price)
+    listed = list_canonical_materials(materials=(no_price, zero_price, negative_price, positive_price))
+
+    assert all("No positive price observation is linked." in view.warnings for view in blocked_views)
+    assert "No positive price observation is linked." not in positive_view.warnings
+    assert {view.material_id for view in listed} == {
+        "mat-no-price",
+        "mat-zero-price",
+        "mat-negative-price",
+        "mat-positive-price",
+    }
 def test_canonical_material_store_does_not_define_parallel_orm_or_auto_apply() -> None:
     source = Path("app/services/module1_canonical_material_store.py").read_text(encoding="utf-8")
 

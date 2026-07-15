@@ -1,5 +1,6 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from app.services.module1_canonical_material_store import (
@@ -144,6 +145,15 @@ def _complete_gas_block() -> MaterialCanonicalView:
     )
 
 
+
+def _complete_gas_block_with_price(price: str | None) -> MaterialCanonicalView:
+    view = _complete_gas_block()
+    if price is None:
+        return replace(view, supplier_price_refs=tuple())
+    price_ref = dict(view.supplier_price_refs[0])
+    price_ref["priceId"] = f"price-{price}"
+    price_ref["price"] = price
+    return replace(view, supplier_price_refs=(price_ref,))
 def _incomplete_gas_block() -> MaterialCanonicalView:
     return _view(
         characteristics=(
@@ -265,6 +275,51 @@ def test_bulk_export_report_counts_readiness_without_writing_files() -> None:
     assert report["no_side_effects"] is True
 
 
+
+def test_export_readiness_requires_positive_price_observation() -> None:
+    for price in (None, "0", "-10"):
+        view = _complete_gas_block_with_price(price)
+        readiness = build_export_readiness_report(view)
+        selector = build_material_selector_package(view)
+        module5_package = build_module5_estimate_input_hint_package(view)
+        bundle = build_material_export_bundle(view)
+
+        assert readiness.blocked_by_missing_positive_price is True
+        assert readiness.ready_for_module2 is False
+        assert readiness.ready_for_module5_selection is False
+        assert selector.price_observation_summary["hasPrices"] is False
+        assert selector.price_observation_summary["priceObservationCount"] == 0
+        assert selector.price_observation_summary["status"] == "missing_positive_price"
+        assert module5_package.price_observation_refs == tuple()
+        assert bundle.validation_report.is_valid is False
+
+
+def test_export_readiness_allows_positive_price_observation() -> None:
+    view = _complete_gas_block_with_price("125.50")
+    readiness = build_export_readiness_report(view)
+    selector = build_material_selector_package(view)
+    bundle = build_material_export_bundle(view)
+
+    assert readiness.blocked_by_missing_positive_price is False
+    assert readiness.ready_for_module2 is True
+    assert readiness.ready_for_module5_selection is True
+    assert selector.price_observation_summary["priceObservationCount"] == 1
+    assert selector.price_observation_summary["hasPrices"] is True
+    assert bundle.validation_report.is_valid is True
+
+
+def test_bulk_export_ready_counts_exclude_no_price_legacy_records_without_deleting() -> None:
+    positive = _complete_gas_block_with_price("120")
+    no_price = replace(_complete_gas_block_with_price(None), material_id="mat-no-price")
+    zero_price = replace(_complete_gas_block_with_price("0"), material_id="mat-zero-price")
+
+    report = build_bulk_export_report((positive, no_price, zero_price))
+
+    assert report["totalMaterials"] == 3
+    assert report["byReadiness"]["readyForModule2"] == 1
+    assert report["byReadiness"]["readyForModule5Selection"] == 1
+    assert report["byReadiness"]["blockedByMissingPositivePrice"] == 2
+    assert report["materialIds"] == ("mat-001", "mat-no-price", "mat-zero-price")
 def test_export_packages_layer_is_read_only_and_does_not_generate_files_or_import_orm() -> None:
     source = Path("app/services/module1_export_packages.py").read_text(encoding="utf-8")
 

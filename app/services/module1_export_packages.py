@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, fields, is_dataclass
 from datetime import date, datetime
@@ -146,6 +146,7 @@ class ExportReadinessReport:
     ready_for_quality_review: bool
     blocked_by_missing_technical_fields: bool
     blocked_by_missing_identity: bool
+    blocked_by_missing_positive_price: bool
     blocked_by_pending_moderation: bool
     blocked_by_low_quality: bool
     warnings: tuple[str, ...]
@@ -208,6 +209,7 @@ def build_material_selector_package(canonical_material_view: MaterialCanonicalVi
     document_package = build_document_package(canonical_material_view)
     participant_package = build_participant_directory_package(canonical_material_view)
     price_package = build_price_observation_package(canonical_material_view)
+    positive_price_observations = _positive_price_observations(price_package)
     quality_snapshot = build_material_quality_snapshot(canonical_material_view)
     warnings = _unique(
         role_report.warnings
@@ -248,9 +250,10 @@ def build_material_selector_package(canonical_material_view: MaterialCanonicalVi
             "hasManufacturer": participant_package.readiness.has_manufacturer,
         },
         price_observation_summary={
-            "priceObservationCount": len(price_package.observations),
-            "hasPrices": price_package.readiness.has_prices,
-            "status": price_package.readiness.status,
+            "priceObservationCount": len(positive_price_observations),
+            "totalObservationCount": len(price_package.observations),
+            "hasPrices": bool(positive_price_observations),
+            "status": price_package.readiness.status if positive_price_observations else "missing_positive_price",
             "selectedSupplier": None,
             "selectedBestPrice": None,
         },
@@ -261,8 +264,6 @@ def build_material_selector_package(canonical_material_view: MaterialCanonicalVi
         },
         warnings=warnings,
     )
-
-
 def build_module2_technology_input_package(canonical_material_view: MaterialCanonicalView) -> Module2TechnologyInputPackage:
     clean_package = build_clean_material_package(canonical_material_view)
     technical_package = build_technical_profile_package(canonical_material_view)
@@ -305,6 +306,7 @@ def build_module5_estimate_input_hint_package(canonical_material_view: MaterialC
     document_package = build_document_package(canonical_material_view)
     participant_package = build_participant_directory_package(canonical_material_view)
     price_package = build_price_observation_package(canonical_material_view)
+    positive_price_observations = _positive_price_observations(price_package)
     technical_profile = build_material_technical_profile(canonical_material_view)
     alternative_report = build_alternative_readiness_report(technical_profile)
     compatibility_report = build_compatibility_readiness_report(technical_profile)
@@ -318,24 +320,23 @@ def build_module5_estimate_input_hint_package(canonical_material_view: MaterialC
         material_selector=selector,
         base_unit=technical_profile.base_unit,
         packaging_data=technical_package.packaging_profile,
-        price_observation_refs=tuple(_price_observation_ref(observation) for observation in price_package.observations),
+        price_observation_refs=tuple(_price_observation_ref(observation) for observation in positive_price_observations),
         participant_supplier_refs=tuple(_participant_ref(participant) for participant in participant_package.participants if participant.participant_type in {"supplier", "manufacturer", "brand", "distributor"}),
         document_evidence_refs=tuple(_document_ref(document) for document in document_package.documents),
         warnings=_unique(warnings + alternative_report.warnings + compatibility_report.warnings),
     )
-
-
 def build_module11_analytics_signal_package(canonical_material_view: MaterialCanonicalView) -> Module11AnalyticsSignalPackage:
     quality_snapshot = build_material_quality_snapshot(canonical_material_view)
     participant_package = build_participant_directory_package(canonical_material_view)
     document_package = build_document_package(canonical_material_view)
     price_package = build_price_observation_package(canonical_material_view)
+    positive_price_observations = _positive_price_observations(price_package)
     source_refs = canonical_material_view.evidence.source_refs
     warnings = _unique(quality_snapshot.warnings + participant_package.warnings + document_package.warnings + price_package.warnings)
     return Module11AnalyticsSignalPackage(
         quality_score=quality_snapshot.overall_quality_score,
-        price_observation_presence=bool(price_package.observations),
-        price_observation_count=len(price_package.observations),
+        price_observation_presence=bool(positive_price_observations),
+        price_observation_count=len(positive_price_observations),
         source_provenance_presence=bool(source_refs),
         source_provenance_count=len(source_refs),
         participant_coverage={
@@ -353,12 +354,12 @@ def build_module11_analytics_signal_package(canonical_material_view: MaterialCan
         readiness_status=quality_snapshot.readiness_status,
         warnings=warnings,
     )
-
-
 def build_export_readiness_report(canonical_material_view: MaterialCanonicalView) -> ExportReadinessReport:
     technical_profile = build_material_technical_profile(canonical_material_view)
     selector = build_material_selector_package(canonical_material_view)
     quality_snapshot = build_material_quality_snapshot(canonical_material_view)
+    price_package = build_price_observation_package(canonical_material_view)
+    blocked_by_missing_positive_price = not bool(_positive_price_observations(price_package))
     blocked_by_missing_identity = not bool(canonical_material_view.material_id and canonical_material_view.canonical_name and technical_profile.group_code)
     blocked_by_missing_technical = bool(
         technical_profile.readiness.missing_required_fields
@@ -372,12 +373,13 @@ def build_export_readiness_report(canonical_material_view: MaterialCanonicalView
         or blocked_by_missing_technical
         or blocked_by_pending_moderation
         or blocked_by_low_quality
+        or blocked_by_missing_positive_price
     )
-    ready_for_module5_selection = not blocked_by_missing_identity and not blocked_by_pending_moderation and bool(
-        selector.price_observation_summary.get("hasPrices")
-        or selector.participants_summary.get("participantCount")
-        or selector.documents_summary.get("documentCount")
-    )
+    ready_for_module5_selection = not (
+        blocked_by_missing_identity
+        or blocked_by_pending_moderation
+        or blocked_by_missing_positive_price
+    ) and bool(selector.price_observation_summary.get("hasPrices"))
     warnings = []
     if blocked_by_missing_identity:
         warnings.append("Material identity is incomplete.")
@@ -387,6 +389,8 @@ def build_export_readiness_report(canonical_material_view: MaterialCanonicalView
         warnings.append("Material is blocked by pending moderation state.")
     if blocked_by_low_quality:
         warnings.append("Material quality score is too low for direct export.")
+    if blocked_by_missing_positive_price:
+        warnings.append("Positive price observation is required for ready export.")
     warnings.extend(quality_snapshot.warnings)
     return ExportReadinessReport(
         material_id=canonical_material_view.material_id,
@@ -395,12 +399,11 @@ def build_export_readiness_report(canonical_material_view: MaterialCanonicalView
         ready_for_quality_review=not ready_for_module2 or not ready_for_module5_selection,
         blocked_by_missing_technical_fields=blocked_by_missing_technical,
         blocked_by_missing_identity=blocked_by_missing_identity,
+        blocked_by_missing_positive_price=blocked_by_missing_positive_price,
         blocked_by_pending_moderation=blocked_by_pending_moderation,
         blocked_by_low_quality=blocked_by_low_quality,
         warnings=_unique(tuple(warnings)),
     )
-
-
 def validate_export_package(package: Any) -> ExportPackageValidationReport:
     errors: list[str] = []
     warnings: list[str] = []
@@ -416,6 +419,8 @@ def validate_export_package(package: Any) -> ExportPackageValidationReport:
             errors.append("Clean material canonical_name is missing.")
         if package.module5_package.no_selected_best_price is not True:
             errors.append("Module5 package must not select best price.")
+        if package.export_readiness_report.blocked_by_missing_positive_price:
+            errors.append("Positive price observation is required for ready export package.")
         if package.module2_package.no_calculation_result is not True:
             errors.append("Module2 package must not contain calculation result.")
         if package.module11_signals.no_charts is not True:
@@ -475,6 +480,7 @@ def build_bulk_export_report(canonical_material_views: Iterable[MaterialCanonica
         "blockedByTechnicalFields": sum(1 for bundle in bundles if bundle.export_readiness_report.blocked_by_missing_technical_fields),
         "blockedByModeration": sum(1 for bundle in bundles if bundle.export_readiness_report.blocked_by_pending_moderation),
         "blockedByLowQuality": sum(1 for bundle in bundles if bundle.export_readiness_report.blocked_by_low_quality),
+        "blockedByMissingPositivePrice": sum(1 for bundle in bundles if bundle.export_readiness_report.blocked_by_missing_positive_price),
     }
     return {
         "totalMaterials": len(bundles),
@@ -483,6 +489,23 @@ def build_bulk_export_report(canonical_material_views: Iterable[MaterialCanonica
         "filesWritten": False,
         "no_side_effects": True,
     }
+
+
+def _positive_price_observations(price_package: Any) -> tuple[Any, ...]:
+    return tuple(
+        observation
+        for observation in price_package.observations
+        if _positive_decimal(getattr(observation, "price_value", None))
+    )
+
+
+def _positive_decimal(value: Any) -> bool:
+    try:
+        if value in (None, ""):
+            return False
+        return Decimal(str(value).replace(",", ".")) > 0
+    except Exception:
+        return False
 
 
 def _characteristics_map(canonical_material_view: MaterialCanonicalView) -> Mapping[str, Any]:

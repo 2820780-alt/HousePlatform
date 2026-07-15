@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
@@ -831,7 +831,7 @@ async def _load_prices(db: DBSession) -> list[PriceHistory]:
 
 
 async def _load_materials_without_price_history(db: DBSession) -> list[Material]:
-    priced_material_ids = select(PriceHistory.material_id).distinct()
+    priced_material_ids = select(PriceHistory.material_id).where(PriceHistory.price > 0).distinct()
     result = await db.execute(
         select(Material)
         .options(selectinload(Material.category), selectinload(Material.subcategory))

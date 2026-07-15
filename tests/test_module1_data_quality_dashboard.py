@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -145,6 +146,15 @@ def _complete_gas_block() -> MaterialCanonicalView:
     )
 
 
+
+def _complete_gas_block_with_price(price: str | None) -> MaterialCanonicalView:
+    view = _complete_gas_block()
+    if price is None:
+        return replace(view, supplier_price_refs=tuple())
+    price_ref = dict(view.supplier_price_refs[0])
+    price_ref["priceId"] = f"price-{price}"
+    price_ref["price"] = price
+    return replace(view, supplier_price_refs=(price_ref,))
 def test_gas_block_missing_strength_and_pieces_reports_quality_issues_and_hints() -> None:
     view = _view(
         characteristics=(
@@ -272,6 +282,25 @@ def test_characteristic_collector_uses_seed_required_fields() -> None:
     assert any(issue.field == "height_mm" for issue in issues)
     assert any(issue.issue_type == "missing_required_characteristic" for issue in issues)
 
+
+
+def test_positive_price_observation_required_for_downstream_readiness() -> None:
+    for price in (None, "0", "-10"):
+        snapshot = build_material_quality_snapshot(_complete_gas_block_with_price(price))
+        issue_types = {issue.issue_type for issue in snapshot.issues}
+
+        assert snapshot.module2_readiness["ready"] is False
+        assert snapshot.module5_readiness_hint["readyHint"] is False
+        assert "positive_price_observation" in snapshot.module2_readiness["missingFields"]
+        assert "missing_price_observation" in issue_types or "missing_positive_price_observation" in issue_types
+
+
+def test_positive_price_observation_keeps_downstream_readiness() -> None:
+    snapshot = build_material_quality_snapshot(_complete_gas_block_with_price("125.50"))
+
+    assert snapshot.module2_readiness["ready"] is True
+    assert snapshot.module5_readiness_hint["readyHint"] is True
+    assert all(issue.issue_type != "missing_positive_price_observation" for issue in snapshot.issues)
 
 def test_data_quality_dashboard_service_is_read_only_not_global_dashboard_or_analytics() -> None:
     source = Path("app/services/module1_data_quality_dashboard.py").read_text(encoding="utf-8")
