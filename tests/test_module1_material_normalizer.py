@@ -15,14 +15,21 @@ from app.services.module1_material_normalizer import (
 from app.services.module1_raw_ingestion_pipeline import Module1RawIngestionItem
 
 
-def _raw(title: str, *, unit: str = "шт", category: str | None = None, characteristics: dict | None = None) -> Module1RawIngestionItem:
+def _raw(
+    title: str,
+    *,
+    unit: str = "шт",
+    category: str | None = None,
+    characteristics: dict | None = None,
+    price: object = Decimal("100.00"),
+) -> Module1RawIngestionItem:
     return Module1RawIngestionItem(
         legacy_source="raw_payload",
         source_code="BAUCENTER",
         raw_title=title,
         raw_category=category,
         raw_unit=unit,
-        raw_price=Decimal("100.00"),
+        raw_price=price,
         raw_characteristics=characteristics or {},
         raw_manufacturer="Test manufacturer",
         source_url="https://example.test/material",
@@ -109,6 +116,24 @@ def test_normalizer_helpers_return_candidate_hints_and_report() -> None:
     assert report.is_ready_for_matching is False
     assert "strength_class" in report.missing_required_fields
     assert report.candidate.price_hint == Decimal("100.00")
+
+
+
+def test_normalization_without_positive_price_is_diagnostic_not_ready() -> None:
+    for price in (None, Decimal("0"), Decimal("-1"), "not-a-price"):
+        report = build_normalization_report(_raw("Бетон B25 П4 F200 W6", unit="м3", price=price))
+
+        assert report.candidate.suggested_group_code == "ready_mix_concrete"
+        assert report.candidate.price_hint == price
+        assert report.is_ready_for_matching is False
+        assert "missing positive price" in report.warnings
+
+
+def test_normalization_with_positive_price_remains_ready_for_matching() -> None:
+    report = build_normalization_report(_raw("Бетон B25 П4 F200 W6", unit="м3", price=Decimal("4200.50")))
+
+    assert report.is_ready_for_matching is True
+    assert "missing positive price" not in report.warnings
 
 
 def test_confidence_and_source_metadata_are_present() -> None:

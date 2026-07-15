@@ -207,6 +207,23 @@ def test_supported_raw_sources_are_explicit() -> None:
     assert list_supported_raw_sources() == ("CatalogProduct", "SupplierUploadRow", "SourceTaskResult", "raw_payload")
 
 
+
+def test_raw_ingestion_item_allows_missing_price_for_source_evidence() -> None:
+    item = Module1RawIngestionItem(
+        legacy_source="raw_payload",
+        source_code="YUFO_VKBLOCK",
+        raw_title="Страница газоблока без цены",
+        raw_unit="шт",
+        raw_price=None,
+        raw_documents=({"url": "https://example.test/cert.pdf", "type": "certificate"},),
+    )
+
+    report = validate_raw_ingestion_item(item)
+
+    assert item.raw_price is None
+    assert item.raw_documents[0]["type"] == "certificate"
+    assert report.is_valid is True
+
 def test_raw_ingestion_pipeline_does_not_import_orm_or_adapters_or_create_materials() -> None:
     source = Path("app/services/module1_raw_ingestion_pipeline.py").read_text(encoding="utf-8")
 

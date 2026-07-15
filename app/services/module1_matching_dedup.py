@@ -107,12 +107,14 @@ def build_match_candidate(
                 missing_fields=tuple(normalized_candidate.missing_required_fields),
                 explanation=("No existing material snapshots were provided.",),
             ),
-            decision_hint="new_material_candidate",
+            decision_hint="new_material_candidate" if _has_positive_price_hint(normalized_candidate.price_hint) else "price_required_review",
         )
 
     decision_hint = classify_match_confidence(best_score.score)
     if _has_duplicate_signal(best_score):
         decision_hint = "possible_duplicate"
+    if decision_hint == "new_material_candidate" and not _has_positive_price_hint(normalized_candidate.price_hint):
+        decision_hint = "price_required_review"
 
     return _match_candidate_dto(
         normalized_candidate,
@@ -584,6 +586,11 @@ def _decimal_or_none(value: Any) -> Decimal | None:
         return Decimal(str(value).replace(",", "."))
     except Exception:
         return None
+
+
+def _has_positive_price_hint(value: Any) -> bool:
+    decimal = _decimal_or_none(value)
+    return decimal is not None and decimal > 0
 
 
 def _decimal_0_1(value: Any) -> Decimal:

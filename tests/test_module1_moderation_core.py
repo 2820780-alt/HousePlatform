@@ -32,6 +32,7 @@ def _candidate(
     confidence: str = "0.95",
     missing_required_fields: tuple[str, ...] = (),
     module2_missing_fields: tuple[str, ...] = (),
+    price_hint: object = Decimal("100.00"),
 ) -> NormalizedMaterialCandidate:
     return NormalizedMaterialCandidate(
         normalized_title=title,
@@ -48,7 +49,7 @@ def _candidate(
             "density_class": "D500",
         },
         normalized_unit=unit,
-        price_hint=Decimal("100.00"),
+        price_hint=price_hint,
         source_metadata={
             "source_code": "TEST_SOURCE",
             "source_type": "supplier_site",
@@ -177,6 +178,7 @@ def test_create_new_material_candidate_decision_builds_plan_but_creates_nothing(
             "normalized_title": "new specialty mortar",
             "suggested_group_code": "dry_mix",
             "module2_missing_fields": (),
+            "price_hint": Decimal("100.00"),
         },
         matched_material_reference=None,
         confidence=Decimal("82"),
@@ -203,6 +205,66 @@ def test_create_new_material_candidate_decision_builds_plan_but_creates_nothing(
     assert plan.no_side_effects is True
     assert any("Do not create a material row" in operation for operation in plan.operations_preview)
 
+
+
+def test_create_new_material_candidate_without_positive_price_is_blocked() -> None:
+    match = MaterialMatchCandidateDTO(
+        candidate_id="match_no_price_material_001",
+        normalized_candidate_snapshot={
+            "normalized_title": "new no price material",
+            "suggested_group_code": "dry_mix",
+            "module2_missing_fields": (),
+            "price_hint": None,
+        },
+        matched_material_reference=None,
+        confidence=Decimal("82"),
+        decision_hint="new_material_candidate",
+        explanation=("Candidate has no safe existing material match.",),
+        conflicting_fields=(),
+        missing_fields=(),
+        evidence_refs={"raw_title": "new no price material"},
+        source_refs={"source_code": "TEST_SOURCE"},
+        score_breakdown={},
+    )
+    queue_item = build_moderation_queue_item(match)
+    decision = MaterialModerationDecision(
+        decision_type="create_new_material_candidate",
+        moderator_id="moderator-1",
+        comment="Create candidate after review.",
+        confirmed=True,
+    )
+
+    validation = validate_moderation_decision(queue_item, decision)
+
+    assert "create_new_material_candidate" not in queue_item.allowed_decisions
+    assert any(block["decisionType"] == "create_new_material_candidate" for block in queue_item.blocked_decisions)
+    assert validation.is_valid is False
+    assert any("create_new_material_candidate" in error for error in validation.errors)
+
+
+def test_accept_match_for_existing_material_is_not_blocked_by_missing_candidate_price() -> None:
+    match = build_match_candidate(_candidate(price_hint=None), [
+        {
+            "id": "mat-gas-001",
+            "canonical_name": "aerated_concrete_block D500 600x300x200",
+            "group_code": "aerated_concrete_block",
+            "normalized_characteristics": {
+                "length_mm": Decimal("600"),
+                "width_mm": Decimal("300"),
+                "height_mm": Decimal("200"),
+                "density_class": "D500",
+            },
+            "unit": "piece",
+        }
+    ])
+    queue_item = build_moderation_queue_item(match)
+    decision = MaterialModerationDecision(decision_type="accept_match", moderator_id="moderator-1", confirmed=True)
+
+    validation = validate_moderation_decision(queue_item, decision)
+
+    assert queue_item.matched_material_reference is not None
+    assert "accept_match" in queue_item.allowed_decisions
+    assert validation.is_valid is True
 
 def test_rule_suggestion_is_created_but_not_saved_automatically() -> None:
     queue_item = build_moderation_queue_item(_strong_gas_block_match())

@@ -26,6 +26,7 @@ def _candidate(
     brand: str | None = None,
     confidence: str = "0.95",
     missing_required_fields: tuple[str, ...] = (),
+    price_hint: object = Decimal("100.00"),
 ) -> NormalizedMaterialCandidate:
     return NormalizedMaterialCandidate(
         normalized_title=title,
@@ -36,7 +37,7 @@ def _candidate(
         brand=brand,
         normalized_characteristics=characteristics,
         normalized_unit=unit,
-        price_hint=Decimal("100.00"),
+        price_hint=price_hint,
         source_metadata={
             "source_code": "TEST_SOURCE",
             "source_type": "supplier_site",
@@ -258,6 +259,54 @@ def test_metal_tile_matches_same_profile_and_flags_conflicting_coating() -> None
     assert "metal_thickness_mm" in conflict_match.conflicting_fields
     assert "coating" in conflict_match.conflicting_fields
 
+
+
+def test_no_price_candidate_without_existing_material_is_not_new_material_decision() -> None:
+    candidate = _candidate(
+        "Газоблок D500 600x300x200",
+        group_code="aerated_concrete_block",
+        characteristics={
+            "length_mm": Decimal("600"),
+            "width_mm": Decimal("300"),
+            "height_mm": Decimal("200"),
+            "density_class": "D500",
+        },
+        price_hint=None,
+    )
+
+    match = build_match_candidate(candidate, [])
+
+    assert match.decision_hint == "price_required_review"
+    assert match.decision_hint != "new_material_candidate"
+    assert match.matched_material_reference is None
+
+
+def test_no_price_candidate_can_still_match_existing_material_for_enrichment() -> None:
+    candidate = _candidate(
+        "Газоблок D500 600x300x200",
+        group_code="aerated_concrete_block",
+        characteristics={
+            "length_mm": Decimal("600"),
+            "width_mm": Decimal("300"),
+            "height_mm": Decimal("200"),
+            "density_class": "D500",
+        },
+        price_hint=None,
+    )
+    existing = {
+        "id": "mat-gas-001",
+        "canonical_name": "Газоблок D500 600x300x200",
+        "group_code": "aerated_concrete_block",
+        "normalized_characteristics": candidate.normalized_characteristics,
+        "unit": "piece",
+    }
+
+    match = build_match_candidate(candidate, [existing])
+
+    assert match.matched_material_reference is not None
+    assert match.matched_material_reference["id"] == "mat-gas-001"
+    assert match.matched_material_reference["title"] == "Газоблок D500 600x300x200"
+    assert match.decision_hint in {"exact_match", "strong_match"}
 
 def test_dedup_report_detects_candidates_and_never_auto_applies() -> None:
     left = _candidate(

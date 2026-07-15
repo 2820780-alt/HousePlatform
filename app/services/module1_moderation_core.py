@@ -116,11 +116,13 @@ def build_moderation_queue_item(
     missing_fields = _missing_fields(match_candidate)
     required_missing_fields = _required_missing_fields(match_candidate)
     conflicting_fields = _conflicting_fields(match_candidate)
+    has_positive_price = _has_positive_price(match_candidate)
     allowed_decisions, blocked_decisions = _decision_policy(
         queue_type=queue_type,
         matched_material_reference=matched_material_reference,
         missing_fields=required_missing_fields,
         conflicting_fields=conflicting_fields,
+        has_positive_price=has_positive_price,
     )
     return MaterialModerationQueueItem(
         queue_item_id=_stable_key("m1_moderation", _candidate_id(match_candidate), queue_type),
@@ -313,6 +315,7 @@ def _decision_policy(
     matched_material_reference: Mapping[str, Any] | None,
     missing_fields: tuple[str, ...],
     conflicting_fields: tuple[str, ...],
+    has_positive_price: bool,
 ) -> tuple[tuple[str, ...], tuple[Mapping[str, str], ...]]:
     allowed = set(DECISION_TYPES)
     blocked: list[Mapping[str, str]] = []
@@ -329,6 +332,14 @@ def _decision_policy(
                     "reason": "Required fields must be completed before this decision.",
                 }
             )
+    if not has_positive_price:
+        allowed.discard("create_new_material_candidate")
+        blocked.append(
+            {
+                "decisionType": "create_new_material_candidate",
+                "reason": "A positive price is required before creating a new material candidate.",
+            }
+        )
     if queue_type != "possible_duplicate_review" and not conflicting_fields:
         allowed.discard("mark_possible_duplicate")
         blocked.append({"decisionType": "mark_possible_duplicate", "reason": "No duplicate conflict signal is present."})
@@ -455,6 +466,17 @@ def _missing_fields(match_candidate: MaterialMatchCandidateDTO | DedupCandidateD
     values.extend(snapshot.get("missing_required_fields") or ())
     values.extend(snapshot.get("module2_missing_fields") or ())
     return _unique(values)
+
+
+def _has_positive_price(match_candidate: MaterialMatchCandidateDTO | DedupCandidateDTO) -> bool:
+    snapshot = _normalized_snapshot(match_candidate)
+    value = snapshot.get("price_hint")
+    try:
+        if value in (None, ""):
+            return False
+        return Decimal(str(value).replace(",", ".")) > 0
+    except Exception:
+        return False
 
 
 def _required_missing_fields(match_candidate: MaterialMatchCandidateDTO | DedupCandidateDTO) -> tuple[str, ...]:

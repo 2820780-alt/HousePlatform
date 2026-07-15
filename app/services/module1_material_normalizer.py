@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 from dataclasses import dataclass
@@ -203,7 +203,7 @@ def infer_material_group(raw_item: Module1RawIngestionItem) -> str | None:
 
 def build_normalization_report(raw_item: Module1RawIngestionItem) -> MaterialNormalizationReport:
     candidate = normalize_raw_ingestion_item(raw_item)
-    ready = bool(candidate.suggested_group_code and not candidate.missing_required_fields)
+    ready = bool(candidate.suggested_group_code and not candidate.missing_required_fields and _has_positive_price_hint(candidate.price_hint))
     return MaterialNormalizationReport(
         candidate=candidate,
         is_ready_for_matching=ready,
@@ -254,6 +254,8 @@ def list_normalizer_warnings(
         warnings.append("material group is only unknown candidate")
     if raw_item.raw_unit and normalized_unit is None:
         warnings.append(f"unit is not recognized: {raw_item.raw_unit}")
+    if not _has_positive_price_hint(raw_item.raw_price):
+        warnings.append("missing positive price")
     for field in missing_required_fields:
         warnings.append(f"missing required field: {field}")
     for field in module2_missing_fields:
@@ -325,6 +327,15 @@ def _match_original(pattern: str, text: str) -> str | None:
 
 def _number(value: Any) -> Decimal:
     return Decimal(str(value).replace(",", ".").strip())
+
+
+def _has_positive_price_hint(value: Any) -> bool:
+    try:
+        if value in (None, ""):
+            return False
+        return Decimal(str(value).replace(",", ".")) > 0
+    except Exception:
+        return False
 
 
 def _plain_value(value: Any) -> Any:
