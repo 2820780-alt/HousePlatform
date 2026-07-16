@@ -69,7 +69,7 @@
     {
       "goldenMaterialCode": "golden_gypsum_board_regular",
       "displayName": "ГКЛ обычный 2500x1200x12.5",
-      "groupCode": "gypsum_board_moisture_resistant",
+      "groupCode": "gypsum_board_regular",
       "category": {"slug": "drywall_and_sheet_systems", "name": "Гипсокартон и листовые системы"},
       "subcategory": {"slug": "gypsum_board", "name": "Гипсокартон"},
       "baseUnit": "sheet",
@@ -81,7 +81,7 @@
       "qualityExpectations": {"minQualityScore": 60, "readinessStatus": "needs_more_data"},
       "module2ReadinessExpectation": "ready_for_module2",
       "module5ReadinessHintExpectation": "ready_for_selection",
-      "warnings": ["Dedicated gypsum_board_regular schema is not present; fixture uses existing gypsum board schema."]
+      "warnings": []
     },
     {
       "goldenMaterialCode": "golden_gypsum_board_moisture_resistant",

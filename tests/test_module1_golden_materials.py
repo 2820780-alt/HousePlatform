@@ -16,6 +16,7 @@ from app.services.module1_golden_materials import (
     validate_all_golden_materials,
     validate_golden_material,
 )
+from app.services.module1_material_roles import build_material_role_readiness_report
 from app.services.module1_technical_profile_packaging import build_material_technical_profile
 
 
@@ -23,6 +24,7 @@ REQUIRED_GROUPS = {
     "aerated_concrete_block",
     "rebar",
     "ready_mix_concrete",
+    "gypsum_board_regular",
     "gypsum_board_moisture_resistant",
     "board",
     "metal_tile",
@@ -82,13 +84,46 @@ def test_validate_all_golden_materials_reports_export_preview_ready() -> None:
     assert all(report.no_side_effects for report in reports)
 
 
-def test_regular_gypsum_board_fixture_is_explicit_schema_compatibility_variant() -> None:
+def test_regular_gypsum_board_fixture_uses_regular_runtime_schema_and_roles() -> None:
     record = get_golden_material("golden_gypsum_board_regular")
     report = validate_golden_material(record)
+    canonical_view = build_golden_canonical_view(record.golden_material_code)
+    technical_profile = build_material_technical_profile(canonical_view)
+    role_report = build_material_role_readiness_report(technical_profile)
+
+    assert record.group_code == "gypsum_board_regular"
+    assert record.characteristics.values["board_type"] == "regular"
+    price_observation = record.price_observations.observations[0]
+    assert price_observation["price"] == "390"
+    assert price_observation["currency"] == "RUB"
+    assert price_observation["unit"] == "sheet"
+    assert record.participants.participants[0]["participantId"] == "golden-sheet-supplier"
+    assert record.evidence.documents[0]["documentId"] == "golden-doc-gkl-tds"
+    assert record.packaging.values["sheets_per_pack"] == 50
+    assert report.is_valid is True
+    assert role_report.applicable_role_codes == (
+        "wall_lining",
+        "partition_sheathing",
+        "ceiling_sheathing",
+    )
+    assert "wet_room_sheathing" not in role_report.applicable_role_codes
+
+
+def test_moisture_resistant_gypsum_board_fixture_is_unchanged() -> None:
+    record = get_golden_material("golden_gypsum_board_moisture_resistant")
+    canonical_view = build_golden_canonical_view(record.golden_material_code)
+    technical_profile = build_material_technical_profile(canonical_view)
+    role_report = build_material_role_readiness_report(technical_profile)
 
     assert record.group_code == "gypsum_board_moisture_resistant"
-    assert any("gypsum_board_regular schema is not present" in warning for warning in report.warnings)
-    assert report.is_valid is True
+    assert record.characteristics.values["board_type"] == "moisture_resistant"
+    assert record.price_observations.observations[0]["price"] == "510"
+    assert role_report.applicable_role_codes == (
+        "wall_lining",
+        "partition_sheathing",
+        "ceiling_sheathing",
+        "wet_room_sheathing",
+    )
 
 
 def test_golden_material_export_preview_uses_m1_21_bundle_without_side_effects() -> None:
