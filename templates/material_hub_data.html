@@ -30,6 +30,10 @@
     .bad { color:var(--bad); }
     .empty { color:var(--muted); padding:10px 0; }
     .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 7px; background:rgba(7,13,33,.72); white-space:nowrap; }
+    .material-preset-bar { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 8px; }
+    .preset-link { display:inline-flex; align-items:center; min-height:32px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(7,13,33,.56); text-decoration:none; color:var(--text); font-weight:700; }
+    .preset-link.active { border-color:rgba(16,215,232,.7); background:rgba(16,215,232,.16); color:#bff8ff; }
+    .material-preset-description { margin:0 0 10px; }
     code { background:var(--soft); border:1px solid var(--line); border-radius:4px; padding:1px 4px; color:#dce8ff; }
     .table-scroll { max-height:70vh; overflow:auto; border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.34); }
     table { width:max-content; border-collapse:collapse; min-width:100%; table-layout:fixed; }
@@ -84,6 +88,8 @@
     .material-detail-wide { grid-column:1 / -1; }
     .material-detail-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .material-detail-actions button { width:auto; }
+    #material-table th[data-field="actions"], #material-table td[data-field="actions"] { position:sticky; right:0; z-index:5; background:#111942; box-shadow:-8px 0 18px rgba(0,0,0,.18); }
+    #material-table td[data-field="actions"] { background:rgba(15,23,52,.96); }
     .material-detail-documents { display:grid; gap:8px; }
     .material-detail-document { border:1px solid rgba(125,156,255,.18); border-radius:6px; padding:8px; background:rgba(15,23,52,.56); }
     .material-detail-document-title { font-weight:700; }
@@ -119,141 +125,6 @@
 
   <main>
     {% if view_mode in ["all", "materials"] %}
-    <section id="prices">
-      <h2>Основная таблица материалов для смет</h2>
-      <div class="filters">
-        <div>
-          <label for="price-search">Поиск</label>
-          <input id="price-search" oninput="applyPriceFilters()" placeholder="Категория, материал, поставщик, наличие">
-        </div>
-        <div>
-          <label for="price-region-filter">Город или регион</label>
-          <input id="price-region-filter" oninput="applyPriceFilters()" placeholder="Например: Краснодар">
-        </div>
-        <form method="get">
-          <label><input type="checkbox" name="in_stock_only" value="true" {% if in_stock_only %}checked{% endif %} style="width:auto;min-height:0"> Только с признаком наличия</label>
-          <button type="submit">Применить</button>
-        </form>
-      </div>
-      <div class="table-toolbar">
-        <button type="button" onclick="toggleBulkPanel()">Исправить несколько</button>
-        <button type="button" onclick="toggleColumnPanel()">Столбики</button>
-        <button type="button" onclick="resetPriceTableLayout()">Сбросить вид таблицы</button>
-        <span class="muted">Правый клик по заголовку скрывает колонку. Заголовки можно перетаскивать, ширину тянуть за правый край.</span>
-      </div>
-      <div id="column-panel" class="filters" style="display:none"></div>
-      <div id="bulk-edit-panel" class="filters" style="display:none">
-        <div>
-          <label>Выбрано строк</label>
-          <input id="bulk-selected-count" readonly value="0">
-        </div>
-        <div>
-          <label for="bulk-category-id">Категория</label>
-          <select id="bulk-category-id">
-            <option value="">Не менять</option>
-            {% for category in categories %}
-              <option value="{{ category.id }}">{{ category.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label for="bulk-subcategory-id">Подкатегория / уточнение</label>
-          <select id="bulk-subcategory-id">
-            <option value="">Не менять</option>
-            {% for category in categories %}
-              <option value="{{ category.id }}">{{ category.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label for="bulk-comment">Комментарий</label>
-          <input id="bulk-comment" placeholder="Необязательно">
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button type="button" onclick="saveBulkMaterialEdit()">Применить к выбранным</button>
-        </div>
-      </div>
-      <div id="bulk-edit-status" class="muted"></div>
-      {% if price_recommendations %}
-      <table id="price-table">
-        <thead><tr>
-          <th data-field="select"><input class="row-check" type="checkbox" onchange="toggleAllPriceRows(this)"></th>
-          <th data-field="category"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'category'), 'text')">Категория</button></th>
-          <th data-field="subcategory"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'subcategory'), 'text')">Подкатегория</button></th>
-          <th data-field="material"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'material'), 'text')">Материал для смет</button></th>
-          <th data-field="source_name"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'source_name'), 'text')">Наименование у поставщика</button></th>
-          <th data-field="price"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'price'), 'number')">Цена</button></th>
-          <th data-field="supplier"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'supplier'), 'text')">Поставщик</button></th>
-          <th data-field="region"><button type="button" onclick="sortTable('price-table', columnIndexByField('price-table', 'region'), 'text')">Город/регион</button></th>
-          <th data-field="availability">Наличие</th>
-          <th data-field="filters">Фильтры</th>
-          <th data-field="documents">Связанные документы</th>
-          <th data-field="alternatives">Альтернативные поставщики</th>
-          <th data-field="analogs">Аналоги</th>
-          <th data-field="edit">Правка</th>
-        </tr></thead>
-        <tbody>
-        {% for item in price_recommendations %}
-          <tr data-region="{{ item.best.region or '' }}" data-material-id="{{ item.material_id }}">
-            <td data-field="select"><input class="row-check price-row-check" type="checkbox" value="{{ item.material_id }}" onchange="updateBulkSelectedCount()"></td>
-            <td data-field="category">{{ item.category_name }}</td>
-            <td data-field="subcategory">{{ item.subcategory_name }}</td>
-            <td data-field="material">{{ item.material_name }}</td>
-            <td data-field="source_name">{% if item.best.external_url %}<a href="{{ item.best.external_url }}" target="_blank">{{ item.best.raw_name }}</a>{% else %}{{ item.best.raw_name }}{% endif %}</td>
-            <td data-field="price" data-sort-value="{{ item.best.price }}">{{ item.best.price }} {{ item.best.currency }}{% if item.best.unit %} / {{ item.best.unit }}{% endif %}</td>
-            <td data-field="supplier">{{ source_display_name(item.best.source) }}</td>
-            <td data-field="region">{{ item.best.region or "" }}</td>
-            <td data-field="availability">{{ item.best.availability or "" }}</td>
-            <td data-field="filters">
-              {% for spec in item.specifications %}
-                {% if spec.template %}
-                  <div>{{ spec.template.name }}: {{ spec.value }}{% if spec.unit %} {{ spec.unit }}{% endif %}</div>
-                {% endif %}
-              {% endfor %}
-              {% if not item.specifications %}<span class="muted">нет</span>{% endif %}
-            </td>
-            <td data-field="documents">
-              {% for document in item.documents %}
-                <div>
-                  {% if document.file_url %}
-                    <a href="{{ document.file_url }}" target="_blank">{{ enum_label(document.document_type) }}</a>
-                  {% elif document.source_url %}
-                    <a href="{{ document.source_url }}" target="_blank">{{ enum_label(document.document_type) }}</a>
-                  {% else %}
-                    {{ enum_label(document.document_type) }}
-                  {% endif %}
-                </div>
-              {% endfor %}
-              {% if not item.documents %}<span class="muted">нет</span>{% endif %}
-            </td>
-            <td data-field="alternatives">
-              {% for alt in item.alternatives %}
-                <div>
-                  {{ source_display_name(alt.source) }}:
-                  {% if alt.external_url %}<a href="{{ alt.external_url }}" target="_blank">{{ alt.raw_name }}</a>{% else %}{{ alt.raw_name }}{% endif %}
-                  · {{ alt.price }} {{ alt.currency }}{% if alt.unit %} / {{ alt.unit }}{% endif %}
-                  · {{ alt.availability or "наличие не указано" }}
-                </div>
-              {% endfor %}
-              {% if not item.alternatives %}<span class="muted">Тот же материал у других поставщиков пока не найден</span>{% endif %}
-            </td>
-            <td data-field="analogs">
-              {% for analog in item.analogs %}
-                <div>{{ analog.material.canonical_name if analog.material else analog.raw_name }} · {{ analog.material.brand or analog.raw_brand or "бренд не указан" if analog.material else analog.raw_brand or "" }} · {{ analog.price }} {{ analog.currency }}{% if analog.unit %} / {{ analog.unit }}{% endif %}</div>
-              {% endfor %}
-              {% if not item.analogs %}<span class="muted">Аналоги пока не найдены</span>{% endif %}
-            </td>
-            <td data-field="edit">
-              <button class="icon-button" type="button" title="Изменить материал" onclick="openMaterialEditDialog('{{ item.material_id }}', {{ item.material_name|tojson }}, '{{ item.category_id }}', '{{ item.subcategory_id }}', {{ item.brand|tojson }}, {{ item.manufacturer|tojson }})">✎</button>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}<div class="empty">Пока нет цен для сравнения.</div>{% endif %}
-    </section>
-
     <div id="material-edit-dialog" class="modal-backdrop">
       <div class="modal">
       <div class="modal-header">
@@ -443,7 +314,7 @@
             <td data-sort-value="{{ product.price or '' }}">{% if product.price is not none %}{{ product.price }} {{ product.currency }}{% if product.unit %} / {{ product.unit }}{% endif %}{% endif %}</td>
             <td>{{ product.region or "" }}</td>
             <td>{{ product.availability or "" }}</td>
-            <td>{{ product.material.canonical_name if product.material else "" }}</td>
+            <td>{% if product.material %}{{ "Название требует исправления" if product.material.canonical_name and "???" in product.material.canonical_name else product.material.canonical_name }}{% endif %}</td>
             <td>{{ enum_label(product.status) }}</td>
           </tr>
         {% endfor %}
@@ -455,7 +326,15 @@
 
     {% if view_mode in ["all", "materials"] %}
     <section id="materials" {% if view_mode == "all" %}style="display:none"{% endif %}>
-      <h2>Каноническая база материалов</h2>
+      <h2>{{ page_title if view_mode == "materials" else "Каноническая база материалов" }}</h2>
+      <div class="material-preset-bar" aria-label="Предустановленные виды таблицы материалов">
+        {% for preset in material_table_presets %}
+          <a class="preset-link {{ 'active' if preset.active else '' }}" href="{{ preset.href }}" data-material-preset-link data-preset="{{ preset.key }}">{{ preset.label }}</a>
+        {% endfor %}
+      </div>
+      <div class="muted material-preset-description">
+        {% for preset in material_table_presets %}{% if preset.active %}{{ preset.description }}{% endif %}{% endfor %}
+      </div>
       <div class="filters">
         <div>
           <label for="material-search">Поиск</label>
@@ -524,6 +403,10 @@
             <option value="without">Без цены</option>
           </select>
         </div>
+        <div>
+          <label>&nbsp;</label>
+          <button type="button" onclick="resetMaterialFilters()">Сбросить фильтры</button>
+        </div>
       </div>
       {% if materials %}
       <div class="muted" style="margin-bottom:8px">Загружено для работы: {{ materials|length }}{% if materials_total %} из {{ materials_total }}{% endif %}. Таблица показывает выбранную страницу после фильтров.</div>
@@ -537,7 +420,7 @@
       <div id="material-table-error" class="empty table-state" hidden>Не удалось загрузить материалы. Попробуйте обновить страницу.</div>
       <div id="material-filter-empty" class="empty table-state" style="display:none">По выбранным условиям ничего не найдено.</div>
       <div class="table-scroll">
-      <table id="material-table" data-preference-namespace="module1.materials_table">
+      <table id="material-table" data-preference-namespace="module1.materials_table" data-initial-preset="{{ material_table_preset }}" data-active-preset="{{ material_table_preset }}">
         <thead><tr>
           <th data-field="material"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'material'), 'text')">Материал</button></th>
           <th data-field="category"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'category'), 'text')">Категория</button></th>
@@ -556,12 +439,19 @@
           {% set subcategory_label = material.subcategory.name if material.subcategory else "" %}
           {% set supplier_label = source_display_name(price_info.source) if price_info and price_info.source else "Не указан" %}
           {% set region_label = price_info.region if price_info and price_info.region else "Регион не указан" %}
-          {% set data_state_label = "Не хватает цены" if not price_info else ("Требует классификации" if not material.category else enum_label(material.status)) %}
-          {% set data_state_class = "warning" if not price_info else ("review" if not material.category else "ready") %}
+          {% set estimate_ready = material.id|string in estimate_ready_material_ids %}
+          {% set needs_review_state = material.status.value in ["AUTO_CREATED", "NEEDS_REVIEW", "DRAFT"] %}
+          {% set data_state_label = "Не хватает цены" if not price_info else ("Требует классификации" if not material.category else ("Требует проверки" if needs_review_state and not estimate_ready else enum_label(material.status))) %}
+          {% set data_state_class = "warning" if not price_info else ("review" if not material.category or needs_review_state else "ready") %}
+          {% set material_display_name = "Название требует исправления" if material.canonical_name and "???" in material.canonical_name else material.canonical_name %}
           <tr
             data-status="{{ material.status.value }}"
             data-has-documents="{{ 'yes' if material.documents else 'no' }}"
             data-has-price="{{ 'yes' if price_info else 'no' }}"
+            data-estimate-ready="{{ 'yes' if estimate_ready else 'no' }}"
+            data-needs-price="{{ 'yes' if not price_info else 'no' }}"
+            data-needs-classification="{{ 'yes' if not material.category else 'no' }}"
+            data-needs-review="{{ 'yes' if needs_review_state else 'no' }}"
             data-category-id="{{ material.category_id or '' }}"
             data-subcategory-id="{{ material.subcategory_id or '' }}"
             data-category="{{ material.category.name if material.category else '' }}"
@@ -575,7 +465,7 @@
           >
             <td data-field="material">
               <div class="material-name">
-                <span class="material-title">{{ material.canonical_name }}</span>
+                <span class="material-title">{{ material_display_name }}</span>
                 {% if material.brand or material.manufacturer %}
                   <span class="material-secondary">{{ material.brand or material.manufacturer }}{% if material.brand and material.manufacturer and material.brand != material.manufacturer %} · {{ material.manufacturer }}{% endif %}</span>
                 {% endif %}
@@ -629,7 +519,7 @@
             <td data-field="actions">
               <div class="material-detail-actions">
                 <button class="icon-button" type="button" title="Открыть карточку" aria-label="Открыть карточку материала" onclick="openMaterialDetailsDialog('material-details-card-{{ loop.index }}', this)">Открыть</button>
-                <button class="icon-button" type="button" title="Изменить материал" aria-label="Изменить материал" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
+                <button class="icon-button" type="button" title="Изменить материал" aria-label="Изменить материал" onclick="openMaterialEditDialog('{{ material.id }}', {{ material_display_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
               </div>
               {% set detail_category_path = category_label ~ ((" / " ~ subcategory_label) if subcategory_label else "") %}
               {% set detail_construction_usages = construction_usage_for_material(material) %}
@@ -638,7 +528,7 @@
                   <header class="material-detail-header">
                     <div>
                       <div class="material-secondary">Материалы{% if detail_category_path %} / {{ detail_category_path }}{% endif %}</div>
-                      <h2>{{ material.canonical_name }}</h2>
+                      <h2>{{ material_display_name }}</h2>
                       {% if material.brand or material.manufacturer %}
                         <div>{{ material.brand or material.manufacturer }}{% if material.brand and material.manufacturer and material.brand != material.manufacturer %} · {{ material.manufacturer }}{% endif %}</div>
                       {% endif %}
@@ -760,7 +650,7 @@
                     <section class="material-detail-section material-detail-wide">
                       <h3>Действия</h3>
                       <div class="material-detail-actions">
-                        <button type="button" onclick="closeMaterialDetailsDialog(); openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">Редактировать</button>
+                        <button type="button" onclick="closeMaterialDetailsDialog(); openMaterialEditDialog('{{ material.id }}', {{ material_display_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">Редактировать</button>
                         {% if material.documents %}<span class="muted">Документы открываются из раздела выше.</span>{% else %}<span class="muted">Доступных документов для открытия нет.</span>{% endif %}
                       </div>
                     </section>
@@ -882,12 +772,12 @@
         <tbody>
         {% for material in unclassified_materials %}
           <tr>
-            <td>{{ material.canonical_name }}</td>
+            {% set material_display_name = "Название требует исправления" if material.canonical_name and "???" in material.canonical_name else material.canonical_name %}
             <td>{{ material.brand or "" }}</td>
             <td>{{ material.manufacturer or "" }}</td>
             <td>{{ enum_label(material.status) }}</td>
             <td>
-              <button class="icon-button" type="button" title="Назначить классификацию" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
+              <button class="icon-button" type="button" title="Назначить классификацию" onclick="openMaterialEditDialog('{{ material.id }}', {{ material_display_name|tojson }}, '', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
             </td>
           </tr>
         {% endfor %}
@@ -988,7 +878,7 @@
             {% set material = item.material %}
             <tr data-region="{{ price.region or '' }}" data-manufacturer="{{ material.manufacturer or '' }}">
               <td>{{ dt(price.collected_at) }}</td>
-              <td>{{ material.canonical_name }}</td>
+              {% set material_display_name = "Название требует исправления" if material.canonical_name and "???" in material.canonical_name else material.canonical_name %}
               <td>{{ material.manufacturer or "" }}</td>
               <td data-sort-value="{{ price.price }}">{{ price.price }} {{ price.currency }}</td>
               <td>{{ price.unit or "" }}</td>
@@ -1016,7 +906,7 @@
             <tbody>
             {% for material in materials_without_price_history %}
               <tr>
-                <td>{{ material.canonical_name }}</td>
+                {% set material_display_name = "Название требует исправления" if material.canonical_name and "???" in material.canonical_name else material.canonical_name %}
                 <td>{{ material.category.name if material.category else "" }}</td>
                 <td>{{ material.subcategory.name if material.subcategory else "" }}</td>
                 <td>{{ material.manufacturer or "" }}</td>
@@ -1093,9 +983,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      initConfigurableTable("price-table");
       initTablePagination();
-      updateBulkSelectedCount();
       document.addEventListener("click", () => hideColumnContextMenu());
     });
 
@@ -1186,67 +1074,6 @@
         return;
       }
       status.textContent = "Правка сохранена. Материал зафиксирован как VERIFIED.";
-      status.className = "muted";
-      setTimeout(() => window.location.reload(), 700);
-    }
-
-    function selectedPriceMaterialIds() {
-      return Array.from(document.querySelectorAll(".price-row-check:checked")).map((input) => input.value);
-    }
-
-    function updateBulkSelectedCount() {
-      const input = document.getElementById("bulk-selected-count");
-      if (input) input.value = String(selectedPriceMaterialIds().length);
-    }
-
-    function toggleAllPriceRows(master) {
-      document.querySelectorAll(".price-row-check").forEach((input) => {
-        input.checked = master.checked;
-      });
-      updateBulkSelectedCount();
-    }
-
-    function toggleBulkPanel() {
-      const panel = document.getElementById("bulk-edit-panel");
-      panel.style.display = panel.style.display === "none" ? "grid" : "none";
-      updateBulkSelectedCount();
-    }
-
-    async function saveBulkMaterialEdit() {
-      const status = document.getElementById("bulk-edit-status");
-      const materialIds = selectedPriceMaterialIds();
-      if (!materialIds.length) {
-        status.textContent = "Выберите строки для массовой правки.";
-        status.className = "bad";
-        return;
-      }
-      const categoryId = document.getElementById("bulk-category-id").value || null;
-      const subcategoryId = document.getElementById("bulk-subcategory-id").value || null;
-      if (!categoryId && !subcategoryId) {
-        status.textContent = "Выберите категорию или подкатегорию, которую нужно применить.";
-        status.className = "bad";
-        return;
-      }
-
-      status.textContent = "Применяем массовую правку...";
-      status.className = "muted";
-      const response = await fetch("/api/v1/dev/material-hub/material/bulk-edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          material_ids: materialIds,
-          category_id: categoryId,
-          subcategory_id: subcategoryId,
-          comment: document.getElementById("bulk-comment").value || null,
-        }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        status.textContent = payload.detail || "Не удалось применить массовую правку.";
-        status.className = "bad";
-        return;
-      }
-      status.textContent = "Обновлено материалов: " + payload.updated;
       status.className = "muted";
       setTimeout(() => window.location.reload(), 700);
     }
@@ -1677,70 +1504,6 @@
       renderColumnPanel(tableId);
     }
 
-    function toggleColumnPanel() {
-      const panel = document.getElementById("column-panel");
-      panel.style.display = panel.style.display === "none" ? "grid" : "none";
-      renderColumnPanel("price-table");
-    }
-
-    function renderColumnPanel(tableId) {
-      const panel = document.getElementById("column-panel");
-      const table = document.getElementById(tableId);
-      if (!panel || !table || !table.tHead) return;
-      const layout = readTableLayout(tableId);
-      const hidden = new Set(layout.hidden || []);
-      const columns = Array.from(table.tHead.rows[0].cells)
-        .map((cell) => ({
-          field: cell.dataset.field,
-          label: cell.textContent.trim() || "Выбор",
-        }))
-        .filter((column) => column.field && column.field !== "select");
-      panel.innerHTML = columns.map((column) => `
-        <label>
-          <input type="checkbox" style="width:auto;min-height:0" ${hidden.has(column.field) ? "" : "checked"} onchange="toggleColumnVisibility('${tableId}', '${column.field}', this.checked)">
-          ${column.label}
-        </label>
-      `).join("") + '<div><button type="button" onclick="showAllColumns(\'price-table\')">Показать все</button></div>';
-    }
-
-    function toggleColumnVisibility(tableId, field, visible) {
-      const layout = readTableLayout(tableId);
-      const hidden = new Set(layout.hidden || []);
-      if (visible) hidden.delete(field);
-      else if (field !== "select" && field !== "edit") hidden.add(field);
-      layout.hidden = Array.from(hidden);
-      writeTableLayout(tableId, layout);
-      applyStoredColumnState(tableId);
-      renderColumnPanel(tableId);
-    }
-
-    function resetPriceTableLayout() {
-      localStorage.removeItem(tableLayoutKey("price-table"));
-      window.location.reload();
-    }
-
-    function filterRows(tableId, searchId) {
-      const query = (document.getElementById(searchId).value || "").toLocaleLowerCase();
-      document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
-        setRowFilterVisible(row, row.textContent.toLocaleLowerCase().includes(query));
-      });
-      const table = document.getElementById(tableId);
-      if (table) table.dataset.page = "1";
-      applyPagination(tableId);
-    }
-
-    function applyPriceFilters() {
-      const query = (document.getElementById("price-search").value || "").toLocaleLowerCase();
-      const region = (document.getElementById("price-region-filter").value || "").toLocaleLowerCase();
-      document.querySelectorAll("#price-table tbody tr").forEach((row) => {
-        const matchesText = row.textContent.toLocaleLowerCase().includes(query);
-        const matchesRegion = !region || (row.dataset.region || "").toLocaleLowerCase().includes(region);
-        setRowFilterVisible(row, matchesText && matchesRegion);
-      });
-      document.getElementById("price-table").dataset.page = "1";
-      applyPagination("price-table");
-    }
-
     function applyProductFilters() {
       const table = document.getElementById("product-table");
       if (!table) return;
@@ -1911,7 +1674,47 @@
       setTimeout(() => window.location.reload(), 900);
     }
 
+    function activeMaterialPreset() {
+      const table = document.getElementById("material-table");
+      return table?.dataset.activePreset || table?.dataset.initialPreset || "all";
+    }
+
+    function setActiveMaterialPreset(preset) {
+      const table = document.getElementById("material-table");
+      if (!table) return;
+      table.dataset.activePreset = preset || "all";
+      document.querySelectorAll("[data-material-preset-link]").forEach((link) => {
+        link.classList.toggle("active", link.dataset.preset === table.dataset.activePreset);
+      });
+    }
+
+    function applyInitialMaterialRouteState() {
+      const table = document.getElementById("material-table");
+      if (!table) return;
+      const params = new URLSearchParams(window.location.search);
+      const preset = params.get("preset") || table.dataset.initialPreset || "all";
+      setActiveMaterialPreset(preset);
+      const supported = {
+        search: "material-search",
+        q: "material-search",
+        category: "material-category-filter",
+        subcategory: "material-subcategory-filter",
+        region: "material-region-filter",
+        source: "material-source-filter",
+        page_size: null,
+        page: null,
+      };
+      Object.entries(supported).forEach(([param, fieldId]) => {
+        if (!fieldId || !params.has(param)) return;
+        const field = document.getElementById(fieldId);
+        if (field) field.value = params.get(param) || "";
+      });
+      if (params.has("page_size")) changePageSize("material-table", params.get("page_size") || "50");
+      if (params.has("page")) table.dataset.page = String(Math.max(1, Number(params.get("page") || 1)));
+    }
+
     function applyMaterialFilters() {
+      const preset = activeMaterialPreset();
       const query = (document.getElementById("material-search").value || "").toLocaleLowerCase();
       const category = (document.getElementById("material-category-filter").value || "").toLocaleLowerCase();
       const subcategory = (document.getElementById("material-subcategory-filter").value || "").toLocaleLowerCase();
@@ -1941,9 +1744,15 @@
         const matchesStatus = !status || row.dataset.status === status;
         const matchesDocuments = !documentFilter || (documentFilter === "with" ? row.dataset.hasDocuments === "yes" : row.dataset.hasDocuments === "no");
         const matchesPrice = !priceFilter || (priceFilter === "with" ? row.dataset.hasPrice === "yes" : row.dataset.hasPrice === "no");
+        const matchesPreset = preset === "all"
+          || (preset === "estimate_ready" && row.dataset.estimateReady === "yes")
+          || (preset === "needs_price" && row.dataset.needsPrice === "yes")
+          || (preset === "needs_classification" && row.dataset.needsClassification === "yes")
+          || (preset === "needs_review" && row.dataset.needsReview === "yes");
         setRowFilterVisible(
           row,
-          matchesText
+          matchesPreset
+            && matchesText
             && matchesCategory
             && matchesSubcategory
             && matchesMaker
@@ -1959,6 +1768,27 @@
       });
       document.getElementById("material-table").dataset.page = "1";
       applyPagination("material-table");
+    }
+
+    function resetMaterialFilters() {
+      [
+        "material-search",
+        "material-category-filter",
+        "material-subcategory-filter",
+        "material-maker-filter",
+        "material-source-filter",
+        "material-region-filter",
+        "material-price-min",
+        "material-price-max",
+        "material-category-state-filter",
+        "material-status-filter",
+        "material-document-filter",
+        "material-price-filter",
+      ].forEach((id) => {
+        const field = document.getElementById(id);
+        if (field) field.value = "";
+      });
+      applyMaterialFilters();
     }
 
     function applyTaskFilters() {
@@ -2011,24 +1841,13 @@
     const TABLE_VIEW_SCHEMAS = {
       "material-table": {
         namespace: "module1.materials_table",
-        requiredColumns: ["material", "category", "characteristics", "price", "data_state", "updated", "actions"],
+        requiredColumns: ["material", "price", "data_state", "actions"],
         optionalColumns: ["unit_package", "supplier_region"],
         defaultOrder: ["material", "category", "characteristics", "unit_package", "price", "supplier_region", "data_state", "updated", "actions"],
         defaultHidden: [],
         defaultDensity: "normal",
         defaultPageSize: "50",
         defaultSort: { field: "updated", type: "date", direction: "desc" },
-        defaultWrapText: "multiline",
-      },
-      "price-table": {
-        namespace: "module1.price_table",
-        requiredColumns: ["material", "price", "edit"],
-        optionalColumns: [],
-        defaultOrder: [],
-        defaultHidden: [],
-        defaultDensity: "normal",
-        defaultPageSize: "50",
-        defaultSort: null,
         defaultWrapText: "multiline",
       },
     };
@@ -2179,14 +1998,14 @@
     }
 
     function panelIdForTable(tableId) {
-      return tableId === "material-table" ? "material-column-panel" : "column-panel";
+      return tableId === "material-table" ? "material-column-panel" : "material-column-panel";
     }
 
     function viewButtonIdForTable(tableId) {
-      return tableId === "material-table" ? "material-table-view-button" : "price-column-button";
+      return tableId === "material-table" ? "material-table-view-button" : "material-table-view-button";
     }
 
-    function toggleColumnPanel(tableId = "price-table") {
+    function toggleColumnPanel(tableId = "material-table") {
       const panel = document.getElementById(panelIdForTable(tableId));
       if (!panel) return;
       const nextDisplay = panel.style.display === "none" || !panel.style.display ? "grid" : "none";
@@ -2318,11 +2137,6 @@
       const densityLabels = { compact: "компактный", normal: "обычный", spacious: "свободный" };
       const wrapLabels = { single: "одна строка", multiline: "несколько строк" };
       status.textContent = `Вид: ${densityLabels[layout.density] || "обычный"}, ${layout.page_size} строк, ${wrapLabels[layout.wrap_text] || "несколько строк"}`;
-    }
-
-    function resetPriceTableLayout() {
-      tablePreferenceStorage().removeItem(tableLayoutKey("price-table"));
-      window.location.reload();
     }
 
     function resetMaterialTableView() {
@@ -2526,6 +2340,8 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       initConfigurableTable("material-table");
+      applyInitialMaterialRouteState();
+      applyMaterialFilters();
       updateTableViewStatus("material-table");
     });
 

@@ -311,8 +311,10 @@ async def material_hub_data(
     request: Request,
     db: DBSession,
     in_stock_only: bool = Query(False),
+    preset: str | None = Query(None),
 ):
-    return await _render_data_page(request, db, in_stock_only, "all", "Данные Material Hub")
+    material_table_preset = _material_table_preset(preset, default="all")
+    return await _render_data_page(request, db, in_stock_only, "all", "Данные Material Hub", material_table_preset)
 
 
 @router.get("/materials", response_class=HTMLResponse)
@@ -320,8 +322,11 @@ async def material_hub_materials(
     request: Request,
     db: DBSession,
     in_stock_only: bool = Query(False),
+    preset: str | None = Query(None),
 ):
-    return await _render_data_page(request, db, in_stock_only, "materials", "Основная таблица материалов")
+    material_table_preset = _material_table_preset(preset, default="estimate_ready")
+    page_title = "Материалы, готовые к смете" if material_table_preset == "estimate_ready" else "Каноническая база материалов"
+    return await _render_data_page(request, db, in_stock_only, "materials", page_title, material_table_preset)
 
 
 @router.get("/sources", response_class=HTMLResponse)
@@ -360,21 +365,29 @@ async def _render_data_page(
     in_stock_only: bool,
     view_mode: str,
     page_title: str,
+    material_table_preset: str = "all",
 ):
+    materials = await _load_materials(db)
+    material_prices = await _load_material_price_map(db)
+    price_recommendations = await _load_price_recommendations(db, in_stock_only)
+    estimate_ready_material_ids = {item["material_id"] for item in price_recommendations if item.get("material_id")}
     return templates.TemplateResponse(
         request,
         "material_hub_data.html",
         {
             "view_mode": view_mode,
             "page_title": page_title,
+            "material_table_preset": material_table_preset,
+            "material_table_presets": _material_table_presets(material_table_preset),
             "sources": await _load_sources(db),
             "tasks": await _load_tasks(db),
             "products": await _load_catalog_products(db),
-            "materials": await _load_materials(db),
+            "materials": materials,
             "materials_total": await _count_active_materials(db),
             "categories": await _load_categories(db),
             "unclassified_materials": await _load_unclassified_materials(db),
-            "material_prices": await _load_material_price_map(db),
+            "material_prices": material_prices,
+            "estimate_ready_material_ids": estimate_ready_material_ids,
             "prices": await _load_prices(db),
             "materials_without_price_history": await _load_materials_without_price_history(db),
             "logs": await _load_logs(db),
@@ -393,9 +406,36 @@ async def _render_data_page(
             "construction_usage_source_label": _construction_usage_source_label,
             "dt": _format_datetime,
             "in_stock_only": in_stock_only,
-            "price_recommendations": await _load_price_recommendations(db, in_stock_only),
+            "price_recommendations": price_recommendations,
         },
     )
+
+
+MATERIAL_TABLE_PRESET_LABELS = {
+    "all": ("Все материалы", "Единая каноническая таблица без preset-фильтра."),
+    "estimate_ready": ("Готовы к смете", "Материалы из существующего серверного списка готовности для выбора в смете."),
+    "needs_price": ("Требуют цены", "Материалы без положительной цены в текущем серверном price map."),
+    "needs_classification": ("Требуют классификации", "Материалы без назначенной категории."),
+    "needs_review": ("Требуют проверки", "Материалы в статусе черновика или ручной проверки."),
+}
+
+
+def _material_table_preset(value: str | None, default: str = "all") -> str:
+    normalized = (value or default or "all").strip().lower().replace("-", "_")
+    return normalized if normalized in MATERIAL_TABLE_PRESET_LABELS else default
+
+
+def _material_table_presets(active_preset: str) -> list[dict[str, str | bool]]:
+    return [
+        {
+            "key": key,
+            "label": label,
+            "description": description,
+            "href": f"/api/v1/admin/material-hub/view/materials?preset={key}",
+            "active": key == active_preset,
+        }
+        for key, (label, description) in MATERIAL_TABLE_PRESET_LABELS.items()
+    ]
 
 
 async def _load_stats(db: DBSession) -> dict[str, int]:

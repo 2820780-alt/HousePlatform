@@ -100,10 +100,7 @@ def test_materials_table_view_preferences_are_namespaced_and_user_isolated() -> 
 def test_required_columns_cannot_be_hidden_and_unknown_columns_are_ignored() -> None:
     text = _template_text()
 
-    assert (
-        'requiredColumns: ["material", "category", "characteristics", "price", '
-        '"data_state", "updated", "actions"]'
-    ) in text
+    assert 'requiredColumns: ["material", "price", "data_state", "actions"]' in text
     assert "schema.requiredColumns.includes(field)" in text
     assert "fields.has(field) && !schema.requiredColumns.includes(field)" in text
     assert "merged.column_order.filter((field) => fields.has(field))" in text
