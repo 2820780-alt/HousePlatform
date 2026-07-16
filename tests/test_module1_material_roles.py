@@ -86,6 +86,8 @@ def test_material_roles_are_loaded_from_seed_role_mappings() -> None:
     gas_block_roles = get_roles_for_group("gas_block")
     insulation_roles = get_roles_for_group("mineral_wool_slab")
     metal_tile_roles = get_roles_for_group("metal_tile")
+    regular_gkl_roles = get_roles_for_group("gypsum_board_regular")
+    moisture_gkl_roles = get_roles_for_group("gypsum_board_moisture_resistant")
 
     assert roles
     assert all(isinstance(role, MaterialRole) for role in roles)
@@ -101,6 +103,14 @@ def test_material_roles_are_loaded_from_seed_role_mappings() -> None:
     assert {role.role_code for role in gas_block_roles} == {"outer_wall_block", "inner_wall_block", "partition_block"}
     assert {role.role_code for role in insulation_roles} >= {"facade_insulation", "roof_insulation"}
     assert {role.role_code for role in metal_tile_roles} == {"roof_covering", "mansard_roof_covering"}
+    assert {role.role_code for role in regular_gkl_roles} == {"wall_lining", "partition_sheathing", "ceiling_sheathing"}
+    assert all(role.role_code != "wet_room_sheathing" for role in regular_gkl_roles)
+    assert {role.role_code for role in moisture_gkl_roles} == {
+        "wall_lining",
+        "partition_sheathing",
+        "ceiling_sheathing",
+        "wet_room_sheathing",
+    }
 
 
 def test_role_contexts_primary_and_conditional_roles_are_available() -> None:
@@ -191,6 +201,19 @@ def test_gas_block_gypsum_insulation_and_metal_tile_roles_have_expected_readines
             base_unit="sheet",
         )
     )
+    regular_gypsum_profile = build_material_technical_profile(
+        _view(
+            "gypsum_board_regular",
+            {
+                "length_mm": Decimal("2500"),
+                "width_mm": Decimal("1200"),
+                "thickness_mm": Decimal("12.5"),
+                "board_type": "regular",
+                "sheet_area_m2": Decimal("3.0"),
+            },
+            base_unit="sheet",
+        )
+    )
     insulation_profile = build_material_technical_profile(
         _view(
             "mineral_wool_slab",
@@ -218,6 +241,7 @@ def test_gas_block_gypsum_insulation_and_metal_tile_roles_have_expected_readines
 
     gas_report = build_material_role_readiness_report(gas_profile)
     gypsum_report = build_material_role_readiness_report(gypsum_profile)
+    regular_gypsum_report = build_material_role_readiness_report(regular_gypsum_profile)
     insulation_report = build_material_role_readiness_report(insulation_profile)
     metal_report = build_material_role_readiness_report(metal_profile)
 
@@ -237,3 +261,5 @@ def test_material_roles_service_does_not_import_orm_or_costing_layers() -> None:
     assert ".add(" not in source
     assert "calculate_cost" not in source.lower()
     assert "supplierprice" not in source.lower()
+    assert "reference_data" not in source
+    assert "ATOM_REF2" not in source

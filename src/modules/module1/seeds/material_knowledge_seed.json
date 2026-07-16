@@ -339,6 +339,26 @@
         "frost_resistance"
       ]
     },
+    "gypsum_board_regular": {
+      "required": [
+        "length_mm",
+        "width_mm",
+        "thickness_mm",
+        "board_type"
+      ],
+      "module2Required": [
+        "length_mm",
+        "width_mm",
+        "thickness_mm",
+        "sheet_area_m2"
+      ],
+      "recommended": [
+        "edge_type",
+        "weight_kg",
+        "sheets_per_pack",
+        "application"
+      ]
+    },
     "gypsum_board_moisture_resistant": {
       "required": [
         "length_mm",
@@ -577,6 +597,14 @@
         "blind_area_insulation",
         "floor_insulation",
         "plinth_insulation"
+      ]
+    },
+    {
+      "materialGroup": "gypsum_board_regular",
+      "roles": [
+        "wall_lining",
+        "partition_sheathing",
+        "ceiling_sheathing"
       ]
     },
     {

@@ -16,6 +16,7 @@ def test_schema_registry_uses_seed_registry_groups():
 
     assert groups == tuple(sorted(groups))
     assert "aerated_concrete_block" in groups
+    assert "gypsum_board_regular" in groups
     assert "gypsum_board_moisture_resistant" in groups
     assert "rebar" in groups
     assert "ready_mix_concrete" in groups
@@ -34,6 +35,7 @@ def test_get_schema_by_fact_seed_code_and_aliases():
     assert registry.has_schema("gas_block") is True
     assert registry.has_schema("газоблок") is True
     assert registry.has_schema("gypsum_board") is True
+    assert registry.has_schema("gypsum_board_regular") is True
     assert registry.has_schema("concrete") is True
     assert registry.has_schema("dry_mix") is True
     assert registry.has_schema("primer") is True
@@ -51,7 +53,11 @@ def test_get_schema_by_fact_seed_code_and_aliases():
 
 def test_required_and_recommended_characteristics_are_returned():
     gas_block_required = get_required_characteristics("gas_block")
-    gypsum_recommended = CharacteristicSchemaRegistry().get_recommended_characteristics("gypsum_board")
+    schema_registry = CharacteristicSchemaRegistry()
+    gypsum_recommended = schema_registry.get_recommended_characteristics("gypsum_board")
+    regular_required = schema_registry.get_required_characteristics("gypsum_board_regular")
+    regular_module2_required = schema_registry.get_module2_required_characteristics("gypsum_board_regular")
+    regular_recommended = schema_registry.get_recommended_characteristics("gypsum_board_regular")
 
     assert gas_block_required == (
         "length_mm",
@@ -103,6 +109,13 @@ def test_validation_accepts_full_technical_profile_for_key_groups():
     registry = CharacteristicSchemaRegistry()
 
     samples = {
+        "gypsum_board_regular": {
+            "length_mm": 2500,
+            "width_mm": 1200,
+            "thickness_mm": 12.5,
+            "board_type": "regular",
+            "sheet_area_m2": 3.0,
+        },
         "ready_mix_concrete": {
             "concrete_class": "B25",
             "unit": "m3",
@@ -166,3 +179,5 @@ def test_registry_does_not_import_orm_or_read_seed_directly():
     assert "import json" not in source
     assert "read_text" not in source
     assert "get_material_knowledge_seed_registry" in source
+    assert "reference_data" not in source
+    assert "ATOM_REF2" not in source

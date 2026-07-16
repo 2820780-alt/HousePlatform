@@ -21,8 +21,8 @@ def test_material_knowledge_seed_loads_from_repository():
     assert registry.version
     assert registry.module == "Module 1 Material Knowledge Core"
     assert len(registry.taxonomy) == 19
-    assert len(registry.characteristic_schemas) == 12
-    assert len(registry.role_mappings) == 10
+    assert len(registry.characteristic_schemas) == 13
+    assert len(registry.role_mappings) == 11
     assert len(registry.compatibility_rules) == 15
     assert len(registry.alternative_rules) == 13
     assert len(registry.unit_conversions) == 7
@@ -35,6 +35,7 @@ def test_cached_registry_uses_default_seed_path():
     assert registry.has_material_group("rebar")
     assert registry.has_material_group("board")
     assert registry.has_material_group("metal_tile")
+    assert registry.has_material_group("gypsum_board_regular")
 
 
 def test_registry_returns_taxonomy_groups_and_children():
@@ -145,3 +146,5 @@ def test_seed_registry_does_not_create_orm_materials_or_catalog_products():
     assert "Material(" not in source
     assert "CatalogProduct(" not in source
     assert "SupplierPrice(" not in source
+    assert "reference_data" not in source
+    assert "ATOM_REF2" not in source
