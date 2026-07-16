@@ -1,0 +1,115 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any
+
+
+class CompatibilityClassification(str, Enum):
+    EXACT_MATCH = "EXACT_MATCH"
+    ALIAS_MATCH = "ALIAS_MATCH"
+    RUNTIME_ONLY = "RUNTIME_ONLY"
+    REF_ONLY = "REF_ONLY"
+    AMBIGUOUS = "AMBIGUOUS"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    STRUCTURE_MISMATCH = "STRUCTURE_MISMATCH"
+    INVALID_REFERENCE = "INVALID_REFERENCE"
+    UNSUPPORTED = "UNSUPPORTED"
+
+
+class IssueSeverity(str, Enum):
+    BLOCKER = "BLOCKER"
+    WARNING = "WARNING"
+    INFO = "INFO"
+
+
+@dataclass(frozen=True)
+class ProjectionSource:
+    package_id: str
+    version: str
+    status: str
+    path: Path
+    integration_allowed: bool | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "package_id": self.package_id,
+            "version": self.version,
+            "status": self.status,
+            "path": str(self.path),
+            "integration_allowed": self.integration_allowed,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectionEntity:
+    entity_id: str
+    entity_type: str
+    source_package_id: str
+    classification: CompatibilityClassification
+    payload: dict[str, Any] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "entity_id": self.entity_id,
+            "entity_type": self.entity_type,
+            "source_package_id": self.source_package_id,
+            "classification": self.classification.value,
+            "payload": self.payload,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectionIssue:
+    code: str
+    severity: IssueSeverity
+    message: str
+    source_path: Path | None = None
+    package_id: str | None = None
+    entity_id: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "code": self.code,
+            "severity": self.severity.value,
+            "message": self.message,
+            "source_path": str(self.source_path) if self.source_path else None,
+            "package_id": self.package_id,
+            "entity_id": self.entity_id,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectionSummary:
+    sources: tuple[ProjectionSource, ...]
+    entities: tuple[ProjectionEntity, ...]
+    issues: tuple[ProjectionIssue, ...]
+
+    @property
+    def blocker_count(self) -> int:
+        return sum(1 for issue in self.issues if issue.severity is IssueSeverity.BLOCKER)
+
+    @property
+    def warning_count(self) -> int:
+        return sum(1 for issue in self.issues if issue.severity is IssueSeverity.WARNING)
+
+    @property
+    def info_count(self) -> int:
+        return sum(1 for issue in self.issues if issue.severity is IssueSeverity.INFO)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "sources": [source.as_dict() for source in self.sources],
+            "entities": [entity.as_dict() for entity in self.entities],
+            "issues": [issue.as_dict() for issue in self.issues],
+            "counts": {
+                "sources": len(self.sources),
+                "entities": len(self.entities),
+                "blockers": self.blocker_count,
+                "warnings": self.warning_count,
+                "info": self.info_count,
+            },
+        }
