@@ -3,7 +3,7 @@
   "module": 1,
   "package_id": "REF-3A",
   "package_name": "Unit Dictionary and Conversion Policy",
-  "version": "0.1-draft",
+  "version": "0.2-draft",
   "date": "2026-07-16",
   "status": "draft_for_user_review",
   "source_packages": [
@@ -1548,15 +1548,15 @@
       "linear_convertible": true,
       "factor_to_base": 0.001,
       "aliases": [
-        "micron",
-        "µm",
-        "мкм"
+        "micron"
       ],
-      "runtime_status": "proposed_ref3_technical",
+      "runtime_status": "legacy_alias_ref3_technical",
       "ref2_usage_field_count": 1,
-      "review_flag": null,
+      "review_flag": "legacy_unit_code_alias_to_um",
       "editable": true,
-      "status": "active_draft"
+      "status": "deprecated_alias_draft",
+      "canonical_unit_code": "um",
+      "description_ru": "Legacy unit code retained for compatibility; new fields should use um."
     },
     {
       "unit_code": "min",
@@ -1989,13 +1989,16 @@
       "aliases": [
         "um",
         "µm",
-        "мкм"
+        "мкм",
+        "микрометр",
+        "микроны"
       ],
       "runtime_status": "proposed_ref3_technical",
       "ref2_usage_field_count": 4,
-      "review_flag": "duplicate_semantic_with_micron",
+      "review_flag": null,
       "editable": true,
-      "status": "active_draft"
+      "status": "active_draft",
+      "canonical_unit_code": "um"
     },
     {
       "unit_code": "year",
@@ -2695,7 +2698,8 @@
     "Composite rate units are not used as stock units or price-basis units unless explicitly allowed by a product contract.",
     "Conversion requiring characteristics is only valid when all required source fields are present and positive.",
     "Rounding to whole packages belongs to purchase preparation/Module 5, not to the reference unit dictionary.",
-    "No numeric consumption default is inherited from a material type without product source or technical evidence."
+    "No numeric consumption default is inherited from a material type without product source or technical evidence.",
+    "Код micron сохраняется только как legacy alias к canonical unit um; новые поля должны использовать um."
   ],
   "review_queue": [
     {
@@ -3005,6 +3009,28 @@
       "status": "active_draft"
     },
     {
+      "unit_code": "micron",
+      "label_ru": "Микрометр",
+      "symbol": "мкм",
+      "dimension": "length",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "mm",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "micron"
+      ],
+      "runtime_status": "legacy_alias_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "legacy_unit_code_alias_to_um",
+      "editable": true,
+      "status": "deprecated_alias_draft",
+      "canonical_unit_code": "um",
+      "description_ru": "Legacy unit code retained for compatibility; new fields should use um."
+    },
+    {
       "unit_code": "per_m",
       "label_ru": "Обратный метр",
       "symbol": "1/м",
@@ -3046,28 +3072,6 @@
       "review_flag": "count_density_unit_review",
       "editable": true,
       "status": "active_draft"
-    },
-    {
-      "unit_code": "um",
-      "label_ru": "Микрометр",
-      "symbol": "мкм",
-      "dimension": "length",
-      "roles": [
-        "characteristic_unit"
-      ],
-      "base_unit_code": "mm",
-      "linear_convertible": true,
-      "factor_to_base": 0.001,
-      "aliases": [
-        "um",
-        "µm",
-        "мкм"
-      ],
-      "runtime_status": "proposed_ref3_technical",
-      "ref2_usage_field_count": 4,
-      "review_flag": "duplicate_semantic_with_micron",
-      "editable": true,
-      "status": "active_draft"
     }
   ],
   "validation": {
@@ -3078,7 +3082,14 @@
     "all_ref2_unit_codes_covered": true,
     "uncovered_ref2_unit_codes": [],
     "duplicate_unit_codes": [],
-    "review_queue_count": 17
+    "review_queue_count": 17,
+    "ambiguous_aliases": {
+      "lm": [
+        "linear_meter",
+        "lm"
+      ]
+    },
+    "ambiguous_alias_count": 1
   },
   "approval": {
     "integration_allowed": false,
@@ -3090,6 +3101,11 @@
       "revision": 1,
       "date": "2026-07-16",
       "change": "Initial REF-3A draft."
+    },
+    {
+      "revision": 2,
+      "date": "2026-07-16",
+      "change": "Resolved micrometer alias ambiguity: um is canonical; micron retained as legacy alias code."
     }
   ]
 }

@@ -3,26 +3,38 @@
   "module": 1,
   "package_id": "REF-3",
   "package_name": "Units, Packaging, Geometry, Coverage, Yield and Consumption",
-  "version": "0.1-draft",
+  "version": "0.2-draft",
   "date": "2026-07-16",
   "status": "draft_for_user_review",
   "parts": [
     {
       "package_id": "REF-3A",
+      "version": "0.2-draft",
       "file": "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json",
+      "sha256": "b4c4df5afb9fdb772f70d318fbf45412981b160cc83ff0afe2a1b1484c81125a",
       "purpose": "Canonical unit dictionary and conversion policy."
     },
     {
       "package_id": "REF-3B",
+      "version": "0.1-draft",
       "file": "ATOM_REF3_Packaging_Quantity_Profiles_v1_DRAFT.json",
+      "sha256": "e42f6b0dede8eff8bd33146477ae909990892924d802b5cb37e326262977252b",
       "purpose": "Quantity, price-basis and package profiles for 978 material types."
     },
     {
       "package_id": "REF-3C",
+      "version": "0.2-draft",
       "file": "ATOM_REF3_Geometry_Coverage_Consumption_Rules_v1_DRAFT.json",
+      "sha256": "23eefba57ef415527db3f9cf0fa395614d7064c06d2db753f4072209560b7b28",
       "purpose": "Geometry, package coverage, yield and product rate semantics."
     }
   ],
   "integration_allowed": false,
-  "next_gate": "User content review and preliminary approval."
+  "validation_blockers_resolved": [
+    "micrometer_alias_ambiguity",
+    "legacy_package_area_field_references",
+    "undeclared_formula_inputs_and_outputs",
+    "manifest_missing_part_hashes"
+  ],
+  "next_gate": "Replace committed REF-3A/REF-3C/manifest files and rerun cross-package validation."
 }
