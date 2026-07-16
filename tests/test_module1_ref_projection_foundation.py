@@ -114,6 +114,8 @@ def test_neutral_models_expose_required_statuses() -> None:
         "STRUCTURE_MISMATCH",
         "INVALID_REFERENCE",
         "UNSUPPORTED",
+        "INCOMPATIBLE_TYPE",
+        "INCOMPATIBLE_UNIT",
     }
 
 

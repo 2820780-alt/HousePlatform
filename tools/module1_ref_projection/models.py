@@ -16,6 +16,8 @@ class CompatibilityClassification(str, Enum):
     STRUCTURE_MISMATCH = "STRUCTURE_MISMATCH"
     INVALID_REFERENCE = "INVALID_REFERENCE"
     UNSUPPORTED = "UNSUPPORTED"
+    INCOMPATIBLE_TYPE = "INCOMPATIBLE_TYPE"
+    INCOMPATIBLE_UNIT = "INCOMPATIBLE_UNIT"
 
 
 class IssueSeverity(str, Enum):
@@ -109,6 +111,100 @@ class ProjectedMaterialType:
             "normalized_group_code": self.normalized_group_code,
             "aliases": list(self.aliases),
             "status": self.status,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedCharacteristicField:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    data_type: str | None = None
+    unit_code: str | None = None
+    aliases: tuple[str, ...] = tuple()
+    allowed_values: tuple[str, ...] = tuple()
+    status: str = "UNKNOWN"
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "data_type": self.data_type,
+            "unit_code": self.unit_code,
+            "aliases": list(self.aliases),
+            "allowed_values": list(self.allowed_values),
+            "status": self.status,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedCharacteristicProfile:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    field_codes: tuple[str, ...] = tuple()
+    required: tuple[str, ...] = tuple()
+    module2_required: tuple[str, ...] = tuple()
+    recommended: tuple[str, ...] = tuple()
+    conditional: tuple[str, ...] = tuple()
+    status: str = "UNKNOWN"
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "field_codes": list(self.field_codes),
+            "required": list(self.required),
+            "module2_required": list(self.module2_required),
+            "recommended": list(self.recommended),
+            "conditional": list(self.conditional),
+            "status": self.status,
+            "auto_activatable": self.auto_activatable,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedProfileAssignment:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    material_type_id: str
+    group_code: str | None
+    profile_id: str
+    field_codes: tuple[str, ...] = tuple()
+    review_required: bool = True
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "material_type_id": self.material_type_id,
+            "group_code": self.group_code,
+            "profile_id": self.profile_id,
+            "field_codes": list(self.field_codes),
+            "review_required": self.review_required,
+            "auto_activatable": self.auto_activatable,
             "issues": list(self.issues),
             "source_pointer": self.source_pointer,
         }
