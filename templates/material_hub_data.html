@@ -38,6 +38,23 @@
     th button { width:auto; min-height:0; padding:0; border:0; color:inherit; background:transparent; font-weight:600; box-shadow:none; white-space:normal; line-height:1.15; text-align:center; }
     .table-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0 10px; }
     .table-toolbar button { width:auto; }
+    .table-view-panel { margin:0 0 10px; border:1px solid var(--line); border-radius:6px; padding:10px; background:rgba(15,23,52,.82); }
+    .table-view-panel label { display:flex; gap:7px; align-items:center; color:var(--text); }
+    .table-view-panel input[type="checkbox"] { width:auto; min-height:0; }
+    .table-view-panel .muted { font-size:12px; }
+    .table-state { margin:8px 0; }
+    .material-name { display:grid; gap:4px; }
+    .material-title { font-weight:700; color:var(--text); }
+    .material-secondary { color:var(--muted); font-size:12px; }
+    .material-characteristics { display:grid; gap:4px; }
+    .material-characteristic-row { display:flex; gap:6px; justify-content:space-between; border-bottom:1px solid rgba(125,156,255,.12); padding-bottom:3px; }
+    .data-state { display:inline-flex; align-items:center; border-radius:999px; border:1px solid var(--line); padding:2px 8px; background:rgba(125,156,255,.1); }
+    .data-state.ready { border-color:rgba(42,209,127,.5); color:#71f0ad; background:rgba(42,209,127,.12); }
+    .data-state.warning { border-color:rgba(255,185,72,.55); color:#ffd28a; background:rgba(255,185,72,.12); }
+    .data-state.review { border-color:rgba(16,215,232,.45); color:#8deef7; background:rgba(16,215,232,.1); }
+    table[data-density="compact"] th, table[data-density="compact"] td { padding:5px 6px; font-size:12px; }
+    table[data-density="spacious"] th, table[data-density="spacious"] td { padding:11px 10px; font-size:14px; }
+    table[data-wrap-text="single"] td, table[data-wrap-text="single"] th { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .table-controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end; margin:8px 0; color:var(--muted); }
     .table-controls select { width:auto; min-width:86px; }
     .table-controls button { width:auto; min-height:30px; padding:5px 9px; }
@@ -479,23 +496,37 @@
       </div>
       {% if materials %}
       <div class="muted" style="margin-bottom:8px">Загружено для работы: {{ materials|length }}{% if materials_total %} из {{ materials_total }}{% endif %}. Таблица показывает выбранную страницу после фильтров.</div>
+      <div class="table-toolbar" aria-label="Настройки таблицы материалов">
+        <button id="material-table-view-button" type="button" aria-expanded="false" aria-controls="material-column-panel" onclick="toggleColumnPanel('material-table')">Настроить вид</button>
+        <button type="button" onclick="resetMaterialTableView()">Сбросить вид</button>
+        <span id="material-table-view-status" class="muted" aria-live="polite">Вид: обычный</span>
+      </div>
+      <div id="material-column-panel" class="table-view-panel filters" style="display:none" role="dialog" aria-label="Настройка вида таблицы материалов"></div>
+      <div id="material-table-loading" class="muted table-state" hidden>Загрузка материалов...</div>
+      <div id="material-table-error" class="empty table-state" hidden>Не удалось загрузить материалы. Попробуйте обновить страницу.</div>
+      <div id="material-filter-empty" class="empty table-state" style="display:none">По выбранным условиям ничего не найдено.</div>
       <div class="table-scroll">
-      <table id="material-table">
+      <table id="material-table" data-preference-namespace="module1.materials_table">
         <thead><tr>
-          <th><button type="button" onclick="sortTable('material-table', 0, 'date')">Создан</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 1, 'text')">Каноническое имя</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 2, 'text')">Категория</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 3, 'text')">Подкатегория</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 4, 'text')">Бренд</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 5, 'text')">Производитель</button></th>
-          <th><button type="button" onclick="sortTable('material-table', 6, 'number')">Лучшая цена</button></th>
-          <th>Документы</th>
-          <th><button type="button" onclick="sortTable('material-table', 8, 'text')">Статус</button></th>
-          <th>Правка</th>
+          <th data-field="material"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'material'), 'text')">Материал</button></th>
+          <th data-field="category"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'category'), 'text')">Категория</button></th>
+          <th data-field="characteristics">Основные характеристики</th>
+          <th data-field="unit_package">Единица и упаковка</th>
+          <th data-field="price"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'price'), 'number')">Текущая цена</button></th>
+          <th data-field="supplier_region"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'supplier_region'), 'text')">Поставщик и регион</button></th>
+          <th data-field="data_state"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'data_state'), 'text')">Состояние данных</button></th>
+          <th data-field="updated"><button type="button" onclick="sortTable('material-table', columnIndexByField('material-table', 'updated'), 'date')">Обновлено</button></th>
+          <th data-field="actions">Действия</th>
         </tr></thead>
         <tbody>
         {% for material in materials %}
           {% set price_info = material_prices.get(material.id|string) %}
+          {% set category_label = material.category.name if material.category else "Не указана" %}
+          {% set subcategory_label = material.subcategory.name if material.subcategory else "" %}
+          {% set supplier_label = source_display_name(price_info.source) if price_info and price_info.source else "Не указан" %}
+          {% set region_label = price_info.region if price_info and price_info.region else "Регион не указан" %}
+          {% set data_state_label = "Не хватает цены" if not price_info else ("Требует классификации" if not material.category else enum_label(material.status)) %}
+          {% set data_state_class = "warning" if not price_info else ("review" if not material.category else "ready") %}
           <tr
             data-status="{{ material.status.value }}"
             data-has-documents="{{ 'yes' if material.documents else 'no' }}"
@@ -507,99 +538,65 @@
             data-brand="{{ material.brand or '' }}"
             data-manufacturer="{{ material.manufacturer or '' }}"
             data-region="{{ price_info.region if price_info else '' }}"
-            data-source="{{ price_info.source if price_info else '' }}"
+            data-source="{{ supplier_label if price_info else '' }}"
             data-price="{{ price_info.price if price_info else '' }}"
+            data-updated="{{ material.updated_at or material.created_at }}"
           >
-            <td>{{ dt(material.created_at) }}</td>
-            <td>
-              <strong>{{ material.canonical_name }}</strong>
-              <details style="margin-top:8px">
-                <summary class="muted">Характеристики: {{ material.specifications|length if material.specifications else 0 }}</summary>
-                {% if material.specifications %}
-                  <div style="display:grid; gap:6px; margin-top:8px">
-                    {% for specification in material.specifications %}
-                      <div style="border:1px solid rgba(125,156,255,.22); border-radius:5px; padding:7px; background:rgba(7,13,33,.42)">
-                        <div>
-                          <strong>{{ characteristic_label(specification) }}</strong>:
-                          {{ specification.value }}{% if specification.unit %} {{ specification.unit }}{% endif %}
-                          {% if is_consumption_characteristic(specification) %}
-                            <span class="pill">норма расхода</span>
-                          {% endif %}
-                        </div>
-                        <div class="muted">
-                          Источник: {{ source_display_name(specification.source) if specification.source else "не указан" }}
-                          · confidence: {{ specification.confidence if specification.confidence is not none else "не указано" }}
-                          · статус: {{ enum_label(specification.verified_status) }}
-                          · verified_by_moderator: {{ "да" if characteristic_verified_by_moderator(specification) else "нет" }}
-                          · {{ characteristic_history_label(specification) }}
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  <div class="muted" style="margin-top:6px">Характеристики пока не указаны. Нормы расхода не создаются, если они не применимы или данных недостаточно.</div>
+            <td data-field="material">
+              <div class="material-name">
+                <span class="material-title">{{ material.canonical_name }}</span>
+                {% if material.brand or material.manufacturer %}
+                  <span class="material-secondary">{{ material.brand or material.manufacturer }}{% if material.brand and material.manufacturer and material.brand != material.manufacturer %} · {{ material.manufacturer }}{% endif %}</span>
                 {% endif %}
-              </details>
-              {% set construction_usages = construction_usage_for_material(material) %}
-              <details style="margin-top:8px">
-                <summary class="muted">Строительная применимость: {{ construction_usages|length }}</summary>
-                {% if construction_usages %}
-                  <div style="display:grid; gap:6px; margin-top:8px">
-                    {% for usage in construction_usages %}
-                      <div style="border:1px solid rgba(99,224,255,.22); border-radius:5px; padding:7px; background:rgba(6,24,34,.34)">
-                        <div>
-                          <strong>{{ usage.construction_group }}</strong>
-                          {% if usage.construction_subgroup %} → {{ usage.construction_subgroup }}{% endif %}
-                          {% if usage.construction_element %} · {{ usage.construction_element }}{% endif %}
-                          <span class="pill">{{ enum_label(usage.status) }}</span>
-                        </div>
-                        <div class="muted">
-                          Роль: {{ usage.usage_role or "не указана" }}
-                          · Условие: {{ usage.condition or "не указано" }}
-                        </div>
-                        {% if usage.required_characteristics %}
-                          <div class="muted">
-                            Требуемые характеристики:
-                            {% for required in usage.required_characteristics %}
-                              {{ required.characteristic_name }}{% if required.expected_value %}: {{ required.expected_value }}{% endif %}{% if not loop.last %}; {% endif %}
-                            {% endfor %}
-                          </div>
-                        {% endif %}
-                        <div class="muted">
-                          Источник: {{ construction_usage_source_label(usage.source_module) }}
-                          · confidence: {{ usage.confidence if usage.confidence is not none else "не указано" }}
-                          · verified_by_moderator: {{ "да" if usage.verified_by_moderator else "нет" }}
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  <div class="muted" style="margin-top:6px">Строительная применимость пока не указана. Module №1 готов принять кандидаты от Module №2 через адаптер и модерацию, но не считает категорию материала строительной группой.</div>
-                {% endif %}
-              </details>
+              </div>
             </td>
-            <td>{{ material.category.name if material.category else "" }}</td>
-            <td>{{ material.subcategory.name if material.subcategory else "" }}</td>
-            <td>{{ material.brand or "" }}</td>
-            <td>{{ material.manufacturer or "" }}</td>
-            <td data-sort-value="{{ price_info.price if price_info else '' }}">
-              {% if price_info %}
-                {{ price_info.price }} {{ price_info.currency }}{% if price_info.unit %} / {{ price_info.unit }}{% endif %}
-                <div class="muted">{{ source_display_name(price_info.source) }}{% if price_info.region %} · {{ price_info.region }}{% endif %}</div>
+            <td data-field="category">
+              <strong>{{ category_label }}</strong>
+              {% if subcategory_label %}<div class="material-secondary">{{ subcategory_label }}</div>{% endif %}
+            </td>
+            <td data-field="characteristics">
+              {% if material.specifications %}
+                <div class="material-characteristics">
+                  {% for specification in material.specifications %}
+                    {% if loop.index <= 3 %}
+                      <div class="material-characteristic-row">
+                        <span>{{ characteristic_label(specification) }}</span>
+                        <strong>{{ specification.value }}{% if specification.unit %} {{ specification.unit }}{% endif %}</strong>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                  {% if material.specifications|length > 3 %}<span class="material-secondary">Еще {{ material.specifications|length - 3 }} в карточке материала</span>{% endif %}
+                </div>
               {% else %}
-                <span class="muted">нет цены</span>
+                <span class="muted">Не указаны</span>
               {% endif %}
             </td>
-            <td>
-              {% if material.documents %}
-                {% for document in material.documents %}
-                  <div>{% if document.file_url %}<a href="{{ document.file_url }}" target="_blank">{{ enum_label(document.document_type) }}</a>{% else %}{{ enum_label(document.document_type) }}{% endif %}</div>
-                {% endfor %}
-              {% else %}<span class="muted">нет прямых документов</span>{% endif %}
+            <td data-field="unit_package">
+              {% if price_info and price_info.unit %}
+                <strong>{{ price_info.unit }}</strong>
+              {% else %}
+                <span class="muted">Единица не указана</span>
+              {% endif %}
+              <div class="material-secondary">Упаковка не указана</div>
             </td>
-            <td>{{ enum_label(material.status) }}</td>
-            <td>
-              <button class="icon-button" type="button" title="Изменить материал" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
+            <td data-field="price" data-sort-value="{{ price_info.price if price_info else '' }}">
+              {% if price_info %}
+                <strong>{{ price_info.price }} {{ price_info.currency }}</strong>{% if price_info.unit %}<span class="material-secondary"> / {{ price_info.unit }}</span>{% endif %}
+              {% else %}
+                <span class="data-state warning">Нет положительной цены</span>
+                <div class="material-secondary">Не готово для сметы</div>
+              {% endif %}
+            </td>
+            <td data-field="supplier_region">
+              <strong>{{ supplier_label }}</strong>
+              <div class="material-secondary">{{ region_label }}</div>
+            </td>
+            <td data-field="data_state">
+              <span class="data-state {{ data_state_class }}">{{ data_state_label }}</span>
+            </td>
+            <td data-field="updated" data-sort-value="{{ material.updated_at or material.created_at }}">{{ dt(material.updated_at or material.created_at) }}</td>
+            <td data-field="actions">
+              <button class="icon-button" type="button" title="Изменить материал" aria-label="Изменить материал" onclick="openMaterialEditDialog('{{ material.id }}', {{ material.canonical_name|tojson }}, '{{ material.category_id or '' }}', '{{ material.subcategory_id or '' }}', {{ material.brand|tojson }}, {{ material.manufacturer|tojson }})">✎</button>
             </td>
           </tr>
         {% endfor %}
@@ -1804,6 +1801,523 @@
       document.getElementById("product-status-filter").value = productStatus;
       applyProductFilters();
     }
+
+
+    const TABLE_VIEW_SCHEMAS = {
+      "material-table": {
+        namespace: "module1.materials_table",
+        requiredColumns: ["material", "category", "characteristics", "price", "data_state", "updated", "actions"],
+        optionalColumns: ["unit_package", "supplier_region"],
+        defaultOrder: ["material", "category", "characteristics", "unit_package", "price", "supplier_region", "data_state", "updated", "actions"],
+        defaultHidden: [],
+        defaultDensity: "normal",
+        defaultPageSize: "50",
+        defaultSort: { field: "updated", type: "date", direction: "desc" },
+        defaultWrapText: "multiline",
+      },
+      "price-table": {
+        namespace: "module1.price_table",
+        requiredColumns: ["material", "price", "edit"],
+        optionalColumns: [],
+        defaultOrder: [],
+        defaultHidden: [],
+        defaultDensity: "normal",
+        defaultPageSize: "50",
+        defaultSort: null,
+        defaultWrapText: "multiline",
+      },
+    };
+
+    function tableViewSchema(tableId) {
+      return TABLE_VIEW_SCHEMAS[tableId] || {
+        namespace: `module1.${tableId}`,
+        requiredColumns: ["select", "edit", "actions"],
+        optionalColumns: [],
+        defaultOrder: [],
+        defaultHidden: [],
+        defaultDensity: "normal",
+        defaultPageSize: "50",
+        defaultSort: null,
+        defaultWrapText: "multiline",
+      };
+    }
+
+    function tablePreferenceUserScope() {
+      const explicitUserId = document.body?.dataset.atomUserId || document.documentElement?.dataset.atomUserId;
+      return explicitUserId ? `user:${explicitUserId}` : "session";
+    }
+
+    function tablePreferenceStorage() {
+      return tablePreferenceUserScope() === "session" ? sessionStorage : localStorage;
+    }
+
+    function tableLayoutKey(tableId) {
+      const schema = tableViewSchema(tableId);
+      return `atom:${schema.namespace}:v1:${tablePreferenceUserScope()}:${tableId}`;
+    }
+
+    function visibleFieldsForTable(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tHead) return new Set();
+      return new Set(Array.from(table.tHead.rows[0].cells).map((cell) => cell.dataset.field).filter(Boolean));
+    }
+
+    function defaultTableLayout(tableId) {
+      const schema = tableViewSchema(tableId);
+      return {
+        version: 1,
+        namespace: schema.namespace,
+        column_order: schema.defaultOrder || [],
+        hidden: schema.defaultHidden || [],
+        density: schema.defaultDensity || "normal",
+        page_size: schema.defaultPageSize || "50",
+        default_sort: schema.defaultSort || null,
+        wrap_text: schema.defaultWrapText || "multiline",
+      };
+    }
+
+    function sanitizeTableLayout(tableId, layout) {
+      const schema = tableViewSchema(tableId);
+      const fields = visibleFieldsForTable(tableId);
+      const defaults = defaultTableLayout(tableId);
+      const merged = { ...defaults, ...(layout || {}) };
+      merged.version = 1;
+      merged.namespace = schema.namespace;
+      merged.column_order = Array.isArray(merged.column_order) ? merged.column_order.filter((field) => fields.has(field)) : [];
+      merged.hidden = Array.isArray(merged.hidden)
+        ? merged.hidden.filter((field) => fields.has(field) && !schema.requiredColumns.includes(field))
+        : [];
+      if (!merged.column_order.length && schema.defaultOrder?.length) {
+        merged.column_order = schema.defaultOrder.filter((field) => fields.has(field));
+      }
+      if (!["compact", "normal", "spacious"].includes(merged.density)) merged.density = defaults.density;
+      if (!["50", "100", "200"].includes(String(merged.page_size))) merged.page_size = defaults.page_size;
+      if (!["single", "multiline"].includes(merged.wrap_text)) merged.wrap_text = defaults.wrap_text;
+      return merged;
+    }
+
+    function readTableLayout(tableId) {
+      try {
+        return sanitizeTableLayout(tableId, JSON.parse(tablePreferenceStorage().getItem(tableLayoutKey(tableId)) || "{}"));
+      } catch {
+        return sanitizeTableLayout(tableId, {});
+      }
+    }
+
+    function writeTableLayout(tableId, layout) {
+      const sanitized = sanitizeTableLayout(tableId, layout);
+      tablePreferenceStorage().setItem(tableLayoutKey(tableId), JSON.stringify(sanitized));
+    }
+
+    function defaultColumnWidth(field) {
+      const widths = {
+        select: "46px",
+        material: "260px",
+        category: "170px",
+        characteristics: "260px",
+        unit_package: "160px",
+        price: "160px",
+        supplier_region: "190px",
+        data_state: "170px",
+        updated: "145px",
+        actions: "82px",
+        source_name: "300px",
+        subcategory: "170px",
+        supplier: "130px",
+        region: "130px",
+        availability: "180px",
+        filters: "230px",
+        documents: "200px",
+        alternatives: "320px",
+        analogs: "260px",
+        edit: "70px",
+      };
+      return widths[field] || "160px";
+    }
+
+    function applyStoredColumnOrder(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tHead || !table.tBodies.length) return;
+      const layout = readTableLayout(tableId);
+      if (!layout.column_order.length) return;
+      const current = Array.from(table.tHead.rows[0].cells).map((cell) => cell.dataset.field);
+      const desired = [...layout.column_order, ...current.filter((field) => !layout.column_order.includes(field))];
+      desired.forEach((field, targetIndex) => {
+        const currentIndex = columnIndexByField(tableId, field);
+        if (currentIndex >= 0 && currentIndex !== targetIndex) moveColumnByIndex(tableId, currentIndex, targetIndex);
+      });
+    }
+
+    function applyStoredColumnState(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tHead) return;
+      const layout = readTableLayout(tableId);
+      const hidden = new Set(layout.hidden || []);
+      table.dataset.density = layout.density || "normal";
+      table.dataset.wrapText = layout.wrap_text || "multiline";
+      Array.from(table.tHead.rows[0].cells).forEach((cell, index) => {
+        const isHidden = hidden.has(cell.dataset.field);
+        cell.style.display = isHidden ? "none" : "";
+        Array.from(table.tBodies[0]?.rows || []).forEach((row) => {
+          if (row.cells[index]) row.cells[index].style.display = isHidden ? "none" : "";
+        });
+      });
+      updateTableViewStatus(tableId);
+    }
+
+    function persistColumnOrder(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tHead) return;
+      const layout = readTableLayout(tableId);
+      layout.column_order = Array.from(table.tHead.rows[0].cells).map((cell) => cell.dataset.field).filter(Boolean);
+      writeTableLayout(tableId, layout);
+    }
+
+    function panelIdForTable(tableId) {
+      return tableId === "material-table" ? "material-column-panel" : "column-panel";
+    }
+
+    function viewButtonIdForTable(tableId) {
+      return tableId === "material-table" ? "material-table-view-button" : "price-column-button";
+    }
+
+    function toggleColumnPanel(tableId = "price-table") {
+      const panel = document.getElementById(panelIdForTable(tableId));
+      if (!panel) return;
+      const nextDisplay = panel.style.display === "none" || !panel.style.display ? "grid" : "none";
+      panel.style.display = nextDisplay;
+      const button = document.getElementById(viewButtonIdForTable(tableId));
+      if (button) button.setAttribute("aria-expanded", nextDisplay === "grid" ? "true" : "false");
+      renderColumnPanel(tableId);
+    }
+
+    function renderColumnPanel(tableId) {
+      const panel = document.getElementById(panelIdForTable(tableId));
+      const table = document.getElementById(tableId);
+      if (!panel || !table || !table.tHead) return;
+      const schema = tableViewSchema(tableId);
+      const layout = readTableLayout(tableId);
+      const hidden = new Set(layout.hidden || []);
+      const columns = Array.from(table.tHead.rows[0].cells)
+        .map((cell) => ({ field: cell.dataset.field, label: cell.textContent.trim() || "Выбор" }))
+        .filter((column) => column.field && column.field !== "select");
+      const columnControls = columns.map((column) => {
+        const required = schema.requiredColumns.includes(column.field);
+        return `
+          <label>
+            <input type="checkbox" ${hidden.has(column.field) ? "" : "checked"} ${required ? "disabled" : ""} onchange="toggleColumnVisibility('${tableId}', '${column.field}', this.checked)">
+            <span>${column.label}${required ? ' <span class="muted">обязательная</span>' : ''}</span>
+          </label>
+        `;
+      }).join("");
+      const sortOptions = columns
+        .filter((column) => !["actions", "select"].includes(column.field))
+        .map((column) => `<option value="${column.field}" ${layout.default_sort?.field === column.field ? "selected" : ""}>${column.label}</option>`)
+        .join("");
+      panel.innerHTML = `
+        <div><strong>Колонки</strong></div>
+        ${columnControls}
+        <label>Плотность
+          <select onchange="setTableDensity('${tableId}', this.value)">
+            <option value="compact" ${layout.density === "compact" ? "selected" : ""}>Компактная</option>
+            <option value="normal" ${layout.density === "normal" ? "selected" : ""}>Обычная</option>
+            <option value="spacious" ${layout.density === "spacious" ? "selected" : ""}>Свободная</option>
+          </select>
+        </label>
+        <label>Строки
+          <select onchange="setTablePageSizePreference('${tableId}', this.value)">
+            <option value="50" ${String(layout.page_size) === "50" ? "selected" : ""}>50</option>
+            <option value="100" ${String(layout.page_size) === "100" ? "selected" : ""}>100</option>
+            <option value="200" ${String(layout.page_size) === "200" ? "selected" : ""}>200</option>
+          </select>
+        </label>
+        <label>Сортировка по умолчанию
+          <select onchange="setDefaultSortField('${tableId}', this.value)">${sortOptions}</select>
+        </label>
+        <label>Текст
+          <select onchange="setTableWrapText('${tableId}', this.value)">
+            <option value="single" ${layout.wrap_text === "single" ? "selected" : ""}>В одну строку</option>
+            <option value="multiline" ${layout.wrap_text === "multiline" ? "selected" : ""}>В несколько строк</option>
+          </select>
+        </label>
+        <div><button type="button" onclick="showAllColumns('${tableId}')">Показать все</button></div>
+      `;
+    }
+
+    function toggleColumnVisibility(tableId, field, visible) {
+      const schema = tableViewSchema(tableId);
+      if (schema.requiredColumns.includes(field)) return;
+      const layout = readTableLayout(tableId);
+      const hidden = new Set(layout.hidden || []);
+      if (visible) hidden.delete(field);
+      else hidden.add(field);
+      layout.hidden = Array.from(hidden);
+      writeTableLayout(tableId, layout);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+    }
+
+    function hideColumn(tableId, field) {
+      const schema = tableViewSchema(tableId);
+      if (schema.requiredColumns.includes(field) || field === "select") return;
+      const layout = readTableLayout(tableId);
+      layout.hidden = Array.from(new Set([...(layout.hidden || []), field]));
+      writeTableLayout(tableId, layout);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+    }
+
+    function showAllColumns(tableId) {
+      const layout = readTableLayout(tableId);
+      layout.hidden = [];
+      writeTableLayout(tableId, layout);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+    }
+
+    function setTableDensity(tableId, density) {
+      const layout = readTableLayout(tableId);
+      layout.density = density;
+      writeTableLayout(tableId, layout);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+    }
+
+    function setTableWrapText(tableId, wrapText) {
+      const layout = readTableLayout(tableId);
+      layout.wrap_text = wrapText;
+      writeTableLayout(tableId, layout);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+    }
+
+    function setTablePageSizePreference(tableId, pageSize) {
+      changePageSize(tableId, pageSize);
+      renderColumnPanel(tableId);
+    }
+
+    function setDefaultSortField(tableId, field) {
+      const layout = readTableLayout(tableId);
+      const type = field === "price" ? "number" : (field === "updated" ? "date" : "text");
+      layout.default_sort = { field, type, direction: "asc" };
+      writeTableLayout(tableId, layout);
+      sortTableByField(tableId, field, type, "asc", false);
+      renderColumnPanel(tableId);
+    }
+
+    function updateTableViewStatus(tableId) {
+      if (tableId !== "material-table") return;
+      const layout = readTableLayout(tableId);
+      const status = document.getElementById("material-table-view-status");
+      if (!status) return;
+      const densityLabels = { compact: "компактный", normal: "обычный", spacious: "свободный" };
+      const wrapLabels = { single: "одна строка", multiline: "несколько строк" };
+      status.textContent = `Вид: ${densityLabels[layout.density] || "обычный"}, ${layout.page_size} строк, ${wrapLabels[layout.wrap_text] || "несколько строк"}`;
+    }
+
+    function resetPriceTableLayout() {
+      tablePreferenceStorage().removeItem(tableLayoutKey("price-table"));
+      window.location.reload();
+    }
+
+    function resetMaterialTableView() {
+      tablePreferenceStorage().removeItem(tableLayoutKey("material-table"));
+      window.location.reload();
+    }
+
+    function initConfigurableTable(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tHead) return;
+      ensureTableColgroup(tableId);
+      applyStoredColumnOrder(tableId);
+      syncColgroupWithHeaders(tableId);
+      applyStoredColumnState(tableId);
+      renderColumnPanel(tableId);
+      Array.from(table.tHead.rows[0].cells).forEach((th) => {
+        if (!th.dataset.field || th.dataset.module1EnhancedReady === "yes") return;
+        th.dataset.module1EnhancedReady = "yes";
+        th.draggable = th.dataset.field !== "select";
+        th.addEventListener("dragstart", (event) => {
+          th.classList.add("dragging");
+          event.dataTransfer.setData("text/plain", th.dataset.field);
+        });
+        th.addEventListener("dragend", () => th.classList.remove("dragging"));
+        th.addEventListener("dragover", (event) => event.preventDefault());
+        th.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const fromField = event.dataTransfer.getData("text/plain");
+          const fromIndex = columnIndexByField(tableId, fromField);
+          const toIndex = columnIndexByField(tableId, th.dataset.field);
+          if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+            moveColumnByIndex(tableId, fromIndex, toIndex);
+            persistColumnOrder(tableId);
+            syncColgroupWithHeaders(tableId);
+          }
+        });
+        th.addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          showColumnContextMenu(event.clientX, event.clientY, tableId, th.dataset.field);
+        });
+        if (!th.querySelector(".resize-handle")) {
+          const handle = document.createElement("span");
+          handle.className = "resize-handle";
+          handle.addEventListener("mousedown", (event) => startColumnResize(event, tableId, th.dataset.field));
+          th.appendChild(handle);
+        }
+      });
+    }
+
+    function initTablePagination() {
+      document.querySelectorAll("table").forEach((table) => {
+        if (!table.id || table.dataset.paginationReady === "yes") return;
+        const layout = readTableLayout(table.id);
+        table.dataset.paginationReady = "yes";
+        table.dataset.page = "1";
+        table.dataset.pageSize = String(layout.page_size || "50");
+        Array.from(table.tBodies[0]?.rows || []).forEach((row) => {
+          row.dataset.filterVisible = "yes";
+        });
+        const controls = document.createElement("div");
+        controls.className = "table-controls";
+        controls.innerHTML = `
+          <span data-role="page-info"></span>
+          <label>Показать
+            <select onchange="changePageSize('${table.id}', this.value)">
+              <option value="50" ${String(layout.page_size) === "50" ? "selected" : ""}>50</option>
+              <option value="100" ${String(layout.page_size) === "100" ? "selected" : ""}>100</option>
+              <option value="200" ${String(layout.page_size) === "200" ? "selected" : ""}>200</option>
+            </select>
+          </label>
+          <button type="button" onclick="setTablePage('${table.id}', 'first')">Первая</button>
+          <button type="button" onclick="changeTablePage('${table.id}', -1)">Назад</button>
+          <button type="button" onclick="changeTablePage('${table.id}', 1)">Вперед</button>
+          <button type="button" onclick="setTablePage('${table.id}', 'last')">Последняя</button>
+        `;
+        table.parentNode.insertBefore(controls, table);
+        applyDefaultSort(table.id);
+        applyPagination(table.id);
+      });
+    }
+
+    function changePageSize(tableId, pageSize) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      table.dataset.pageSize = pageSize;
+      table.dataset.page = "1";
+      const layout = readTableLayout(tableId);
+      layout.page_size = String(pageSize);
+      writeTableLayout(tableId, layout);
+      applyPagination(tableId);
+      updateTableViewStatus(tableId);
+    }
+
+    function sortTableByField(tableId, field, type, direction, persist = true) {
+      const columnIndex = columnIndexByField(tableId, field);
+      if (columnIndex < 0) return;
+      const table = document.getElementById(tableId);
+      if (!table || !table.tBodies.length) return;
+      const rows = Array.from(table.tBodies[0].rows);
+      rows.sort((a, b) => {
+        let av = cellValue(a, columnIndex);
+        let bv = cellValue(b, columnIndex);
+        if (type === "number") {
+          av = av === "" ? Number.POSITIVE_INFINITY : Number(av);
+          bv = bv === "" ? Number.POSITIVE_INFINITY : Number(bv);
+        } else if (type === "date") {
+          av = av ? Date.parse(av) || 0 : 0;
+          bv = bv ? Date.parse(bv) || 0 : 0;
+        } else {
+          av = av.toLocaleLowerCase();
+          bv = bv.toLocaleLowerCase();
+        }
+        if (av < bv) return direction === "asc" ? -1 : 1;
+        if (av > bv) return direction === "asc" ? 1 : -1;
+        return 0;
+      });
+      rows.forEach((row) => table.tBodies[0].appendChild(row));
+      if (persist) {
+        const layout = readTableLayout(tableId);
+        layout.default_sort = { field, type, direction };
+        writeTableLayout(tableId, layout);
+      }
+      applyPagination(tableId);
+    }
+
+    function sortTable(tableId, columnIndex, type) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tBodies.length || !table.tHead || columnIndex < 0) return;
+      const field = table.tHead.rows[0].cells[columnIndex]?.dataset.field;
+      const key = `${tableId}:${field || columnIndex}`;
+      const direction = sortState[key] === "asc" ? "desc" : "asc";
+      sortState[key] = direction;
+      if (field) {
+        sortTableByField(tableId, field, type, direction, true);
+        return;
+      }
+      const rows = Array.from(table.tBodies[0].rows);
+      rows.sort((a, b) => {
+        let av = cellValue(a, columnIndex);
+        let bv = cellValue(b, columnIndex);
+        if (type === "number") {
+          av = av === "" ? Number.POSITIVE_INFINITY : Number(av);
+          bv = bv === "" ? Number.POSITIVE_INFINITY : Number(bv);
+        } else if (type === "date") {
+          av = av ? Date.parse(av) || 0 : 0;
+          bv = bv ? Date.parse(bv) || 0 : 0;
+        } else {
+          av = av.toLocaleLowerCase();
+          bv = bv.toLocaleLowerCase();
+        }
+        if (av < bv) return direction === "asc" ? -1 : 1;
+        if (av > bv) return direction === "asc" ? 1 : -1;
+        return 0;
+      });
+      rows.forEach((row) => table.tBodies[0].appendChild(row));
+      applyPagination(tableId);
+    }
+
+    function applyDefaultSort(tableId) {
+      const layout = readTableLayout(tableId);
+      if (!layout.default_sort?.field) return;
+      sortTableByField(tableId, layout.default_sort.field, layout.default_sort.type || "text", layout.default_sort.direction || "asc", false);
+    }
+
+    function applyPagination(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table || !table.tBodies.length) return;
+      const rows = Array.from(table.tBodies[0].rows);
+      const visibleRows = visibleTableRows(table);
+      const pageSize = Number(table.dataset.pageSize || 50);
+      const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+      const page = Math.min(totalPages, Math.max(1, Number(table.dataset.page || 1)));
+      table.dataset.page = String(page);
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const pageRows = new Set(visibleRows.slice(start, end));
+      rows.forEach((row) => {
+        row.style.display = pageRows.has(row) ? "" : "none";
+      });
+      const controls = table.previousElementSibling?.classList.contains("table-controls") ? table.previousElementSibling : null;
+      const info = controls?.querySelector('[data-role="page-info"]');
+      if (info) {
+        const shownFrom = visibleRows.length ? start + 1 : 0;
+        const shownTo = Math.min(end, visibleRows.length);
+        info.textContent = `Показано ${shownFrom}-${shownTo} из ${visibleRows.length}`;
+      }
+      updateTableEmptyState(tableId, visibleRows.length);
+    }
+
+    function updateTableEmptyState(tableId, visibleCount) {
+      if (tableId !== "material-table") return;
+      const empty = document.getElementById("material-filter-empty");
+      if (empty) empty.style.display = visibleCount === 0 ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initConfigurableTable("material-table");
+      updateTableViewStatus("material-table");
+    });
+
   </script>
 </body>
 </html>
