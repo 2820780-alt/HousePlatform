@@ -478,8 +478,32 @@ def _characteristic_label(specification: MaterialSpecification) -> str:
     if template and getattr(template, "name", None):
         return template.name
     if template and getattr(template, "field_key", None):
-        return template.field_key
+        return _humanize_material_field_key(template.field_key)
     return "Характеристика"
+
+
+def _humanize_material_field_key(value: str | None) -> str:
+    if not value:
+        return "Характеристика"
+    known_labels = {
+        "length_mm": "Длина, мм",
+        "width_mm": "Ширина, мм",
+        "height_mm": "Высота, мм",
+        "thickness_mm": "Толщина, мм",
+        "density_class": "Марка плотности",
+        "strength_class": "Класс прочности",
+        "frost_resistance": "Морозостойкость",
+        "sheet_area_m2": "Площадь листа, м²",
+        "board_type": "Тип листа",
+        "edge_type": "Тип кромки",
+        "weight_kg": "Вес, кг",
+        "sheets_per_pack": "Листов в упаковке",
+        "application": "Применение",
+    }
+    key = str(value).strip()
+    if key in known_labels:
+        return known_labels[key]
+    return key.replace("_", " ").replace("-", " ")
 
 
 def _is_consumption_characteristic(specification: MaterialSpecification) -> bool:
@@ -885,6 +909,7 @@ async def _load_price_recommendations(db: DBSession, in_stock_only: bool) -> lis
         )
         .where(CatalogProduct.material_id.is_not(None))
         .where(CatalogProduct.price.is_not(None))
+        .where(CatalogProduct.price > 0)
         .where(CatalogProduct.status == CatalogProductStatus.ACTIVE)
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.ARCHIVED))
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.REJECTED))
@@ -997,6 +1022,7 @@ async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
         .options(selectinload(CatalogProduct.source))
         .where(CatalogProduct.material_id.is_not(None))
         .where(CatalogProduct.price.is_not(None))
+        .where(CatalogProduct.price > 0)
         .where(CatalogProduct.status == CatalogProductStatus.ACTIVE)
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.ARCHIVED))
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.REJECTED))
@@ -1015,6 +1041,7 @@ async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
             "source": product.source.name if product.source else "",
             "availability": product.availability,
             "region": product.region,
+            "updated_at": product.updated_at,
         }
     return prices
 
