@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
+from .ref1 import DEFAULT_RUNTIME_TAXONOMY_PATH, write_ref1_projection_outputs
 from .validator import ProjectionValidator
 
 
@@ -11,19 +13,34 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Inactive Module 1 REF projection foundation")
     parser.add_argument("--reference-root", required=True, help="Directory with REF source packages")
     parser.add_argument("--output-dir", required=True, help="Directory for generated foundation outputs")
+    parser.add_argument("--include-ref1", action="store_true", help="Generate inactive REF-1 taxonomy projection outputs")
+    parser.add_argument(
+        "--runtime-taxonomy-path",
+        default=str(DEFAULT_RUNTIME_TAXONOMY_PATH),
+        help="Runtime taxonomy seed used for read-only comparison",
+    )
     return parser
 
 
-def run(reference_root: str | Path, output_dir: str | Path) -> dict[str, object]:
+def run(
+    reference_root: str | Path,
+    output_dir: str | Path,
+    *,
+    include_ref1: bool = False,
+    runtime_taxonomy_path: str | Path = DEFAULT_RUNTIME_TAXONOMY_PATH,
+) -> dict[str, Any]:
     summary = ProjectionValidator(reference_root).validate()
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
     output_path = destination / "foundation_summary.json"
-    payload = {
+    payload: dict[str, Any] = {
         "tool": "module1_ref_projection",
         "status": "PASS" if summary.blocker_count == 0 else "BLOCKED",
         "summary": summary.as_dict(),
     }
+    if include_ref1:
+        ref1_result = write_ref1_projection_outputs(reference_root, destination, runtime_taxonomy_path)
+        payload["ref1"] = ref1_result.summary_dict()
     output_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -33,7 +50,12 @@ def run(reference_root: str | Path, output_dir: str | Path) -> dict[str, object]
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    run(args.reference_root, args.output_dir)
+    run(
+        args.reference_root,
+        args.output_dir,
+        include_ref1=args.include_ref1,
+        runtime_taxonomy_path=args.runtime_taxonomy_path,
+    )
     return 0
 
 

@@ -63,6 +63,58 @@ class ProjectionEntity:
 
 
 @dataclass(frozen=True)
+class ProjectedMaterialGroup:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    aliases: tuple[str, ...] = tuple()
+    status: str = "UNKNOWN"
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "aliases": list(self.aliases),
+            "status": self.status,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedMaterialType:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    group_code: str | None
+    normalized_group_code: str | None
+    aliases: tuple[str, ...] = tuple()
+    status: str = "UNKNOWN"
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "group_code": self.group_code,
+            "normalized_group_code": self.normalized_group_code,
+            "aliases": list(self.aliases),
+            "status": self.status,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
 class ProjectionIssue:
     code: str
     severity: IssueSeverity
