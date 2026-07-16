@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
+from urllib.parse import urlparse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
@@ -43,6 +44,7 @@ from app.services.material_hub_first_wave import (
     is_first_wave_blocked_source,
 )
 from app.services.module1_ui_view_models import build_module1_ui_preview_context
+from app.services.source_document_refs import is_document_url
 from app.services.supplier_price_standard import (
     TEMPLATE_BASENAME,
     build_supplier_price_template_csv,
@@ -299,6 +301,18 @@ async def material_hub_documents(request: Request, db: DBSession):
             "document_summary": _document_summary,
             "document_change_history_label": _document_change_history_label,
             "document_region_status": _document_region_status,
+            "document_material_label": _document_material_label,
+            "document_material_category_label": _document_material_category_label,
+            "document_type_label": _document_type_label,
+            "document_confirms_label": _document_confirms_label,
+            "document_validity_label": _document_validity_label,
+            "document_status_label": _document_status_label,
+            "document_source_label": _document_source_label,
+            "document_file_state_label": _document_file_state_label,
+            "document_file_action_url": _document_file_action_url,
+            "document_source_action_url": _document_source_action_url,
+            "document_has_safe_action": _document_has_safe_action,
+            "document_supporting_org_label": _document_supporting_org_label,
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
             "dt": _format_datetime,
@@ -1256,6 +1270,126 @@ def _document_change_history_label(document: MaterialDocument) -> str:
 
 def _document_region_status(_document: MaterialDocument) -> str:
     return "не региональный документ"
+
+
+def _document_type_label(document: MaterialDocument) -> str:
+    return DOCUMENT_GROUP_LABELS.get(document.document_type.value, "\u0414\u0440\u0443\u0433\u043e\u0439 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442")
+
+
+def _safe_material_name(value: str | None) -> str:
+    if not value:
+        return "\u041c\u0430\u0442\u0435\u0440\u0438\u0430\u043b \u043d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d"
+    return "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0438\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f" if "???" in value else value
+
+
+def _document_material_label(document: MaterialDocument) -> str:
+    if document.material:
+        return _safe_material_name(document.material.canonical_name)
+    if document.manufacturer:
+        return f"\u041f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0438\u0442\u0435\u043b\u044c: {document.manufacturer.name}"
+    return "\u041d\u0435 \u043f\u0440\u0438\u0432\u044f\u0437\u0430\u043d \u043a \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u0443"
+
+
+def _document_material_category_label(document: MaterialDocument) -> str:
+    if document.material and document.material.category:
+        return document.material.category.name
+    if document.manufacturer:
+        return "\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442 \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0438\u0442\u0435\u043b\u044f"
+    return "\u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0438"
+
+
+def _document_supporting_org_label(document: MaterialDocument) -> str:
+    if document.manufacturer:
+        return document.manufacturer.name
+    if document.material and document.material.manufacturer:
+        return document.material.manufacturer
+    if document.source:
+        return _source_display_name(document.source)
+    return "\u041e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0446\u0438\u044f \u043d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d\u0430"
+
+
+def _document_confirms_label(document: MaterialDocument) -> str:
+    return {
+        "CERTIFICATE": "\u0421\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u0435 \u0438 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u043e",
+        "DECLARATION": "\u0421\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u0435 \u0442\u0440\u0435\u0431\u043e\u0432\u0430\u043d\u0438\u044f\u043c",
+        "FIRE_CERTIFICATE": "\u041f\u043e\u0436\u0430\u0440\u043d\u0443\u044e \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c",
+        "SANITARY_CERTIFICATE": "\u0421\u0430\u043d\u0438\u0442\u0430\u0440\u043d\u043e\u0435 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u0435",
+        "QUALITY_PASSPORT": "\u041f\u0430\u0441\u043f\u043e\u0440\u0442 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0430 \u043f\u0430\u0440\u0442\u0438\u0438",
+        "TECH_CARD": "\u0425\u0430\u0440\u0430\u043a\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043a\u0438 \u0438 \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0438\u0435",
+        "INSTALLATION_GUIDE": "\u041f\u0440\u0430\u0432\u0438\u043b\u0430 \u043c\u043e\u043d\u0442\u0430\u0436\u0430",
+        "TYPICAL_NODE": "\u0422\u0438\u043f\u043e\u0432\u043e\u0439 \u0443\u0437\u0435\u043b \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
+        "ALBUM_OF_SOLUTIONS": "\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u044f",
+        "BIM_MODEL": "\u0426\u0438\u0444\u0440\u043e\u0432\u0443\u044e \u043c\u043e\u0434\u0435\u043b\u044c",
+        "VIDEO_GUIDE": "\u0418\u043d\u0441\u0442\u0440\u0443\u043a\u0446\u0438\u044e \u043f\u043e \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0438\u044e",
+        "TEST_REPORT": "\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b \u0438\u0441\u043f\u044b\u0442\u0430\u043d\u0438\u0439",
+        "TECHNICAL_APPROVAL": "\u0422\u0435\u0445\u043d\u0438\u0447\u0435\u0441\u043a\u043e\u0435 \u0441\u0432\u0438\u0434\u0435\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u043e",
+    }.get(document.document_type.value, "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438")
+
+
+def _document_validity_label(document: MaterialDocument) -> str:
+    if document.status == DocumentStatus.EXPIRED:
+        return "\u0421\u0440\u043e\u043a \u0438\u0441\u0442\u0435\u043a"
+    if document.expiry_date:
+        if document.expiry_date < date.today():
+            return "\u0421\u0440\u043e\u043a \u0438\u0441\u0442\u0435\u043a"
+        return f"\u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u043e {_format_datetime(document.expiry_date)}"
+    return "\u0421\u0440\u043e\u043a \u043d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d"
+
+
+def _document_status_label(document: MaterialDocument) -> str:
+    if document.status == DocumentStatus.ACTIVE:
+        return "\u0414\u043e\u0441\u0442\u0443\u043f\u0435\u043d" if _document_has_safe_action(document) else "\u0415\u0441\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c, \u0444\u0430\u0439\u043b \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d"
+    if document.status == DocumentStatus.NEEDS_REVIEW:
+        return "\u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438"
+    if document.status == DocumentStatus.EXPIRED:
+        return "\u0421\u0440\u043e\u043a \u0438\u0441\u0442\u0435\u043a"
+    if document.status == DocumentStatus.REJECTED:
+        return "\u0415\u0441\u0442\u044c \u0437\u0430\u043c\u0435\u0447\u0430\u043d\u0438\u044f"
+    if document.status == DocumentStatus.ARCHIVED:
+        return "\u0410\u0440\u0445\u0438\u0432"
+    return "\u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438"
+
+
+def _document_source_label(document: MaterialDocument) -> str:
+    if document.source:
+        return _source_display_name(document.source)
+    if document.manufacturer:
+        return document.manufacturer.name
+    return "\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a \u043d\u0435 \u0443\u043a\u0430\u0437\u0430\u043d"
+
+
+def _document_file_state_label(document: MaterialDocument) -> str:
+    if _document_file_action_url(document):
+        return "\u0424\u0430\u0439\u043b \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d"
+    if _document_source_action_url(document):
+        return "\u0424\u0430\u0439\u043b \u043d\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d, \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u0438\u0441\u0442\u043e\u0447\u043d\u0438\u043a"
+    return "\u0424\u0430\u0439\u043b \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d"
+
+
+def _safe_user_url(value: str | None, *, require_document: bool = False) -> str:
+    if not value:
+        return ""
+    candidate = value.strip()
+    parsed = urlparse(candidate)
+    if parsed.scheme and parsed.scheme not in {"http", "https"}:
+        return ""
+    if not parsed.scheme and not candidate.startswith("/"):
+        return ""
+    if require_document and parsed.scheme in {"http", "https"} and not is_document_url(candidate):
+        return ""
+    return candidate
+
+
+def _document_file_action_url(document: MaterialDocument) -> str:
+    return _safe_user_url(document.file_url, require_document=True)
+
+
+def _document_source_action_url(document: MaterialDocument) -> str:
+    return _safe_user_url(document.source_url, require_document=False)
+
+
+def _document_has_safe_action(document: MaterialDocument) -> bool:
+    return bool(_document_file_action_url(document) or _document_source_action_url(document))
 
 
 def _document_filter_pairs(document: MaterialDocument) -> list[tuple[str, str]]:
