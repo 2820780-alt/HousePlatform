@@ -1,0 +1,28 @@
+{
+  "project": "ATOM",
+  "module": 1,
+  "package_id": "REF-3",
+  "package_name": "Units, Packaging, Geometry, Coverage, Yield and Consumption",
+  "version": "0.1-draft",
+  "date": "2026-07-16",
+  "status": "draft_for_user_review",
+  "parts": [
+    {
+      "package_id": "REF-3A",
+      "file": "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json",
+      "purpose": "Canonical unit dictionary and conversion policy."
+    },
+    {
+      "package_id": "REF-3B",
+      "file": "ATOM_REF3_Packaging_Quantity_Profiles_v1_DRAFT.json",
+      "purpose": "Quantity, price-basis and package profiles for 978 material types."
+    },
+    {
+      "package_id": "REF-3C",
+      "file": "ATOM_REF3_Geometry_Coverage_Consumption_Rules_v1_DRAFT.json",
+      "purpose": "Geometry, package coverage, yield and product rate semantics."
+    }
+  ],
+  "integration_allowed": false,
+  "next_gate": "User content review and preliminary approval."
+}

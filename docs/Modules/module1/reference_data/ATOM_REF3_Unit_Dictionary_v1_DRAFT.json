@@ -1,0 +1,3095 @@
+{
+  "project": "ATOM",
+  "module": 1,
+  "package_id": "REF-3A",
+  "package_name": "Unit Dictionary and Conversion Policy",
+  "version": "0.1-draft",
+  "date": "2026-07-16",
+  "status": "draft_for_user_review",
+  "source_packages": [
+    "REF-1 v0.3-preliminary-approved",
+    "REF-2A v0.1-draft",
+    "REF-2B v0.1-draft"
+  ],
+  "constitutional_boundaries": {
+    "module1_stores_units_packaging_geometry_coverage_and_product_rates": true,
+    "module1_does_not_calculate_project_material_quantity": true,
+    "module2_applies_rates_to_project_scope": true,
+    "module5_rounds_purchase_to_sellable_units_and_packages": true,
+    "currency_is_not_a_unit": "Currency remains a separate ISO currency code on price observations."
+  },
+  "unit_roles": {
+    "material_quantity_unit": "How a material amount is counted or stored.",
+    "candidate_price_basis_unit": "Unit to which a price observation may refer.",
+    "package_container_unit": "Physical sales container or bundle.",
+    "characteristic_unit": "Unit for a technical characteristic.",
+    "rate_or_coverage_unit": "Composite unit for product-specific rate or coverage."
+  },
+  "units": [
+    {
+      "unit_code": "A",
+      "label_ru": "Ампер",
+      "symbol": "А",
+      "dimension": "current",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "A",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "A",
+        "А"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "GPa",
+      "label_ru": "Гигапаскаль",
+      "symbol": "ГПа",
+      "dimension": "pressure",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Pa",
+      "linear_convertible": true,
+      "factor_to_base": 1000000000.0,
+      "aliases": [
+        "GPa",
+        "ГПа"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "Hz",
+      "label_ru": "Герц",
+      "symbol": "Гц",
+      "dimension": "frequency",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Hz",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "Hz",
+        "Гц"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "K",
+      "label_ru": "Кельвин",
+      "symbol": "K",
+      "dimension": "temperature",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "K",
+        "кельвин"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "temperature_vs_color_temperature_context",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "MN_per_m3",
+      "label_ru": "Меганьютон на кубический метр",
+      "symbol": "МН/м³",
+      "dimension": "dynamic_stiffness",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "MN_per_m3",
+        "МН/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_case_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "MPa",
+      "label_ru": "Мегапаскаль",
+      "symbol": "МПа",
+      "dimension": "pressure",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Pa",
+      "linear_convertible": true,
+      "factor_to_base": 1000000.0,
+      "aliases": [
+        "MPa",
+        "МПа"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 8,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "N",
+      "label_ru": "Ньютон",
+      "symbol": "Н",
+      "dimension": "force",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "N",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "N",
+        "Н"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "N_per_25mm",
+      "label_ru": "Ньютон на 25 мм ширины",
+      "symbol": "Н/25 мм",
+      "dimension": "line_force_test",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "N_per_25mm",
+        "Н/25 мм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "test_width_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "N_per_50mm",
+      "label_ru": "Ньютон на 50 мм ширины",
+      "symbol": "Н/50 мм",
+      "dimension": "line_force_test",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "N_per_50mm",
+        "Н/50 мм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "test_width_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "Nm",
+      "label_ru": "Ньютон-метр",
+      "symbol": "Н·м",
+      "dimension": "torque",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Nm",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "Nm",
+        "Нм",
+        "Н·м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "Pa",
+      "label_ru": "Паскаль",
+      "symbol": "Па",
+      "dimension": "pressure",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Pa",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "Pa",
+        "Па"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "V",
+      "label_ru": "Вольт",
+      "symbol": "В",
+      "dimension": "voltage",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "V",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "V",
+        "В"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "W",
+      "label_ru": "Ватт",
+      "symbol": "Вт",
+      "dimension": "power",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "W",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "W",
+        "Вт"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "W_per_m",
+      "label_ru": "Ватт на метр",
+      "symbol": "Вт/м",
+      "dimension": "linear_power",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "W_per_m",
+        "Вт/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "W_per_mK",
+      "label_ru": "Ватт на метр-кельвин",
+      "symbol": "Вт/(м·К)",
+      "dimension": "thermal_conductivity",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "W_per_mK",
+        "Вт/(м·К)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "bag",
+      "label_ru": "Мешок",
+      "symbol": "мешок",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "bag",
+        "bags",
+        "мешок",
+        "мешки"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "bar",
+      "label_ru": "Бар",
+      "symbol": "бар",
+      "dimension": "pressure",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Pa",
+      "linear_convertible": true,
+      "factor_to_base": 100000.0,
+      "aliases": [
+        "bar",
+        "бар"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "bottle",
+      "label_ru": "Флакон / бутылка",
+      "symbol": "бут.",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "bottle",
+        "бутылка",
+        "флакон",
+        "бут."
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "box",
+      "label_ru": "Коробка",
+      "symbol": "кор.",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "box",
+        "коробка",
+        "короб",
+        "кор."
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "bucket",
+      "label_ru": "Ведро",
+      "symbol": "ведро",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "bucket",
+        "ведро"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "bundle",
+      "label_ru": "Связка / пачка",
+      "symbol": "пачка",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "bundle",
+        "связка",
+        "пачка"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "canister",
+      "label_ru": "Канистра",
+      "symbol": "канистра",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "canister",
+        "канистра"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "cartridge",
+      "label_ru": "Картридж",
+      "symbol": "картридж",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "cartridge",
+        "картридж"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "cm",
+      "label_ru": "Сантиметр",
+      "symbol": "см",
+      "dimension": "length",
+      "roles": [],
+      "base_unit_code": "m",
+      "linear_convertible": true,
+      "factor_to_base": 0.01,
+      "aliases": [
+        "cm",
+        "см",
+        "сантиметр",
+        "сантиметры"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "cm2",
+      "label_ru": "Квадратный сантиметр",
+      "symbol": "см²",
+      "dimension": "area",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m2",
+      "linear_convertible": true,
+      "factor_to_base": 0.0001,
+      "aliases": [
+        "cm2",
+        "см²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "cm4",
+      "label_ru": "Сантиметр в четвёртой степени",
+      "symbol": "см⁴",
+      "dimension": "section_inertia",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "cm4",
+        "см⁴"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "coil",
+      "label_ru": "Бухта",
+      "symbol": "бухта",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "coil",
+        "бухта"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "container",
+      "label_ru": "Контейнер",
+      "symbol": "конт.",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "container",
+        "контейнер",
+        "конт."
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "crate",
+      "label_ru": "Ящик",
+      "symbol": "ящик",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "crate",
+        "ящик"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "cylinder",
+      "label_ru": "Баллон",
+      "symbol": "баллон",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "cylinder",
+        "баллон"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "dB",
+      "label_ru": "Децибел",
+      "symbol": "дБ",
+      "dimension": "acoustic_level",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "dB",
+        "дБ"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 5,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "day",
+      "label_ru": "Сутки",
+      "symbol": "сут",
+      "dimension": "time",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "s",
+      "linear_convertible": true,
+      "factor_to_base": 86400.0,
+      "aliases": [
+        "day",
+        "сут",
+        "сутки",
+        "день"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "degC",
+      "label_ru": "Градус Цельсия",
+      "symbol": "°C",
+      "dimension": "temperature",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "degC",
+        "°C",
+        "С",
+        "градус Цельсия"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 12,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "degree",
+      "label_ru": "Градус угла",
+      "symbol": "°",
+      "dimension": "angle",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "degree",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "degree",
+        "deg",
+        "°",
+        "градус"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 5,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "drum",
+      "label_ru": "Бочка",
+      "symbol": "бочка",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "drum",
+        "бочка"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "g_per_m2",
+      "label_ru": "Грамм на квадратный метр",
+      "symbol": "г/м²",
+      "dimension": "surface_mass",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "g_per_m2",
+        "г/м²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 4,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "g_per_m2_24h",
+      "label_ru": "Грамм на квадратный метр за 24 часа",
+      "symbol": "г/(м²·24ч)",
+      "dimension": "vapor_transmission",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "g_per_m2_24h",
+        "г/(м²·24ч)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "time_basis_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "h",
+      "label_ru": "Час",
+      "symbol": "ч",
+      "dimension": "time",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "s",
+      "linear_convertible": true,
+      "factor_to_base": 3600.0,
+      "aliases": [
+        "h",
+        "hr",
+        "ч",
+        "час"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 5,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kA",
+      "label_ru": "Килоампер",
+      "symbol": "кА",
+      "dimension": "current",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "A",
+      "linear_convertible": true,
+      "factor_to_base": 1000.0,
+      "aliases": [
+        "kA",
+        "кА"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kN",
+      "label_ru": "Килоньютон",
+      "symbol": "кН",
+      "dimension": "force",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "N",
+      "linear_convertible": true,
+      "factor_to_base": 1000.0,
+      "aliases": [
+        "kN",
+        "кН"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 8,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kN_per_m",
+      "label_ru": "Килоньютон на метр",
+      "symbol": "кН/м",
+      "dimension": "line_force",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kN_per_m",
+        "кН/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kPa",
+      "label_ru": "Килопаскаль",
+      "symbol": "кПа",
+      "dimension": "pressure",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "Pa",
+      "linear_convertible": true,
+      "factor_to_base": 1000.0,
+      "aliases": [
+        "kPa",
+        "кПа"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kW",
+      "label_ru": "Киловатт",
+      "symbol": "кВт",
+      "dimension": "power",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "W",
+      "linear_convertible": true,
+      "factor_to_base": 1000.0,
+      "aliases": [
+        "kW",
+        "кВт"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg",
+      "label_ru": "Килограмм",
+      "symbol": "кг",
+      "dimension": "mass",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "kg",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "kg",
+        "кг",
+        "килограмм",
+        "килограммы"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 6,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "kg_per_m",
+      "label_ru": "Килограмм на метр",
+      "symbol": "кг/м",
+      "dimension": "linear_mass",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m",
+        "кг/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg_per_m2",
+      "label_ru": "Килограмм на квадратный метр",
+      "symbol": "кг/м²",
+      "dimension": "surface_mass_or_rate",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m2",
+        "кг/м²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 6,
+      "review_flag": "dimension_used_for_surface_mass_and_consumption",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg_per_m2_mm",
+      "label_ru": "Килограмм на квадратный метр на миллиметр",
+      "symbol": "кг/(м²·мм)",
+      "dimension": "layer_consumption",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m2_mm",
+        "кг/(м²·мм)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg_per_m3",
+      "label_ru": "Килограмм на кубический метр",
+      "symbol": "кг/м³",
+      "dimension": "density_or_dosage",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m3",
+        "кг/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 3,
+      "review_flag": "dimension_used_for_density_and_dosage",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kit",
+      "label_ru": "Набор",
+      "symbol": "набор",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "kit",
+        "набор"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "l_per_kg",
+      "label_ru": "Литр на килограмм",
+      "symbol": "л/кг",
+      "dimension": "mixing_water_ratio",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "l_per_kg",
+        "л/кг"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "l_per_m2",
+      "label_ru": "Литр на квадратный метр",
+      "symbol": "л/м²",
+      "dimension": "area_consumption",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "l_per_m2",
+        "л/м²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "l_per_m2_s",
+      "label_ru": "Литр на квадратный метр в секунду",
+      "symbol": "л/(м²·с)",
+      "dimension": "surface_flow",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "l_per_m2_s",
+        "л/(м²·с)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "l_per_min",
+      "label_ru": "Литр в минуту",
+      "symbol": "л/мин",
+      "dimension": "flow_rate",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m3_per_h",
+      "linear_convertible": true,
+      "factor_to_base": 0.06,
+      "aliases": [
+        "l_per_min",
+        "л/мин"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "l_per_s",
+      "label_ru": "Литр в секунду",
+      "symbol": "л/с",
+      "dimension": "flow_rate",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m3_per_h",
+      "linear_convertible": true,
+      "factor_to_base": 3.6,
+      "aliases": [
+        "l_per_s",
+        "л/с"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "linear_meter",
+      "label_ru": "Погонный метр",
+      "symbol": "пог. м",
+      "dimension": "business_length",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "linear_meter",
+        "running_meter",
+        "lm",
+        "l.m.",
+        "м.п.",
+        "пог.м",
+        "пог. м",
+        "погонный метр"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": "business_unit_same_physical_dimension_as_m",
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "liter",
+      "label_ru": "Литр",
+      "symbol": "л",
+      "dimension": "volume",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m3",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "liter",
+        "l",
+        "л",
+        "литр",
+        "литры"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 8,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "liter_per_day",
+      "label_ru": "Литр в сутки",
+      "symbol": "л/сут",
+      "dimension": "daily_capacity",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "liter_per_day",
+        "л/сут"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": "prefer_l_per_day_code_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "lm",
+      "label_ru": "Люмен",
+      "symbol": "лм",
+      "dimension": "luminous_flux",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "lm",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "lm",
+        "лм",
+        "люмен"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "symbol_collision_with_linear_meter_alias_guard",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m",
+      "label_ru": "Метр",
+      "symbol": "м",
+      "dimension": "length",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "m",
+        "м",
+        "метр",
+        "метры"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 15,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "m2",
+      "label_ru": "Квадратный метр",
+      "symbol": "м²",
+      "dimension": "area",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m2",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "m2",
+        "m^2",
+        "sqm",
+        "м2",
+        "м²",
+        "кв.м",
+        "кв. м"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 5,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "m2K_per_W",
+      "label_ru": "Квадратный метр-кельвин на ватт",
+      "symbol": "м²·К/Вт",
+      "dimension": "thermal_resistance",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "m2K_per_W",
+        "м²·К/Вт"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 3,
+      "review_flag": "canonical_code_readability_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m2_mm",
+      "label_ru": "Квадратный метр-миллиметр",
+      "symbol": "м²·мм",
+      "dimension": "layer_volume_proxy",
+      "roles": [],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "m2_mm",
+        "m2*mm",
+        "м2*мм",
+        "м²*мм",
+        "м²·мм"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": "composite_layer_unit_review",
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "m2_per_l",
+      "label_ru": "Квадратный метр на литр",
+      "symbol": "м²/л",
+      "dimension": "coverage",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "m2_per_l",
+        "м²/л"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m3",
+      "label_ru": "Кубический метр",
+      "symbol": "м³",
+      "dimension": "volume",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m3",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "m3",
+        "m^3",
+        "cbm",
+        "м3",
+        "м³",
+        "куб.м",
+        "куб. м"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 4,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "m3_per_h",
+      "label_ru": "Кубический метр в час",
+      "symbol": "м³/ч",
+      "dimension": "flow_rate",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m3_per_h",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "m3_per_h",
+        "м³/ч"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 4,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mA",
+      "label_ru": "Миллиампер",
+      "symbol": "мА",
+      "dimension": "current",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "A",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "mA",
+        "мА"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mPa_s",
+      "label_ru": "Миллипаскаль-секунда",
+      "symbol": "мПа·с",
+      "dimension": "dynamic_viscosity",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mPa_s",
+        "мПа·с"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_case_and_symbol_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m_per_s",
+      "label_ru": "Метр в секунду",
+      "symbol": "м/с",
+      "dimension": "speed",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m_per_s",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "m_per_s",
+        "м/с"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mg_per_mhPa",
+      "label_ru": "Миллиграмм на метр-час-паскаль",
+      "symbol": "мг/(м·ч·Па)",
+      "dimension": "vapor_permeability",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mg_per_mhPa",
+        "мг/(м·ч·Па)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_readability_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "micron",
+      "label_ru": "Микрометр",
+      "symbol": "мкм",
+      "dimension": "length",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "mm",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "micron",
+        "µm",
+        "мкм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "min",
+      "label_ru": "Минута",
+      "symbol": "мин",
+      "dimension": "time",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "s",
+      "linear_convertible": true,
+      "factor_to_base": 60.0,
+      "aliases": [
+        "min",
+        "мин",
+        "минута"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 7,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mm",
+      "label_ru": "Миллиметр",
+      "symbol": "мм",
+      "dimension": "length",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "mm",
+        "мм",
+        "миллиметр",
+        "миллиметры"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 83,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "mm2",
+      "label_ru": "Квадратный миллиметр",
+      "symbol": "мм²",
+      "dimension": "area",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "m2",
+      "linear_convertible": true,
+      "factor_to_base": 1e-06,
+      "aliases": [
+        "mm2",
+        "мм²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mm_per_day",
+      "label_ru": "Миллиметр в сутки",
+      "symbol": "мм/сут",
+      "dimension": "cure_rate",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mm_per_day",
+        "мм/сут"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mm_per_m",
+      "label_ru": "Миллиметр на метр",
+      "symbol": "мм/м",
+      "dimension": "linear_shrinkage",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mm_per_m",
+        "мм/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "package",
+      "label_ru": "Упаковка",
+      "symbol": "упак.",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "package",
+        "pack",
+        "упаковка",
+        "упак",
+        "упаковки",
+        "упак."
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "pair",
+      "label_ru": "Пара",
+      "symbol": "пара",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "pair",
+        "пара"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "pallet",
+      "label_ru": "Поддон",
+      "symbol": "поддон",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "pallet",
+        "pallets",
+        "поддон",
+        "паллет",
+        "паллеты"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "per_m",
+      "label_ru": "Обратный метр",
+      "symbol": "1/м",
+      "dimension": "section_factor",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "per_m",
+        "1/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "inverse_length_unit_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "percent",
+      "label_ru": "Процент",
+      "symbol": "%",
+      "dimension": "ratio_percent",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "percent",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "percent",
+        "%",
+        "процент"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 29,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "piece",
+      "label_ru": "Штука",
+      "symbol": "шт",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "piece",
+        "pieces",
+        "pc",
+        "pcs",
+        "шт",
+        "штука",
+        "штуки"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 3,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "piece_per_m3",
+      "label_ru": "Штук на кубический метр",
+      "symbol": "шт/м³",
+      "dimension": "count_density",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "piece_per_m3",
+        "шт/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "count_density_unit_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "roll",
+      "label_ru": "Рулон",
+      "symbol": "рулон",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "roll",
+        "rolls",
+        "рулон",
+        "рулоны"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "rpm",
+      "label_ru": "Оборот в минуту",
+      "symbol": "об/мин",
+      "dimension": "rotational_speed",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "rpm",
+        "об/мин"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "set",
+      "label_ru": "Комплект",
+      "symbol": "компл.",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "set",
+        "комплект",
+        "компл."
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "sheet",
+      "label_ru": "Лист",
+      "symbol": "лист",
+      "dimension": "count",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "sheet",
+        "sheets",
+        "лист",
+        "листы"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 1,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "ton",
+      "label_ru": "Тонна",
+      "symbol": "т",
+      "dimension": "mass",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "kg",
+      "linear_convertible": true,
+      "factor_to_base": 1000.0,
+      "aliases": [
+        "ton",
+        "t",
+        "т",
+        "тонна",
+        "тонны"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "tube",
+      "label_ru": "Туба",
+      "symbol": "туба",
+      "dimension": "count",
+      "roles": [
+        "package_container_unit"
+      ],
+      "base_unit_code": "count",
+      "linear_convertible": true,
+      "factor_to_base": null,
+      "aliases": [
+        "tube",
+        "туба"
+      ],
+      "runtime_status": "proposed_ref3_packaging",
+      "ref2_usage_field_count": 0,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "um",
+      "label_ru": "Микрометр",
+      "symbol": "мкм",
+      "dimension": "length",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "mm",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "um",
+        "µm",
+        "мкм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 4,
+      "review_flag": "duplicate_semantic_with_micron",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "year",
+      "label_ru": "Год",
+      "symbol": "год",
+      "dimension": "time",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "year",
+        "год",
+        "лет"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 3,
+      "review_flag": null,
+      "editable": true,
+      "status": "active_draft"
+    }
+  ],
+  "existing_runtime_units": {
+    "count": 16,
+    "unit_codes": [
+      "bag",
+      "cm",
+      "kg",
+      "linear_meter",
+      "liter",
+      "m",
+      "m2",
+      "m2_mm",
+      "m3",
+      "mm",
+      "package",
+      "pallet",
+      "piece",
+      "roll",
+      "sheet",
+      "ton"
+    ],
+    "source": "units_existing.json"
+  },
+  "existing_conversion_migration": {
+    "records": [
+      {
+        "from": "cm",
+        "to": "m",
+        "factor": "0.01",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "cm",
+        "to": "mm",
+        "factor": "10",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "kg",
+        "to": "ton",
+        "factor": "0.001",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "linear_meter",
+        "to": "m",
+        "factor": "1",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "liter",
+        "to": "m3",
+        "factor": "0.001",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "m",
+        "to": "cm",
+        "factor": "100",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "m",
+        "to": "linear_meter",
+        "factor": "1",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "m",
+        "to": "mm",
+        "factor": "1000",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "m3",
+        "to": "liter",
+        "factor": "1000",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "mm",
+        "to": "cm",
+        "factor": "0.1",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "mm",
+        "to": "m",
+        "factor": "0.001",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "from": "ton",
+        "to": "kg",
+        "factor": "1000",
+        "src": "app/services/module1_unit_conversion_registry.py:96",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "aerated_concrete_block",
+        "from": "m3",
+        "to": "piece",
+        "requires": [
+          [
+            "length_m",
+            "width_m",
+            "height_m"
+          ],
+          [
+            "length_mm",
+            "width_mm",
+            "height_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "aerated_concrete_block",
+        "from": "piece",
+        "to": "m3",
+        "requires": [
+          [
+            "length_m",
+            "width_m",
+            "height_m"
+          ],
+          [
+            "length_mm",
+            "width_mm",
+            "height_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "board",
+        "from": "m3",
+        "to": "piece",
+        "requires": [
+          [
+            "length_m",
+            "width_m",
+            "thickness_m"
+          ],
+          [
+            "length_mm",
+            "width_mm",
+            "thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "board",
+        "from": "piece",
+        "to": "m3",
+        "requires": [
+          [
+            "length_m",
+            "width_m",
+            "thickness_m"
+          ],
+          [
+            "length_mm",
+            "width_mm",
+            "thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "deep_penetration_primer",
+        "from": "liter",
+        "to": "m2",
+        "requires": [
+          [
+            "coverage_m2_per_l"
+          ],
+          [
+            "consumption_l_m2"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "deep_penetration_primer",
+        "from": "m2",
+        "to": "liter",
+        "requires": [
+          [
+            "coverage_m2_per_l"
+          ],
+          [
+            "consumption_l_m2"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "dry_mix",
+        "from": "kg",
+        "to": "m2",
+        "requires": [
+          [
+            "consumption_kg_m2_mm",
+            "layer_thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "dry_mix",
+        "from": "kg",
+        "to": "m2_mm",
+        "requires": [
+          [
+            "consumption_kg_m2_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "dry_mix",
+        "from": "m2",
+        "to": "kg",
+        "requires": [
+          [
+            "consumption_kg_m2_mm",
+            "layer_thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "dry_mix",
+        "from": "m2_mm",
+        "to": "kg",
+        "requires": [
+          [
+            "consumption_kg_m2_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "gypsum_board",
+        "from": "m2",
+        "to": "sheet",
+        "requires": [
+          [
+            "sheet_area_m2"
+          ],
+          [
+            "length_m",
+            "width_m"
+          ],
+          [
+            "length_mm",
+            "width_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "gypsum_board",
+        "from": "sheet",
+        "to": "m2",
+        "requires": [
+          [
+            "sheet_area_m2"
+          ],
+          [
+            "length_m",
+            "width_m"
+          ],
+          [
+            "length_mm",
+            "width_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "gypsum_board_moisture_resistant",
+        "from": "m2",
+        "to": "sheet",
+        "requires": [
+          [
+            "sheet_area_m2"
+          ],
+          [
+            "length_m",
+            "width_m"
+          ],
+          [
+            "length_mm",
+            "width_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "gypsum_board_moisture_resistant",
+        "from": "sheet",
+        "to": "m2",
+        "requires": [
+          [
+            "sheet_area_m2"
+          ],
+          [
+            "length_m",
+            "width_m"
+          ],
+          [
+            "length_mm",
+            "width_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "gypsum_plaster",
+        "from": "kg",
+        "to": "m2",
+        "requires": [
+          [
+            "consumption_kg_m2_mm",
+            "layer_thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "gypsum_plaster",
+        "from": "m2",
+        "to": "kg",
+        "requires": [
+          [
+            "consumption_kg_m2_mm",
+            "layer_thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "membrane",
+        "from": "m2",
+        "to": "roll",
+        "requires": [
+          [
+            "roll_area_m2"
+          ],
+          [
+            "roll_width_m",
+            "roll_length_m"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "membrane",
+        "from": "roll",
+        "to": "m2",
+        "requires": [
+          [
+            "roll_area_m2"
+          ],
+          [
+            "roll_width_m",
+            "roll_length_m"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "mineral_wool_slab",
+        "from": "m2",
+        "to": "package",
+        "requires": [
+          [
+            "package_area_m2"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "mineral_wool_slab",
+        "from": "m3",
+        "to": "package",
+        "requires": [
+          [
+            "package_volume_m3"
+          ],
+          [
+            "package_area_m2",
+            "thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "mineral_wool_slab",
+        "from": "package",
+        "to": "m2",
+        "requires": [
+          [
+            "package_area_m2"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "mineral_wool_slab",
+        "from": "package",
+        "to": "m3",
+        "requires": [
+          [
+            "package_volume_m3"
+          ],
+          [
+            "package_area_m2",
+            "thickness_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "paint",
+        "from": "liter",
+        "to": "m2",
+        "requires": [
+          [
+            "coverage_m2_per_l"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "paint",
+        "from": "m2",
+        "to": "liter",
+        "requires": [
+          [
+            "coverage_m2_per_l"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": true,
+        "review_reason": "generic conversion group is not a direct REF-1 material_type_id"
+      },
+      {
+        "group": "rebar",
+        "from": "kg",
+        "to": "linear_meter",
+        "requires": [
+          [
+            "kg_per_meter"
+          ],
+          [
+            "diameter_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "rebar",
+        "from": "kg",
+        "to": "m",
+        "requires": [
+          [
+            "kg_per_meter"
+          ],
+          [
+            "diameter_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "rebar",
+        "from": "linear_meter",
+        "to": "kg",
+        "requires": [
+          [
+            "kg_per_meter"
+          ],
+          [
+            "diameter_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": "rebar",
+        "from": "m",
+        "to": "kg",
+        "requires": [
+          [
+            "kg_per_meter"
+          ],
+          [
+            "diameter_mm"
+          ]
+        ],
+        "src": "app/services/module1_unit_conversion_registry.py:111",
+        "migration_status": "existing_runtime_definition",
+        "review_required": false
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "length_m * kg_per_meter",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "thickness_m * width_m * length_m * pieces",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "length_m * width_m * height_m * pieces",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "length_m * width_m * sheets",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "roll_width_m * roll_length_m * rolls",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "area_m2 * thickness_mm * consumption_kg_m2_mm",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      },
+      {
+        "group": null,
+        "from": null,
+        "to": null,
+        "formula": "area_m2 * coats / coverage_m2_per_l",
+        "src": "src/modules/module1/seeds/material_knowledge_seed.json:853",
+        "migration_status": "audit_export_identity_missing",
+        "review_required": true,
+        "review_reason": "audit export lost group/from/to; verify against material_knowledge_seed before integration"
+      }
+    ],
+    "count": 47,
+    "direct_or_group_conversions": 40,
+    "formula_records_requiring_identity_recovery": 7,
+    "policy": "Do not delete or alter formula records until group/from/to are recovered from the source seed."
+  },
+  "business_rules": [
+    "material_quantity_unit, price_basis_unit and package_unit are separate fields.",
+    "A package/container code never implies its content quantity.",
+    "linear_meter and m are physically convertible but remain distinct business labels where a seller explicitly uses running metres.",
+    "Composite rate units are not used as stock units or price-basis units unless explicitly allowed by a product contract.",
+    "Conversion requiring characteristics is only valid when all required source fields are present and positive.",
+    "Rounding to whole packages belongs to purchase preparation/Module 5, not to the reference unit dictionary.",
+    "No numeric consumption default is inherited from a material type without product source or technical evidence."
+  ],
+  "review_queue": [
+    {
+      "unit_code": "K",
+      "label_ru": "Кельвин",
+      "symbol": "K",
+      "dimension": "temperature",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "K",
+        "кельвин"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "temperature_vs_color_temperature_context",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "MN_per_m3",
+      "label_ru": "Меганьютон на кубический метр",
+      "symbol": "МН/м³",
+      "dimension": "dynamic_stiffness",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "MN_per_m3",
+        "МН/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_case_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "N_per_25mm",
+      "label_ru": "Ньютон на 25 мм ширины",
+      "symbol": "Н/25 мм",
+      "dimension": "line_force_test",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "N_per_25mm",
+        "Н/25 мм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "test_width_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "N_per_50mm",
+      "label_ru": "Ньютон на 50 мм ширины",
+      "symbol": "Н/50 мм",
+      "dimension": "line_force_test",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "N_per_50mm",
+        "Н/50 мм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "test_width_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "g_per_m2_24h",
+      "label_ru": "Грамм на квадратный метр за 24 часа",
+      "symbol": "г/(м²·24ч)",
+      "dimension": "vapor_transmission",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "g_per_m2_24h",
+        "г/(м²·24ч)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "time_basis_embedded_in_unit_code",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg_per_m2",
+      "label_ru": "Килограмм на квадратный метр",
+      "symbol": "кг/м²",
+      "dimension": "surface_mass_or_rate",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m2",
+        "кг/м²"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 6,
+      "review_flag": "dimension_used_for_surface_mass_and_consumption",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "kg_per_m3",
+      "label_ru": "Килограмм на кубический метр",
+      "symbol": "кг/м³",
+      "dimension": "density_or_dosage",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "kg_per_m3",
+        "кг/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 3,
+      "review_flag": "dimension_used_for_density_and_dosage",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "linear_meter",
+      "label_ru": "Погонный метр",
+      "symbol": "пог. м",
+      "dimension": "business_length",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit"
+      ],
+      "base_unit_code": "m",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "linear_meter",
+        "running_meter",
+        "lm",
+        "l.m.",
+        "м.п.",
+        "пог.м",
+        "пог. м",
+        "погонный метр"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": "business_unit_same_physical_dimension_as_m",
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "liter_per_day",
+      "label_ru": "Литр в сутки",
+      "symbol": "л/сут",
+      "dimension": "daily_capacity",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "liter_per_day",
+        "л/сут"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 2,
+      "review_flag": "prefer_l_per_day_code_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "lm",
+      "label_ru": "Люмен",
+      "symbol": "лм",
+      "dimension": "luminous_flux",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "lm",
+      "linear_convertible": true,
+      "factor_to_base": 1.0,
+      "aliases": [
+        "lm",
+        "лм",
+        "люмен"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "symbol_collision_with_linear_meter_alias_guard",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m2K_per_W",
+      "label_ru": "Квадратный метр-кельвин на ватт",
+      "symbol": "м²·К/Вт",
+      "dimension": "thermal_resistance",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "m2K_per_W",
+        "м²·К/Вт"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 3,
+      "review_flag": "canonical_code_readability_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "m2_mm",
+      "label_ru": "Квадратный метр-миллиметр",
+      "symbol": "м²·мм",
+      "dimension": "layer_volume_proxy",
+      "roles": [],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "m2_mm",
+        "m2*mm",
+        "м2*мм",
+        "м²*мм",
+        "м²·мм"
+      ],
+      "runtime_status": "existing_runtime",
+      "ref2_usage_field_count": 0,
+      "review_flag": "composite_layer_unit_review",
+      "editable": true,
+      "status": "existing_runtime"
+    },
+    {
+      "unit_code": "mPa_s",
+      "label_ru": "Миллипаскаль-секунда",
+      "symbol": "мПа·с",
+      "dimension": "dynamic_viscosity",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mPa_s",
+        "мПа·с"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_case_and_symbol_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "mg_per_mhPa",
+      "label_ru": "Миллиграмм на метр-час-паскаль",
+      "symbol": "мг/(м·ч·Па)",
+      "dimension": "vapor_permeability",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "mg_per_mhPa",
+        "мг/(м·ч·Па)"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "canonical_code_readability_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "per_m",
+      "label_ru": "Обратный метр",
+      "symbol": "1/м",
+      "dimension": "section_factor",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "per_m",
+        "1/м"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "inverse_length_unit_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "piece_per_m3",
+      "label_ru": "Штук на кубический метр",
+      "symbol": "шт/м³",
+      "dimension": "count_density",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "base_unit_code": null,
+      "linear_convertible": false,
+      "factor_to_base": null,
+      "aliases": [
+        "piece_per_m3",
+        "шт/м³"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 1,
+      "review_flag": "count_density_unit_review",
+      "editable": true,
+      "status": "active_draft"
+    },
+    {
+      "unit_code": "um",
+      "label_ru": "Микрометр",
+      "symbol": "мкм",
+      "dimension": "length",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "base_unit_code": "mm",
+      "linear_convertible": true,
+      "factor_to_base": 0.001,
+      "aliases": [
+        "um",
+        "µm",
+        "мкм"
+      ],
+      "runtime_status": "proposed_ref3_technical",
+      "ref2_usage_field_count": 4,
+      "review_flag": "duplicate_semantic_with_micron",
+      "editable": true,
+      "status": "active_draft"
+    }
+  ],
+  "validation": {
+    "unit_count": 90,
+    "existing_runtime_unit_count": 16,
+    "proposed_technical_unit_count": 59,
+    "proposed_packaging_unit_count": 15,
+    "all_ref2_unit_codes_covered": true,
+    "uncovered_ref2_unit_codes": [],
+    "duplicate_unit_codes": [],
+    "review_queue_count": 17
+  },
+  "approval": {
+    "integration_allowed": false,
+    "approved_by_user": false
+  },
+  "editable": true,
+  "change_log": [
+    {
+      "revision": 1,
+      "date": "2026-07-16",
+      "change": "Initial REF-3A draft."
+    }
+  ]
+}
