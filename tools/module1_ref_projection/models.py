@@ -288,6 +288,146 @@ class ProjectedConversion:
 
 
 @dataclass(frozen=True)
+class ProjectedPackagingRule:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    rule_kind: str
+    material_type_id: str | None = None
+    profile_id: str | None = None
+    field_codes: tuple[str, ...] = tuple()
+    unit_codes: tuple[str, ...] = tuple()
+    review_required: bool = False
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "rule_kind": self.rule_kind,
+            "material_type_id": self.material_type_id,
+            "profile_id": self.profile_id,
+            "field_codes": list(self.field_codes),
+            "unit_codes": list(self.unit_codes),
+            "review_required": self.review_required,
+            "auto_activatable": self.auto_activatable,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedGeometryRule:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    semantic_type: str
+    field_codes: tuple[str, ...] = tuple()
+    unit_codes: tuple[str, ...] = tuple()
+    formula_inputs: tuple[str, ...] = tuple()
+    formula_outputs: tuple[str, ...] = tuple()
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "semantic_type": self.semantic_type,
+            "field_codes": list(self.field_codes),
+            "unit_codes": list(self.unit_codes),
+            "formula_inputs": list(self.formula_inputs),
+            "formula_outputs": list(self.formula_outputs),
+            "auto_activatable": self.auto_activatable,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedCoverageRule:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    semantic_type: str
+    field_codes: tuple[str, ...] = tuple()
+    unit_codes: tuple[str, ...] = tuple()
+    formula_inputs: tuple[str, ...] = tuple()
+    formula_outputs: tuple[str, ...] = tuple()
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return _extended_rule_dict(self)
+
+
+@dataclass(frozen=True)
+class ProjectedYieldRule:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    semantic_type: str
+    field_codes: tuple[str, ...] = tuple()
+    unit_codes: tuple[str, ...] = tuple()
+    formula_inputs: tuple[str, ...] = tuple()
+    formula_outputs: tuple[str, ...] = tuple()
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return _extended_rule_dict(self)
+
+
+@dataclass(frozen=True)
+class ProjectedConsumptionRule:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    semantic_type: str
+    field_codes: tuple[str, ...] = tuple()
+    unit_codes: tuple[str, ...] = tuple()
+    formula_inputs: tuple[str, ...] = tuple()
+    formula_outputs: tuple[str, ...] = tuple()
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return _extended_rule_dict(self)
+
+
+def _extended_rule_dict(rule: Any) -> dict[str, Any]:
+    return {
+        "source": rule.source.as_dict(),
+        "source_code": rule.source_code,
+        "normalized_code": rule.normalized_code,
+        "title": rule.title,
+        "semantic_type": rule.semantic_type,
+        "field_codes": list(rule.field_codes),
+        "unit_codes": list(rule.unit_codes),
+        "formula_inputs": list(rule.formula_inputs),
+        "formula_outputs": list(rule.formula_outputs),
+        "auto_activatable": rule.auto_activatable,
+        "issues": list(rule.issues),
+        "source_pointer": rule.source_pointer,
+    }
+
+
+@dataclass(frozen=True)
 class ProjectionIssue:
     code: str
     severity: IssueSeverity

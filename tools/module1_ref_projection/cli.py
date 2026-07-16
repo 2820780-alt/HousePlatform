@@ -7,6 +7,7 @@ from typing import Any
 
 from .ref1 import DEFAULT_RUNTIME_TAXONOMY_PATH, write_ref1_projection_outputs
 from .ref2 import write_ref2_projection_outputs
+from .ref3_extended import DEFAULT_WORK_CATALOG_PATH, write_ref3_extended_projection_outputs
 from .ref3_units import DEFAULT_RUNTIME_UNIT_SERVICE_PATH, write_ref3_unit_projection_outputs
 from .validator import ProjectionValidator
 
@@ -18,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-ref1", action="store_true", help="Generate inactive REF-1 taxonomy projection outputs")
     parser.add_argument("--include-ref2", action="store_true", help="Generate inactive REF-2 characteristic projection outputs")
     parser.add_argument("--include-ref3-units", action="store_true", help="Generate inactive REF-3 unit projection outputs")
+    parser.add_argument("--include-ref3-extended", action="store_true", help="Generate inactive REF-3 extended rule projection outputs")
     parser.add_argument(
         "--runtime-taxonomy-path",
         default=str(DEFAULT_RUNTIME_TAXONOMY_PATH),
@@ -27,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--runtime-unit-service-path",
         default=str(DEFAULT_RUNTIME_UNIT_SERVICE_PATH),
         help="Runtime unit conversion service used for read-only comparison",
+    )
+    parser.add_argument(
+        "--work-catalog-path",
+        default=str(DEFAULT_WORK_CATALOG_PATH),
+        help="Work catalog seed used for read-only mapping guard",
     )
     return parser
 
@@ -38,8 +45,10 @@ def run(
     include_ref1: bool = False,
     include_ref2: bool = False,
     include_ref3_units: bool = False,
+    include_ref3_extended: bool = False,
     runtime_taxonomy_path: str | Path = DEFAULT_RUNTIME_TAXONOMY_PATH,
     runtime_unit_service_path: str | Path = DEFAULT_RUNTIME_UNIT_SERVICE_PATH,
+    work_catalog_path: str | Path = DEFAULT_WORK_CATALOG_PATH,
 ) -> dict[str, Any]:
     summary = ProjectionValidator(reference_root).validate()
     destination = Path(output_dir)
@@ -59,6 +68,9 @@ def run(
     if include_ref3_units:
         ref3_result = write_ref3_unit_projection_outputs(reference_root, destination, runtime_taxonomy_path, runtime_unit_service_path)
         payload["ref3_units"] = ref3_result.summary_dict()
+    if include_ref3_extended:
+        ref3_extended_result = write_ref3_extended_projection_outputs(reference_root, destination, work_catalog_path)
+        payload["ref3_extended"] = ref3_extended_result.summary_dict()
     output_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -74,8 +86,10 @@ def main(argv: list[str] | None = None) -> int:
         include_ref1=args.include_ref1,
         include_ref2=args.include_ref2,
         include_ref3_units=args.include_ref3_units,
+        include_ref3_extended=args.include_ref3_extended,
         runtime_taxonomy_path=args.runtime_taxonomy_path,
         runtime_unit_service_path=args.runtime_unit_service_path,
+        work_catalog_path=args.work_catalog_path,
     )
     return 0
 
