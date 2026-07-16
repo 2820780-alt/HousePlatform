@@ -3,7 +3,7 @@
   "module": 1,
   "package_id": "REF-3A",
   "package_name": "Unit Dictionary and Conversion Policy",
-  "version": "0.2-draft",
+  "version": "0.3-draft",
   "date": "2026-07-16",
   "status": "draft_for_user_review",
   "source_packages": [
@@ -1202,7 +1202,6 @@
       "aliases": [
         "linear_meter",
         "running_meter",
-        "lm",
         "l.m.",
         "м.п.",
         "пог.м",
@@ -1213,7 +1212,8 @@
       "ref2_usage_field_count": 0,
       "review_flag": "business_unit_same_physical_dimension_as_m",
       "editable": true,
-      "status": "existing_runtime"
+      "status": "existing_runtime",
+      "alias_policy_note": "Alias 'lm' is forbidden for linear_meter because canonical unit code 'lm' is lumen. Use linear_meter, running_meter, l.m., м.п. or погонный метр."
     },
     {
       "unit_code": "liter",
@@ -1281,9 +1281,10 @@
       ],
       "runtime_status": "proposed_ref3_technical",
       "ref2_usage_field_count": 1,
-      "review_flag": "symbol_collision_with_linear_meter_alias_guard",
+      "review_flag": "symbol_collision_resolved_linear_meter_alias_removed",
       "editable": true,
-      "status": "active_draft"
+      "status": "active_draft",
+      "alias_policy_note": "Canonical code 'lm' is reserved for lumen. Linear meter must not use alias 'lm'."
     },
     {
       "unit_code": "m",
@@ -2866,7 +2867,6 @@
       "aliases": [
         "linear_meter",
         "running_meter",
-        "lm",
         "l.m.",
         "м.п.",
         "пог.м",
@@ -2877,7 +2877,8 @@
       "ref2_usage_field_count": 0,
       "review_flag": "business_unit_same_physical_dimension_as_m",
       "editable": true,
-      "status": "existing_runtime"
+      "status": "existing_runtime",
+      "alias_policy_note": "Alias 'lm' is forbidden for linear_meter because canonical unit code 'lm' is lumen. Use linear_meter, running_meter, l.m., м.п. or погонный метр."
     },
     {
       "unit_code": "liter_per_day",
@@ -2919,9 +2920,10 @@
       ],
       "runtime_status": "proposed_ref3_technical",
       "ref2_usage_field_count": 1,
-      "review_flag": "symbol_collision_with_linear_meter_alias_guard",
+      "review_flag": "symbol_collision_resolved_linear_meter_alias_removed",
       "editable": true,
-      "status": "active_draft"
+      "status": "active_draft",
+      "alias_policy_note": "Canonical code 'lm' is reserved for lumen. Linear meter must not use alias 'lm'."
     },
     {
       "unit_code": "m2K_per_W",
@@ -3089,7 +3091,11 @@
         "lm"
       ]
     },
-    "ambiguous_alias_count": 1
+    "ambiguous_alias_count": 1,
+    "canonical_alias_ambiguity_count": 0,
+    "resolved_alias_collisions": [
+      "lm_linear_meter_vs_lumen"
+    ]
   },
   "approval": {
     "integration_allowed": false,
@@ -3106,6 +3112,11 @@
       "revision": 2,
       "date": "2026-07-16",
       "change": "Resolved micrometer alias ambiguity: um is canonical; micron retained as legacy alias code."
+    },
+    {
+      "revision": 3,
+      "date": "2026-07-16",
+      "change": "Resolved lm alias ambiguity: removed alias 'lm' from linear_meter; canonical unit code 'lm' remains lumen."
     }
   ]
 }

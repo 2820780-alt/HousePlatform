@@ -3,15 +3,15 @@
   "module": 1,
   "package_id": "REF-3",
   "package_name": "Units, Packaging, Geometry, Coverage, Yield and Consumption",
-  "version": "0.2-draft",
+  "version": "0.3-draft",
   "date": "2026-07-16",
   "status": "draft_for_user_review",
   "parts": [
     {
       "package_id": "REF-3A",
-      "version": "0.2-draft",
+      "version": "0.3-draft",
       "file": "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json",
-      "sha256": "b4c4df5afb9fdb772f70d318fbf45412981b160cc83ff0afe2a1b1484c81125a",
+      "sha256": "342957cf9ea88ee9873595d1bac4c848d50b3423d2a61fdeadf2556f3e522cfb",
       "purpose": "Canonical unit dictionary and conversion policy."
     },
     {
@@ -34,7 +34,8 @@
     "micrometer_alias_ambiguity",
     "legacy_package_area_field_references",
     "undeclared_formula_inputs_and_outputs",
-    "manifest_missing_part_hashes"
+    "manifest_missing_part_hashes",
+    "linear_meter_lm_vs_lumen_alias_ambiguity"
   ],
-  "next_gate": "Replace committed REF-3A/REF-3C/manifest files and rerun cross-package validation."
+  "next_gate": "Replace committed REF-3A and manifest, rerun cross-package validation, and commit only if blockers = 0."
 }
