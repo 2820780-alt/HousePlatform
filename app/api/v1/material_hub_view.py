@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
@@ -43,6 +44,7 @@ from app.services.material_hub_first_wave import (
     first_wave_source_status_label,
     is_first_wave_blocked_source,
 )
+from app.services.module1_source_profile_registry import build_profile_readiness_report, get_extraction_profile, get_source_profile
 from app.services.module1_ui_view_models import build_module1_ui_preview_context
 from app.services.source_document_refs import is_document_url
 from app.services.supplier_price_standard import (
@@ -345,8 +347,26 @@ async def material_hub_materials(
 
 @router.get("/sources", response_class=HTMLResponse)
 async def material_hub_sources(request: Request, db: DBSession):
-    return await _render_data_page(request, db, False, "sources", "Источники")
-
+    sources = await _load_sources(db)
+    tasks = await _load_tasks(db)
+    products = await _load_catalog_products(db)
+    documents = await _load_documents(db)
+    results = await _load_results(db)
+    logs = await _load_logs(db)
+    candidates = await _load_source_candidates(db)
+    return templates.TemplateResponse(
+        request,
+        "material_hub_sources_analyzer.html",
+        _build_sources_analyzer_context(
+            sources=sources,
+            tasks=tasks,
+            products=products,
+            documents=documents,
+            results=results,
+            logs=logs,
+            candidates=candidates,
+        ),
+    )
 
 @router.get("/products", response_class=HTMLResponse)
 async def material_hub_products(request: Request, db: DBSession):
@@ -424,6 +444,542 @@ async def _render_data_page(
         },
     )
 
+
+def _build_sources_analyzer_context(
+    *,
+    sources: list[Source],
+    tasks: list[SourceTask],
+    products: list[CatalogProduct],
+    documents: list[MaterialDocument],
+    results: list[SourceTaskResult],
+    logs: list[SourceTaskLog],
+    candidates: list[MaterialMatchCandidate],
+) -> dict[str, Any]:
+    source_rows = _source_workspace_rows(sources, tasks, products, documents, results)
+    run_rows = [_run_workspace_row(task) for task in tasks]
+    result_rows = _source_result_workspace_rows(products, documents, candidates, results)
+    error_rows = _source_error_workspace_rows(tasks, logs)
+    source_states = sorted({row["state_key"] for row in source_rows})
+    regions = sorted({row["region"] for row in source_rows if row["region"]})
+    result_types = sorted({row["type_key"] for row in result_rows})
+    error_types = sorted({row["type_key"] for row in error_rows})
+    run_states = sorted({row["state_key"] for row in run_rows})
+    return {
+        "source_rows": source_rows,
+        "run_rows": run_rows,
+        "result_rows": result_rows,
+        "error_rows": error_rows,
+        "source_states": source_states,
+        "regions": regions,
+        "result_types": result_types,
+        "error_types": error_types,
+        "run_states": run_states,
+        "summary": {
+            "sources": len(source_rows),
+            "enabled_sources": sum(1 for row in source_rows if row["enabled_key"] == "enabled"),
+            "running": sum(1 for row in run_rows if row["state_key"] == "running"),
+            "warnings": len(error_rows),
+            "results": len(result_rows),
+        },
+        "dt": _format_datetime,
+    }
+
+
+def _source_workspace_rows(
+    sources: list[Source],
+    tasks: list[SourceTask],
+    products: list[CatalogProduct],
+    documents: list[MaterialDocument],
+    results: list[SourceTaskResult],
+) -> list[dict[str, Any]]:
+    stats = _source_activity_stats(sources, tasks, products, documents, results)
+    latest_tasks = _latest_tasks_by_source(tasks)
+    rows: list[dict[str, Any]] = []
+    for index, source in enumerate(sources, start=1):
+        key = str(source.id)
+        row_stats = stats.get(key, {})
+        latest_task = latest_tasks.get(key)
+        profile = get_source_profile(source.name)
+        extraction_profile = get_extraction_profile(source.name)
+        readiness = build_profile_readiness_report(source.name)
+        safe_url = _safe_external_url(source.url)
+        status_label, state_key, state_tone = _human_source_state(source, latest_task)
+        last_check = _latest_datetime(
+            source.last_full_scan_at,
+            source.last_price_update_at,
+            source.last_document_update_at,
+            source.last_knowledge_scan_at,
+            getattr(latest_task, "finished_at", None),
+            getattr(latest_task, "created_at", None),
+        )
+        rows.append({
+            "index": index,
+            "source_name": _source_display_name(source),
+            "domain": _safe_domain(safe_url),
+            "safe_url": safe_url,
+            "scope": _source_scope_label(profile, row_stats),
+            "region": _source_region_label(source, profile, row_stats),
+            "state_label": status_label,
+            "state_key": state_key,
+            "state_tone": state_tone,
+            "enabled_key": "disabled" if _enum_value(source.status) in {"DISABLED", "PAUSED"} else "enabled",
+            "last_check": _format_datetime(last_check) or "Не проверялся",
+            "last_result": _source_last_result_label(latest_task, row_stats),
+            "next_check": _source_next_check_label(source),
+            "settings": _source_settings_summary(source, profile, extraction_profile, readiness),
+            "products_count": row_stats.get("products", 0),
+            "documents_count": row_stats.get("documents", 0),
+            "runs_count": row_stats.get("tasks", 0),
+            "errors_count": row_stats.get("failed_tasks", 0) + row_stats.get("errors", 0),
+        })
+    return rows
+
+
+def _source_activity_stats(
+    sources: list[Source],
+    tasks: list[SourceTask],
+    products: list[CatalogProduct],
+    documents: list[MaterialDocument],
+    results: list[SourceTaskResult],
+) -> dict[str, dict[str, Any]]:
+    stats = {str(source.id): {"products": 0, "priced_products": 0, "documents": 0, "tasks": 0, "failed_tasks": 0, "errors": 0, "regions": set()} for source in sources}
+    for product in products:
+        key = str(product.source_id)
+        if key in stats:
+            stats[key]["products"] += 1
+            if _has_positive_price(product.price):
+                stats[key]["priced_products"] += 1
+            if product.region:
+                stats[key]["regions"].add(str(product.region))
+    for document in documents:
+        key = str(document.source_id) if document.source_id else ""
+        if key in stats:
+            stats[key]["documents"] += 1
+    for task in tasks:
+        key = str(task.source_id) if task.source_id else ""
+        if key in stats:
+            stats[key]["tasks"] += 1
+            if task.status == TaskStatus.FAILED:
+                stats[key]["failed_tasks"] += 1
+    for result in results:
+        task = getattr(result, "task", None)
+        key = str(getattr(task, "source_id", "") or "")
+        if key in stats and _enum_value(result.result_type) == "ERROR":
+            stats[key]["errors"] += 1
+    return stats
+
+
+def _latest_tasks_by_source(tasks: list[SourceTask]) -> dict[str, SourceTask]:
+    latest: dict[str, SourceTask] = {}
+    for task in tasks:
+        key = str(task.source_id) if task.source_id else ""
+        if key and key not in latest:
+            latest[key] = task
+    return latest
+
+
+def _run_workspace_row(task: SourceTask) -> dict[str, Any]:
+    status_value = _enum_value(task.status)
+    source_label = _source_display_name(task.source) if task.source else "Источник не указан"
+    started = task.started_at or task.created_at
+    finished = task.finished_at
+    duration = _format_duration(started, finished)
+    has_errors = task.status == TaskStatus.FAILED or bool(task.error_message)
+    return {
+        "source": source_label,
+        "started_at": _format_datetime(started) or "Дата не указана",
+        "finished_at": _format_datetime(finished) or ("Выполняется" if task.status == TaskStatus.RUNNING else "Не завершён"),
+        "duration": duration,
+        "action": ACTION_LABELS.get(_enum_value(task.action_type), _enum_label(task.action_type)),
+        "state_label": _human_task_state(task.status),
+        "state_key": _task_state_key(task.status),
+        "state_tone": _task_state_tone(task.status),
+        "processed": _task_processed_label(task.result_summary),
+        "result": _task_result_label(task),
+        "issues": _task_issue_label(task),
+        "has_errors": "yes" if has_errors else "no",
+        "has_results": "yes" if task.result_summary else "no",
+        "status_value": status_value,
+    }
+
+
+def _source_result_workspace_rows(
+    products: list[CatalogProduct],
+    documents: list[MaterialDocument],
+    candidates: list[MaterialMatchCandidate],
+    results: list[SourceTaskResult],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for product in products[:60]:
+        has_price = _has_positive_price(product.price)
+        rows.append({
+            "type_label": "Материалы и цены" if has_price else "Source/evidence",
+            "type_key": "materials_prices" if has_price else "source_evidence",
+            "source": _source_display_name(product.source) if product.source else "Источник не указан",
+            "created_at": _format_datetime(product.updated_at or product.created_at),
+            "title": _safe_result_title(product.raw_name, fallback="Карточка источника"),
+            "status": "Положительная цена найдена" if has_price else "Цена не найдена; материал не готов",
+            "status_key": "positive_price" if has_price else "missing_price",
+            "target": "/api/v1/admin/material-hub/view/materials?preset=all" if has_price else "#errors-view",
+            "target_label": "Материалы" if has_price else "Ошибки и предупреждения",
+            "tone": "ok" if has_price else "warn",
+        })
+    for document in documents[:40]:
+        rows.append({
+            "type_label": "Документы/evidence",
+            "type_key": "documents",
+            "source": _document_source_label(document),
+            "created_at": _format_datetime(document.updated_at or document.created_at),
+            "title": _safe_result_title(document.title, fallback="Документ"),
+            "status": _document_status_label(document),
+            "status_key": "document",
+            "target": "/api/v1/admin/material-hub/view/documents",
+            "target_label": "Документы",
+            "tone": "ok" if document.status == DocumentStatus.ACTIVE else "warn",
+        })
+    for candidate in candidates[:40]:
+        product = candidate.catalog_product
+        rows.append({
+            "type_label": "Модерация/candidates",
+            "type_key": "moderation",
+            "source": _source_display_name(product.source) if product and product.source else "Источник не указан",
+            "created_at": _format_datetime(candidate.updated_at or candidate.created_at),
+            "title": _safe_result_title(getattr(product, "raw_name", None), fallback="Кандидат на проверку"),
+            "status": "Ожидает решения модератора",
+            "status_key": "moderation",
+            "target": "/api/v1/admin/material-hub/view/moderation",
+            "target_label": "Очередь модерации",
+            "tone": "warn",
+        })
+    for result in results[:40]:
+        rows.append(_task_result_workspace_row(result))
+    return rows[:140]
+
+
+def _task_result_workspace_row(result: SourceTaskResult) -> dict[str, Any]:
+    task = getattr(result, "task", None)
+    source = getattr(task, "source", None)
+    result_type = _enum_value(result.result_type)
+    entity_type = str(result.entity_type or "").lower()
+    if result_type == "ERROR":
+        type_label, type_key, target, target_label, tone = "Source health/logistics", "source_health", "#errors-view", "Ошибки", "bad"
+    elif "document" in entity_type or "evidence" in entity_type:
+        type_label, type_key, target, target_label, tone = "Документы/evidence", "documents", "/api/v1/admin/material-hub/view/documents", "Документы", "ok"
+    elif "candidate" in entity_type or result_type == "NEEDS_REVIEW":
+        type_label, type_key, target, target_label, tone = "Модерация/candidates", "moderation", "/api/v1/admin/material-hub/view/moderation", "Очередь модерации", "warn"
+    else:
+        type_label, type_key, target, target_label, tone = "Материалы и цены", "materials_prices", "/api/v1/admin/material-hub/view/materials?preset=all", "Материалы", "ok"
+    return {
+        "type_label": type_label,
+        "type_key": type_key,
+        "source": _source_display_name(source) if source else "Источник не указан",
+        "created_at": _format_datetime(result.created_at),
+        "title": _safe_result_title(_result_display_value(result), fallback=_enum_label(result.result_type)),
+        "status": _human_result_status(result),
+        "status_key": "result",
+        "target": target,
+        "target_label": target_label,
+        "tone": tone,
+    }
+
+
+def _source_error_workspace_rows(tasks: list[SourceTask], logs: list[SourceTaskLog]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for task in tasks:
+        if task.status == TaskStatus.FAILED or task.error_message:
+            error_type = _human_error_type(task.error_message)
+            rows.append({
+                "source": _source_display_name(task.source) if task.source else "Источник не указан",
+                "created_at": _format_datetime(task.updated_at or task.created_at),
+                "type_label": error_type[0],
+                "type_key": error_type[1],
+                "message": _human_error_message(task.error_message),
+                "state": "Не решено",
+                "resolved_key": "unresolved",
+                "tone": "bad" if task.status == TaskStatus.FAILED else "warn",
+            })
+    for log in logs:
+        if log.level not in {TaskLogLevel.WARNING, TaskLogLevel.ERROR}:
+            continue
+        task = getattr(log, "task", None)
+        error_type = _human_error_type(log.message)
+        rows.append({
+            "source": _source_display_name(task.source) if task and task.source else "Источник не указан",
+            "created_at": _format_datetime(log.created_at),
+            "type_label": error_type[0],
+            "type_key": error_type[1],
+            "message": _human_error_message(log.message),
+            "state": "Требует внимания",
+            "resolved_key": "unresolved",
+            "tone": "bad" if log.level == TaskLogLevel.ERROR else "warn",
+        })
+    return rows[:100]
+
+
+def _human_source_state(source: Source, latest_task: SourceTask | None) -> tuple[str, str, str]:
+    if latest_task and latest_task.status in {TaskStatus.PENDING, TaskStatus.RUNNING}:
+        return "Выполняется", "running", "warn"
+    status = _enum_value(source.status)
+    if status == "DISABLED":
+        return "Отключён", "disabled", "muted"
+    if status == "PAUSED":
+        return "Требует настройки", "needs_setup", "warn"
+    if status == "ERROR" or (latest_task and latest_task.status == TaskStatus.FAILED):
+        return "Есть ошибки", "has_errors", "bad"
+    if not _latest_datetime(source.last_full_scan_at, source.last_price_update_at, source.last_document_update_at, source.last_knowledge_scan_at, getattr(latest_task, "created_at", None)):
+        return "Не проверялся", "not_checked", "muted"
+    return "Работает", "working", "ok"
+
+
+def _source_last_result_label(task: SourceTask | None, stats: dict[str, Any]) -> str:
+    if task is None:
+        return "Проверок пока нет"
+    if task.status == TaskStatus.COMPLETED:
+        products = stats.get("products", 0)
+        documents = stats.get("documents", 0)
+        if products or documents:
+            return f"Найдено: материалы/цены {products}, документы {documents}"
+        return "Завершено без новых записей"
+    if task.status == TaskStatus.FAILED:
+        return "Завершено с ошибкой"
+    if task.status == TaskStatus.RUNNING:
+        return "Идёт обработка"
+    if task.status == TaskStatus.PENDING:
+        return "Ожидает запуска"
+    return _human_task_state(task.status)
+
+
+def _source_scope_label(profile: Any | None, stats: dict[str, Any]) -> str:
+    labels: list[str] = []
+    allowed = tuple(getattr(profile, "allowed_objects", ()) or ()) if profile else tuple()
+    for item in allowed:
+        label = _collection_object_label(str(item))
+        if label and label not in labels:
+            labels.append(label)
+    if stats.get("priced_products") and "цены" not in labels:
+        labels.append("цены")
+    if stats.get("products") and "материалы" not in labels:
+        labels.append("материалы")
+    if stats.get("documents") and "документы" not in labels:
+        labels.append("документы")
+    return ", ".join(labels) if labels else "Настроено в источнике"
+
+
+def _collection_object_label(value: str) -> str:
+    return {
+        "MATERIALS": "материалы",
+        "PRICES": "цены",
+        "CHARACTERISTICS": "технические данные",
+        "DOCUMENTS": "документы",
+        "SOURCE_HEALTH": "доступность источника",
+    }.get(value, "")
+
+
+def _source_region_label(source: Source, profile: Any | None, stats: dict[str, Any]) -> str:
+    profile_region = getattr(profile, "region", None) or getattr(profile, "city", None)
+    if profile_region:
+        return str(profile_region)
+    regions = sorted(stats.get("regions") or [])
+    if regions:
+        return ", ".join(regions[:2])
+    if source.source_type == getattr(source.source_type, "MANUAL_UPLOAD", None):
+        return "Задаётся в файле"
+    return _active_collection_region().get("label") or "Регион не указан"
+
+
+def _source_next_check_label(_source: Source) -> str:
+    return "Расписание не задано"
+
+
+def _source_settings_summary(source: Source, profile: Any | None, extraction_profile: Any | None, readiness: Any | None) -> list[dict[str, str]]:
+    target_group_count = len(getattr(extraction_profile, "target_material_groups", ()) or ())
+    ready = bool(getattr(readiness, "ready", False))
+    return [
+        {"label": "Название", "value": _source_display_name(source)},
+        {"label": "Тип источника", "value": _enum_label(source.source_type) or "Не указан"},
+        {"label": "Регион", "value": _source_region_label(source, profile, {})},
+        {"label": "Настройка извлечения", "value": "Готова" if ready else "Требует проверки"},
+        {"label": "Группы материалов", "value": str(target_group_count) if target_group_count else "Не настроены"},
+        {"label": "Частота проверки", "value": "Расписание не задано"},
+        {"label": "Режим", "value": "Только чтение настроек в этой вкладке"},
+    ]
+
+
+def _human_task_state(status: Any) -> str:
+    return {
+        "PENDING": "Ожидает запуска",
+        "RUNNING": "Выполняется",
+        "COMPLETED": "Завершён",
+        "FAILED": "Есть ошибки",
+        "CANCELLED": "Отменён",
+        "NEEDS_REVIEW": "Требует проверки",
+    }.get(_enum_value(status), _enum_label(status) or "Неизвестно")
+
+
+def _task_state_key(status: Any) -> str:
+    return {
+        "PENDING": "pending",
+        "RUNNING": "running",
+        "COMPLETED": "completed",
+        "FAILED": "failed",
+        "CANCELLED": "cancelled",
+        "NEEDS_REVIEW": "needs_review",
+    }.get(_enum_value(status), "unknown")
+
+
+def _task_state_tone(status: Any) -> str:
+    if status == TaskStatus.COMPLETED:
+        return "ok"
+    if status in {TaskStatus.FAILED, TaskStatus.CANCELLED}:
+        return "bad"
+    if status in {TaskStatus.PENDING, TaskStatus.RUNNING, TaskStatus.NEEDS_REVIEW}:
+        return "warn"
+    return "muted"
+
+
+def _task_processed_label(summary: Any) -> str:
+    if not isinstance(summary, dict):
+        return "Итог не указан"
+    parts: list[str] = []
+    for key, label in (("processed", "обработано"), ("created", "создано"), ("updated", "обновлено"), ("documents", "документы"), ("errors", "ошибки"), ("skipped", "пропущено")):
+        value = summary.get(key)
+        if isinstance(value, (int, float)) and value:
+            parts.append(f"{label}: {int(value)}")
+    return ", ".join(parts) if parts else "Итог без чисел"
+
+
+def _task_result_label(task: SourceTask) -> str:
+    if task.status == TaskStatus.COMPLETED:
+        return "Результат сохранён как данные источника/evidence"
+    if task.status == TaskStatus.FAILED:
+        return "Запуск завершился ошибкой"
+    if task.status == TaskStatus.RUNNING:
+        return "Обработка продолжается"
+    if task.status == TaskStatus.PENDING:
+        return "Ожидает обработки"
+    return _human_task_state(task.status)
+
+
+def _task_issue_label(task: SourceTask) -> str:
+    if task.error_message:
+        return _human_error_type(task.error_message)[0]
+    if task.status == TaskStatus.COMPLETED:
+        return "Критичных ошибок нет"
+    return "Требует наблюдения"
+
+
+def _human_result_status(result: SourceTaskResult) -> str:
+    if result.result_type == TaskResultType.ERROR:
+        return "Есть ошибка источника"
+    status = str(result.status or "").strip()
+    if status:
+        return _human_status_text(status)
+    return _enum_label(result.result_type) or "Результат зафиксирован"
+
+
+def _human_status_text(value: str) -> str:
+    normalized = value.lower().replace("_", " ").strip()
+    return {
+        "created": "Создано",
+        "updated": "Обновлено",
+        "unchanged": "Без изменений",
+        "needs review": "Требует проверки",
+        "error": "Есть ошибка",
+        "active": "Активно",
+        "pending": "Ожидает обработки",
+    }.get(normalized, value[:80])
+
+
+def _human_error_type(message: str | None) -> tuple[str, str]:
+    text = (message or "").lower()
+    if "price" in text or "цена" in text:
+        return "Цена не найдена", "price_missing"
+    if "document" in text or "pdf" in text or "file" in text or "документ" in text:
+        return "Документ недоступен", "document_unavailable"
+    if "timeout" in text or "connect" in text or "unavailable" in text or "недоступ" in text:
+        return "Источник временно недоступен", "source_unavailable"
+    if "parse" in text or "format" in text or "распозн" in text:
+        return "Значение не распознано", "value_not_recognized"
+    if "required" in text or "missing" in text or "настрой" in text:
+        return "Требуется настройка источника", "setup_required"
+    return "Временная ошибка обработки", "temporary_error"
+
+
+def _human_error_message(message: str | None) -> str:
+    label, key = _human_error_type(message)
+    if key == "price_missing":
+        return "Запись оставлена как source/evidence: положительная цена не найдена, материал не создаётся."
+    if key == "source_unavailable":
+        return "Источник не ответил или временно недоступен; данные не записаны как готовые материалы."
+    if key == "document_unavailable":
+        return "Документ или ссылка недоступны; запись требует проверки."
+    if key == "value_not_recognized":
+        return "Часть значений не удалось распознать безопасно."
+    if key == "setup_required":
+        return "Нужна проверка настроек источника перед следующим запуском."
+    return f"{label}; подробности доступны в системных журналах администратора."
+
+
+def _format_duration(started: datetime | None, finished: datetime | None) -> str:
+    if not started or not finished:
+        return "—"
+    seconds = max(0, int((finished - started).total_seconds()))
+    minutes, rest = divmod(seconds, 60)
+    if minutes:
+        return f"{minutes} мин {rest} сек"
+    return f"{rest} сек"
+
+
+def _latest_datetime(*values: datetime | None) -> datetime | None:
+    valid = [value for value in values if isinstance(value, datetime)]
+    return max(valid) if valid else None
+
+
+def _safe_external_url(value: str | None) -> str:
+    candidate = _safe_user_url(value)
+    if not candidate:
+        return ""
+    parsed = urlparse(candidate)
+    if parsed.scheme not in {"http", "https"}:
+        return ""
+    return candidate
+
+
+def _safe_domain(value: str | None) -> str:
+    if not value:
+        return ""
+    parsed = urlparse(value)
+    host = parsed.netloc.split("@")[-1].split(":")[0]
+    return host.replace("www.", "")
+
+
+def _has_positive_price(value: Any) -> bool:
+    try:
+        return float(value) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _result_display_value(result: SourceTaskResult) -> str:
+    value = result.new_value if isinstance(result.new_value, dict) else {}
+    for key in ("title", "name", "material", "document", "message", "status"):
+        candidate = value.get(key)
+        if isinstance(candidate, str) and candidate.strip():
+            return candidate.strip()
+    return str(result.entity_type or "")
+
+
+def _safe_result_title(value: str | None, *, fallback: str) -> str:
+    text = (value or "").strip()
+    if not text:
+        return fallback
+    if "{" in text or "}" in text or "traceback" in text.lower():
+        return fallback
+    return text[:140]
+
+
+def _enum_value(value: Any) -> str:
+    return str(getattr(value, "value", value) or "")
 
 MATERIAL_TABLE_PRESET_LABELS = {
     "all": ("Все материалы", "Единая каноническая таблица без preset-фильтра."),
@@ -937,14 +1493,37 @@ async def _load_documents(db: DBSession) -> list[MaterialDocument]:
 
 async def _load_logs(db: DBSession) -> list[SourceTaskLog]:
     result = await db.execute(
-        select(SourceTaskLog).order_by(SourceTaskLog.created_at.desc()).limit(50)
+        select(SourceTaskLog)
+        .options(selectinload(SourceTaskLog.task).selectinload(SourceTask.source))
+        .order_by(SourceTaskLog.created_at.desc())
+        .limit(50)
     )
     return list(result.scalars().all())
 
 
 async def _load_results(db: DBSession) -> list[SourceTaskResult]:
     result = await db.execute(
-        select(SourceTaskResult).order_by(SourceTaskResult.created_at.desc()).limit(50)
+        select(SourceTaskResult)
+        .options(selectinload(SourceTaskResult.task).selectinload(SourceTask.source))
+        .order_by(SourceTaskResult.created_at.desc())
+        .limit(50)
+    )
+    return list(result.scalars().all())
+
+
+async def _load_source_candidates(db: DBSession) -> list[MaterialMatchCandidate]:
+    result = await db.execute(
+        select(MaterialMatchCandidate)
+        .options(
+            selectinload(MaterialMatchCandidate.catalog_product).selectinload(CatalogProduct.source),
+            selectinload(MaterialMatchCandidate.candidate_material),
+        )
+        .where(MaterialMatchCandidate.status.in_([
+            MatchCandidateStatus.OPEN,
+            MatchCandidateStatus.NEEDS_REVIEW,
+        ]))
+        .order_by(MaterialMatchCandidate.created_at.asc())
+        .limit(50)
     )
     return list(result.scalars().all())
 
