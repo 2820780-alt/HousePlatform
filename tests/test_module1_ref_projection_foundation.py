@@ -116,6 +116,13 @@ def test_neutral_models_expose_required_statuses() -> None:
         "UNSUPPORTED",
         "INCOMPATIBLE_TYPE",
         "INCOMPATIBLE_UNIT",
+        "STRUCTURALLY_COMPATIBLE",
+        "UNIT_MISSING",
+        "REVERSE_MISSING",
+        "DIMENSION_CONFLICT",
+        "FORMULA_REQUIRED",
+        "PARAMETER_REQUIRED",
+        "UNSAFE",
     }
 
 

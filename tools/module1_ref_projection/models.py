@@ -18,6 +18,13 @@ class CompatibilityClassification(str, Enum):
     UNSUPPORTED = "UNSUPPORTED"
     INCOMPATIBLE_TYPE = "INCOMPATIBLE_TYPE"
     INCOMPATIBLE_UNIT = "INCOMPATIBLE_UNIT"
+    STRUCTURALLY_COMPATIBLE = "STRUCTURALLY_COMPATIBLE"
+    UNIT_MISSING = "UNIT_MISSING"
+    REVERSE_MISSING = "REVERSE_MISSING"
+    DIMENSION_CONFLICT = "DIMENSION_CONFLICT"
+    FORMULA_REQUIRED = "FORMULA_REQUIRED"
+    PARAMETER_REQUIRED = "PARAMETER_REQUIRED"
+    UNSAFE = "UNSAFE"
 
 
 class IssueSeverity(str, Enum):
@@ -204,6 +211,76 @@ class ProjectedProfileAssignment:
             "profile_id": self.profile_id,
             "field_codes": list(self.field_codes),
             "review_required": self.review_required,
+            "auto_activatable": self.auto_activatable,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedUnit:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    title: str
+    symbol: str | None = None
+    dimension: str | None = None
+    base_unit_code: str | None = None
+    aliases: tuple[str, ...] = tuple()
+    status: str = "UNKNOWN"
+    review_required: bool = False
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "title": self.title,
+            "symbol": self.symbol,
+            "dimension": self.dimension,
+            "base_unit_code": self.base_unit_code,
+            "aliases": list(self.aliases),
+            "status": self.status,
+            "review_required": self.review_required,
+            "auto_activatable": self.auto_activatable,
+            "issues": list(self.issues),
+            "source_pointer": self.source_pointer,
+        }
+
+
+@dataclass(frozen=True)
+class ProjectedConversion:
+    source: ProjectionSource
+    source_code: str
+    normalized_code: str
+    from_unit: str
+    to_unit: str
+    source_type: str
+    material_group: str | None = None
+    factor: str | None = None
+    formula: str | None = None
+    required_parameters: tuple[tuple[str, ...], ...] = tuple()
+    classification: CompatibilityClassification = CompatibilityClassification.UNSUPPORTED
+    auto_activatable: bool = False
+    issues: tuple[str, ...] = tuple()
+    source_pointer: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source.as_dict(),
+            "source_code": self.source_code,
+            "normalized_code": self.normalized_code,
+            "from_unit": self.from_unit,
+            "to_unit": self.to_unit,
+            "source_type": self.source_type,
+            "material_group": self.material_group,
+            "factor": self.factor,
+            "formula": self.formula,
+            "required_parameters": [list(item) for item in self.required_parameters],
+            "classification": self.classification.value,
             "auto_activatable": self.auto_activatable,
             "issues": list(self.issues),
             "source_pointer": self.source_pointer,

@@ -9,9 +9,11 @@ from .models import (
     CompatibilityClassification,
     ProjectedCharacteristicField,
     ProjectedCharacteristicProfile,
+    ProjectedConversion,
     ProjectedMaterialGroup,
     ProjectedMaterialType,
     ProjectedProfileAssignment,
+    ProjectedUnit,
     ProjectionEntity,
     ProjectionIssue,
     ProjectionSource,
@@ -19,6 +21,7 @@ from .models import (
 )
 from .ref1 import Ref1ProjectionResult, project_ref1_taxonomy, write_ref1_projection_outputs
 from .ref2 import Ref2ProjectionResult, project_ref2_characteristics, write_ref2_projection_outputs
+from .ref3_units import Ref3UnitProjectionResult, project_ref3_units, write_ref3_unit_projection_outputs
 from .validator import ProjectionValidator
 
 __all__ = [
@@ -26,9 +29,11 @@ __all__ = [
     "DEFAULT_PACKAGE_FILES",
     "ProjectedCharacteristicField",
     "ProjectedCharacteristicProfile",
+    "ProjectedConversion",
     "ProjectedMaterialGroup",
     "ProjectedMaterialType",
     "ProjectedProfileAssignment",
+    "ProjectedUnit",
     "ProjectionEntity",
     "ProjectionIssue",
     "ProjectionSource",
@@ -36,9 +41,12 @@ __all__ = [
     "ProjectionValidator",
     "Ref1ProjectionResult",
     "Ref2ProjectionResult",
+    "Ref3UnitProjectionResult",
     "RefPackageLoader",
     "project_ref1_taxonomy",
     "project_ref2_characteristics",
+    "project_ref3_units",
     "write_ref1_projection_outputs",
     "write_ref2_projection_outputs",
+    "write_ref3_unit_projection_outputs",
 ]
