@@ -72,6 +72,20 @@ def test_mapping_helpers_return_field_unit_and_category_rules() -> None:
     assert "lumber" in category_mapping
 
 
+def test_generic_gypsum_board_source_categories_map_to_regular_gkl() -> None:
+    regular_mapping = get_category_mapping("BAUCENTER", "gypsum_board_regular")
+    moisture_mapping = get_category_mapping("BAUCENTER", "gypsum_board_moisture_resistant")
+
+    assert "gkl" in regular_mapping
+    assert "plasterboard" in regular_mapping
+    assert "drywall" in regular_mapping
+    assert "gkl" not in moisture_mapping
+    assert "plasterboard" not in moisture_mapping
+    assert "drywall" not in moisture_mapping
+    assert "gypsum board" in moisture_mapping
+    assert get_category_mapping("UNKNOWN_SOURCE", "gypsum_board_regular") == ()
+
+
 def test_allowed_objects_and_target_groups_are_exposed() -> None:
     assert get_allowed_objects("BAUCENTER") == ("materials", "prices", "documents", "availability")
     assert "metal_tile" in get_target_material_groups("YUFO_SPK_KRASNODAR")

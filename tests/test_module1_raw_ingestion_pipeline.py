@@ -230,6 +230,7 @@ def test_raw_ingestion_pipeline_does_not_import_orm_or_adapters_or_create_materi
     assert "app.models" not in source
     assert "source_task_runner" not in source
     assert "source_integrations" not in source
+    assert "app.services.source_adapters" not in source
     assert "CatalogProduct(" not in source
     assert "Material(" not in source
     assert "CanonicalMaterial" not in source

@@ -169,7 +169,8 @@ SOURCE_DEFINITIONS: Mapping[str, Mapping[str, Any]] = {
 
 CATEGORY_MAPPING: Mapping[str, tuple[str, ...]] = {
     "aerated_concrete_block": ("gas block", "gazobeton", "wall blocks", "aerated concrete"),
-    "gypsum_board_moisture_resistant": ("gypsum board", "gkl", "plasterboard", "drywall"),
+    "gypsum_board_regular": ("gkl", "plasterboard", "drywall"),
+    "gypsum_board_moisture_resistant": ("gypsum board",),
     "rebar": ("rebar", "reinforcement", "steel bars", "armature"),
     "ready_mix_concrete": ("ready mix concrete", "concrete", "rbu"),
     "gypsum_plaster": ("dry mix", "plaster", "gypsum plaster"),
