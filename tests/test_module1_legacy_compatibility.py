@@ -73,7 +73,8 @@ def test_legacy_compatibility_map_covers_target_architecture():
     assert "MaterialDocument" in mapping["DocumentEvidence"].legacy_entities
     assert mapping["SourcePipeline"].legacy_entities == ("Source", "SourceTask", "SourceTaskResult")
     assert mapping["MatchingModeration"].legacy_entities == ("MaterialMatchCandidate",)
-    assert mapping["WorkRateObservation"].status == "gap"
+    assert mapping["WorkRateObservation"].status == "separate_persistence_contract"
+    assert mapping["WorkRateObservation"].legacy_entities == ("ProviderWorkCostOffer", "WorkRateObservation")
 
 
 def test_material_maps_to_canonical_material_contract():
@@ -291,4 +292,3 @@ def test_match_candidate_remains_matching_moderation_contract():
     assert contract.catalog_product_id == candidate.catalog_product_id
     assert contract.status == MatchCandidateStatus.NEEDS_REVIEW
     assert contract.match_score == Decimal("0.82")
-

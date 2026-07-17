@@ -78,11 +78,11 @@ MODULE1_LEGACY_COMPATIBILITY_MAP: tuple[LegacyCompatibilityMapping, ...] = (
     ),
     LegacyCompatibilityMapping(
         "WorkRateObservation",
-        tuple(),
-        "gap",
-        "No stable legacy entity was found during M1-0A.",
-        "Add only DTO/tests until a dedicated storage contract is approved.",
-        "Work rates can be mixed with material prices or Module №5 estimate logic.",
+        ("ProviderWorkCostOffer", "WorkRateObservation"),
+        "separate_persistence_contract",
+        "Keep WorkRateObservation as a diagnostic/in-memory observation and store provider offers separately.",
+        "Use ProviderWorkCostOffer for owned editable work cost offers; never promote observations automatically.",
+        "Work rates can be mixed with material prices or Module №5 estimate logic if the boundary is bypassed.",
     ),
     LegacyCompatibilityMapping(
         "DocumentEvidence",
@@ -419,4 +419,3 @@ def _enum_value(value: Any) -> str | None:
     if value is None:
         return None
     return getattr(value, "value", str(value))
-

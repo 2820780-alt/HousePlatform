@@ -101,6 +101,7 @@ from app.models.platform_city import PlatformCity
 from app.models.platform_region import PlatformRegion
 from app.models.pilot_region import PilotRegion
 from app.models.price_history import PriceHistory
+from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.models.quick_action_registry_item import QuickActionRegistryItem
 from app.models.role import Role
 from app.models.role_dashboard_access_profile import RoleDashboardAccessProfile
@@ -226,6 +227,7 @@ __all__ = [
     "PlatformModuleRegistry",
     "PlatformRegion",
     "PriceHistory",
+    "ProviderWorkCostOffer",
     "QuickActionRegistryItem",
     "RegionStatus",
     "Role",
