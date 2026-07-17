@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Query
@@ -18,6 +19,10 @@ from app.services.module1_provider_work_cost_offers import (
     list_work_catalog_options,
     provider_work_cost_offer_to_dict,
     update_provider_work_cost_offer,
+)
+from app.services.module1_work_cost_export_contract import (
+    build_work_cost_offer_export_package,
+    work_cost_export_package_to_dict,
 )
 
 
@@ -64,6 +69,36 @@ async def list_work_cost_offers(
 @router.get("/work-catalog")
 async def list_work_cost_catalog(user: CurrentUser):
     return {"items": list(list_work_catalog_options())}
+
+
+@router.get("/export-preview")
+async def preview_work_cost_offer_export(
+    db: DBSession,
+    user: CurrentUser,
+    workCode: str | None = None,
+    region: str | None = None,
+    providerUserId: UUID | None = None,
+    currency: str | None = None,
+    pricingUnit: str | None = None,
+    updatedSince: datetime | None = None,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=200),
+):
+    package = await build_work_cost_offer_export_package(
+        db,
+        user,
+        work_code=workCode,
+        region=region,
+        provider_user_id=providerUserId,
+        currency=currency,
+        pricing_unit=pricingUnit,
+        updated_since=updatedSince,
+        offset=offset,
+        limit=limit,
+    )
+    return work_cost_export_package_to_dict(package)
+
+
 @router.get("/{offer_id}", response_model=ProviderWorkCostOfferRead)
 async def get_work_cost_offer(offer_id: UUID, db: DBSession, user: CurrentUser):
     offer = await get_provider_work_cost_offer(db, offer_id, user)

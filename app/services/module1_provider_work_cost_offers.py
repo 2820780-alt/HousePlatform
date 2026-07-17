@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
@@ -96,12 +96,24 @@ async def list_provider_work_cost_offers(
     region: str | None = None,
     status: str | None = None,
     pricing_mode: str | None = None,
+    currency: str | None = None,
+    pricing_unit: str | None = None,
+    updated_since: datetime | None = None,
     offset: int = 0,
     limit: int = 50,
 ) -> ProviderWorkCostOfferListResult:
     query = select(ProviderWorkCostOffer)
     query = _apply_list_permissions(query, user, owner_user_id=owner_user_id)
-    query = _apply_filters(query, work_code=work_code, region=region, status=status, pricing_mode=pricing_mode)
+    query = _apply_filters(
+        query,
+        work_code=work_code,
+        region=region,
+        status=status,
+        pricing_mode=pricing_mode,
+        currency=currency,
+        pricing_unit=pricing_unit,
+        updated_since=updated_since,
+    )
 
     total_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(total_query)
@@ -369,6 +381,9 @@ def _apply_filters(
     region: str | None,
     status: str | None,
     pricing_mode: str | None,
+    currency: str | None,
+    pricing_unit: str | None,
+    updated_since: datetime | None,
 ) -> Select:
     if work_code:
         query = query.where(ProviderWorkCostOffer.work_code == work_code)
@@ -378,6 +393,12 @@ def _apply_filters(
         query = query.where(ProviderWorkCostOffer.status == status.lower())
     if pricing_mode:
         query = query.where(ProviderWorkCostOffer.pricing_mode == pricing_mode.lower())
+    if currency:
+        query = query.where(ProviderWorkCostOffer.currency == currency.upper())
+    if pricing_unit:
+        query = query.where(ProviderWorkCostOffer.pricing_unit == pricing_unit)
+    if updated_since:
+        query = query.where(ProviderWorkCostOffer.updated_at >= updated_since)
     return query
 
 
