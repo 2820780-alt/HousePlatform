@@ -65,7 +65,6 @@ def test_quick_actions_are_not_dashboard_widgets_or_widget_registry_items():
 
 def test_quick_action_candidates_do_not_use_legacy_quick_action_codes():
     candidate_templates = [
-        _read("templates/material_hub_view.html"),
         _read("templates/admin_users_roles.html"),
         _read("templates/price_dynamics_view.html"),
     ]
@@ -116,11 +115,12 @@ def test_dashboard_quick_action_contract_uses_user_module_pins_not_legacy_regist
 
 
 def test_quick_action_candidates_live_on_real_module_buttons_only():
-    material_hub = _read("templates/material_hub_view.html")
+    material_hub = _read("templates/_module1_shell.html")
     price_dynamics = _read("templates/price_dynamics_view.html")
     module3 = _read("templates/admin_users_roles.html")
 
-    assert "data-quick-action-candidate" in material_hub
+    assert "data-quick-action-module-bar=\"MODULE_01_MATERIAL_HUB\"" in material_hub
+    assert "data-quick-action-candidate" not in material_hub
     assert "data-quick-action-candidate" in price_dynamics
     assert "data-quick-action-source-module-code=\"MODULE_03_USERS_ROLES\"" in module3
     assert "data-quick-action-feature-code=\"USERS_DIRECTORY\"" in module3

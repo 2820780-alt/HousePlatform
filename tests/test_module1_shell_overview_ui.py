@@ -36,7 +36,10 @@ def test_shared_shell_has_fixed_six_tabs_in_order() -> None:
     assert positions == sorted(positions)
     assert text.count("data-module1-tab=") == 6
     assert "data-main-tab" not in text
-    assert "data-quick-action" not in text
+    assert "data-module1-quick-actions-rail" in text
+    assert "data-quick-action-module-bar=\"MODULE_01_MATERIAL_HUB\"" in text
+    assert "{% include \"_atom_quick_action_menu.html\" %}" in text
+    assert "data-quick-action-candidate" not in text
 
 
 def test_all_six_workspaces_use_shared_shell_with_single_module_nav() -> None:

@@ -109,44 +109,41 @@ def test_atom_card_pinned_actions_contract_supports_zero_to_three_tooltips_and_d
     assert "renderAllAtomCardPinnedActions();" in html
 
 
-def test_material_hub_real_actions_are_quick_action_candidates():
-    html = read("templates/material_hub_view.html")
+def test_material_hub_uses_quick_action_rail_without_fixed_actions():
+    shell = read("templates/_module1_shell.html")
+    visual = read("templates/_module1_visual_system.html")
+    overview = read("templates/material_hub_view.html")
 
-    assert "{% include \"_atom_quick_action_menu.html\" %}" in html
-    assert "data-quick-action-module-bar=\"MODULE_01_MATERIAL_HUB\"" in html
-    assert "id=\"quick-action-run-source-analysis\"" in html
-    assert "id=\"quick-action-upload-supplier-price\"" in html
-    assert "id=\"quick-action-open-material-moderation\"" in html
-    assert "id=\"quick-action-check-source-cards\"" in html
-    assert "data-quick-action-candidate" in html
-    assert "data-quick-action-source-module-code=\"MODULE_01_MATERIAL_HUB\"" in html
-    assert "data-quick-action-feature-code=\"SOURCE_ANALYSIS\"" in html
-    assert "data-quick-action-key=\"RUN_SOURCE_ANALYSIS\"" in html
-    assert "data-quick-action-feature-code=\"SUPPLIER_PRICE_UPLOAD\"" in html
-    assert "data-quick-action-key=\"UPLOAD_SUPPLIER_PRICE\"" in html
-    assert "data-quick-action-feature-code=\"MATERIAL_MODERATION\"" in html
-    assert "data-quick-action-key=\"OPEN_MATERIAL_MODERATION\"" in html
-    assert "data-quick-action-feature-code=\"SOURCE_PRODUCTS\"" in html
-    assert "data-quick-action-key=\"CHECK_SOURCE_CARDS\"" in html
-    assert "data-quick-action-menu-for=\"quick-action-run-source-analysis\"" in html
-    assert "data-quick-action-menu-for=\"quick-action-upload-supplier-price\"" in html
-    assert "data-quick-action-menu-for=\"quick-action-open-material-moderation\"" in html
-    assert "data-quick-action-menu-for=\"quick-action-check-source-cards\"" in html
+    assert "{% include \"_atom_quick_action_menu.html\" %}" in shell
+    assert "data-quick-action-module-bar=\"MODULE_01_MATERIAL_HUB\"" in shell
+    assert "data-module1-quick-actions-rail" in shell
+    assert "module1.quick_actions_rail" in visual
+    assert "ATOMQuickActionMenu.loadModuleQuickActions" in visual
+    assert "data-quick-action-candidate" not in shell
+    assert "data-quick-action-candidate" not in overview
+    for hardcoded in [
+        "quick-action-run-source-analysis",
+        "quick-action-upload-supplier-price",
+        "quick-action-open-material-moderation",
+        "quick-action-check-source-cards",
+    ]:
+        assert hardcoded not in shell
+        assert hardcoded not in overview
 
 
-def test_material_hub_quick_action_config_providers_do_not_store_business_results():
-    html = read("templates/material_hub_view.html")
+def test_material_hub_quick_action_rail_preferences_store_only_collapsed_state():
+    visual = read("templates/_module1_visual_system.html")
+    overview = read("templates/material_hub_view.html")
 
-    assert "function materialHubSourceAnalysisQuickActionConfig()" in html
-    assert "function materialHubSupplierUploadQuickActionConfig()" in html
-    assert "sourceMode:" in html
-    assert "selectedSources:" in html
-    assert "actionType:" in html
-    assert "scanMode:" in html
-    assert "categoryUrlContains:" in html
-    assert "requiresFileSelection: true" in html
-    assert "resultPayload" not in html
-    assert "businessPayload" not in html
+    assert 'const RAIL_KEY = "module1.quick_actions_rail"' in visual
+    assert "JSON.stringify({ collapsed: Boolean(collapsed) })" in visual
+    assert "sourceNames" not in visual
+    assert "permissions" not in visual.lower()
+    assert "businessPayload" not in visual
+    assert "resultPayload" not in visual
+    assert "rawData" not in visual
+    assert "businessPayload" not in overview
+    assert "resultPayload" not in overview
 
 
 def test_material_hub_is_documented_as_reference_quick_action_example():

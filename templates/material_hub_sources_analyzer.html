@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -20,30 +20,30 @@
     .summary-grid { display:grid; grid-template-columns:repeat(5, minmax(130px, 1fr)); gap:10px; margin-bottom:14px; }
     .summary-card { border:1px solid var(--line); border-radius:6px; padding:10px; background:rgba(7,13,33,.42); }
     .summary-card strong { display:block; font-size:22px; line-height:1.1; }
-    .segmented { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-    .segmented button { width:auto; min-height:34px; padding:7px 12px; border:1px solid var(--line); border-radius:999px; background:rgba(7,13,33,.72); color:var(--text); cursor:pointer; }
-    .segmented button[aria-selected="true"] { color:#061026; background:linear-gradient(135deg,#10d7e8,#4f7cff); font-weight:700; }
+    .segmented { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+    .segmented button { width:auto; min-height:30px; padding:5px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(7,13,33,.72); color:var(--text); cursor:pointer; }
+    .segmented button[aria-selected="true"] { color:#dffcff; background:rgba(16,215,232,.13); border-color:rgba(16,215,232,.55); box-shadow:inset 0 -2px 0 var(--accent); font-weight:700; }
     .toolbar { display:flex; gap:10px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; margin-bottom:12px; }
     .filters { display:grid; grid-template-columns:1.5fr repeat(4, minmax(140px, .8fr)) auto; gap:10px; align-items:end; margin-bottom:12px; }
     label { display:block; color:var(--muted); font-size:12px; margin-bottom:4px; }
     select, input, button { width:100%; min-height:36px; border:1px solid var(--line); border-radius:5px; padding:7px 9px; font:inherit; background:rgba(7,13,33,.72); color:var(--text); }
     button { cursor:pointer; background:linear-gradient(135deg,#10d7e8,#4f7cff); color:#061026; font-weight:700; }
     button.secondary { background:rgba(7,13,33,.72); color:var(--text); }
-    .table-panel { border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.30); overflow:hidden; }
-    table { width:100%; border-collapse:collapse; table-layout:fixed; }
-    th, td { border-bottom:1px solid var(--line); padding:8px 7px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+    .table-panel { border:1px solid var(--line); border-radius:6px; background:rgba(7,13,33,.30); overflow:auto; }
+    table { width:100%; min-width:1080px; border-collapse:collapse; table-layout:fixed; }
+    th, td { border-bottom:1px solid var(--line); padding:8px 7px; text-align:left; vertical-align:top; overflow-wrap:break-word; }
     th { color:var(--muted); font-weight:700; background:rgba(7,13,33,.48); }
     th button { width:auto; min-height:0; padding:0; border:0; color:inherit; background:transparent; font:inherit; font-weight:700; cursor:pointer; }
     .primary-text { font-weight:700; color:var(--text); }
     .secondary-line { color:var(--muted); font-size:12px; margin-top:3px; }
     .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 7px; background:rgba(7,13,33,.72); white-space:normal; margin:0 3px 3px 0; }
-    .state { display:inline-block; border-radius:999px; padding:3px 8px; border:1px solid var(--line); font-weight:700; white-space:normal; }
+    .state { display:inline-flex; align-items:center; width:fit-content; max-width:174px; border-radius:999px; padding:3px 8px; border:1px solid var(--line); font-weight:700; white-space:normal; line-height:1.25; }
     .state.ok { color:var(--good); background:rgba(65,217,135,.10); border-color:rgba(65,217,135,.32); }
     .state.warn { color:var(--warn); background:rgba(245,158,11,.10); border-color:rgba(245,158,11,.32); }
     .state.bad { color:var(--bad); background:rgba(255,90,122,.10); border-color:rgba(255,90,122,.32); }
     .state.muted { color:var(--muted); background:rgba(125,156,255,.08); }
-    .actions { display:flex; gap:6px; flex-wrap:wrap; }
-    .actions a, .actions button, summary { width:auto; min-height:30px; padding:5px 9px; border:1px solid var(--line); border-radius:5px; background:rgba(7,13,33,.72); color:var(--text); font-weight:700; cursor:pointer; }
+    .actions { display:flex; gap:6px; flex-wrap:nowrap; align-items:center; }
+    .actions a, .actions button, summary { width:auto; min-height:30px; white-space:nowrap; padding:5px 9px; border:1px solid var(--line); border-radius:5px; background:rgba(7,13,33,.72); color:var(--text); font-weight:700; cursor:pointer; }
     details { margin-top:6px; }
     .settings-grid { display:grid; grid-template-columns:repeat(2, minmax(180px, 1fr)); gap:8px; margin-top:8px; }
     .setting-card { border:1px solid rgba(125,156,255,.18); border-radius:6px; padding:8px; background:rgba(7,13,33,.38); }
@@ -57,8 +57,9 @@
     @media (max-width: 960px) { main, header { padding-left:14px; padding-right:14px; } .summary-grid, .filters, .settings-grid { grid-template-columns:1fr; } table { table-layout:auto; } thead { display:none; } tr.workspace-row { display:block; padding:10px; border-bottom:1px solid var(--line); } tr.workspace-row td { display:block; border:0; padding:6px 0; } tr.workspace-row td::before { content:attr(data-label); display:block; color:var(--muted); font-size:11px; margin-bottom:2px; } }
   </style>
   {% include "_atom_ui_standards.html" %}
+  {% include "_module1_visual_system.html" %}
 </head>
-<body data-atom-page data-rbac-ready>
+<body data-atom-page data-rbac-ready data-module1-visual-system>
   {% set atom_topbar_current_block = "Источники Material Hub" %}
   {% include "_atom_platform_topbar.html" %}
   {% from "_module1_shell.html" import module1_shell %}
@@ -96,7 +97,7 @@
       <div id="sources-filtered-empty" class="filtered-empty" hidden>По выбранным условиям ничего не найдено.</div>
       {% if source_rows %}
       <div class="table-panel">
-        <table id="sources-table" data-page-size="25">
+        <table id="sources-table" data-module1-resizable-table data-preference-namespace="module1.sources_analyzer" data-module1-preference-key="atom:module1.sources_analyzer:v1" data-module1-width-view="sources" data-page-size="25">
           <thead><tr><th>Источник</th><th>Что получаем</th><th>Регион</th><th>Состояние</th><th>Последняя проверка</th><th>Последний результат</th><th>Следующая проверка</th><th>Действия</th></tr></thead>
           <tbody>
           {% for source in source_rows %}
@@ -109,18 +110,27 @@
               <td data-label="Последний результат">{{ source.last_result }}</td>
               <td data-label="Следующая проверка">{{ source.next_check }}</td>
               <td data-label="Действия">
-                <div class="actions">
-                  {% if source.safe_url %}<a href="{{ source.safe_url }}" target="_blank" rel="noopener noreferrer">Открыть источник</a>{% endif %}
-                  <a href="#runs-view" onclick="switchSourcesAnalyzerView('runs')">Запуски</a>
-                  <a href="#results-view" onclick="switchSourcesAnalyzerView('results')">Результаты</a>
+                <div class="actions module1-row-actions">
+                  {% if source.safe_url %}
+                  <a class="module1-action-primary" href="{{ source.safe_url }}" target="_blank" rel="noopener noreferrer">Открыть источник</a>
+                  {% else %}
+                  <a class="module1-action-primary" href="#runs-view" onclick="switchSourcesAnalyzerView('runs')">Запуски</a>
+                  {% endif %}
+                  <details class="module1-action-menu" data-module1-action-menu>
+                    <summary aria-label="Дополнительные действия источника" title="Дополнительные действия">⋯</summary>
+                    <div class="module1-action-menu-panel" role="menu">
+                      <a role="menuitem" href="#runs-view" onclick="switchSourcesAnalyzerView('runs')">Запуски</a>
+                      <a role="menuitem" href="#results-view" onclick="switchSourcesAnalyzerView('results')">Результаты</a>
+                      <details class="module1-action-menu-section">
+                        <summary role="menuitem" aria-label="Настройки источника">Настройки</summary>
+                        <div class="settings-grid">
+                          {% for item in source.settings %}<div class="setting-card"><strong>{{ item.label }}</strong>{{ item.value }}</div>{% endfor %}
+                        </div>
+                        <div class="secondary-line">Изменение настроек выполняется только через существующий рабочий процесс; служебные параметры здесь не показываются.</div>
+                      </details>
+                    </div>
+                  </details>
                 </div>
-                <details>
-                  <summary>Настройки</summary>
-                  <div class="settings-grid">
-                    {% for item in source.settings %}<div class="setting-card"><strong>{{ item.label }}</strong>{{ item.value }}</div>{% endfor %}
-                  </div>
-                  <div class="secondary-line">Изменение настроек выполняется только через существующий рабочий процесс; служебные параметры здесь не показываются.</div>
-                </details>
               </td>
             </tr>
           {% endfor %}
@@ -142,7 +152,7 @@
         <div><label>&nbsp;</label><button type="button" class="secondary" onclick="resetWorkspaceFilters('runs')">Сбросить</button></div>
       </div>
       <div id="runs-filtered-empty" class="filtered-empty" hidden>По выбранным условиям запусков нет.</div>
-      {% if run_rows %}<div class="table-panel"><table id="runs-table" data-page-size="25"><thead><tr><th>Источник</th><th>Начало</th><th>Завершение/длительность</th><th>Действие</th><th>Состояние</th><th>Обработано</th><th>Результат</th><th>Ошибки/предупреждения</th><th>Действия</th></tr></thead><tbody>
+      {% if run_rows %}<div class="table-panel"><table id="runs-table" data-module1-resizable-table data-preference-namespace="module1.sources_analyzer" data-module1-preference-key="atom:module1.sources_analyzer:v1" data-module1-width-view="runs" data-page-size="25"><thead><tr><th>Источник</th><th>Начало</th><th>Завершение/длительность</th><th>Действие</th><th>Состояние</th><th>Обработано</th><th>Результат</th><th>Ошибки/предупреждения</th><th>Действия</th></tr></thead><tbody>
       {% for run in run_rows %}<tr class="workspace-row" data-view="runs" data-text="{{ run.source }} {{ run.action }} {{ run.result }} {{ run.issues }}" data-state="{{ run.state_key }}" data-errors="{{ run.has_errors }}" data-results="{{ run.has_results }}" data-date="{{ run.started_at }}">
         <td data-label="Источник">{{ run.source }}</td><td data-label="Начало">{{ run.started_at }}</td><td data-label="Завершение/длительность">{{ run.finished_at }}<div class="secondary-line">{{ run.duration }}</div></td><td data-label="Действие">{{ run.action }}</td><td data-label="Состояние"><span class="state {{ run.state_tone }}">{{ run.state_label }}</span></td><td data-label="Обработано">{{ run.processed }}</td><td data-label="Результат">{{ run.result }}</td><td data-label="Ошибки/предупреждения">{{ run.issues }}</td><td data-label="Действия"><div class="actions"><a href="#results-view" onclick="switchSourcesAnalyzerView('results')">К результатам</a><a href="#errors-view" onclick="switchSourcesAnalyzerView('errors')">К ошибкам</a></div></td>
       </tr>{% endfor %}</tbody></table></div><div class="pagination"><button type="button" class="secondary" onclick="changeWorkspacePage('runs', -1)">Назад</button><span id="runs-page-status" class="muted"></span><button type="button" class="secondary" onclick="changeWorkspacePage('runs', 1)">Вперёд</button></div>{% else %}<div class="empty">Запусков пока нет.</div>{% endif %}
@@ -159,7 +169,7 @@
         <div><label>&nbsp;</label><button type="button" class="secondary" onclick="resetWorkspaceFilters('results')">Сбросить</button></div>
       </div>
       <div id="results-filtered-empty" class="filtered-empty" hidden>По выбранным условиям результатов нет.</div>
-      {% if result_rows %}<div class="table-panel"><table id="results-table" data-page-size="25"><thead><tr><th>Тип</th><th>Источник</th><th>Дата</th><th>Результат</th><th>Состояние</th><th>Переход</th></tr></thead><tbody>
+      {% if result_rows %}<div class="table-panel"><table id="results-table" data-module1-resizable-table data-preference-namespace="module1.sources_analyzer" data-module1-preference-key="atom:module1.sources_analyzer:v1" data-module1-width-view="results" data-page-size="25"><thead><tr><th>Тип</th><th>Источник</th><th>Дата</th><th>Результат</th><th>Состояние</th><th>Переход</th></tr></thead><tbody>
       {% for result in result_rows %}<tr class="workspace-row" data-view="results" data-text="{{ result.type_label }} {{ result.source }} {{ result.title }} {{ result.status }}" data-type="{{ result.type_key }}" data-status="{{ result.status_key }}" data-source="{{ result.source }}" data-date="{{ result.created_at }}">
         <td data-label="Тип">{{ result.type_label }}</td><td data-label="Источник">{{ result.source }}</td><td data-label="Дата">{{ result.created_at }}</td><td data-label="Результат"><div class="primary-text">{{ result.title }}</div></td><td data-label="Состояние"><span class="state {{ result.tone }}">{{ result.status }}</span></td><td data-label="Переход"><div class="actions"><a href="{{ result.target }}">{{ result.target_label }}</a></div></td>
       </tr>{% endfor %}</tbody></table></div><div class="pagination"><button type="button" class="secondary" onclick="changeWorkspacePage('results', -1)">Назад</button><span id="results-page-status" class="muted"></span><button type="button" class="secondary" onclick="changeWorkspacePage('results', 1)">Вперёд</button></div>{% else %}<div class="empty">Результатов пока нет.</div>{% endif %}
@@ -176,7 +186,7 @@
         <div><label>&nbsp;</label><button type="button" class="secondary" onclick="resetWorkspaceFilters('errors')">Сбросить</button></div>
       </div>
       <div id="errors-filtered-empty" class="filtered-empty" hidden>По выбранным условиям предупреждений нет.</div>
-      {% if error_rows %}<div class="table-panel"><table id="errors-table" data-page-size="25"><thead><tr><th>Источник</th><th>Дата</th><th>Тип</th><th>Сообщение</th><th>Состояние</th><th>Действия</th></tr></thead><tbody>
+      {% if error_rows %}<div class="table-panel"><table id="errors-table" data-module1-resizable-table data-preference-namespace="module1.sources_analyzer" data-module1-preference-key="atom:module1.sources_analyzer:v1" data-module1-width-view="errors" data-page-size="25"><thead><tr><th>Источник</th><th>Дата</th><th>Тип</th><th>Сообщение</th><th>Состояние</th><th>Действия</th></tr></thead><tbody>
       {% for error in error_rows %}<tr class="workspace-row" data-view="errors" data-text="{{ error.source }} {{ error.type_label }} {{ error.message }} {{ error.state }}" data-type="{{ error.type_key }}" data-state="{{ error.resolved_key }}" data-source="{{ error.source }}" data-date="{{ error.created_at }}">
         <td data-label="Источник">{{ error.source }}</td><td data-label="Дата">{{ error.created_at }}</td><td data-label="Тип"><span class="state {{ error.tone }}">{{ error.type_label }}</span></td><td data-label="Сообщение">{{ error.message }}</td><td data-label="Состояние">{{ error.state }}</td><td data-label="Действия"><div class="actions"><a href="#sources-view" onclick="switchSourcesAnalyzerView('sources')">К источнику</a><a href="#runs-view" onclick="switchSourcesAnalyzerView('runs')">К запускам</a></div></td>
       </tr>{% endfor %}</tbody></table></div><div class="pagination"><button type="button" class="secondary" onclick="changeWorkspacePage('errors', -1)">Назад</button><span id="errors-page-status" class="muted"></span><button type="button" class="secondary" onclick="changeWorkspacePage('errors', 1)">Вперёд</button></div>{% else %}<div class="empty">Ошибок и предупреждений пока нет.</div>{% endif %}
@@ -200,6 +210,7 @@
         defaultSort: patch.defaultSort || current.defaultSort || "date_desc",
         wrapText: patch.wrapText !== undefined ? Boolean(patch.wrapText) : current.wrapText !== false,
         filters: patch.filters || current.filters || {},
+        column_widths: patch.column_widths || current.column_widths || {},
       };
       localStorage.setItem(workspacePreferenceKey, JSON.stringify(allowed));
     }

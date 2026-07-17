@@ -45,8 +45,9 @@
     @media (max-width: 720px) { main { padding-left:14px; padding-right:14px; } .launch-grid, .source-row { grid-template-columns:1fr; } }
   </style>
   {% include "_atom_ui_standards.html" %}
+  {% include "_module1_visual_system.html" %}
 </head>
-<body data-atom-page data-rbac-ready>
+<body data-atom-page data-rbac-ready data-module1-visual-system>
   {% set atom_topbar_current_block = "База материалов" %}
   {% include "_atom_platform_topbar.html" %}
   {% from "_module1_shell.html" import module1_shell %}
@@ -176,6 +177,7 @@
         </div>
       </section>
     </div>
+    <div class="module1-visual-note" data-overview-after-launch-note>После запуска анализатор создаёт задачу в существующем контуре источников. Ход выполнения, результаты, ошибки и предупреждения отображаются во вкладке <a href="/api/v1/admin/material-hub/view/sources">Источники и анализатор</a>.</div>
   </main>
 
   <script>

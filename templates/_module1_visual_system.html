@@ -1,0 +1,1034 @@
+﻿<style>
+  :root {
+    --module1-page-bg: #071021;
+    --module1-panel: rgba(12, 22, 49, 0.88);
+    --module1-panel-elevated: rgba(14, 28, 62, 0.94);
+    --module1-border: rgba(103, 151, 226, 0.28);
+    --module1-border-active: rgba(24, 215, 242, 0.72);
+    --module1-cyan: #18d7f2;
+    --module1-blue: #4f7cff;
+    --module1-success: #35d399;
+    --module1-warning: #f7b955;
+    --module1-error: #ff5a7a;
+    --module1-text: #eef7ff;
+    --module1-muted: #93a8c9;
+    --module1-soft: rgba(119, 172, 255, 0.12);
+    --module1-shadow: 0 20px 52px rgba(0, 0, 0, 0.34);
+    --module1-glow: 0 0 24px rgba(24, 215, 242, 0.18);
+    --module1-radius: 8px;
+    --module1-control-height: 36px;
+    --module1-row-height: 42px;
+    --module1-font-body: 14px;
+    --module1-font-secondary: 12px;
+    --module1-font-label: 12px;
+    --module1-font-table-header: 12px;
+    --module1-font-button: 13px;
+    --module1-font-badge: 12px;
+    --module1-font-section-title: 18px;
+    --module1-font-card-title: 15px;
+    --module1-font-metric: 24px;
+    --module1-line-body: 1.42;
+    --module1-line-tight: 1.24;
+    --module1-line-badge: 1.25;
+    --module1-rail-width: 292px;
+    --module1-rail-collapsed-width: 62px;
+  }
+
+  body[data-module1-visual-system] {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 14% -10%, rgba(24, 215, 242, 0.14), transparent 34%),
+      radial-gradient(circle at 86% 8%, rgba(79, 124, 255, 0.13), transparent 30%),
+      linear-gradient(135deg, #071021 0%, #0b1434 58%, #101735 100%) !important;
+    color: var(--module1-text) !important;
+  }
+
+  body[data-module1-visual-system] main {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 18px calc(var(--module1-rail-width) + 42px) 42px 24px !important;
+    transition: padding-right 0.18s ease;
+  }
+
+  body[data-module1-visual-system][data-module1-rail-collapsed="true"] main {
+    padding-right: calc(var(--module1-rail-collapsed-width) + 34px) !important;
+  }
+
+
+  body[data-module1-visual-system] main {
+    font-size: var(--module1-font-body);
+    line-height: var(--module1-line-body);
+    color: var(--module1-text);
+  }
+
+  body[data-module1-visual-system] main h1,
+  body[data-module1-visual-system] main h2 {
+    font-size: var(--module1-font-section-title) !important;
+    line-height: var(--module1-line-tight);
+    font-weight: 800;
+  }
+
+  body[data-module1-visual-system] main h3,
+  body[data-module1-visual-system] .material-detail-section h3,
+  body[data-module1-visual-system] .detail-card strong,
+  body[data-module1-visual-system] .setting-card strong {
+    font-size: var(--module1-font-card-title) !important;
+    line-height: var(--module1-line-tight);
+    font-weight: 750;
+  }
+
+  body[data-module1-visual-system] main label,
+  body[data-module1-visual-system] main .secondary-line,
+  body[data-module1-visual-system] main .material-secondary,
+  body[data-module1-visual-system] main .muted,
+  body[data-module1-visual-system] .module1-quick-actions-rail .atom-module-quick-actions-empty {
+    font-size: var(--module1-font-secondary);
+    line-height: 1.35;
+  }
+
+  body[data-module1-visual-system] main label {
+    font-size: var(--module1-font-label);
+    font-weight: 650;
+  }
+
+  body[data-module1-visual-system] main .summary-value,
+  body[data-module1-visual-system] main .summary-card strong {
+    font-size: var(--module1-font-metric) !important;
+    line-height: 1.08;
+    font-weight: 800;
+  }
+  .module1-shell {
+    position: sticky;
+    top: 58px;
+    z-index: 90;
+    border-bottom: 1px solid var(--module1-border);
+    background: rgba(6, 13, 31, 0.92);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+  }
+
+  .module1-shell-inner {
+    padding: 7px 24px 6px;
+  }
+
+  .module1-tabs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    min-height: 34px;
+  }
+
+  .module1-tabs::-webkit-scrollbar { width: 0; height: 0; }
+
+  .module1-tabs a {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--module1-radius);
+    color: var(--module1-muted);
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0;
+    white-space: nowrap;
+    background: rgba(7, 14, 35, 0.5);
+  }
+
+  .module1-tabs a:hover,
+  .module1-tabs a:focus-visible {
+    border-color: rgba(24, 215, 242, 0.38);
+    color: var(--module1-text);
+    background: rgba(24, 215, 242, 0.08);
+    outline: none;
+  }
+
+  .module1-tabs a[aria-current="page"] {
+    border-color: rgba(24, 215, 242, 0.42);
+    color: #e9fdff;
+    background: rgba(24, 215, 242, 0.12);
+    box-shadow: inset 0 -2px 0 var(--module1-cyan), var(--module1-glow);
+  }
+
+  body[data-module1-visual-system] section,
+  body[data-module1-visual-system] .module1-panel,
+  body[data-module1-visual-system] .material-detail-section,
+  body[data-module1-visual-system] .table-view-panel,
+  body[data-module1-visual-system] .modal {
+    border-color: var(--module1-border) !important;
+    border-radius: var(--module1-radius) !important;
+    background:
+      linear-gradient(145deg, rgba(12, 22, 49, 0.92), rgba(14, 28, 62, 0.96)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 18px 42px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  body[data-module1-visual-system] .module1-panel { padding: 16px; }
+
+  body[data-module1-visual-system] h1,
+  body[data-module1-visual-system] h2,
+  body[data-module1-visual-system] h3 {
+    color: var(--module1-text);
+    letter-spacing: 0;
+  }
+
+  body[data-module1-visual-system] .muted,
+  body[data-module1-visual-system] label {
+    color: var(--module1-muted) !important;
+  }
+
+  body[data-module1-visual-system] input,
+  body[data-module1-visual-system] select,
+  body[data-module1-visual-system] textarea,
+  body[data-module1-visual-system] button {
+    min-height: var(--module1-control-height);
+    border-color: var(--module1-border) !important;
+    border-radius: 7px !important;
+    letter-spacing: 0;
+  }
+
+  body[data-module1-visual-system] input,
+  body[data-module1-visual-system] select,
+  body[data-module1-visual-system] textarea {
+    background: rgba(5, 11, 27, 0.72) !important;
+    color: var(--module1-text) !important;
+  }
+
+  body[data-module1-visual-system] input:focus,
+  body[data-module1-visual-system] select:focus,
+  body[data-module1-visual-system] textarea:focus,
+  body[data-module1-visual-system] button:focus-visible,
+  body[data-module1-visual-system] a:focus-visible {
+    outline: 2px solid rgba(24, 215, 242, 0.72);
+    outline-offset: 2px;
+  }
+
+  body[data-module1-visual-system] button {
+    font-weight: 700;
+  }
+
+  body[data-module1-visual-system] button:not([disabled]) {
+    box-shadow: 0 8px 18px rgba(24, 215, 242, 0.10);
+  }
+
+
+  body[data-module1-visual-system] main button,
+  body[data-module1-visual-system] main .button-link,
+  body[data-module1-visual-system] main .module1-action-primary,
+  .module1-quick-actions-rail button,
+  .module1-quick-actions-rail .atom-module-quick-action {
+    min-height: var(--module1-control-height);
+    padding: 7px 10px;
+    border-radius: 7px !important;
+    font-size: var(--module1-font-button);
+    font-weight: 700;
+    line-height: var(--module1-line-tight);
+    white-space: nowrap !important;
+    overflow-wrap: normal;
+    word-break: normal;
+    box-shadow: 0 8px 18px rgba(24, 215, 242, 0.10) !important;
+  }
+
+  body[data-module1-visual-system] main button.secondary,
+  body[data-module1-visual-system] main .button-link.secondary,
+  body[data-module1-visual-system] main .module1-action-primary,
+  .module1-quick-actions-rail .atom-module-quick-action {
+    color: var(--module1-text) !important;
+    background: rgba(7, 14, 35, 0.72) !important;
+    border-color: var(--module1-border) !important;
+    box-shadow: none !important;
+  }
+
+  body[data-module1-visual-system] main button.danger,
+  body[data-module1-visual-system] main button.destructive {
+    color: #ffd8e1 !important;
+    background: rgba(255, 90, 122, 0.13) !important;
+    border-color: rgba(255, 90, 122, 0.44) !important;
+    box-shadow: none !important;
+  }
+
+  body[data-module1-visual-system] main button:disabled,
+  .module1-quick-actions-rail button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+
+  body[data-module1-visual-system] main table {
+    font-size: var(--module1-font-body);
+    line-height: var(--module1-line-body);
+  }
+
+  body[data-module1-visual-system] main th,
+  body[data-module1-visual-system] main td {
+    padding: 8px 9px;
+    vertical-align: middle;
+    word-break: normal !important;
+    overflow-wrap: break-word;
+  }
+
+  body[data-module1-visual-system] main th {
+    height: var(--module1-row-height);
+    font-size: var(--module1-font-table-header);
+    font-weight: 750;
+    line-height: var(--module1-line-tight);
+    white-space: nowrap;
+  }
+
+  body[data-module1-visual-system] main th button {
+    font-size: inherit;
+    line-height: inherit;
+    white-space: nowrap !important;
+  }
+
+  body[data-module1-visual-system] main .primary-text,
+  body[data-module1-visual-system] main .material-title,
+  body[data-module1-visual-system] main .doc-title,
+  body[data-module1-visual-system] main .material-detail-document-title {
+    line-height: 1.32;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  body[data-module1-visual-system] main .secondary-line,
+  body[data-module1-visual-system] main .material-secondary {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body[data-module1-visual-system] main .pill,
+  body[data-module1-visual-system] main .badge,
+  body[data-module1-visual-system] main .state,
+  body[data-module1-visual-system] main .data-state {
+    max-width: 100%;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: var(--module1-font-badge);
+    font-weight: 750;
+    line-height: var(--module1-line-badge);
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    vertical-align: middle;
+  }
+
+  body[data-module1-visual-system] main .state,
+  body[data-module1-visual-system] main .data-state {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 174px;
+  }
+
+  body[data-module1-visual-system] main .badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 190px;
+  }
+
+  body[data-module1-visual-system] main .reason-list {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 5px;
+  }
+
+  body[data-module1-visual-system] main .module1-row-actions,
+  body[data-module1-visual-system] main .actions,
+  body[data-module1-visual-system] main .row-actions {
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  body[data-module1-visual-system] main td:last-child,
+  body[data-module1-visual-system] main th:last-child {
+    padding-right: 14px;
+  }
+  body[data-module1-visual-system] table {
+    color: var(--module1-text);
+  }
+
+  body[data-module1-visual-system] th {
+    height: var(--module1-row-height);
+    border-color: var(--module1-border) !important;
+    background: rgba(10, 20, 47, 0.98) !important;
+    color: #b9c9e8 !important;
+  }
+
+  body[data-module1-visual-system] td {
+    min-height: var(--module1-row-height);
+    border-color: rgba(103, 151, 226, 0.18) !important;
+  }
+
+  body[data-module1-visual-system] tbody tr:hover td {
+    background: rgba(24, 215, 242, 0.055);
+  }
+
+  body[data-module1-visual-system] .pill,
+  body[data-module1-visual-system] .data-state,
+  body[data-module1-visual-system] .preset-link {
+    border-color: var(--module1-border) !important;
+    background: rgba(7, 14, 35, 0.62) !important;
+    color: var(--module1-text) !important;
+  }
+
+  body[data-module1-visual-system] .preset-link.active,
+  body[data-module1-visual-system] .data-state.ready {
+    border-color: rgba(24, 215, 242, 0.58) !important;
+    background: rgba(24, 215, 242, 0.12) !important;
+    color: #cbfbff !important;
+  }
+
+  .module1-quick-actions-rail {
+    position: fixed;
+    top: 124px;
+    right: 18px;
+    bottom: 18px;
+    z-index: 82;
+    width: var(--module1-rail-width);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--module1-border);
+    border-radius: var(--module1-radius);
+    background: linear-gradient(180deg, rgba(12, 22, 49, 0.96), rgba(7, 14, 35, 0.94));
+    box-shadow: var(--module1-shadow);
+    transition: width 0.18s ease, padding 0.18s ease;
+  }
+
+  .module1-quick-actions-rail.is-collapsed {
+    width: var(--module1-rail-collapsed-width);
+    padding: 10px 8px;
+  }
+
+  .module1-rail-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+  }
+
+  .module1-rail-title {
+    min-width: 0;
+    font-weight: 800;
+    color: var(--module1-text);
+    white-space: nowrap;
+  }
+
+  .module1-rail-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 34px !important;
+    min-width: 34px;
+    padding: 0 !important;
+    background: rgba(24, 215, 242, 0.1) !important;
+    color: var(--module1-text) !important;
+    box-shadow: none !important;
+  }
+
+  .module1-quick-actions-rail.is-collapsed .module1-rail-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .module1-quick-actions-rail .atom-module-quick-actions {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: auto;
+    scrollbar-width: none;
+  }
+
+  .module1-quick-actions-rail .atom-module-quick-actions::-webkit-scrollbar { width: 0; height: 0; }
+
+  .module1-quick-actions-rail .atom-module-quick-actions-empty {
+    display: block;
+    padding: 12px;
+    border: 1px dashed rgba(103, 151, 226, 0.28);
+    border-radius: var(--module1-radius);
+    color: var(--module1-muted);
+    line-height: 1.35;
+  }
+
+  .module1-quick-actions-rail .atom-module-quick-actions-row,
+  .module1-quick-actions-rail .atom-module-quick-actions-toolset,
+  .module1-quick-actions-rail .atom-module-quick-actions-tools {
+    display: grid;
+    gap: 8px;
+  }
+
+  .module1-quick-actions-rail .atom-module-quick-actions-tools {
+    margin-bottom: 8px;
+  }
+
+  .module1-quick-actions-rail .atom-module-quick-action {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+    border-radius: var(--module1-radius);
+  }
+
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-actions-tools,
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-action-order,
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-action-remove,
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-actions-empty {
+    display: none !important;
+  }
+
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-actions-row {
+    display: grid;
+    place-items: center;
+  }
+
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-action {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-action-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .module1-quick-actions-rail.is-collapsed .atom-module-quick-action::before {
+    content: attr(data-module1-action-initial);
+    color: var(--module1-cyan);
+    font-weight: 900;
+    font-size: 15px;
+  }
+
+  .module1-visual-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--module1-border);
+    border-radius: var(--module1-radius);
+    background: rgba(24, 215, 242, 0.07);
+    color: var(--module1-muted);
+    line-height: 1.45;
+  }
+
+  .module1-action-menu {
+    position: relative;
+    display: inline-flex;
+    width: auto;
+  }
+
+  .module1-action-menu summary {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    min-width: 34px;
+    min-height: 30px;
+    padding: 0;
+    border: 1px solid var(--module1-border);
+    border-radius: 7px;
+    background: rgba(7, 14, 35, 0.74);
+    color: var(--module1-text);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .module1-action-menu summary::-webkit-details-marker { display: none; }
+
+  .module1-action-menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 140;
+    min-width: 210px;
+    max-width: min(320px, calc(100vw - 32px));
+    padding: 6px;
+    border: 1px solid var(--module1-border);
+    border-radius: var(--module1-radius);
+    background: rgba(7, 14, 35, 0.98);
+    box-shadow: var(--module1-shadow);
+  }
+
+  .module1-action-menu-panel a,
+  .module1-action-menu-panel button,
+  .module1-action-menu-panel summary {
+    width: 100% !important;
+    min-height: 30px !important;
+    justify-content: flex-start !important;
+    text-align: left;
+    white-space: nowrap;
+    box-shadow: none !important;
+  }
+
+  .module1-action-primary {
+    white-space: nowrap !important;
+    min-width: max-content;
+  }
+
+  body[data-module1-visual-system] .table-panel,
+  body[data-module1-visual-system] .table-scroll,
+  body[data-module1-visual-system] .table-wrap {
+    overflow-x: auto !important;
+    max-width: 100%;
+  }
+
+  body[data-module1-visual-system] .table-controls,
+  body[data-module1-visual-system] .pagination {
+    max-width: 100%;
+  }
+
+  body[data-module1-visual-system] main .table-panel,
+  body[data-module1-visual-system] main .table-scroll,
+  body[data-module1-visual-system] main .table-wrap,
+  body[data-module1-visual-system] main .filters,
+  body[data-module1-visual-system] main .column-panel,
+  body[data-module1-visual-system] main .detail-card,
+  body[data-module1-visual-system] main .setting-card {
+    background: rgba(8, 16, 38, 0.62) !important;
+    border-color: rgba(103, 151, 226, 0.20) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
+  }
+
+  body[data-module1-visual-system] main .filters {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  body[data-module1-visual-system] main .table-toolbar,
+  body[data-module1-visual-system] main .toolbar,
+  body[data-module1-visual-system] main .pagination {
+    gap: 8px;
+  }
+
+  body[data-module1-visual-system] main .pagination button,
+  body[data-module1-visual-system] main button[onclick*="reset"],
+  body[data-module1-visual-system] main button[onclick*="Reset"] {
+    color: var(--module1-muted) !important;
+    background: rgba(7, 14, 35, 0.48) !important;
+    border-color: rgba(103, 151, 226, 0.20) !important;
+    box-shadow: none !important;
+  }
+
+  body[data-module1-visual-system] main thead tr {
+    background: rgba(10, 20, 47, 0.98);
+  }
+
+  body[data-module1-visual-system] main th {
+    position: relative;
+    padding-right: 20px !important;
+  }
+
+  body[data-module1-visual-system] main th > button {
+    max-width: 100%;
+  }
+
+  body[data-module1-visual-system] main table[data-module1-resizable-ready="true"] {
+    table-layout: fixed !important;
+  }
+
+  .module1-column-resize-handle,
+  .resize-handle.module1-column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -1px;
+    width: 10px;
+    height: 100%;
+    min-height: var(--module1-row-height);
+    cursor: col-resize;
+    touch-action: none;
+    z-index: 6;
+    background: transparent;
+  }
+
+  .module1-column-resize-handle::after,
+  .resize-handle.module1-column-resize-handle::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    bottom: 9px;
+    left: 4px;
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(24, 215, 242, 0.28);
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+
+  th:hover .module1-column-resize-handle::after,
+  .module1-column-resize-handle:focus-visible::after,
+  th[data-module1-resizing="true"] .module1-column-resize-handle::after {
+    background: rgba(24, 215, 242, 0.78);
+  }
+
+  body[data-module1-column-resizing="true"] {
+    cursor: col-resize;
+    user-select: none;
+  }
+
+  .module1-quick-actions-rail.is-collapsed:not(:has(.atom-module-quick-action)) {
+    width: 44px;
+    padding: 8px 5px;
+  }
+
+  body[data-module1-visual-system][data-module1-rail-collapsed="true"] main {
+    padding-right: calc(var(--module1-rail-collapsed-width) + 26px) !important;
+  }
+  @media (max-width: 1180px) {
+    body[data-module1-visual-system] main,
+    body[data-module1-visual-system][data-module1-rail-collapsed="true"] main {
+      padding-right: 22px !important;
+    }
+    .module1-quick-actions-rail {
+      top: auto;
+      right: 14px;
+      bottom: 14px;
+      width: min(340px, calc(100vw - 28px));
+      max-height: 68vh;
+    }
+    .module1-quick-actions-rail.is-collapsed {
+      width: 58px;
+      height: 58px;
+      overflow: hidden;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .module1-shell-inner { padding: 7px 14px; }
+    body[data-module1-visual-system] main,
+    body[data-module1-visual-system][data-module1-rail-collapsed="true"] main {
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+  }
+</style>
+<script>
+  (() => {
+    const RAIL_KEY = "module1.quick_actions_rail";
+    const MODULE_CODE = "MODULE_01_MATERIAL_HUB";
+
+    function storage() {
+      try { localStorage.setItem("atom:module1:rail:test", "1"); localStorage.removeItem("atom:module1:rail:test"); return localStorage; }
+      catch (_error) { return sessionStorage; }
+    }
+
+    function readCollapsed() {
+      try { return JSON.parse(storage().getItem(RAIL_KEY) || "{}").collapsed === true; }
+      catch (_error) { return false; }
+    }
+
+    function writeCollapsed(collapsed) {
+      storage().setItem(RAIL_KEY, JSON.stringify({ collapsed: Boolean(collapsed) }));
+    }
+
+    function updateIfChanged(node, property, value) {
+      if (node[property] !== value) node[property] = value;
+    }
+
+    function setAttributeIfChanged(node, name, value) {
+      if (node.getAttribute(name) !== value) node.setAttribute(name, value);
+    }
+
+    function decorateRailActions(rail) {
+      rail.querySelectorAll(".atom-module-quick-actions-empty").forEach((node) => {
+        updateIfChanged(node, "textContent", "Быстрые действия не настроены");
+      });
+      rail.querySelectorAll(".atom-module-quick-action").forEach((button) => {
+        const label = button.querySelector(".atom-module-quick-action-title")?.textContent?.trim() || button.textContent.trim() || "Действие";
+        const initial = label.slice(0, 1).toUpperCase();
+        if (button.dataset.module1ActionInitial !== initial) button.dataset.module1ActionInitial = initial;
+        setAttributeIfChanged(button, "aria-label", label);
+        updateIfChanged(button, "title", label);
+      });
+    }
+
+    function applyRailState(rail, collapsed) {
+      rail.classList.toggle("is-collapsed", collapsed);
+      document.body.dataset.module1RailCollapsed = collapsed ? "true" : "false";
+      const toggle = rail.querySelector("[data-module1-rail-toggle]");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        toggle.textContent = collapsed ? "‹" : "›";
+        toggle.title = collapsed ? "Развернуть быстрые действия" : "Свернуть быстрые действия";
+      }
+      writeCollapsed(collapsed);
+    }
+
+    function initRail() {
+      document.body.dataset.module1VisualSystem = "true";
+      const rail = document.querySelector("[data-module1-quick-actions-rail]");
+      if (!rail) return;
+      applyRailState(rail, readCollapsed());
+      rail.querySelector("[data-module1-rail-toggle]")?.addEventListener("click", () => applyRailState(rail, !rail.classList.contains("is-collapsed")));
+      let decorateQueued = false;
+      const queueDecorateRailActions = () => {
+        if (decorateQueued) return;
+        decorateQueued = true;
+        window.requestAnimationFrame(() => {
+          decorateQueued = false;
+          decorateRailActions(rail);
+        });
+      };
+      const observer = new MutationObserver(queueDecorateRailActions);
+      observer.observe(rail, { childList: true, subtree: true });
+      window.setTimeout(() => {
+        if (window.ATOMQuickActionMenu?.loadModuleQuickActions) {
+          window.ATOMQuickActionMenu.loadModuleQuickActions(MODULE_CODE, { force: true }).finally(() => decorateRailActions(rail));
+        } else {
+          decorateRailActions(rail);
+        }
+      }, 0);
+      document.addEventListener("atom:quick-action:add", () => window.setTimeout(() => decorateRailActions(rail), 0));
+      document.addEventListener("atom:quick-action:remove", () => window.setTimeout(() => decorateRailActions(rail), 0));
+      document.addEventListener("atom:quick-action:reorder", () => window.setTimeout(() => decorateRailActions(rail), 0));
+    }
+
+    function closeActionMenu(menu, restoreFocus = false) {
+      if (!menu?.open) return;
+      const trigger = menu.querySelector("summary");
+      menu.open = false;
+      if (restoreFocus) trigger?.focus();
+    }
+
+    function initActionMenus() {
+      const menus = Array.from(document.querySelectorAll("[data-module1-action-menu]"));
+      menus.forEach((menu) => {
+        const trigger = menu.querySelector("summary");
+        trigger?.setAttribute("aria-haspopup", "menu");
+        trigger?.setAttribute("aria-expanded", menu.open ? "true" : "false");
+        menu.addEventListener("toggle", () => {
+          trigger?.setAttribute("aria-expanded", menu.open ? "true" : "false");
+          if (menu.open) menus.filter((item) => item !== menu).forEach((item) => closeActionMenu(item));
+        });
+        menu.querySelectorAll("a, button").forEach((item) => {
+          item.addEventListener("click", () => closeActionMenu(menu));
+        });
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        const openMenu = document.querySelector("[data-module1-action-menu][open]");
+        if (openMenu) {
+          event.preventDefault();
+          closeActionMenu(openMenu, true);
+        }
+      });
+      document.addEventListener("click", (event) => {
+        menus.forEach((menu) => { if (!menu.contains(event.target)) closeActionMenu(menu); });
+      });
+    }
+
+    function module1UserScope() {
+      const explicit = document.body?.dataset.atomUserId || document.documentElement?.dataset.atomUserId;
+      return explicit ? `user:${explicit}` : "session";
+    }
+
+    function tableStorage() {
+      try { localStorage.setItem("atom:module1:table:test", "1"); localStorage.removeItem("atom:module1:table:test"); return localStorage; }
+      catch (_error) { return sessionStorage; }
+    }
+
+    function tableNamespace(table) {
+      return table.dataset.preferenceNamespace || table.closest("[data-preference-namespace]")?.dataset.preferenceNamespace || `module1.${table.id || "table"}`;
+    }
+
+    function tablePreferenceCandidates(table) {
+      const namespace = tableNamespace(table);
+      const user = module1UserScope();
+      const fallback = table.dataset.module1PreferenceScopeFallback || user;
+      const id = table.dataset.module1PreferenceId || table.id || "table";
+      return [
+        table.dataset.module1PreferenceKey,
+        `atom:${namespace}:v1:${user}:${id}`,
+        `atom:${namespace}:v1:${fallback}:${id}`,
+        `atom:${namespace}:v1:local-admin:${id}`,
+        `atom:${namespace}:v1:session:${id}`,
+        `atom:${namespace}:v1`,
+      ].filter(Boolean);
+    }
+
+    function readPreferenceRecord(table) {
+      const storage = tableStorage();
+      const candidates = tablePreferenceCandidates(table);
+      const existing = candidates.find((key) => storage.getItem(key) !== null || sessionStorage.getItem(key) !== null || localStorage.getItem(key) !== null) || candidates[0];
+      try { return { key: existing, value: JSON.parse((storage.getItem(existing) || localStorage.getItem(existing) || sessionStorage.getItem(existing) || "{}")) || {} }; }
+      catch (_error) { return { key: existing, value: {} }; }
+    }
+
+    function writePreferenceRecord(table, patch) {
+      const current = readPreferenceRecord(table);
+      tableStorage().setItem(current.key, JSON.stringify({ ...current.value, ...patch }));
+    }
+
+    function columnWidthBucket(table, record) {
+      const widths = record.column_widths || {};
+      const view = table.dataset.module1WidthView;
+      if (view) return widths[view] && typeof widths[view] === "object" ? widths[view] : {};
+      return widths && typeof widths === "object" ? widths : {};
+    }
+
+    function saveColumnWidth(table, field, width) {
+      const current = readPreferenceRecord(table).value;
+      const safeWidth = Math.round(Number(width));
+      if (!Number.isFinite(safeWidth)) return;
+      const next = { ...(current.column_widths || {}) };
+      const view = table.dataset.module1WidthView;
+      if (view) next[view] = { ...(next[view] || {}), [field]: safeWidth };
+      else next[field] = safeWidth;
+      writePreferenceRecord(table, { column_widths: next });
+    }
+
+    function columnField(th, index) {
+      if (th.dataset.field) return th.dataset.field;
+      const text = (th.textContent || `column_${index + 1}`).trim().toLocaleLowerCase();
+      const field = text.replace(/[^a-zа-я0-9]+/gi, "_").replace(/^_+|_+$/g, "") || `column_${index + 1}`;
+      th.dataset.field = field;
+      return field;
+    }
+
+    function columnLimit(field, type) {
+      const nameLike = ["material", "document", "work", "source", "result", "message", "issue"].some((part) => field.includes(part));
+      const statusLike = ["state", "status", "data_state"].some((part) => field.includes(part));
+      const dateLike = ["date", "updated", "created", "check", "validity", "start", "finish"].some((part) => field.includes(part));
+      const actionLike = field.includes("action") || field === "actions";
+      if (type === "min") {
+        if (nameLike) return 160;
+        if (statusLike) return 120;
+        if (dateLike) return 110;
+        if (actionLike) return 120;
+        return 80;
+      }
+      if (nameLike) return 520;
+      if (statusLike) return 300;
+      if (dateLike) return 220;
+      if (actionLike) return 220;
+      return 420;
+    }
+
+    function clampColumnWidth(field, width) {
+      return Math.min(columnLimit(field, "max"), Math.max(columnLimit(field, "min"), Math.round(width)));
+    }
+
+    function ensureColgroup(table, fields) {
+      let colgroup = table.querySelector(":scope > colgroup[data-module1-resize-colgroup]");
+      if (!colgroup) {
+        colgroup = document.createElement("colgroup");
+        colgroup.dataset.module1ResizeColgroup = "true";
+        table.insertBefore(colgroup, table.firstChild);
+      }
+      while (colgroup.children.length < fields.length) colgroup.appendChild(document.createElement("col"));
+      Array.from(colgroup.children).slice(fields.length).forEach((node) => node.remove());
+      fields.forEach((field, index) => { colgroup.children[index].dataset.field = field; });
+      return colgroup;
+    }
+
+    function applyColumnWidth(table, field, width) {
+      const index = Array.from(table.tHead?.rows?.[0]?.cells || []).findIndex((cell) => cell.dataset.field === field);
+      if (index < 0) return;
+      const safe = `${clampColumnWidth(field, width)}px`;
+      const col = table.querySelector(`colgroup[data-module1-resize-colgroup] col[data-field="${CSS.escape(field)}"]`);
+      if (col) col.style.width = safe;
+      table.tHead.rows[0].cells[index].style.width = safe;
+    }
+
+    function resizeTableColumn(table, field, delta) {
+      const index = Array.from(table.tHead?.rows?.[0]?.cells || []).findIndex((cell) => cell.dataset.field === field);
+      if (index < 0) return;
+      const current = table.tHead.rows[0].cells[index].getBoundingClientRect().width || 160;
+      const next = clampColumnWidth(field, current + delta);
+      applyColumnWidth(table, field, next);
+      saveColumnWidth(table, field, next);
+    }
+
+    function initResizableTables() {
+      const tables = Array.from(document.querySelectorAll("table[data-preference-namespace], table[data-module1-resizable-table]"));
+      tables.forEach((table) => {
+        if (!table.id || !table.tHead?.rows?.length) return;
+        table.dataset.module1ResizableReady = "true";
+        const headers = Array.from(table.tHead.rows[0].cells);
+        const fields = headers.map((th, index) => columnField(th, index));
+        const colgroup = ensureColgroup(table, fields);
+        const saved = columnWidthBucket(table, readPreferenceRecord(table).value);
+        headers.forEach((th, index) => {
+          const field = fields[index];
+          const savedWidth = Number(saved[field]);
+          const fallbackWidth = parseInt(th.style.width || colgroup.children[index]?.style.width || "", 10);
+          const width = Number.isFinite(savedWidth) && savedWidth > 0 ? savedWidth : fallbackWidth;
+          if (Number.isFinite(width) && width > 0) applyColumnWidth(table, field, width);
+          let handle = th.querySelector(".module1-column-resize-handle, .resize-handle");
+          if (!handle) {
+            handle = document.createElement("span");
+            handle.className = "resize-handle module1-column-resize-handle";
+            th.appendChild(handle);
+          } else {
+            handle.classList.add("module1-column-resize-handle");
+          }
+          handle.setAttribute("role", "separator");
+          handle.setAttribute("aria-orientation", "vertical");
+          handle.setAttribute("tabindex", "0");
+          handle.setAttribute("aria-label", `Изменить ширину столбца ${th.textContent.trim() || field}`);
+          if (handle.dataset.module1ResizeReady === "true") return;
+          handle.dataset.module1ResizeReady = "true";
+          handle.addEventListener("click", (event) => event.stopPropagation());
+          handle.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.key === "Home") {
+              applyColumnWidth(table, field, columnLimit(field, "min"));
+              saveColumnWidth(table, field, columnLimit(field, "min"));
+              return;
+            }
+            const step = event.shiftKey ? 32 : 12;
+            resizeTableColumn(table, field, event.key === "ArrowRight" ? step : -step);
+          });
+          handle.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const startX = event.clientX;
+            const startWidth = th.getBoundingClientRect().width || 160;
+            document.body.dataset.module1ColumnResizing = "true";
+            th.dataset.module1Resizing = "true";
+            try { handle.setPointerCapture?.(event.pointerId); } catch (_error) {}
+            const move = (moveEvent) => applyColumnWidth(table, field, startWidth + moveEvent.clientX - startX);
+            const up = (upEvent) => {
+              handle.removeEventListener("pointermove", move);
+              handle.removeEventListener("pointerup", up);
+              handle.removeEventListener("pointercancel", up);
+              delete document.body.dataset.module1ColumnResizing;
+              delete th.dataset.module1Resizing;
+              saveColumnWidth(table, field, startWidth + upEvent.clientX - startX);
+            };
+            handle.addEventListener("pointermove", move);
+            handle.addEventListener("pointerup", up);
+            handle.addEventListener("pointercancel", up);
+          });
+        });
+      });
+    }
+    document.addEventListener("DOMContentLoaded", initRail);
+    document.addEventListener("DOMContentLoaded", initActionMenus);
+    document.addEventListener("DOMContentLoaded", initResizableTables);
+  })();
+</script>
