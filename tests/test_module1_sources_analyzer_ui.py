@@ -159,10 +159,10 @@ def test_price_gate_and_module_boundaries_are_not_reimplemented_in_template() ->
     assert "price > 0" not in text
     assert "create_new_material" not in text
     assert "готовыми материалами" in text
-    assert "Стоимость работ" not in text
+    assert "work-cost-table" not in text
     assert "work_code" not in text
-    assert "Запуск анализа" in overview
-    assert "Запуск анализа" not in text
+    assert "Запустить анализ" in overview
+    assert "Запустить анализ" not in text
 
 
 def test_old_data_template_keeps_legacy_sections_but_sources_route_no_longer_uses_them() -> None:

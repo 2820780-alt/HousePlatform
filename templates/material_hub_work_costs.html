@@ -22,7 +22,8 @@
 <body data-atom-page data-rbac-ready>
   {% set atom_topbar_current_block = "База материалов" %}
   {% include "_atom_platform_topbar.html" %}
-  <header><div class="module-header-grid"><div class="module-identity"><div class="module-mark">1</div><div><h1>Стоимость работ</h1><div class="muted">Предложения исполнителей по нормализованному справочнику работ</div></div></div><div class="top-links"><a href="/api/v1/admin/material-hub/view">Обзор Material Hub</a><a href="/api/v1/admin/material-hub/view/materials">Материалы</a><a href="/api/v1/admin/material-hub/view/documents">Документы</a></div></div></header>
+  {% from "_module1_shell.html" import module1_shell %}
+  {{ module1_shell("work-costs", "Стоимость работ", "Предложения исполнителей по нормализованному справочнику работ.") }}
   <main data-preference-namespace="module1.work_costs_table">
     <section aria-label="Сводка стоимости работ"><div class="summary-grid"><div class="summary-card"><strong id="summary-total">{{ offer_rows|length }}</strong><span class="muted">предложений</span></div><div class="summary-card"><strong id="summary-active">0</strong><span class="muted">активных</span></div><div class="summary-card"><strong id="summary-draft">0</strong><span class="muted">черновиков</span></div><div class="summary-card"><strong id="summary-expired">0</strong><span class="muted">с истёкшим сроком</span></div></div></section>
     <section aria-label="Управление предложениями стоимости работ">

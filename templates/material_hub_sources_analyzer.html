@@ -61,10 +61,8 @@
 <body data-atom-page data-rbac-ready>
   {% set atom_topbar_current_block = "Источники Material Hub" %}
   {% include "_atom_platform_topbar.html" %}
-  <header>
-    <h1>Источники и анализатор</h1>
-    <div class="muted"><a href="/api/v1/admin/material-hub/view">Назад к Material Hub</a> · Источники, запуски, результаты и предупреждения без служебных данных.</div>
-  </header>
+  {% from "_module1_shell.html" import module1_shell %}
+  {{ module1_shell("sources", "Источники и анализатор", "Источники, запуски, результаты и человекочитаемые предупреждения.") }}
 
   <main data-preference-namespace="module1.sources_analyzer">
     <section aria-label="Сводка источников">

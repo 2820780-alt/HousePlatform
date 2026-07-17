@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -76,10 +76,8 @@
 <body data-atom-page data-rbac-ready>
   {% set atom_topbar_current_block = "Модерация и качество" %}
   {% include "_atom_platform_topbar.html" %}
-  <header>
-    <h1>Модерация и качество</h1>
-    <div class="muted"><a href="/api/v1/admin/material-hub/view">← Панель управления</a> · рабочая очередь материалов, требующих внимания.</div>
-  </header>
+  {% from "_module1_shell.html" import module1_shell %}
+  {{ module1_shell("moderation", "Модерация и качество", "Рабочая очередь материалов, требующих внимания.") }}
 
   <main>
     {% set summary = namespace(total=0, no_price=0, classification=0, duplicates=0, stale=0) %}

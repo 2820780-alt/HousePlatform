@@ -1,11 +1,13 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
-from app.models.enums import SourceStatus, SourceType, TaskStatus, UserRole
+from app.models.enums import SourceActionType, SourceStatus, SourceType, TaskStatus, UserRole
 from app.models.material_document import MaterialDocument
 from app.models.source import Source
 from app.models.source_task import SourceTask
@@ -24,11 +26,41 @@ from app.schemas.material_hub import (
     SourceUpdate,
 )
 from app.services.audit_service import log_event
-from app.services.material_hub_first_wave import first_wave_yufo_source_create_payloads
+from app.services.material_hub_first_wave import first_wave_yufo_source_create_payloads, is_first_wave_blocked_source
 from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.source_task_runner import run_source_task
 
 router = APIRouter(prefix="/admin/material-hub", tags=["admin-material-hub"])
+
+
+class SourceTaskOverviewLaunchRequest(BaseModel):
+    source_names: list[str] = Field(default_factory=list)
+    all_sources: bool = False
+    action_type: SourceActionType = SourceActionType.INITIAL_MATERIAL_SCAN
+    settings: dict[str, Any] = Field(default_factory=dict)
+
+
+class SourceTaskOverviewLaunchResponse(BaseModel):
+    status: str
+    launched: int
+    failed: int
+    redirect_url: str
+    message: str
+
+
+OVERVIEW_ALLOWED_SETTING_KEYS = {
+    "scan_mode",
+    "data_source_kind",
+    "collection_object",
+    "processing_scenario",
+    "document_type_group",
+    "write_mode",
+    "source_category_label",
+    "source_category_source",
+    "category_url_contains",
+    "max_pages",
+    "max_documents",
+}
 
 
 def _check_admin(user):
@@ -194,6 +226,53 @@ async def create_source_tasks(data: SourceTaskCreate, db: DBSession, user: Curre
     return tasks
 
 
+@router.post("/tasks/launch-overview", response_model=SourceTaskOverviewLaunchResponse, status_code=201)
+async def launch_overview_source_tasks(data: SourceTaskOverviewLaunchRequest, db: DBSession, user: CurrentUser):
+    _check_admin(user)
+    sources = await _resolve_overview_launch_sources(db, data)
+    if not sources:
+        raise ValidationError("Select at least one available source")
+
+    settings = _sanitize_overview_launch_settings(data.settings)
+    launched = 0
+    failed = 0
+    for source in sources:
+        task = SourceTask(
+            source_id=source.id,
+            action_type=data.action_type,
+            status=TaskStatus.PENDING,
+            created_by=user.id,
+            parameters=attach_source_profile_snapshot(source, data.action_type, settings),
+        )
+        db.add(task)
+        await db.flush()
+        await db.refresh(task)
+        await log_event(db, "source_task_created", "SourceTask", task.id, user.id, {
+            "source_id": str(task.source_id),
+            "action_type": task.action_type.value,
+            "launch_surface": "module1_overview",
+        })
+        task = await run_source_task(db, task.id)
+        await log_event(db, "source_task_run", "SourceTask", task.id, user.id, {
+            "status": task.status.value,
+            "action_type": task.action_type.value,
+            "launch_surface": "module1_overview",
+        })
+        if task.status == TaskStatus.FAILED:
+            failed += 1
+        else:
+            launched += 1
+
+    status = "completed_with_warnings" if failed else "completed"
+    return SourceTaskOverviewLaunchResponse(
+        status=status,
+        launched=launched,
+        failed=failed,
+        redirect_url="/api/v1/admin/material-hub/view/sources",
+        message="?????? ???????" if launched else "?????? ?? ????????",
+    )
+
+
 @router.get("/tasks", response_model=PaginatedResponse[SourceTaskRead])
 async def list_source_tasks(
     db: DBSession,
@@ -219,6 +298,45 @@ async def run_task(task_id: UUID, db: DBSession, user: CurrentUser):
         "action_type": task.action_type.value,
     })
     return task
+
+
+async def _resolve_overview_launch_sources(db: DBSession, data: SourceTaskOverviewLaunchRequest) -> list[Source]:
+    if data.all_sources:
+        result = await db.execute(select(Source).where(Source.status == SourceStatus.ACTIVE).order_by(Source.priority.asc(), Source.name.asc()))
+    else:
+        names = [name for name in data.source_names if isinstance(name, str) and name.strip()]
+        result = await db.execute(select(Source).where(Source.name.in_(names)).where(Source.status == SourceStatus.ACTIVE).order_by(Source.priority.asc(), Source.name.asc())) if names else None
+    sources = list(result.scalars().all()) if result else []
+    return [source for source in sources if not is_first_wave_blocked_source(source)]
+
+
+def _sanitize_overview_launch_settings(settings: dict[str, Any] | None) -> dict[str, Any]:
+    source = settings if isinstance(settings, dict) else {}
+    cleaned: dict[str, Any] = {}
+    for key, value in source.items():
+        if key not in OVERVIEW_ALLOWED_SETTING_KEYS:
+            continue
+        if key in {"max_pages", "max_documents"}:
+            limit = 100 if key == "max_documents" else 150
+            default = 10 if key == "max_documents" else 5
+            cleaned[key] = min(max(_safe_int(value, default), 1), limit)
+            continue
+        if key == "category_url_contains":
+            if isinstance(value, list):
+                cleaned[key] = [str(item) for item in value if str(item).strip()][:20]
+            elif isinstance(value, str) and value.strip():
+                cleaned[key] = [value.strip()]
+            continue
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            cleaned[key] = value
+    return cleaned
+
+
+def _safe_int(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 
 @router.get("/tasks/{task_id}/logs", response_model=list[SourceTaskLogRead])

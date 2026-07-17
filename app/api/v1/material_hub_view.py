@@ -224,17 +224,13 @@ async def material_hub_view(
         request,
         "material_hub_view.html",
         {
-            "dashboard_cards": await _load_dashboard_cards(db),
             "sources": sources,
             "source_groups": _group_sources_by_direction(sources),
-            "pending_candidates_total": await _count_pending_candidates(db),
-            "action_labels": ACTION_LABELS,
+            "source_category_options": _source_category_options(sources),
             "enum_label": _enum_label,
             "source_display_name": _source_display_name,
-            "source_status_label": _source_status_label,
-            "source_policy_note": first_wave_source_note,
+            "source_direction": _source_direction,
             "is_first_wave_blocked_source": is_first_wave_blocked_source,
-            "dt": _format_datetime,
             "scan_modes": [
                 {"value": value, "label": label}
                 for value, label in SCAN_MODE_LABELS.items()
@@ -242,10 +238,12 @@ async def material_hub_view(
             "data_source_kinds": [
                 {"value": value, "label": label}
                 for value, label in DATA_SOURCE_KIND_LABELS.items()
+                if value != "FILE"
             ],
             "collection_objects": [
                 {"value": value, "label": label}
                 for value, label in COLLECTION_OBJECT_LABELS.items()
+                if value != "WORK_RATES"
             ],
             "processing_scenarios": [
                 {"value": value, "label": label}
@@ -259,12 +257,6 @@ async def material_hub_view(
                 {"value": value, "label": label}
                 for value, label in DOCUMENT_TYPE_OPTIONS.items()
             ],
-            "active_collection_region": _active_collection_region(),
-            "supplier_workspace_summary": await load_supplier_workspace_summary(db),
-            "supplier_cards": await load_supplier_cards(db),
-            "work_rates_workspace_summary": await load_work_rates_workspace_summary(db),
-            "module1_ui_preview": build_module1_ui_preview_context(),
-            "in_stock_only": in_stock_only,
         },
     )
 
@@ -1169,11 +1161,33 @@ def _group_sources_by_direction(sources: list[Source]) -> list[dict]:
         grouped.setdefault(_source_direction(source), []).append(source)
     return [
         {
-            "direction": direction,
+            "key": direction,
+            "label": direction,
             "sources": sorted(items, key=lambda item: (item.priority, item.name)),
         }
         for direction, items in sorted(grouped.items(), key=lambda item: item[0])
     ]
+
+
+def _source_category_options(sources: list[Source]) -> dict[str, list[dict[str, Any]]]:
+    options: dict[str, list[dict[str, Any]]] = {}
+    for source in sources:
+        if source.status != SourceStatus.ACTIVE or is_first_wave_blocked_source(source):
+            continue
+        profile = get_extraction_profile(source.name)
+        if not profile:
+            continue
+        source_options: list[dict[str, Any]] = []
+        for group_code, filters in sorted(profile.category_mapping_rules.items()):
+            if not filters:
+                continue
+            source_options.append({
+                "label": group_code.replace("_", " "),
+                "filters": list(filters),
+            })
+        if source_options:
+            options[source.name] = source_options
+    return options
 
 
 async def _load_dashboard_cards(db: DBSession) -> list[dict]:

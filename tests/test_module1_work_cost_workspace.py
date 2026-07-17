@@ -52,12 +52,13 @@ def _contractor(user_id):
 def test_work_cost_workspace_route_and_overview_link_are_declared():
     view = VIEW.read_text(encoding="utf-8")
     overview = OVERVIEW_TEMPLATE.read_text(encoding="utf-8")
+    shell = Path("templates/_module1_shell.html").read_text(encoding="utf-8")
 
     assert '@router.get("/work-costs", response_class=HTMLResponse)' in view
     assert '"material_hub_work_costs.html"' in view
     assert "_load_provider_work_cost_offer_rows" in view
-    assert "/api/v1/admin/material-hub/view/work-costs" in overview
-    assert "Блок 5 · Стоимость работ" in overview
+    assert "/api/v1/admin/material-hub/view/work-costs" in shell
+    assert "Блок 5 · Стоимость работ" not in overview
     assert "WorkRateObservation" not in overview
 
 
