@@ -29,6 +29,12 @@ from .ref1 import Ref1ProjectionResult, project_ref1_taxonomy, write_ref1_projec
 from .ref2 import Ref2ProjectionResult, project_ref2_characteristics, write_ref2_projection_outputs
 from .ref3_extended import Ref3ExtendedProjectionResult, project_ref3_extended, write_ref3_extended_projection_outputs
 from .ref3_units import Ref3UnitProjectionResult, project_ref3_units, write_ref3_unit_projection_outputs
+from .runtime_artifacts import (
+    RuntimeArtifactBuildError,
+    RuntimeArtifactBuildResult,
+    build_runtime_artifact_package,
+    derive_artifact_set_id,
+)
 from .validator import ProjectionValidator
 
 __all__ = [
@@ -57,6 +63,10 @@ __all__ = [
     "Ref3ExtendedProjectionResult",
     "Ref3UnitProjectionResult",
     "RefPackageLoader",
+    "RuntimeArtifactBuildError",
+    "RuntimeArtifactBuildResult",
+    "build_runtime_artifact_package",
+    "derive_artifact_set_id",
     "project_combined_ref_validation",
     "project_ref1_taxonomy",
     "project_ref2_characteristics",

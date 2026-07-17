@@ -274,8 +274,6 @@ Material Hub должен хранить факты: материалы, кар�
 Статус:
 Принято.
 
----
-
 ## Решение №016
 
 Дата:
@@ -866,6 +864,50 @@ Module №5 позже может потреблять предложения с
 
 Последствия:
 Следующие Provider Work Cost UI/API-спринты должны использовать отдельный contract предложений стоимости работ, а не существующие material price или analyzer pipelines. Любое подключение к Module №5 выполняется отдельным решением и отдельным sprint scope.
+
+Статус:
+Принято.
+
+---
+
+## Решение №034
+
+Дата:
+17.07.2026
+
+Название:
+Module №1 — Deterministic Inactive REF Runtime Artifacts and Validation-Only Compatibility.
+
+Причина:
+Архитектурный аудит REF-1 / REF-2 / REF-3 подтвердил необходимость безопасного промежуточного слоя между authoring-пакетами и legacy runtime Module №1. Прямое чтение `docs/Modules/module1/reference_data`, подмена существующих реестров или ранняя write-активация создают риск нарушения legacy-кодов, схем характеристик, единиц и rollback.
+
+Решение:
+Для Module №1 принят Option E: REF source packages остаются authoring/source packages, а ручной или build-time generator создаёт детерминированные immutable versioned artifacts в `src/modules/module1/runtime_reference/<artifact_set_id>/`.
+
+Production runtime не читает `docs/Modules/module1/reference_data` и не импортирует `tools/module1_ref_projection`. Production loader читает только generated artifacts, проверяет manifest, schema version, source и artifact hashes, counts, exclusions и compatibility contract.
+
+Существующий `MaterialKnowledgeSeedRegistry` остаётся единственным публичным runtime registry и source of truth в режиме `legacy`. Второй публичный registry запрещён. Режим `artifact_validation` разрешает только проверку artifact package и не меняет registry, global state, базу данных, business reads, API или UI.
+
+Режим по умолчанию — `legacy`. Неизвестный режим является configuration error. В этом решении не разрешаются `dual_read`, REF read activation или REF write activation.
+
+Generated artifacts не содержат текущее время, случайные UUID, локальные абсолютные пути, host/user names или environment-specific значения. Повторная генерация из одинаковых source packages должна давать побайтово одинаковый результат.
+
+Review subsets исключаются из runtime-eligible artifacts: REF-2 assignments — 48, REF-3 units — 17, REF-3 packaging assignments — 51. Известные 345 packaging/REF-2 mismatches сохраняются как diagnostics и не исправляются автоматически.
+
+REF-2 assignments сохраняются в flattened-виде. Authoring inheritance не переносится в runtime. REF required semantics не подменяют существующие 13 legacy schemas; 28 runtime-only fields сохраняются в compatibility metadata до отдельного решения.
+
+REF-3 extended rules сохраняются только как inactive metadata и не получают runtime executor. Work-to-material mappings не создаются. Module №1 не выполняет object/work quantity calculations.
+
+Для `liquid_waterproofing` canonical parent берётся из REF-1, второй legacy parent сохраняется только как compatibility path. Один code не клонируется в два material types, новые writes запрещены.
+
+Канонические единицы различаются явно: `lm` означает lumen, `linear_meter` означает погонный метр. Legacy alias `lm -> linear_meter` считается ambiguous, требует контекста и не может автоматически нормализоваться или экспортироваться как `linear_meter`.
+
+Source package `integration_allowed=false` сохраняется. Generated manifest обязан фиксировать `runtime_activation_allowed=false` и `write_activation_allowed=false`.
+
+До любой write-активации обязателен compatibility-aware rollback release, который распознаёт все активированные идентификаторы. Pure legacy rollback после REF-only writes запрещён.
+
+Последствия:
+Разрешено создавать и валидировать inactive generated artifacts и compatibility metadata. Legacy runtime остаётся неизменным. Любая read/write activation, изменение существующих registries, схем, единиц, базы данных, Module №2, Module №5, Dashboard, Quick Actions, Widgets или UI требует отдельного решения и отдельного спринта.
 
 Статус:
 Принято.

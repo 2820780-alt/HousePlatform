@@ -1,0 +1,790 @@
+{
+  "activation_status": "inactive_validation_only",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref-runtime-v1-122079b1c558fefc",
+  "artifact_type": "conversion_metadata",
+  "conversions": [
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "length_m * width_m * height_m * pieces",
+      "from_unit": "piece",
+      "material_group": "aerated_concrete_block",
+      "required_parameters": [],
+      "source_code": "seed:aerated_concrete_block:piece->m3",
+      "source_type": "seed",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "thickness_m * width_m * length_m * pieces",
+      "from_unit": "piece",
+      "material_group": "board",
+      "required_parameters": [],
+      "source_code": "seed:board:piece->m3",
+      "source_type": "seed",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "area_m2 * thickness_mm * consumption_kg_m2_mm",
+      "from_unit": "m2_mm",
+      "material_group": "dry_mix",
+      "required_parameters": [],
+      "source_code": "seed:dry_mix:m2_mm->kg",
+      "source_type": "seed",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "length_m * width_m * sheets",
+      "from_unit": "sheet",
+      "material_group": "gypsum_board",
+      "required_parameters": [],
+      "source_code": "seed:gypsum_board:sheet->m2",
+      "source_type": "seed",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "roll_width_m * roll_length_m * rolls",
+      "from_unit": "roll",
+      "material_group": "membrane",
+      "required_parameters": [],
+      "source_code": "seed:membrane:roll->m2",
+      "source_type": "seed",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "area_m2 * coats / coverage_m2_per_l",
+      "from_unit": "m2",
+      "material_group": "paint",
+      "required_parameters": [],
+      "source_code": "seed:paint:m2->liter",
+      "source_type": "seed",
+      "to_unit": "liter"
+    },
+    {
+      "classification": "FORMULA_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": "length_m * kg_per_meter",
+      "from_unit": "m",
+      "material_group": "rebar",
+      "required_parameters": [],
+      "source_code": "seed:rebar:m->kg",
+      "source_type": "seed",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "0.01",
+      "formula": null,
+      "from_unit": "cm",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:cm->m",
+      "source_type": "simple",
+      "to_unit": "m"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "10",
+      "formula": null,
+      "from_unit": "cm",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:cm->mm",
+      "source_type": "simple",
+      "to_unit": "mm"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "0.001",
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:kg->ton",
+      "source_type": "simple",
+      "to_unit": "ton"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "1",
+      "formula": null,
+      "from_unit": "linear_meter",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:linear_meter->m",
+      "source_type": "simple",
+      "to_unit": "m"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "0.001",
+      "formula": null,
+      "from_unit": "liter",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:liter->m3",
+      "source_type": "simple",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "100",
+      "formula": null,
+      "from_unit": "m",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:m->cm",
+      "source_type": "simple",
+      "to_unit": "cm"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "1",
+      "formula": null,
+      "from_unit": "m",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:m->linear_meter",
+      "source_type": "simple",
+      "to_unit": "linear_meter"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "1000",
+      "formula": null,
+      "from_unit": "m",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:m->mm",
+      "source_type": "simple",
+      "to_unit": "mm"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "1000",
+      "formula": null,
+      "from_unit": "m3",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:m3->liter",
+      "source_type": "simple",
+      "to_unit": "liter"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "0.1",
+      "formula": null,
+      "from_unit": "mm",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:mm->cm",
+      "source_type": "simple",
+      "to_unit": "cm"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "0.001",
+      "formula": null,
+      "from_unit": "mm",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:mm->m",
+      "source_type": "simple",
+      "to_unit": "m"
+    },
+    {
+      "classification": "STRUCTURALLY_COMPATIBLE",
+      "executable": false,
+      "factor": "1000",
+      "formula": null,
+      "from_unit": "ton",
+      "material_group": null,
+      "required_parameters": [],
+      "source_code": "simple:ton->kg",
+      "source_type": "simple",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m3",
+      "material_group": "aerated_concrete_block",
+      "required_parameters": [
+        [
+          "length_m",
+          "width_m",
+          "height_m"
+        ],
+        [
+          "length_mm",
+          "width_mm",
+          "height_mm"
+        ]
+      ],
+      "source_code": "technical:aerated_concrete_block:m3->piece",
+      "source_type": "technical",
+      "to_unit": "piece"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "piece",
+      "material_group": "aerated_concrete_block",
+      "required_parameters": [
+        [
+          "length_m",
+          "width_m",
+          "height_m"
+        ],
+        [
+          "length_mm",
+          "width_mm",
+          "height_mm"
+        ]
+      ],
+      "source_code": "technical:aerated_concrete_block:piece->m3",
+      "source_type": "technical",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m3",
+      "material_group": "board",
+      "required_parameters": [
+        [
+          "length_m",
+          "width_m",
+          "thickness_m"
+        ],
+        [
+          "length_mm",
+          "width_mm",
+          "thickness_mm"
+        ]
+      ],
+      "source_code": "technical:board:m3->piece",
+      "source_type": "technical",
+      "to_unit": "piece"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "piece",
+      "material_group": "board",
+      "required_parameters": [
+        [
+          "length_m",
+          "width_m",
+          "thickness_m"
+        ],
+        [
+          "length_mm",
+          "width_mm",
+          "thickness_mm"
+        ]
+      ],
+      "source_code": "technical:board:piece->m3",
+      "source_type": "technical",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "liter",
+      "material_group": "deep_penetration_primer",
+      "required_parameters": [
+        [
+          "coverage_m2_per_l"
+        ],
+        [
+          "consumption_l_m2"
+        ]
+      ],
+      "source_code": "technical:deep_penetration_primer:liter->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "deep_penetration_primer",
+      "required_parameters": [
+        [
+          "coverage_m2_per_l"
+        ],
+        [
+          "consumption_l_m2"
+        ]
+      ],
+      "source_code": "technical:deep_penetration_primer:m2->liter",
+      "source_type": "technical",
+      "to_unit": "liter"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": "dry_mix",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm",
+          "layer_thickness_mm"
+        ]
+      ],
+      "source_code": "technical:dry_mix:kg->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": "dry_mix",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm"
+        ]
+      ],
+      "source_code": "technical:dry_mix:kg->m2_mm",
+      "source_type": "technical",
+      "to_unit": "m2_mm"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "dry_mix",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm",
+          "layer_thickness_mm"
+        ]
+      ],
+      "source_code": "technical:dry_mix:m2->kg",
+      "source_type": "technical",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2_mm",
+      "material_group": "dry_mix",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm"
+        ]
+      ],
+      "source_code": "technical:dry_mix:m2_mm->kg",
+      "source_type": "technical",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "gypsum_board",
+      "required_parameters": [
+        [
+          "sheet_area_m2"
+        ],
+        [
+          "length_m",
+          "width_m"
+        ],
+        [
+          "length_mm",
+          "width_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_board:m2->sheet",
+      "source_type": "technical",
+      "to_unit": "sheet"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "sheet",
+      "material_group": "gypsum_board",
+      "required_parameters": [
+        [
+          "sheet_area_m2"
+        ],
+        [
+          "length_m",
+          "width_m"
+        ],
+        [
+          "length_mm",
+          "width_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_board:sheet->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "gypsum_board_moisture_resistant",
+      "required_parameters": [
+        [
+          "sheet_area_m2"
+        ],
+        [
+          "length_m",
+          "width_m"
+        ],
+        [
+          "length_mm",
+          "width_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_board_moisture_resistant:m2->sheet",
+      "source_type": "technical",
+      "to_unit": "sheet"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "sheet",
+      "material_group": "gypsum_board_moisture_resistant",
+      "required_parameters": [
+        [
+          "sheet_area_m2"
+        ],
+        [
+          "length_m",
+          "width_m"
+        ],
+        [
+          "length_mm",
+          "width_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_board_moisture_resistant:sheet->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": "gypsum_plaster",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm",
+          "layer_thickness_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_plaster:kg->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "gypsum_plaster",
+      "required_parameters": [
+        [
+          "consumption_kg_m2_mm",
+          "layer_thickness_mm"
+        ]
+      ],
+      "source_code": "technical:gypsum_plaster:m2->kg",
+      "source_type": "technical",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "membrane",
+      "required_parameters": [
+        [
+          "roll_area_m2"
+        ],
+        [
+          "roll_width_m",
+          "roll_length_m"
+        ]
+      ],
+      "source_code": "technical:membrane:m2->roll",
+      "source_type": "technical",
+      "to_unit": "roll"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "roll",
+      "material_group": "membrane",
+      "required_parameters": [
+        [
+          "roll_area_m2"
+        ],
+        [
+          "roll_width_m",
+          "roll_length_m"
+        ]
+      ],
+      "source_code": "technical:membrane:roll->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "mineral_wool_slab",
+      "required_parameters": [
+        [
+          "package_area_m2"
+        ]
+      ],
+      "source_code": "technical:mineral_wool_slab:m2->package",
+      "source_type": "technical",
+      "to_unit": "package"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m3",
+      "material_group": "mineral_wool_slab",
+      "required_parameters": [
+        [
+          "package_volume_m3"
+        ],
+        [
+          "package_area_m2",
+          "thickness_mm"
+        ]
+      ],
+      "source_code": "technical:mineral_wool_slab:m3->package",
+      "source_type": "technical",
+      "to_unit": "package"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "package",
+      "material_group": "mineral_wool_slab",
+      "required_parameters": [
+        [
+          "package_area_m2"
+        ]
+      ],
+      "source_code": "technical:mineral_wool_slab:package->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "package",
+      "material_group": "mineral_wool_slab",
+      "required_parameters": [
+        [
+          "package_volume_m3"
+        ],
+        [
+          "package_area_m2",
+          "thickness_mm"
+        ]
+      ],
+      "source_code": "technical:mineral_wool_slab:package->m3",
+      "source_type": "technical",
+      "to_unit": "m3"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "liter",
+      "material_group": "paint",
+      "required_parameters": [
+        [
+          "coverage_m2_per_l"
+        ]
+      ],
+      "source_code": "technical:paint:liter->m2",
+      "source_type": "technical",
+      "to_unit": "m2"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m2",
+      "material_group": "paint",
+      "required_parameters": [
+        [
+          "coverage_m2_per_l"
+        ]
+      ],
+      "source_code": "technical:paint:m2->liter",
+      "source_type": "technical",
+      "to_unit": "liter"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": "rebar",
+      "required_parameters": [
+        [
+          "kg_per_meter"
+        ],
+        [
+          "diameter_mm"
+        ]
+      ],
+      "source_code": "technical:rebar:kg->linear_meter",
+      "source_type": "technical",
+      "to_unit": "linear_meter"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "kg",
+      "material_group": "rebar",
+      "required_parameters": [
+        [
+          "kg_per_meter"
+        ],
+        [
+          "diameter_mm"
+        ]
+      ],
+      "source_code": "technical:rebar:kg->m",
+      "source_type": "technical",
+      "to_unit": "m"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "linear_meter",
+      "material_group": "rebar",
+      "required_parameters": [
+        [
+          "kg_per_meter"
+        ],
+        [
+          "diameter_mm"
+        ]
+      ],
+      "source_code": "technical:rebar:linear_meter->kg",
+      "source_type": "technical",
+      "to_unit": "kg"
+    },
+    {
+      "classification": "PARAMETER_REQUIRED",
+      "executable": false,
+      "factor": null,
+      "formula": null,
+      "from_unit": "m",
+      "material_group": "rebar",
+      "required_parameters": [
+        [
+          "kg_per_meter"
+        ],
+        [
+          "diameter_mm"
+        ]
+      ],
+      "source_code": "technical:rebar:m->kg",
+      "source_type": "technical",
+      "to_unit": "kg"
+    }
+  ],
+  "counts": {
+    "conversions": 47,
+    "formula": 7,
+    "simple": 12,
+    "technical": 28
+  },
+  "runtime_activation_allowed": false,
+  "write_activation_allowed": false
+}

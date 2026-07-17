@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     MATERIAL_HUB_SOURCE_CITY_ID: Optional[str] = None
     MATERIAL_HUB_DELIVERY_ZONE_ID: Optional[str] = None
 
+    # Module 01 REF artifacts remain validation-only. Any additional mode
+    # requires a separate accepted architecture decision.
+    MODULE1_REF_RUNTIME_MODE: str = "legacy"
+    MODULE1_REF_ARTIFACT_SET_ID: str = "ref-runtime-v1-122079b1c558fefc"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

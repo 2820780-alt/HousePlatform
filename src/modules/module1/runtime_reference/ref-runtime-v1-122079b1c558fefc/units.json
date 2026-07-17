@@ -1,0 +1,1420 @@
+{
+  "activation_status": "inactive_validation_only",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref-runtime-v1-122079b1c558fefc",
+  "artifact_type": "units",
+  "counts": {
+    "eligible_units": 73,
+    "review_excluded": 17,
+    "source_units": 90
+  },
+  "runtime_activation_allowed": false,
+  "units": [
+    {
+      "aliases": [
+        "a",
+        "а"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "A",
+      "canonical_unit_code": "A",
+      "code": "A",
+      "dimension": "current",
+      "label_ru": "Ампер",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "А",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "gpa",
+        "гпа"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Pa",
+      "canonical_unit_code": "GPa",
+      "code": "GPa",
+      "dimension": "pressure",
+      "label_ru": "Гигапаскаль",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "ГПа",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "hz",
+        "гц"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Hz",
+      "canonical_unit_code": "Hz",
+      "code": "Hz",
+      "dimension": "frequency",
+      "label_ru": "Герц",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Гц",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "mpa",
+        "мпа"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Pa",
+      "canonical_unit_code": "MPa",
+      "code": "MPa",
+      "dimension": "pressure",
+      "label_ru": "Мегапаскаль",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "МПа",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "n",
+        "н"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "N",
+      "canonical_unit_code": "N",
+      "code": "N",
+      "dimension": "force",
+      "label_ru": "Ньютон",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Н",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "nm",
+        "н·м",
+        "нм"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Nm",
+      "canonical_unit_code": "Nm",
+      "code": "Nm",
+      "dimension": "torque",
+      "label_ru": "Ньютон-метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Н·м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "pa",
+        "па"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Pa",
+      "canonical_unit_code": "Pa",
+      "code": "Pa",
+      "dimension": "pressure",
+      "label_ru": "Паскаль",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Па",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "v",
+        "в"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "V",
+      "canonical_unit_code": "V",
+      "code": "V",
+      "dimension": "voltage",
+      "label_ru": "Вольт",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "В",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "w",
+        "вт"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "W",
+      "canonical_unit_code": "W",
+      "code": "W",
+      "dimension": "power",
+      "label_ru": "Ватт",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Вт",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "w_per_m",
+        "вт/м"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "W_per_m",
+      "code": "W_per_m",
+      "dimension": "linear_power",
+      "label_ru": "Ватт на метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Вт/м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "w_per_mk",
+        "вт/(м·к)"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "W_per_mK",
+      "code": "W_per_mK",
+      "dimension": "thermal_conductivity",
+      "label_ru": "Ватт на метр-кельвин",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "Вт/(м·К)",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "bag",
+        "bags",
+        "мешки",
+        "мешок"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "bag",
+      "code": "bag",
+      "dimension": "count",
+      "label_ru": "Мешок",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "мешок",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "bar",
+        "бар"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Pa",
+      "canonical_unit_code": "bar",
+      "code": "bar",
+      "dimension": "pressure",
+      "label_ru": "Бар",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "бар",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "bottle",
+        "бут.",
+        "бутылка",
+        "флакон"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "bottle",
+      "code": "bottle",
+      "dimension": "count",
+      "label_ru": "Флакон / бутылка",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "бут.",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "box",
+        "кор.",
+        "короб",
+        "коробка"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "box",
+      "code": "box",
+      "dimension": "count",
+      "label_ru": "Коробка",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кор.",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "bucket",
+        "ведро"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "bucket",
+      "code": "bucket",
+      "dimension": "count",
+      "label_ru": "Ведро",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "ведро",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "bundle",
+        "пачка",
+        "связка"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "bundle",
+      "code": "bundle",
+      "dimension": "count",
+      "label_ru": "Связка / пачка",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "пачка",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "canister",
+        "канистра"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "canister",
+      "code": "canister",
+      "dimension": "count",
+      "label_ru": "Канистра",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "канистра",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cartridge",
+        "картридж"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "cartridge",
+      "code": "cartridge",
+      "dimension": "count",
+      "label_ru": "Картридж",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "картридж",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cm",
+        "сантиметр",
+        "сантиметры",
+        "см"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m",
+      "canonical_unit_code": "cm",
+      "code": "cm",
+      "dimension": "length",
+      "label_ru": "Сантиметр",
+      "roles": [],
+      "source_status": "existing_runtime",
+      "symbol": "см",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cm2",
+        "см²"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m2",
+      "canonical_unit_code": "cm2",
+      "code": "cm2",
+      "dimension": "area",
+      "label_ru": "Квадратный сантиметр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "см²",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cm4",
+        "см⁴"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "cm4",
+      "code": "cm4",
+      "dimension": "section_inertia",
+      "label_ru": "Сантиметр в четвёртой степени",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "см⁴",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "coil",
+        "бухта"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "coil",
+      "code": "coil",
+      "dimension": "count",
+      "label_ru": "Бухта",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "бухта",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "container",
+        "конт.",
+        "контейнер"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "container",
+      "code": "container",
+      "dimension": "count",
+      "label_ru": "Контейнер",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "конт.",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "crate",
+        "ящик"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "crate",
+      "code": "crate",
+      "dimension": "count",
+      "label_ru": "Ящик",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "ящик",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cylinder",
+        "баллон"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "cylinder",
+      "code": "cylinder",
+      "dimension": "count",
+      "label_ru": "Баллон",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "баллон",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "db",
+        "дб"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "dB",
+      "code": "dB",
+      "dimension": "acoustic_level",
+      "label_ru": "Децибел",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "дБ",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "day",
+        "день",
+        "сут",
+        "сутки"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "s",
+      "canonical_unit_code": "day",
+      "code": "day",
+      "dimension": "time",
+      "label_ru": "Сутки",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "сут",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "degc",
+        "°c",
+        "градус цельсия",
+        "с"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "degC",
+      "code": "degC",
+      "dimension": "temperature",
+      "label_ru": "Градус Цельсия",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "°C",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "deg",
+        "degree",
+        "°",
+        "градус"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "degree",
+      "canonical_unit_code": "degree",
+      "code": "degree",
+      "dimension": "angle",
+      "label_ru": "Градус угла",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "°",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "drum",
+        "бочка"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "drum",
+      "code": "drum",
+      "dimension": "count",
+      "label_ru": "Бочка",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "бочка",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "g_per_m2",
+        "г/м²"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "g_per_m2",
+      "code": "g_per_m2",
+      "dimension": "surface_mass",
+      "label_ru": "Грамм на квадратный метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "г/м²",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "h",
+        "hr",
+        "ч",
+        "час"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "s",
+      "canonical_unit_code": "h",
+      "code": "h",
+      "dimension": "time",
+      "label_ru": "Час",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "ч",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "ka",
+        "ка"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "A",
+      "canonical_unit_code": "kA",
+      "code": "kA",
+      "dimension": "current",
+      "label_ru": "Килоампер",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кА",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kn",
+        "кн"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "N",
+      "canonical_unit_code": "kN",
+      "code": "kN",
+      "dimension": "force",
+      "label_ru": "Килоньютон",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кН",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kn_per_m",
+        "кн/м"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "kN_per_m",
+      "code": "kN_per_m",
+      "dimension": "line_force",
+      "label_ru": "Килоньютон на метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кН/м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kpa",
+        "кпа"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "Pa",
+      "canonical_unit_code": "kPa",
+      "code": "kPa",
+      "dimension": "pressure",
+      "label_ru": "Килопаскаль",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кПа",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kw",
+        "квт"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "W",
+      "canonical_unit_code": "kW",
+      "code": "kW",
+      "dimension": "power",
+      "label_ru": "Киловатт",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кВт",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kg",
+        "кг",
+        "килограмм",
+        "килограммы"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "kg",
+      "canonical_unit_code": "kg",
+      "code": "kg",
+      "dimension": "mass",
+      "label_ru": "Килограмм",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "кг",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kg_per_m",
+        "кг/м"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "kg_per_m",
+      "code": "kg_per_m",
+      "dimension": "linear_mass",
+      "label_ru": "Килограмм на метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кг/м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kg_per_m2_mm",
+        "кг/(м²·мм)"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "kg_per_m2_mm",
+      "code": "kg_per_m2_mm",
+      "dimension": "layer_consumption",
+      "label_ru": "Килограмм на квадратный метр на миллиметр",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "кг/(м²·мм)",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "kit",
+        "набор"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "kit",
+      "code": "kit",
+      "dimension": "count",
+      "label_ru": "Набор",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "набор",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l_per_kg",
+        "л/кг"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "l_per_kg",
+      "code": "l_per_kg",
+      "dimension": "mixing_water_ratio",
+      "label_ru": "Литр на килограмм",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "л/кг",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l_per_m2",
+        "л/м²"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "l_per_m2",
+      "code": "l_per_m2",
+      "dimension": "area_consumption",
+      "label_ru": "Литр на квадратный метр",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "л/м²",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l_per_m2_s",
+        "л/(м²·с)"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "l_per_m2_s",
+      "code": "l_per_m2_s",
+      "dimension": "surface_flow",
+      "label_ru": "Литр на квадратный метр в секунду",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "л/(м²·с)",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l_per_min",
+        "л/мин"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m3_per_h",
+      "canonical_unit_code": "l_per_min",
+      "code": "l_per_min",
+      "dimension": "flow_rate",
+      "label_ru": "Литр в минуту",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "л/мин",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l_per_s",
+        "л/с"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m3_per_h",
+      "canonical_unit_code": "l_per_s",
+      "code": "l_per_s",
+      "dimension": "flow_rate",
+      "label_ru": "Литр в секунду",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "л/с",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "l",
+        "liter",
+        "л",
+        "литр",
+        "литры"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m3",
+      "canonical_unit_code": "liter",
+      "code": "liter",
+      "dimension": "volume",
+      "label_ru": "Литр",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "л",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "m",
+        "м",
+        "метр",
+        "метры"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m",
+      "canonical_unit_code": "m",
+      "code": "m",
+      "dimension": "length",
+      "label_ru": "Метр",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "m2",
+        "m^2",
+        "sqm",
+        "кв. м",
+        "кв.м",
+        "м2",
+        "м²"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m2",
+      "canonical_unit_code": "m2",
+      "code": "m2",
+      "dimension": "area",
+      "label_ru": "Квадратный метр",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "м²",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "m2_per_l",
+        "м²/л"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "m2_per_l",
+      "code": "m2_per_l",
+      "dimension": "coverage",
+      "label_ru": "Квадратный метр на литр",
+      "roles": [
+        "characteristic_unit",
+        "rate_or_coverage_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "м²/л",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "cbm",
+        "m3",
+        "m^3",
+        "куб. м",
+        "куб.м",
+        "м3",
+        "м³"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m3",
+      "canonical_unit_code": "m3",
+      "code": "m3",
+      "dimension": "volume",
+      "label_ru": "Кубический метр",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "м³",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "m3_per_h",
+        "м³/ч"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m3_per_h",
+      "canonical_unit_code": "m3_per_h",
+      "code": "m3_per_h",
+      "dimension": "flow_rate",
+      "label_ru": "Кубический метр в час",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "м³/ч",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "ma",
+        "ма"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "A",
+      "canonical_unit_code": "mA",
+      "code": "mA",
+      "dimension": "current",
+      "label_ru": "Миллиампер",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мА",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "m_per_s",
+        "м/с"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m_per_s",
+      "canonical_unit_code": "m_per_s",
+      "code": "m_per_s",
+      "dimension": "speed",
+      "label_ru": "Метр в секунду",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "м/с",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "min",
+        "мин",
+        "минута"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "s",
+      "canonical_unit_code": "min",
+      "code": "min",
+      "dimension": "time",
+      "label_ru": "Минута",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мин",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "mm",
+        "миллиметр",
+        "миллиметры",
+        "мм"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m",
+      "canonical_unit_code": "mm",
+      "code": "mm",
+      "dimension": "length",
+      "label_ru": "Миллиметр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "мм",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "mm2",
+        "мм²"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "m2",
+      "canonical_unit_code": "mm2",
+      "code": "mm2",
+      "dimension": "area",
+      "label_ru": "Квадратный миллиметр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мм²",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "mm_per_day",
+        "мм/сут"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "mm_per_day",
+      "code": "mm_per_day",
+      "dimension": "cure_rate",
+      "label_ru": "Миллиметр в сутки",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мм/сут",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "mm_per_m",
+        "мм/м"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "mm_per_m",
+      "code": "mm_per_m",
+      "dimension": "linear_shrinkage",
+      "label_ru": "Миллиметр на метр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мм/м",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "pack",
+        "package",
+        "упак",
+        "упак.",
+        "упаковка",
+        "упаковки"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "package",
+      "code": "package",
+      "dimension": "count",
+      "label_ru": "Упаковка",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "упак.",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "pair",
+        "пара"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "pair",
+      "code": "pair",
+      "dimension": "count",
+      "label_ru": "Пара",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "пара",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "pallet",
+        "pallets",
+        "паллет",
+        "паллеты",
+        "поддон"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "pallet",
+      "code": "pallet",
+      "dimension": "count",
+      "label_ru": "Поддон",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "поддон",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "%",
+        "percent",
+        "процент"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "percent",
+      "canonical_unit_code": "percent",
+      "code": "percent",
+      "dimension": "ratio_percent",
+      "label_ru": "Процент",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "%",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "pc",
+        "pcs",
+        "piece",
+        "pieces",
+        "шт",
+        "штука",
+        "штуки"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "piece",
+      "code": "piece",
+      "dimension": "count",
+      "label_ru": "Штука",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "шт",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "roll",
+        "rolls",
+        "рулон",
+        "рулоны"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "roll",
+      "code": "roll",
+      "dimension": "count",
+      "label_ru": "Рулон",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "рулон",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "rpm",
+        "об/мин"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "rpm",
+      "code": "rpm",
+      "dimension": "rotational_speed",
+      "label_ru": "Оборот в минуту",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "об/мин",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "set",
+        "компл.",
+        "комплект"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "set",
+      "code": "set",
+      "dimension": "count",
+      "label_ru": "Комплект",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "компл.",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "sheet",
+        "sheets",
+        "лист",
+        "листы"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "sheet",
+      "code": "sheet",
+      "dimension": "count",
+      "label_ru": "Лист",
+      "roles": [
+        "candidate_price_basis_unit",
+        "characteristic_unit",
+        "material_quantity_unit",
+        "package_container_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "лист",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "t",
+        "ton",
+        "т",
+        "тонна",
+        "тонны"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "kg",
+      "canonical_unit_code": "ton",
+      "code": "ton",
+      "dimension": "mass",
+      "label_ru": "Тонна",
+      "roles": [
+        "candidate_price_basis_unit",
+        "material_quantity_unit"
+      ],
+      "source_status": "existing_runtime",
+      "symbol": "т",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "tube",
+        "туба"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "count",
+      "canonical_unit_code": "tube",
+      "code": "tube",
+      "dimension": "count",
+      "label_ru": "Туба",
+      "roles": [
+        "package_container_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "туба",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "um",
+        "µm",
+        "микрометр",
+        "микроны",
+        "мкм"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": "mm",
+      "canonical_unit_code": "um",
+      "code": "um",
+      "dimension": "length",
+      "label_ru": "Микрометр",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "мкм",
+      "write_eligible": false
+    },
+    {
+      "aliases": [
+        "year",
+        "год",
+        "лет"
+      ],
+      "auto_normalization_allowed": false,
+      "base_unit_code": null,
+      "canonical_unit_code": "year",
+      "code": "year",
+      "dimension": "time",
+      "label_ru": "Год",
+      "roles": [
+        "characteristic_unit"
+      ],
+      "source_status": "active_draft",
+      "symbol": "год",
+      "write_eligible": false
+    }
+  ],
+  "write_activation_allowed": false
+}

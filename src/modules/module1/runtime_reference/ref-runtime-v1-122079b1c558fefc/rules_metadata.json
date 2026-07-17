@@ -1,0 +1,479 @@
+{
+  "activation_status": "inactive_validation_only",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref-runtime-v1-122079b1c558fefc",
+  "artifact_type": "extended_rules_metadata",
+  "counts": {
+    "consumption": 5,
+    "coverage": 2,
+    "geometry": 7,
+    "rules": 15,
+    "yield": 1
+  },
+  "executable_rule_count": 0,
+  "extended_rules": [
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "quantity_kg = area_m2 * selected_rate_kg_m2",
+      "formula_inputs": [
+        {
+          "name": "area_m2",
+          "source": "external_scope",
+          "unit_code": "m2"
+        },
+        {
+          "field_options": [
+            "consumption_kg_m2",
+            "adhesive_consumption_kg_m2",
+            "application_rate_kg_m2"
+          ],
+          "name": "selected_rate_kg_m2",
+          "source": "selected_material_field",
+          "unit_code": "kg_per_m2"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "quantity_kg",
+          "source": "calculated_requirement",
+          "unit_code": "kg"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Module №2 применяет площадь и технологические коэффициенты.",
+      "name_ru": "Расход материала в килограммах на площадь",
+      "rule_id": "area_rate_kg_m2",
+      "semantic_type": "conditional_consumption_rate"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "quantity_l = area_m2 * coats * consumption_l_m2",
+      "formula_inputs": [
+        {
+          "name": "area_m2",
+          "source": "external_scope",
+          "unit_code": "m2"
+        },
+        {
+          "name": "coats",
+          "optional": true,
+          "source": "technology_condition",
+          "unit_code": "piece"
+        },
+        {
+          "field_code": "consumption_l_m2",
+          "name": "consumption_l_m2",
+          "source": "material_field",
+          "unit_code": "l_per_m2"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "quantity_l",
+          "source": "calculated_requirement",
+          "unit_code": "liter"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Module №2 задаёт площадь и число слоёв.",
+      "name_ru": "Расход жидкого материала на площадь",
+      "rule_id": "area_rate_l_m2",
+      "semantic_type": "conditional_consumption_rate"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "quantity_l = area_m2 * coats / coverage_m2_per_l",
+      "formula_inputs": [
+        {
+          "name": "area_m2",
+          "source": "external_scope",
+          "unit_code": "m2"
+        },
+        {
+          "name": "coats",
+          "optional": true,
+          "source": "technology_condition",
+          "unit_code": "piece"
+        },
+        {
+          "field_code": "coverage_m2_per_l",
+          "name": "coverage_m2_per_l",
+          "source": "material_field",
+          "unit_code": "m2_per_l"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "quantity_l",
+          "source": "calculated_requirement",
+          "unit_code": "liter"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Module №2 задаёт площадь и число слоёв.",
+      "name_ru": "Покрытие площади одним литром",
+      "rule_id": "coverage_m2_per_l",
+      "semantic_type": "coverage_rate"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "quantity_kg = area_m2 * layer_thickness_mm * consumption_kg_m2_mm",
+      "formula_inputs": [
+        {
+          "name": "area_m2",
+          "source": "external_scope",
+          "unit_code": "m2"
+        },
+        {
+          "name": "layer_thickness_mm",
+          "source": "technology_condition",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "consumption_kg_m2_mm",
+          "name": "consumption_kg_m2_mm",
+          "source": "material_field",
+          "unit_code": "kg_per_m2_mm"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "quantity_kg",
+          "source": "calculated_requirement",
+          "unit_code": "kg"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Module №2 подставляет площадь и толщину из технологии.",
+      "name_ru": "Расход сухой смеси на площадь и толщину слоя",
+      "rule_id": "layer_rate_kg_m2_mm",
+      "semantic_type": "conditional_consumption_rate"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": null,
+      "formula_inputs": [],
+      "formula_outputs": [],
+      "module1_boundary": null,
+      "module2_use": "Не используется как расход строительного материала.",
+      "name_ru": "Эксплуатационный расход соли за цикл",
+      "rule_id": "operational_salt_consumption",
+      "semantic_type": "operational_consumption"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": null,
+      "formula_inputs": [],
+      "formula_outputs": [],
+      "module1_boundary": null,
+      "module2_use": "Не используется для расчёта закупки строительного материала.",
+      "name_ru": "Эксплуатационный расход воды оборудования",
+      "rule_id": "operational_water_consumption",
+      "semantic_type": "operational_consumption"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "package_count = required_area_m2 / package_coverage_m2",
+      "formula_inputs": [
+        {
+          "name": "required_area_m2",
+          "source": "external_scope",
+          "unit_code": "m2"
+        },
+        {
+          "field_options": [
+            "coverage_area_per_pack_m2",
+            "package_area_m2"
+          ],
+          "name": "package_coverage_m2",
+          "source": "selected_material_field",
+          "unit_code": "m2"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "package_count",
+          "source": "purchase_rounding_input",
+          "unit_code": "package"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Module №2 рассчитывает требуемую площадь; Module №5 округляет покупку по упаковкам.",
+      "name_ru": "Покрываемая площадь одной упаковки",
+      "rule_id": "package_coverage_area",
+      "semantic_type": "package_coverage"
+    },
+    {
+      "executable": false,
+      "formula": null,
+      "formula_hint": "package_count = required_yield_l / selected_yield_l",
+      "formula_inputs": [
+        {
+          "name": "required_yield_l",
+          "source": "external_scope",
+          "unit_code": "liter"
+        },
+        {
+          "field_options": [
+            "yield_l",
+            "foam_yield_l"
+          ],
+          "name": "selected_yield_l",
+          "source": "selected_material_field",
+          "unit_code": "liter"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "package_count",
+          "source": "purchase_rounding_input",
+          "unit_code": "package"
+        }
+      ],
+      "module1_boundary": null,
+      "module2_use": "Используется только если технология считает требуемый объём готового материала.",
+      "name_ru": "Выход готового материала из упаковки",
+      "rule_id": "package_yield_l",
+      "semantic_type": "package_yield"
+    }
+  ],
+  "geometry_rules": [
+    {
+      "executable": false,
+      "formula": "length_mm / 1000 * width_mm / 1000 * thickness_mm / 1000",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "length_mm",
+          "name": "length_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "width_mm",
+          "name": "width_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "thickness_mm",
+          "name": "thickness_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "volume_per_piece_m3",
+          "name": "volume_per_piece_m3",
+          "unit_code": "m3"
+        }
+      ],
+      "module1_boundary": "Только геометрия одной единицы.",
+      "module2_use": null,
+      "name_ru": "Объём доски, бруса или плиты по размерам",
+      "rule_id": "board_prism_volume_mm",
+      "semantic_type": "derived_geometry"
+    },
+    {
+      "executable": false,
+      "formula": "package_area_m2 * thickness_mm / 1000",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "package_area_m2",
+          "name": "package_area_m2",
+          "source": "package_field",
+          "unit_code": "m2"
+        },
+        {
+          "field_code": "thickness_mm",
+          "name": "thickness_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "package_volume_m3",
+          "name": "package_volume_m3",
+          "unit_code": "m3"
+        }
+      ],
+      "module1_boundary": "Геометрия упаковки.",
+      "module2_use": null,
+      "name_ru": "Объём упаковки плит по площади и толщине",
+      "rule_id": "package_volume_from_area_and_thickness",
+      "semantic_type": "package_geometry"
+    },
+    {
+      "executable": false,
+      "formula": "1 / volume_per_piece_m3",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "volume_per_piece_m3",
+          "name": "volume_per_piece_m3",
+          "source": "material_field",
+          "unit_code": "m3"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "pieces_per_m3",
+          "name": "pieces_per_m3",
+          "unit_code": "piece_per_m3"
+        }
+      ],
+      "module1_boundary": "Справочная конверсия единиц товара, не расчёт потребности.",
+      "module2_use": null,
+      "name_ru": "Количество штук в одном кубическом метре",
+      "rule_id": "pieces_per_m3_from_piece_volume",
+      "semantic_type": "derived_conversion"
+    },
+    {
+      "executable": false,
+      "formula": "length_mm / 1000 * width_mm / 1000 * height_mm / 1000",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "length_mm",
+          "name": "length_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "width_mm",
+          "name": "width_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "height_mm",
+          "name": "height_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "volume_per_piece_m3",
+          "name": "volume_per_piece_m3",
+          "unit_code": "m3"
+        }
+      ],
+      "module1_boundary": "Вычисляется геометрия одной товарной единицы; объём потребности по объекту не рассчитывается.",
+      "module2_use": null,
+      "name_ru": "Объём прямоугольного штучного изделия",
+      "rule_id": "rectangular_prism_volume_mm",
+      "semantic_type": "derived_geometry"
+    },
+    {
+      "executable": false,
+      "formula": "length_mm / 1000 * width_mm / 1000",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "length_mm",
+          "name": "length_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        },
+        {
+          "field_code": "width_mm",
+          "name": "width_mm",
+          "source": "material_field",
+          "unit_code": "mm"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "sheet_area_m2",
+          "name": "sheet_area_m2",
+          "unit_code": "m2"
+        },
+        {
+          "field_code": "area_per_piece_m2",
+          "name": "area_per_piece_m2",
+          "unit_code": "m2"
+        }
+      ],
+      "module1_boundary": "Только площадь одной единицы.",
+      "module2_use": null,
+      "name_ru": "Площадь листа, панели или плитки",
+      "rule_id": "rectangular_sheet_area_mm",
+      "semantic_type": "derived_geometry"
+    },
+    {
+      "executable": false,
+      "formula": "roll_width_m * roll_length_m",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "field_code": "roll_width_m",
+          "name": "roll_width_m",
+          "source": "material_field",
+          "unit_code": "m"
+        },
+        {
+          "field_code": "roll_length_m",
+          "name": "roll_length_m",
+          "source": "material_field",
+          "unit_code": "m"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "field_code": "roll_area_m2",
+          "name": "roll_area_m2",
+          "unit_code": "m2"
+        }
+      ],
+      "module1_boundary": "Только площадь одного рулона.",
+      "module2_use": null,
+      "name_ru": "Площадь рулона",
+      "rule_id": "roll_area_m",
+      "semantic_type": "derived_geometry"
+    },
+    {
+      "executable": false,
+      "formula": "mass_kg = length_m * weight_per_meter_kg",
+      "formula_hint": null,
+      "formula_inputs": [
+        {
+          "name": "length_m",
+          "source": "external_quantity",
+          "unit_code": "m"
+        },
+        {
+          "field_code": "weight_per_meter_kg",
+          "name": "weight_per_meter_kg",
+          "source": "material_field",
+          "unit_code": "kg_per_m"
+        }
+      ],
+      "formula_outputs": [
+        {
+          "name": "mass_kg",
+          "source": "derived_quantity",
+          "unit_code": "kg"
+        }
+      ],
+      "module1_boundary": "Конвертирует уже заданное количество материала.",
+      "module2_use": null,
+      "name_ru": "Пересчёт массы и длины погонного материала",
+      "rule_id": "weight_length_conversion",
+      "semantic_type": "unit_conversion"
+    }
+  ],
+  "object_work_quantity_calculations": 0,
+  "runtime_activation_allowed": false,
+  "write_activation_allowed": false
+}

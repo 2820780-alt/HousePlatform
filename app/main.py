@@ -7,10 +7,13 @@ from app.api.v1 import api_router
 from app.api.v1.admin_users_roles_view import ui_router as admin_users_roles_ui_router
 from app.config import settings
 from app.database import close_db, init_db
+from app.services.module1_ref_runtime_artifacts import validate_configured_module1_ref_runtime
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ref_validation = validate_configured_module1_ref_runtime()
+    app.state.module1_ref_artifact_validation = ref_validation.as_dict()
     await init_db()
     try:
         yield

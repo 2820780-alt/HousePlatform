@@ -1,0 +1,5718 @@
+{
+  "activation_status": "inactive_validation_only",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref-runtime-v1-122079b1c558fefc",
+  "artifact_type": "field_dictionary",
+  "counts": {
+    "fields": 558
+  },
+  "fields": [
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "abrasion_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс износостойкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "access_panel_type",
+      "data_type": "string",
+      "label_ru": "Тип ревизионного люка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "accuracy_class",
+      "data_type": "string",
+      "label_ru": "Класс точности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "acoustic_absorption_class",
+      "data_type": "string",
+      "label_ru": "Класс звукопоглощения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "acoustic_effect",
+      "data_type": "string",
+      "label_ru": "Акустический эффект",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "additive_form",
+      "data_type": "string",
+      "label_ru": "Форма добавки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesion_strength_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность сцепления",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesion_to_steel_n_25mm",
+      "data_type": "number",
+      "label_ru": "Адгезия к стали",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "N_per_25mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesive_base",
+      "data_type": "string",
+      "label_ru": "Основа клея",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "c1",
+        "c2",
+        "s1",
+        "s2"
+      ],
+      "allowed_values": [],
+      "code": "adhesive_class",
+      "data_type": "string",
+      "label_ru": "Класс клея",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesive_consumption_kg_m2",
+      "data_type": "number",
+      "label_ru": "Расход клея",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesive_layer_type",
+      "data_type": "string",
+      "label_ru": "Тип клеевого слоя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesive_sides_count",
+      "data_type": "integer",
+      "label_ru": "Количество клеевых сторон",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adhesive_type",
+      "data_type": "string",
+      "label_ru": "Тип клеевого состава",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "adjustment_time_min",
+      "data_type": "number",
+      "label_ru": "Время корректировки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "aggregate_fraction_mm",
+      "data_type": "string",
+      "label_ru": "Фракция заполнителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "air_entrainment_percent",
+      "data_type": "number",
+      "label_ru": "Воздухововлечение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "air_exchange_rate",
+      "data_type": "number",
+      "label_ru": "Кратность воздухообмена / производительность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "air_permeability_class",
+      "data_type": "string",
+      "label_ru": "Класс воздухопроницаемости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "airborne_noise_gain_db",
+      "data_type": "number",
+      "label_ru": "Дополнительная звукоизоляция конструкции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "dB"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "airflow_m3_h",
+      "data_type": "number",
+      "label_ru": "Расход воздуха",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3_per_h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "alkali_resistance",
+      "data_type": "string",
+      "label_ru": "Щелочестойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "alkali_resistance_percent",
+      "data_type": "number",
+      "label_ru": "Сохранение прочности после щёлочи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "allowable_pressure_kpa",
+      "data_type": "number",
+      "label_ru": "Допустимое давление бетонной смеси",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "anchorage_depth_mm",
+      "data_type": "number",
+      "label_ru": "Глубина анкеровки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "angle_deg",
+      "data_type": "number",
+      "label_ru": "Угол",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degree"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_area",
+      "data_type": "string_list",
+      "label_ru": "Область применения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_materials",
+      "data_type": "string_list",
+      "label_ru": "Обрабатываемые материалы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_method",
+      "data_type": "string_list",
+      "label_ru": "Способ нанесения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_rate_kg_m2",
+      "data_type": "number",
+      "label_ru": "Норма нанесения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_temperature_max_c",
+      "data_type": "number",
+      "label_ru": "Максимальная температура нанесения / монтажа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "application_temperature_min_c",
+      "data_type": "number",
+      "label_ru": "Минимальная температура нанесения / монтажа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "arbor_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Посадочный диаметр",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "area_per_piece_m2",
+      "data_type": "number",
+      "label_ru": "Площадь одной единицы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "base_color",
+      "data_type": "string",
+      "label_ru": "База колеровки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "base_materials",
+      "data_type": "string_list",
+      "label_ru": "Допустимые основания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bearing_capacity_class",
+      "data_type": "string",
+      "label_ru": "Класс несущей способности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bend_angle_deg",
+      "data_type": "number",
+      "label_ru": "Угол отвода",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degree"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bend_radius_mm",
+      "data_type": "number",
+      "label_ru": "Минимальный радиус изгиба",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "binder_strength_grade",
+      "data_type": "string",
+      "label_ru": "Марка / класс вяжущего",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "binder_type",
+      "data_type": "string",
+      "label_ru": "Тип вяжущего",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "biological_resistance",
+      "data_type": "string",
+      "label_ru": "Биостойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "blade_count",
+      "data_type": "integer",
+      "label_ru": "Количество лопастей",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "blade_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр лопасти",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "blade_material",
+      "data_type": "string",
+      "label_ru": "Материал рабочей части",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "block_type",
+      "data_type": "string",
+      "label_ru": "Тип блока",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "board_type",
+      "data_type": "string",
+      "label_ru": "Тип листа",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "boiler_type",
+      "data_type": "string",
+      "label_ru": "Тип котла / отопительного прибора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "boiling_point_c",
+      "data_type": "number",
+      "label_ru": "Температура кипения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bowl_shape",
+      "data_type": "string",
+      "label_ru": "Форма чаши",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "box_modules_count",
+      "data_type": "integer",
+      "label_ru": "Количество модулей",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bracket_projection_mm",
+      "data_type": "number",
+      "label_ru": "Вынос кронштейна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "breaking_capacity_ka",
+      "data_type": "number",
+      "label_ru": "Отключающая способность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kA"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "brick_type",
+      "data_type": "string",
+      "label_ru": "Тип кирпича",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bulk_density_kg_m3",
+      "data_type": "number",
+      "label_ru": "Насыпная плотность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "bulk_moisture_percent",
+      "data_type": "number",
+      "label_ru": "Влажность сыпучего материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "burglary_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс взломостойкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "frls",
+        "ls"
+      ],
+      "allowed_values": [],
+      "code": "cable_fire_index",
+      "data_type": "string",
+      "label_ru": "Индекс пожарной безопасности кабеля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cable_length_m",
+      "data_type": "number",
+      "label_ru": "Длина кабеля / бухты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cable_type",
+      "data_type": "string",
+      "label_ru": "Марка / тип кабеля",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "calibrated",
+      "data_type": "boolean",
+      "label_ru": "Калиброванный материал",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cartridge_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр картриджа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "castor_chair_resistance",
+      "data_type": "string",
+      "label_ru": "Стойкость к роликовым креслам",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cavity_width_mm",
+      "data_type": "number",
+      "label_ru": "Расчётная ширина воздушного зазора / стены",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "ceiling_system_type",
+      "data_type": "string",
+      "label_ru": "Тип потолочной системы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cell_size_mm",
+      "data_type": "string",
+      "label_ru": "Размер ячейки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cement_strength_class",
+      "data_type": "string",
+      "label_ru": "Класс прочности цемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "chemical_resistance",
+      "data_type": "string_list",
+      "label_ru": "Химическая стойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "chimney_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр дымохода",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "chimney_material",
+      "data_type": "string",
+      "label_ru": "Материал дымохода",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "chimney_type",
+      "data_type": "string",
+      "label_ru": "Тип дымоходного элемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "chloride_content_percent",
+      "data_type": "number",
+      "label_ru": "Содержание хлоридов",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cistern_volume_l",
+      "data_type": "number",
+      "label_ru": "Объём бачка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "clamp_range_mm",
+      "data_type": "string",
+      "label_ru": "Диапазон зажима",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "clay_content_percent",
+      "data_type": "number",
+      "label_ru": "Содержание глинистых частиц",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "closed_cell_content_percent",
+      "data_type": "number",
+      "label_ru": "Доля закрытых ячеек",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coating_mass_g_m2",
+      "data_type": "number",
+      "label_ru": "Масса защитного покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "g_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coating_product_type",
+      "data_type": "string",
+      "label_ru": "Тип лакокрасочного материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coating_thickness_um",
+      "data_type": "number",
+      "label_ru": "Толщина защитного покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "um"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coating_type",
+      "data_type": "string",
+      "label_ru": "Тип покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coating_warranty_years",
+      "data_type": "number",
+      "label_ru": "Гарантия на покрытие",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "year"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coats_count",
+      "data_type": "integer",
+      "label_ru": "Рекомендуемое число слоёв",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coil_length_m",
+      "data_type": "number",
+      "label_ru": "Длина бухты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "color",
+      "data_type": "string",
+      "label_ru": "Цвет",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "ral"
+      ],
+      "allowed_values": [],
+      "code": "color_ral",
+      "data_type": "string",
+      "label_ru": "Цвет RAL",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "color_temperature_k",
+      "data_type": "number",
+      "label_ru": "Цветовая температура",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "K"
+    },
+    {
+      "aliases": [
+        "wi_fi",
+        "zigbee"
+      ],
+      "allowed_values": [],
+      "code": "communication_protocol",
+      "data_type": "string",
+      "label_ru": "Протокол связи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "compatible_substrates",
+      "data_type": "string_list",
+      "label_ru": "Допустимые основания",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "composition",
+      "data_type": "string_list",
+      "label_ru": "Состав",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "28"
+      ],
+      "allowed_values": [],
+      "code": "compressive_strength_28d_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность на сжатие через 28 суток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "compressive_strength_kpa",
+      "data_type": "number",
+      "label_ru": "Прочность на сжатие",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "compressive_strength_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность на сжатие",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [
+        "b"
+      ],
+      "allowed_values": [],
+      "code": "concrete_class",
+      "data_type": "string",
+      "label_ru": "Класс бетона",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "concrete_element_type",
+      "data_type": "string",
+      "label_ru": "Тип ЖБИ",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "concrete_protective_layer_mm",
+      "data_type": "number",
+      "label_ru": "Защитный слой бетона",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "conductor_material",
+      "data_type": "string",
+      "label_ru": "Материал токопроводящей жилы",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "conduit_type",
+      "data_type": "string",
+      "label_ru": "Тип трубы / кабель-канала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "connection_type",
+      "data_type": "string",
+      "label_ru": "Тип соединения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "connector_steel_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина стали соединителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "connector_type",
+      "data_type": "string",
+      "label_ru": "Тип соединителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "consumable_type",
+      "data_type": "string",
+      "label_ru": "Тип расходного материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "consumption_kg_m2",
+      "data_type": "number",
+      "label_ru": "Расход на площадь",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "consumption_kg_m2_mm",
+      "data_type": "number",
+      "label_ru": "Расход на площадь и толщину",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2_mm"
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "consumption_l_m2",
+      "data_type": "number",
+      "label_ru": "Расход на площадь",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "l_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "contacts_count",
+      "data_type": "integer",
+      "label_ru": "Количество контактов",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "control_type",
+      "data_type": "string",
+      "label_ru": "Тип управления",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cores_count",
+      "data_type": "integer",
+      "label_ru": "Количество жил",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "corrosion_protection",
+      "data_type": "string",
+      "label_ru": "Антикоррозионная защита",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "country_of_origin",
+      "data_type": "string",
+      "label_ru": "Страна производства",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coverage_area_per_pack_m2",
+      "data_type": "number",
+      "label_ru": "Покрываемая площадь упаковки",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "m2"
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "coverage_m2_per_l",
+      "data_type": "number",
+      "label_ru": "Укрывистость / покрытие",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2_per_l"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "coverage_width_mm",
+      "data_type": "number",
+      "label_ru": "Рабочая ширина покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "crack_bridging_mm",
+      "data_type": "number",
+      "label_ru": "Перекрытие трещин",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cross_section_mm2",
+      "data_type": "number",
+      "label_ru": "Сечение",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "curing_time_h",
+      "data_type": "number",
+      "label_ru": "Время набора прочности / отверждения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "current_a",
+      "data_type": "number",
+      "label_ru": "Номинальный ток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "A"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "cycle_durability_count",
+      "data_type": "integer",
+      "label_ru": "Ресурс циклов",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "damper_tape_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота демпферной ленты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "decorative_effect",
+      "data_type": "string",
+      "label_ru": "Декоративный эффект / фактура",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "d"
+      ],
+      "allowed_values": [],
+      "code": "density_class",
+      "data_type": "string",
+      "label_ru": "Класс средней плотности",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "density_kg_m3",
+      "data_type": "number",
+      "label_ru": "Плотность",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "design_load_kn",
+      "data_type": "number",
+      "label_ru": "Расчётная нагрузка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "detection_angle_deg",
+      "data_type": "number",
+      "label_ru": "Угол обнаружения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degree"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "detection_range_m",
+      "data_type": "number",
+      "label_ru": "Дальность обнаружения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [
+        "d"
+      ],
+      "allowed_values": [],
+      "code": "diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dimension_stability_percent",
+      "data_type": "number",
+      "label_ru": "Стабильность размеров",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dimming_supported",
+      "data_type": "boolean",
+      "label_ru": "Поддержка диммирования",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dimple_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота профиля мембраны",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "document_certificate_required",
+      "data_type": "boolean",
+      "label_ru": "Требуется сертификат / декларация",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_filling",
+      "data_type": "string",
+      "label_ru": "Заполнение полотна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_frame_included",
+      "data_type": "boolean",
+      "label_ru": "Наличие коробки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_hardware_type",
+      "data_type": "string",
+      "label_ru": "Тип дверной фурнитуры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_leaf_count",
+      "data_type": "integer",
+      "label_ru": "Количество полотен / створок",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_leaf_material",
+      "data_type": "string",
+      "label_ru": "Материал дверного полотна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_leaf_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина полотна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "door_type",
+      "data_type": "string",
+      "label_ru": "Тип двери / ворот",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "3"
+      ],
+      "allowed_values": [],
+      "code": "dosage_kg_m3",
+      "data_type": "number",
+      "label_ru": "Дозировка на объём смеси",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dosage_percent",
+      "data_type": "number",
+      "label_ru": "Дозировка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dowel_wood_species",
+      "data_type": "string",
+      "label_ru": "Порода древесины нагеля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "drain_position",
+      "data_type": "string",
+      "label_ru": "Расположение выпуска",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "drainage_element_type",
+      "data_type": "string",
+      "label_ru": "Тип элемента водоотведения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "drive_type",
+      "data_type": "string",
+      "label_ru": "Тип шлица",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dry_layer_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина сухого слоя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dry_residue_percent",
+      "data_type": "number",
+      "label_ru": "Сухой остаток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "drying_time_h",
+      "data_type": "number",
+      "label_ru": "Время высыхания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "duct_insulation_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина изоляции воздуховода",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "duct_shape",
+      "data_type": "string",
+      "label_ru": "Форма воздуховода",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "dynamic_stiffness_mn_m3",
+      "data_type": "number",
+      "label_ru": "Динамическая жёсткость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MN_per_m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "earth_electrode_length_m",
+      "data_type": "number",
+      "label_ru": "Длина заземлителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "edge_distance_min_mm",
+      "data_type": "number",
+      "label_ru": "Минимальное расстояние до края",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "edge_profile",
+      "data_type": "string",
+      "label_ru": "Профиль кромки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "edge_type",
+      "data_type": "string",
+      "label_ru": "Тип продольной кромки",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "edged",
+      "data_type": "boolean",
+      "label_ru": "Обрезной материал",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "effect_type",
+      "data_type": "string_list",
+      "label_ru": "Основной эффект",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "efficiency_percent",
+      "data_type": "number",
+      "label_ru": "КПД",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "elastic_modulus_gpa",
+      "data_type": "number",
+      "label_ru": "Модуль упругости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "GPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "element_design_load_kn",
+      "data_type": "number",
+      "label_ru": "Расчётная нагрузка элемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "element_series",
+      "data_type": "string",
+      "label_ru": "Серия изделия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "elongation_percent",
+      "data_type": "number",
+      "label_ru": "Относительное удлинение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "end_overlap_mm",
+      "data_type": "number",
+      "label_ru": "Торцевой нахлёст",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "energy_efficiency_class",
+      "data_type": "string",
+      "label_ru": "Класс энергоэффективности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "environmental_class",
+      "data_type": "string",
+      "label_ru": "Экологический класс",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "expansion_ratio",
+      "data_type": "number",
+      "label_ru": "Коэффициент вспучивания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "exterior_allowed",
+      "data_type": "boolean",
+      "label_ru": "Допустимость наружного применения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "facade_system_type",
+      "data_type": "string",
+      "label_ru": "Тип фасадной системы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "faces_count",
+      "data_type": "integer",
+      "label_ru": "Количество лицевых поверхностей",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fan_pressure_pa",
+      "data_type": "number",
+      "label_ru": "Полное давление вентилятора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "Pa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fastener_material",
+      "data_type": "string",
+      "label_ru": "Материал крепежа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fastener_type",
+      "data_type": "string",
+      "label_ru": "Тип крепежа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fastening_pattern_code",
+      "data_type": "string",
+      "label_ru": "Код / схема крепления",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fence_element_type",
+      "data_type": "string",
+      "label_ru": "Тип элемента ограждения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fiber_length_mm",
+      "data_type": "number",
+      "label_ru": "Длина фибры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fiber_type",
+      "data_type": "string",
+      "label_ru": "Тип фибры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "filter_class",
+      "data_type": "string",
+      "label_ru": "Класс фильтра",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "filter_media_type",
+      "data_type": "string",
+      "label_ru": "Тип фильтрующей загрузки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "filter_stage_count",
+      "data_type": "integer",
+      "label_ru": "Количество ступеней фильтрации",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "filtration_rate_m3_h",
+      "data_type": "number",
+      "label_ru": "Производительность фильтрации",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3_per_h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "filtration_rating_micron",
+      "data_type": "number",
+      "label_ru": "Тонкость фильтрации",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "micron"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fineness_modulus",
+      "data_type": "number",
+      "label_ru": "Модуль крупности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fineness_percent",
+      "data_type": "number",
+      "label_ru": "Тонкость помола",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fire_protection_type",
+      "data_type": "string",
+      "label_ru": "Тип огнезащиты / проходки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fire_reaction_class",
+      "data_type": "string",
+      "label_ru": "Класс пожарной опасности / реакции на огонь",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "ei",
+        "rei"
+      ],
+      "allowed_values": [],
+      "code": "fire_resistance_limit_min",
+      "data_type": "number",
+      "label_ru": "Предел огнестойкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fixture_material",
+      "data_type": "string",
+      "label_ru": "Материал изделия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flash_point_c",
+      "data_type": "number",
+      "label_ru": "Температура вспышки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [
+        "28"
+      ],
+      "allowed_values": [],
+      "code": "flexural_strength_28d_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность на изгиб через 28 суток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flexural_strength_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность на изгиб",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flooring_type",
+      "data_type": "string",
+      "label_ru": "Тип напольного покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flow_capacity_l_s",
+      "data_type": "number",
+      "label_ru": "Пропускная способность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_s"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flow_rate_l_min",
+      "data_type": "number",
+      "label_ru": "Расход воды",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_min"
+    },
+    {
+      "aliases": [
+        "3"
+      ],
+      "allowed_values": [],
+      "code": "flow_rate_m3_h",
+      "data_type": "number",
+      "label_ru": "Производительность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3_per_h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fluid_type",
+      "data_type": "string",
+      "label_ru": "Тип технической жидкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "flush_type",
+      "data_type": "string",
+      "label_ru": "Тип смыва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "foam_expansion_percent",
+      "data_type": "number",
+      "label_ru": "Расширение пены",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "foam_type",
+      "data_type": "string",
+      "label_ru": "Тип монтажной пены",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "foam_yield_l",
+      "data_type": "number",
+      "label_ru": "Выход пены",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [
+        "e0_5",
+        "e1"
+      ],
+      "allowed_values": [],
+      "code": "formaldehyde_emission_class",
+      "data_type": "string",
+      "label_ru": "Класс эмиссии формальдегида",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "format_code",
+      "data_type": "string",
+      "label_ru": "Формат / типоразмер",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "formwork_component_type",
+      "data_type": "string",
+      "label_ru": "Тип элемента опалубки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "frame_material",
+      "data_type": "string",
+      "label_ru": "Материал рамы / коробки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "freezing_point_c",
+      "data_type": "number",
+      "label_ru": "Температура замерзания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "frequency_hz",
+      "data_type": "number",
+      "label_ru": "Частота",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "Hz"
+    },
+    {
+      "aliases": [
+        "f"
+      ],
+      "allowed_values": [],
+      "code": "frost_resistance_class",
+      "data_type": "string",
+      "label_ru": "Морозостойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "frost_resistant",
+      "data_type": "boolean",
+      "label_ru": "Морозостойкое исполнение",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "legacy_compatibility",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "fuel_type",
+      "data_type": "string_list",
+      "label_ru": "Вид топлива",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "full_cure_rate_mm_day",
+      "data_type": "number",
+      "label_ru": "Скорость полного отверждения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm_per_day"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "garage_door_drive_type",
+      "data_type": "string",
+      "label_ru": "Тип привода гаражных ворот",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "gas_fill_type",
+      "data_type": "string",
+      "label_ru": "Газ заполнения стеклопакета",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "gate_drive_type",
+      "data_type": "string",
+      "label_ru": "Тип привода ворот",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "gate_max_weight_kg",
+      "data_type": "number",
+      "label_ru": "Максимальная масса створки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "gate_max_width_m",
+      "data_type": "number",
+      "label_ru": "Максимальная ширина створки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "geometry_tolerance_class",
+      "data_type": "string",
+      "label_ru": "Класс точности геометрии",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "geosynthetic_type",
+      "data_type": "string",
+      "label_ru": "Тип геосинтетика",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "germination_percent",
+      "data_type": "number",
+      "label_ru": "Всхожесть",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "glass_layers_count",
+      "data_type": "integer",
+      "label_ru": "Количество стёкол",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "glass_safety_type",
+      "data_type": "string",
+      "label_ru": "Тип безопасного стекла",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "glass_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина стекла",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "glass_type",
+      "data_type": "string",
+      "label_ru": "Тип стекла",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "glazing_unit_formula",
+      "data_type": "string",
+      "label_ru": "Формула стеклопакета",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "gloss_level",
+      "data_type": "string",
+      "label_ru": "Степень блеска",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "grain_size_mm",
+      "data_type": "number",
+      "label_ru": "Размер зерна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "grit_size",
+      "data_type": "string",
+      "label_ru": "Зернистость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "grout_type",
+      "data_type": "string",
+      "label_ru": "Тип затирки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "125_90"
+      ],
+      "allowed_values": [],
+      "code": "gutter_system_size_mm",
+      "data_type": "string",
+      "label_ru": "Типоразмер водосточной системы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "handrail_profile",
+      "data_type": "string",
+      "label_ru": "Профиль поручня",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "hardness",
+      "data_type": "string",
+      "label_ru": "Твёрдость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "hazard_class",
+      "data_type": "string",
+      "label_ru": "Класс опасности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "head_m",
+      "data_type": "number",
+      "label_ru": "Напор",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "head_type",
+      "data_type": "string",
+      "label_ru": "Тип головки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "heat_output_w",
+      "data_type": "number",
+      "label_ru": "Тепловая мощность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "W"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "heat_resistance_c",
+      "data_type": "number",
+      "label_ru": "Термостойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [
+        "r0"
+      ],
+      "allowed_values": [],
+      "code": "heat_transfer_resistance_m2k_w",
+      "data_type": "number",
+      "label_ru": "Сопротивление теплопередаче",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2K_per_W"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "heated_floor_allowed",
+      "data_type": "boolean",
+      "label_ru": "Допустимость для тёплого пола",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "heated_volume_m3",
+      "data_type": "number",
+      "label_ru": "Отапливаемый объём",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "heating_power_w_m",
+      "data_type": "number",
+      "label_ru": "Удельная мощность обогрева",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "W_per_m"
+    },
+    {
+      "aliases": [
+        "height"
+      ],
+      "allowed_values": [],
+      "code": "height_mm",
+      "data_type": "number",
+      "label_ru": "Высота",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "hole_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр отверстия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "holes_count",
+      "data_type": "integer",
+      "label_ru": "Количество отверстий",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "hollow_type",
+      "data_type": "string",
+      "label_ru": "Тип пустотности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "hydraulic_capacity_l_s",
+      "data_type": "number",
+      "label_ru": "Гидравлическая пропускная способность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_s"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "impact_sound_reduction_db",
+      "data_type": "number",
+      "label_ru": "Снижение ударного шума",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "dB"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [
+        "indoor",
+        "outdoor",
+        "indoor_outdoor",
+        "wet_zone",
+        "underground",
+        "roof",
+        "facade",
+        "other"
+      ],
+      "code": "indoor_outdoor",
+      "data_type": "enum",
+      "label_ru": "Условия применения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "infiltration_volume_l",
+      "data_type": "number",
+      "label_ru": "Полезный объём инфильтрации",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [
+        "ip"
+      ],
+      "allowed_values": [],
+      "code": "ingress_protection_ip",
+      "data_type": "string",
+      "label_ru": "Степень защиты IP",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "inlet_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр подключения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [
+        "id"
+      ],
+      "allowed_values": [],
+      "code": "inner_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Внутренний диаметр",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "installation_dimensions_mm",
+      "data_type": "string",
+      "label_ru": "Монтажные размеры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "installation_method",
+      "data_type": "string_list",
+      "label_ru": "Способ монтажа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "installation_torque_nm",
+      "data_type": "number",
+      "label_ru": "Момент затяжки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "Nm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "insulation_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина теплоизоляции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "insulation_thickness_range_mm",
+      "data_type": "string",
+      "label_ru": "Диапазон толщины изоляции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "insulation_type",
+      "data_type": "string",
+      "label_ru": "Тип утеплителя",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "intended_use",
+      "data_type": "string_list",
+      "label_ru": "Назначение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "joint_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина кладочного шва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "joint_width_max_mm",
+      "data_type": "number",
+      "label_ru": "Максимальная ширина шва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "joint_width_min_mm",
+      "data_type": "number",
+      "label_ru": "Минимальная ширина шва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "lamella_count",
+      "data_type": "integer",
+      "label_ru": "Количество ламелей",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "length"
+      ],
+      "allowed_values": [],
+      "code": "length_mm",
+      "data_type": "number",
+      "label_ru": "Длина",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "lifting_loops_present",
+      "data_type": "boolean",
+      "label_ru": "Монтажные петли",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "light_source_type",
+      "data_type": "string",
+      "label_ru": "Тип источника света",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "light_transmission_percent",
+      "data_type": "number",
+      "label_ru": "Светопропускание",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "lime_type",
+      "data_type": "string",
+      "label_ru": "Тип извести",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "load_capacity_kg",
+      "data_type": "number",
+      "label_ru": "Допустимая нагрузка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "load_capacity_kn",
+      "data_type": "number",
+      "label_ru": "Несущая способность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "load_class",
+      "data_type": "string",
+      "label_ru": "Класс нагрузки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "a15",
+        "b125",
+        "c250",
+        "d400"
+      ],
+      "allowed_values": [],
+      "code": "load_class_road",
+      "data_type": "string",
+      "label_ru": "Класс нагрузки дорожного элемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "locking_system",
+      "data_type": "string",
+      "label_ru": "Тип замкового соединения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "long_term_water_absorption_percent",
+      "data_type": "number",
+      "label_ru": "Длительное водопоглощение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "loss_on_ignition_percent",
+      "data_type": "number",
+      "label_ru": "Потери при прокаливании",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "luminous_flux_lm",
+      "data_type": "number",
+      "label_ru": "Световой поток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "lm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "manifold_outlets_count",
+      "data_type": "integer",
+      "label_ru": "Количество выходов коллектора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "masonry_accessory_type",
+      "data_type": "string",
+      "label_ru": "Тип кладочного аксессуара",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "masonry_format",
+      "data_type": "string",
+      "label_ru": "Формат кладочного изделия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "masonry_strength_grade",
+      "data_type": "string",
+      "label_ru": "Марка раствора по прочности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "masonry_unit_purpose",
+      "data_type": "string",
+      "label_ru": "Назначение кладочного изделия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "mass_per_m2_kg",
+      "data_type": "number",
+      "label_ru": "Масса на квадратный метр",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mastic_required_zones",
+      "data_type": "string_list",
+      "label_ru": "Зоны обязательного применения мастики",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "material_base",
+      "data_type": "string",
+      "label_ru": "Материальная основа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "max_immersion_depth_m",
+      "data_type": "number",
+      "label_ru": "Максимальная глубина погружения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "max_layer_mm",
+      "data_type": "number",
+      "label_ru": "Максимальная толщина слоя",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "max_pressure_bar",
+      "data_type": "number",
+      "label_ru": "Максимальное рабочее давление",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "bar"
+    },
+    {
+      "aliases": [
+        "rpm"
+      ],
+      "allowed_values": [],
+      "code": "max_rpm",
+      "data_type": "number",
+      "label_ru": "Максимальная частота вращения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "rpm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "max_temperature_c",
+      "data_type": "number",
+      "label_ru": "Максимальная температура среды",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "membrane_capacity_l_day",
+      "data_type": "number",
+      "label_ru": "Производительность мембраны",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter_per_day"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "membrane_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина мембраны",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "membrane_type",
+      "data_type": "string",
+      "label_ru": "Тип мембраны / плёнки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mesh_density_g_m2",
+      "data_type": "number",
+      "label_ru": "Плотность армирующей сетки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "g_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mesh_length_mm",
+      "data_type": "number",
+      "label_ru": "Длина сетки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mesh_width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина сетки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mesh_wire_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр проволоки сетки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "metal_gauge_mm",
+      "data_type": "number",
+      "label_ru": "Толщина металла профиля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "metal_sheet_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина листа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "metal_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина металла",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "meter_type",
+      "data_type": "string",
+      "label_ru": "Тип счётчика",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "min_layer_mm",
+      "data_type": "number",
+      "label_ru": "Минимальная толщина слоя",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "min_order_m3",
+      "data_type": "number",
+      "label_ru": "Минимальный объём заказа",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "min_roof_slope_deg",
+      "data_type": "number",
+      "label_ru": "Минимальный уклон кровли",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "degree"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mix_type",
+      "data_type": "string",
+      "label_ru": "Тип сухой смеси",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mixer_type",
+      "data_type": "string",
+      "label_ru": "Тип смесителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mobility_class",
+      "data_type": "string",
+      "label_ru": "Подвижность бетонной смеси",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "model_series",
+      "data_type": "string",
+      "label_ru": "Серия / линейка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "moisture_condition",
+      "data_type": "string",
+      "label_ru": "Состояние влажности / сушки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "moisture_percent",
+      "data_type": "number",
+      "label_ru": "Влажность",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "moisture_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс влагостойкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "moment_of_inertia_cm4",
+      "data_type": "number",
+      "label_ru": "Момент инерции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "cm4"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mortar_joint_type",
+      "data_type": "string",
+      "label_ru": "Тип кладочного шва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "mounting_type",
+      "data_type": "string",
+      "label_ru": "Тип монтажа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "movement_capability_percent",
+      "data_type": "number",
+      "label_ru": "Допустимая деформация шва",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "nail_hole_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр отверстий под крепёж",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "nails_per_piece",
+      "data_type": "number",
+      "label_ru": "Крепежей на элемент",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "piece"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "noise_level_db",
+      "data_type": "number",
+      "label_ru": "Уровень шума",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "dB"
+    },
+    {
+      "aliases": [
+        "dn"
+      ],
+      "allowed_values": [],
+      "code": "nominal_diameter_dn",
+      "data_type": "string",
+      "label_ru": "Условный диаметр DN",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "nominal_flow_m3_h",
+      "data_type": "number",
+      "label_ru": "Номинальный расход",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3_per_h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "nominal_size",
+      "data_type": "string",
+      "label_ru": "Номинальный размер",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "opacity_class",
+      "data_type": "string",
+      "label_ru": "Класс укрывистости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "open_time_min",
+      "data_type": "number",
+      "label_ru": "Открытое время",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "opening_size_range_mm",
+      "data_type": "string",
+      "label_ru": "Диапазон размеров проходки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "opening_size_um",
+      "data_type": "number",
+      "label_ru": "Размер пор",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "um"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "opening_speed_m_s",
+      "data_type": "number",
+      "label_ru": "Скорость открывания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m_per_s"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "opening_type",
+      "data_type": "string",
+      "label_ru": "Тип открывания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "operating_medium",
+      "data_type": "string_list",
+      "label_ru": "Рабочая среда",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "operating_temperature_max_c",
+      "data_type": "number",
+      "label_ru": "Максимальная рабочая температура",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "operating_temperature_min_c",
+      "data_type": "number",
+      "label_ru": "Минимальная рабочая температура",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [
+        "od"
+      ],
+      "allowed_values": [],
+      "code": "outer_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Наружный диаметр",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "outlet_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр выпуска",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "overflow_present",
+      "data_type": "boolean",
+      "label_ru": "Наличие перелива",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "overlap_width_mm",
+      "data_type": "number",
+      "label_ru": "Рекомендуемый нахлёст",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_area_m2",
+      "data_type": "number",
+      "label_ru": "Площадь в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_piece_count",
+      "data_type": "integer",
+      "label_ru": "Количество плит / матов в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_type",
+      "data_type": "string",
+      "label_ru": "Тип упаковки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_volume_l",
+      "data_type": "number",
+      "label_ru": "Объём упаковки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_volume_m3",
+      "data_type": "number",
+      "label_ru": "Объём в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "package_weight_kg",
+      "data_type": "number",
+      "label_ru": "Масса упаковки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "paint_base_type",
+      "data_type": "string",
+      "label_ru": "Тип основы / связующего",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "panel_mounting_method",
+      "data_type": "string",
+      "label_ru": "Способ монтажа панели",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "panel_type",
+      "data_type": "string",
+      "label_ru": "Тип плиты / панели",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pattern_repeat_mm",
+      "data_type": "number",
+      "label_ru": "Раппорт рисунка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "paving_type",
+      "data_type": "string",
+      "label_ru": "Тип покрытия / мощения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "perforation_pattern",
+      "data_type": "string",
+      "label_ru": "Тип перфорации",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "permeability_coefficient",
+      "data_type": "number",
+      "label_ru": "Коэффициент фильтрации / водопроницаемости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "3"
+      ],
+      "allowed_values": [],
+      "code": "pieces_per_m3",
+      "data_type": "number",
+      "label_ru": "Количество штук в кубическом метре",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "piece_per_m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pieces_per_package",
+      "data_type": "number",
+      "label_ru": "Количество в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "piece"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pieces_per_pallet",
+      "data_type": "number",
+      "label_ru": "Количество на поддоне",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "piece"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pile_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр сваи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pile_length_m",
+      "data_type": "number",
+      "label_ru": "Длина сваи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pile_load_capacity_kn",
+      "data_type": "number",
+      "label_ru": "Несущая способность сваи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pile_type",
+      "data_type": "string",
+      "label_ru": "Тип сваи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pile_wall_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина стенки сваи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pipe_material",
+      "data_type": "string",
+      "label_ru": "Материал трубы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pipe_size_range_mm",
+      "data_type": "string",
+      "label_ru": "Диапазон диаметров труб",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pipe_type",
+      "data_type": "string",
+      "label_ru": "Тип трубы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "planed",
+      "data_type": "boolean",
+      "label_ru": "Строганый материал",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "plank_count_per_package",
+      "data_type": "integer",
+      "label_ru": "Планок / плиток в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "plaster_type",
+      "data_type": "string",
+      "label_ru": "Тип штукатурки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "poles_count",
+      "data_type": "integer",
+      "label_ru": "Количество полюсов",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "polymer_coating_thickness_um",
+      "data_type": "number",
+      "label_ru": "Толщина полимерного покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "um"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pot_life_min",
+      "data_type": "number",
+      "label_ru": "Жизнеспособность раствора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "power_kw",
+      "data_type": "number",
+      "label_ru": "Мощность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "kW"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "power_w",
+      "data_type": "number",
+      "label_ru": "Мощность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "W"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "preservative_treatment",
+      "data_type": "string",
+      "label_ru": "Защитная обработка древесины",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "pn"
+      ],
+      "allowed_values": [],
+      "code": "pressure_class_pn",
+      "data_type": "string",
+      "label_ru": "Номинальное давление PN",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "primer_type",
+      "data_type": "string",
+      "label_ru": "Тип грунтовки",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "grade"
+      ],
+      "allowed_values": [],
+      "code": "product_grade",
+      "data_type": "string",
+      "label_ru": "Сорт / класс качества",
+      "projection_classification": "ALIAS_MATCH",
+      "source_status": "legacy_compatibility",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "product_mark",
+      "data_type": "string",
+      "label_ru": "Марка / обозначение продукта",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_back_width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина спинки профиля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_chambers_count",
+      "data_type": "integer",
+      "label_ru": "Количество камер профиля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_flange_width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина полки профиля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота профиля",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_pattern",
+      "data_type": "string",
+      "label_ru": "Профиль / рисунок",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_shape",
+      "data_type": "string",
+      "label_ru": "Профиль / форма сечения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_system",
+      "data_type": "string",
+      "label_ru": "Профильная система",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "profile_type",
+      "data_type": "string",
+      "label_ru": "Тип профиля",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "prop_load_capacity_kn",
+      "data_type": "number",
+      "label_ru": "Несущая способность стойки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "protected_section_factor_m1",
+      "data_type": "number",
+      "label_ru": "Приведённая толщина металла / фактор сечения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "per_m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pull_out_load_kn",
+      "data_type": "number",
+      "label_ru": "Вырывная нагрузка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pull_out_resistance_kn",
+      "data_type": "number",
+      "label_ru": "Сопротивление вырыву",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pump_installation_type",
+      "data_type": "string",
+      "label_ru": "Тип установки насоса",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "pump_type",
+      "data_type": "string",
+      "label_ru": "Тип насоса",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "puncture_resistance_n",
+      "data_type": "number",
+      "label_ru": "Стойкость к проколу",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "N"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "putty_type",
+      "data_type": "string",
+      "label_ru": "Тип шпаклёвки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "quantity_unit_code",
+      "data_type": "string",
+      "label_ru": "Базовая единица количества",
+      "projection_classification": "REF_ONLY",
+      "source_status": "legacy_compatibility",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "radiator_sections_count",
+      "data_type": "integer",
+      "label_ru": "Количество секций",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "radioactivity_class",
+      "data_type": "string",
+      "label_ru": "Класс радиоактивности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "railing_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота ограждения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "recoat_time_h",
+      "data_type": "number",
+      "label_ru": "Межслойная сушка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "recommended_dry_film_thickness_um",
+      "data_type": "number",
+      "label_ru": "Рекомендуемая толщина сухой плёнки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "um"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "rectified",
+      "data_type": "boolean",
+      "label_ru": "Ректифицированное изделие",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "reflectance_percent",
+      "data_type": "number",
+      "label_ru": "Коэффициент светоотражения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "reinforcement_fabric_type",
+      "data_type": "string",
+      "label_ru": "Тип армирующего полотна / сетки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "reinforcement_present",
+      "data_type": "boolean",
+      "label_ru": "Наличие армирования",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "reinforcement_type",
+      "data_type": "string",
+      "label_ru": "Тип армирования",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "required_dry_film_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Требуемая толщина сухого слоя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "residual_current_ma",
+      "data_type": "number",
+      "label_ru": "Дифференциальный ток",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mA"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "reuse_cycles_count",
+      "data_type": "integer",
+      "label_ru": "Оборотность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "rib_pattern",
+      "data_type": "string",
+      "label_ru": "Профиль рифления",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "ridge_cap_coverage_m",
+      "data_type": "number",
+      "label_ru": "Покрытие конькового элемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "roll_area_m2",
+      "data_type": "number",
+      "label_ru": "Площадь рулона",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "roll_length_m",
+      "data_type": "number",
+      "label_ru": "Длина рулона",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "roll_width_m",
+      "data_type": "number",
+      "label_ru": "Ширина рулона",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "rolls_per_package",
+      "data_type": "number",
+      "label_ru": "Рулонов в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "roll"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "roofing_material_type",
+      "data_type": "string",
+      "label_ru": "Тип кровельного материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "rope_construction",
+      "data_type": "string",
+      "label_ru": "Конструкция каната",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sag_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс устойчивости к провисанию",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "salt_consumption_kg_cycle",
+      "data_type": "number",
+      "label_ru": "Расход соли на регенерацию",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sanitary_fixture_type",
+      "data_type": "string",
+      "label_ru": "Тип санитарного прибора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sash_count",
+      "data_type": "integer",
+      "label_ru": "Количество створок",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "screed_type",
+      "data_type": "string",
+      "label_ru": "Тип стяжки / ровнителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "sd"
+      ],
+      "allowed_values": [],
+      "code": "sd_value_m",
+      "data_type": "number",
+      "label_ru": "Эквивалентная толщина сопротивления диффузии Sd",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [
+        "sdr"
+      ],
+      "allowed_values": [],
+      "code": "sdr_ratio",
+      "data_type": "string",
+      "label_ru": "SDR",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sealant_type",
+      "data_type": "string",
+      "label_ru": "Тип герметика",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "seat_included",
+      "data_type": "boolean",
+      "label_ru": "Сиденье в комплекте",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "section_area_cm2",
+      "data_type": "number",
+      "label_ru": "Площадь поперечного сечения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "cm2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "section_designation",
+      "data_type": "string",
+      "label_ru": "Обозначение профиля / номера",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "seed_mix_type",
+      "data_type": "string",
+      "label_ru": "Тип травосмеси",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "septic_capacity_people",
+      "data_type": "integer",
+      "label_ru": "Расчётное число пользователей",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "septic_daily_capacity_l",
+      "data_type": "number",
+      "label_ru": "Суточная производительность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter_per_day"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "service_life_years",
+      "data_type": "number",
+      "label_ru": "Расчётный срок службы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "year"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "setting_time_min",
+      "data_type": "number",
+      "label_ru": "Время схватывания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [
+        "sn"
+      ],
+      "allowed_values": [],
+      "code": "sewer_stiffness_class",
+      "data_type": "string",
+      "label_ru": "Класс кольцевой жёсткости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "shape",
+      "data_type": "string",
+      "label_ru": "Форма / геометрия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sheet_area_m2",
+      "data_type": "number",
+      "label_ru": "Площадь листа",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sheets_per_package",
+      "data_type": "number",
+      "label_ru": "Листов в упаковке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "sheet"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "sheets_per_pallet",
+      "data_type": "integer",
+      "label_ru": "Листов на поддоне",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "shielding_type",
+      "data_type": "string",
+      "label_ru": "Тип экранирования",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "shingle_shape",
+      "data_type": "string",
+      "label_ru": "Форма гонта",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "shore"
+      ],
+      "allowed_values": [],
+      "code": "shore_hardness",
+      "data_type": "number",
+      "label_ru": "Твёрдость по Шору",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "24"
+      ],
+      "allowed_values": [],
+      "code": "short_term_water_absorption_kg_m2",
+      "data_type": "number",
+      "label_ru": "Кратковременное водопоглощение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "shower_flow_rate_l_min",
+      "data_type": "number",
+      "label_ru": "Расход душа / смесителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "shrinkage_mm_m",
+      "data_type": "number",
+      "label_ru": "Усадка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm_per_m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "side_overlap_mm",
+      "data_type": "number",
+      "label_ru": "Боковой нахлёст",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "silt_trap_volume_l",
+      "data_type": "number",
+      "label_ru": "Объём пескоуловителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "skin_formation_time_min",
+      "data_type": "number",
+      "label_ru": "Время образования плёнки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "slip_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс противоскольжения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "slope_percent",
+      "data_type": "number",
+      "label_ru": "Уклон",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "smoke_temperature_max_c",
+      "data_type": "number",
+      "label_ru": "Максимальная температура дымовых газов",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "snow_load_kg_m2",
+      "data_type": "number",
+      "label_ru": "Допустимая снеговая нагрузка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "socket_standard",
+      "data_type": "string",
+      "label_ru": "Стандарт розетки / разъёма",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "socket_type_pipe",
+      "data_type": "string",
+      "label_ru": "Тип раструба / соединения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "soil_type",
+      "data_type": "string",
+      "label_ru": "Тип грунта / почвосмеси",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "solar_factor_percent",
+      "data_type": "number",
+      "label_ru": "Солнечный фактор",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "solids_content_percent",
+      "data_type": "number",
+      "label_ru": "Содержание сухого остатка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "solvent_type",
+      "data_type": "string",
+      "label_ru": "Тип растворителя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "soot_fire_resistant",
+      "data_type": "boolean",
+      "label_ru": "Устойчивость к возгоранию сажи",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "alpha"
+      ],
+      "allowed_values": [],
+      "code": "sound_absorption_coefficient",
+      "data_type": "number",
+      "label_ru": "Коэффициент звукопоглощения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "rw"
+      ],
+      "allowed_values": [],
+      "code": "sound_insulation_db",
+      "data_type": "number",
+      "label_ru": "Индекс звукоизоляции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "dB"
+    },
+    {
+      "aliases": [
+        "rw"
+      ],
+      "allowed_values": [],
+      "code": "sound_reduction_index_db",
+      "data_type": "number",
+      "label_ru": "Индекс снижения воздушного шума",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "dB"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "soundproofing_type",
+      "data_type": "string",
+      "label_ru": "Тип звукоизоляционного материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "spacer_cover_mm",
+      "data_type": "number",
+      "label_ru": "Защитный слой бетона",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "spacing_min_mm",
+      "data_type": "number",
+      "label_ru": "Минимальный шаг установки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "spout_length_mm",
+      "data_type": "number",
+      "label_ru": "Длина излива",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "stair_angle_deg",
+      "data_type": "number",
+      "label_ru": "Угол наклона лестницы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degree"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "stair_component_type",
+      "data_type": "string",
+      "label_ru": "Тип элемента лестницы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "standard_bar_length_m",
+      "data_type": "number",
+      "label_ru": "Стандартная длина прутка",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "standard_designation",
+      "data_type": "string",
+      "label_ru": "Обозначение ГОСТ/ТУ/СТО",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [
+        "GOST",
+        "GOST_R",
+        "TU",
+        "STO",
+        "SP",
+        "EN",
+        "ISO",
+        "DIN",
+        "Other"
+      ],
+      "code": "standard_type",
+      "data_type": "enum",
+      "label_ru": "Тип нормативного документа",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "steel_class",
+      "data_type": "string",
+      "label_ru": "Класс стали",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "steel_grade",
+      "data_type": "string",
+      "label_ru": "Марка стали",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "step_count",
+      "data_type": "integer",
+      "label_ru": "Количество ступеней",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "step_depth_mm",
+      "data_type": "number",
+      "label_ru": "Глубина ступени",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "step_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота ступени",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "stove_type",
+      "data_type": "string",
+      "label_ru": "Тип печи / камина",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "strength_class",
+      "data_type": "string",
+      "label_ru": "Класс прочности",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "stretch_film_width_m",
+      "data_type": "number",
+      "label_ru": "Ширина полотна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "substrate_moisture_max_percent",
+      "data_type": "number",
+      "label_ru": "Допустимая влажность основания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "surface_density_g_m2",
+      "data_type": "number",
+      "label_ru": "Поверхностная плотность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "g_per_m2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "surface_finish",
+      "data_type": "string",
+      "label_ru": "Тип поверхности / отделки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "surface_texture",
+      "data_type": "string",
+      "label_ru": "Фактура поверхности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "surface_treatment_type",
+      "data_type": "string",
+      "label_ru": "Тип поверхностной обработки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tank_type",
+      "data_type": "string",
+      "label_ru": "Тип бака",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tape_length_m",
+      "data_type": "number",
+      "label_ru": "Длина ленты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tape_width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина ленты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "target_substrate",
+      "data_type": "string_list",
+      "label_ru": "Защищаемое основание",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "temperature_control_range_c",
+      "data_type": "string",
+      "label_ru": "Диапазон регулирования температуры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "temperature_range_c",
+      "data_type": "string",
+      "label_ru": "Температурный диапазон",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "temperature_resistance_c",
+      "data_type": "string",
+      "label_ru": "Температурная стойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "degC"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tensile_strength_kn_m",
+      "data_type": "number",
+      "label_ru": "Прочность на растяжение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN_per_m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tensile_strength_mpa",
+      "data_type": "number",
+      "label_ru": "Прочность на растяжение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tensile_strength_n_50mm",
+      "data_type": "number",
+      "label_ru": "Прочность при растяжении",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "N_per_50mm"
+    },
+    {
+      "aliases": [
+        "lambda"
+      ],
+      "allowed_values": [],
+      "code": "thermal_conductivity_w_mk",
+      "data_type": "number",
+      "label_ru": "Теплопроводность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "W_per_mK"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thermal_insulation_effect",
+      "data_type": "string",
+      "label_ru": "Теплоизоляционный эффект",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thermal_power_kw",
+      "data_type": "number",
+      "label_ru": "Тепловая мощность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kW"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thermal_resistance_m2k_w",
+      "data_type": "number",
+      "label_ru": "Термическое сопротивление",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "m2K_per_W"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thermal_resistance_m2k_w_floor",
+      "data_type": "number",
+      "label_ru": "Термическое сопротивление покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "m2K_per_W"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thermostat_present",
+      "data_type": "boolean",
+      "label_ru": "Наличие термостата",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "thickness"
+      ],
+      "allowed_values": [],
+      "code": "thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thread_size",
+      "data_type": "string",
+      "label_ru": "Размер резьбы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "thread_type",
+      "data_type": "string",
+      "label_ru": "Тип резьбы",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "threshold_included",
+      "data_type": "boolean",
+      "label_ru": "Наличие порога",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tie_length_mm",
+      "data_type": "number",
+      "label_ru": "Длина стяжки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tie_rod_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр стяжного винта",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tile_edge_type",
+      "data_type": "string",
+      "label_ru": "Тип кромки потолочной плиты",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tile_use_type",
+      "data_type": "string",
+      "label_ru": "Назначение плитки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "tool_compatibility",
+      "data_type": "string_list",
+      "label_ru": "Совместимый инструмент",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "top_layer_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина рабочего слоя",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "total_width_mm",
+      "data_type": "number",
+      "label_ru": "Полная ширина",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "touch_dry_time_h",
+      "data_type": "number",
+      "label_ru": "Время высыхания на отлип",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "trap_seal_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота гидрозатвора",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "trip_curve",
+      "data_type": "string",
+      "label_ru": "Характеристика срабатывания",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "underlay_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина подложки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "underlayment_required",
+      "data_type": "boolean",
+      "label_ru": "Необходимость подкладочного ковра",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "useful_width_mm",
+      "data_type": "number",
+      "label_ru": "Полезная ширина",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "uv_exposure_days",
+      "data_type": "number",
+      "label_ru": "Допустимое открытое УФ-воздействие",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "day"
+    },
+    {
+      "aliases": [
+        "uv"
+      ],
+      "allowed_values": [],
+      "code": "uv_resistance",
+      "data_type": "boolean",
+      "label_ru": "Устойчивость к УФ",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "valve_type",
+      "data_type": "string",
+      "label_ru": "Тип арматуры / клапана",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "2"
+      ],
+      "allowed_values": [],
+      "code": "vapor_permeability_g_m2_24h",
+      "data_type": "number",
+      "label_ru": "Паропроницаемость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "g_per_m2_24h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "vapor_permeability_mg_mhpa",
+      "data_type": "number",
+      "label_ru": "Паропроницаемость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mg_per_mhPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "veneer_grade",
+      "data_type": "string",
+      "label_ru": "Сорт шпона / лицевой поверхности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "ventilation_area_cm2",
+      "data_type": "number",
+      "label_ru": "Площадь вентиляционного сечения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "cm2"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "vibration_isolation_efficiency_percent",
+      "data_type": "number",
+      "label_ru": "Эффективность виброизоляции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "vibration_load_range_kg",
+      "data_type": "string",
+      "label_ru": "Диапазон рабочей нагрузки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "viscosity_mpas",
+      "data_type": "number",
+      "label_ru": "Вязкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mPa_s"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "void_ratio_percent",
+      "data_type": "number",
+      "label_ru": "Пустотность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "voltage_v",
+      "data_type": "number",
+      "label_ru": "Номинальное напряжение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "V"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "volume_l",
+      "data_type": "number",
+      "label_ru": "Объём",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "volume_per_piece_m3",
+      "data_type": "number",
+      "label_ru": "Объём одной единицы",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "m3"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "walkable_time_h",
+      "data_type": "number",
+      "label_ru": "Время до хождения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "h"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wall_thickness_mm",
+      "data_type": "number",
+      "label_ru": "Толщина стенки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wallpaper_type",
+      "data_type": "string",
+      "label_ru": "Тип обоев",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "warranty_years",
+      "data_type": "number",
+      "label_ru": "Гарантия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "year"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "washability_class",
+      "data_type": "string",
+      "label_ru": "Класс моющей способности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "epdm"
+      ],
+      "allowed_values": [],
+      "code": "washer_type",
+      "data_type": "string",
+      "label_ru": "Тип шайбы / уплотнения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_absorption_percent",
+      "data_type": "number",
+      "label_ru": "Водопоглощение",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_consumption_l_flush",
+      "data_type": "number",
+      "label_ru": "Расход воды на смыв",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_demand_l_per_kg",
+      "data_type": "number",
+      "label_ru": "Расход воды для затворения",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_permeability_l_m2_s",
+      "data_type": "number",
+      "label_ru": "Водопроницаемость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "l_per_m2_s"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_pressure_mpa",
+      "data_type": "number",
+      "label_ru": "Допустимое давление воды",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_reduction_percent",
+      "data_type": "number",
+      "label_ru": "Снижение водопотребности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [
+        "w"
+      ],
+      "allowed_values": [],
+      "code": "water_resistance_grade",
+      "data_type": "string",
+      "label_ru": "Марка по водонепроницаемости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_retention_percent",
+      "data_type": "number",
+      "label_ru": "Водоудерживающая способность",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "percent"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_tightness_class",
+      "data_type": "string",
+      "label_ru": "Класс водоупорности",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "water_tightness_window_class",
+      "data_type": "string",
+      "label_ru": "Класс водопроницаемости окна",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "waterproofing_type",
+      "data_type": "string",
+      "label_ru": "Тип гидроизоляции",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "waterstop_type",
+      "data_type": "string",
+      "label_ru": "Тип гидрошпонки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "waterstop_width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина гидрошпонки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wave_height_mm",
+      "data_type": "number",
+      "label_ru": "Высота волны",
+      "projection_classification": "REF_ONLY",
+      "source_status": "reserved_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wave_step_mm",
+      "data_type": "number",
+      "label_ru": "Шаг волны",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wear_class",
+      "data_type": "string",
+      "label_ru": "Класс эксплуатации / износостойкости",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "weather_resistance_class",
+      "data_type": "string",
+      "label_ru": "Атмосферостойкость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "weight_per_meter_kg",
+      "data_type": "number",
+      "label_ru": "Масса погонного метра",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kg_per_m"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "weight_per_piece_kg",
+      "data_type": "number",
+      "label_ru": "Масса одной единицы",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "kg"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "weldability",
+      "data_type": "string",
+      "label_ru": "Свариваемость",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "well_component_type",
+      "data_type": "string",
+      "label_ru": "Тип скважинного элемента",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wet_room_allowed",
+      "data_type": "boolean",
+      "label_ru": "Допустимость во влажных помещениях",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wet_scrub_class",
+      "data_type": "string",
+      "label_ru": "Класс стойкости к мокрому истиранию",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [
+        "width"
+      ],
+      "allowed_values": [],
+      "code": "width_mm",
+      "data_type": "number",
+      "label_ru": "Ширина",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wind_load_class",
+      "data_type": "string",
+      "label_ru": "Ветровая нагрузка / класс",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wind_resistance_class",
+      "data_type": "string",
+      "label_ru": "Класс сопротивления ветровой нагрузке",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "window_fitting_type",
+      "data_type": "string",
+      "label_ru": "Тип оконной фурнитуры",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wire_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Диаметр проволоки",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wood_grade",
+      "data_type": "string",
+      "label_ru": "Сорт древесины",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "wood_species",
+      "data_type": "string",
+      "label_ru": "Порода древесины",
+      "projection_classification": "EXACT_MATCH",
+      "source_status": "active_draft",
+      "unit_code": null
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "workability_time_min",
+      "data_type": "number",
+      "label_ru": "Время пригодности к работе",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "min"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "working_diameter_mm",
+      "data_type": "number",
+      "label_ru": "Рабочий диаметр",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "working_length_mm",
+      "data_type": "number",
+      "label_ru": "Рабочая длина",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "mm"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "working_load_kn",
+      "data_type": "number",
+      "label_ru": "Рабочая нагрузка",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "kN"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "yield_l",
+      "data_type": "number",
+      "label_ru": "Выход готового материала",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "liter"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "yield_strength_mpa",
+      "data_type": "number",
+      "label_ru": "Предел текучести",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "MPa"
+    },
+    {
+      "aliases": [],
+      "allowed_values": [],
+      "code": "zinc_coating_g_m2",
+      "data_type": "number",
+      "label_ru": "Масса цинкового покрытия",
+      "projection_classification": "REF_ONLY",
+      "source_status": "active_draft",
+      "unit_code": "g_per_m2"
+    }
+  ],
+  "runtime_activation_allowed": false,
+  "write_activation_allowed": false
+}
