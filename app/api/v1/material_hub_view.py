@@ -18,6 +18,9 @@ from app.models.enums import (
     MatchCandidateStatus,
     MaterialStatus,
     SourceActionType,
+    SourceStatus,
+    TaskLogLevel,
+    TaskResultType,
     TaskStatus,
 )
 from app.models.material import Material
