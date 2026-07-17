@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.templating import Jinja2Templates
 from urllib.parse import urlparse
 from sqlalchemy import func, select
@@ -28,6 +29,7 @@ from app.models.material_specification import MaterialSpecification
 from app.models.material_type import MaterialType
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.price_history import PriceHistory
+from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
@@ -46,6 +48,7 @@ from app.services.material_hub_first_wave import (
 )
 from app.services.module1_source_profile_registry import build_profile_readiness_report, get_extraction_profile, get_source_profile
 from app.services.module1_ui_view_models import build_module1_ui_preview_context
+from app.services.module1_provider_work_cost_offers import list_work_catalog_options, provider_work_cost_offer_to_dict
 from app.services.source_document_refs import is_document_url
 from app.services.supplier_price_standard import (
     TEMPLATE_BASENAME,
@@ -345,6 +348,16 @@ async def material_hub_materials(
     return await _render_data_page(request, db, in_stock_only, "materials", page_title, material_table_preset)
 
 
+@router.get("/work-costs", response_class=HTMLResponse)
+async def material_hub_work_costs(request: Request, db: DBSession):
+    return templates.TemplateResponse(
+        request,
+        "material_hub_work_costs.html",
+        {
+            "offer_rows": jsonable_encoder(await _load_provider_work_cost_offer_rows(db)),
+            "work_catalog_options": jsonable_encoder(list_work_catalog_options()),
+        },
+    )
 @router.get("/sources", response_class=HTMLResponse)
 async def material_hub_sources(request: Request, db: DBSession):
     sources = await _load_sources(db)
@@ -1348,6 +1361,15 @@ async def _load_catalog_products(db: DBSession) -> list[CatalogProduct]:
     )
     return list(result.scalars().all())
 
+
+async def _load_provider_work_cost_offer_rows(db: DBSession) -> list[dict[str, Any]]:
+    result = await db.execute(
+        select(ProviderWorkCostOffer)
+        .options(selectinload(ProviderWorkCostOffer.owner))
+        .order_by(ProviderWorkCostOffer.updated_at.desc())
+        .limit(50)
+    )
+    return [provider_work_cost_offer_to_dict(offer) for offer in result.scalars().all()]
 
 async def _load_materials(db: DBSession) -> list[Material]:
     result = await db.execute(

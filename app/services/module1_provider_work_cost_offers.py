@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.core.permission_guard import can
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
-from app.services.module1_work_catalog import get_work_item
+from app.services.module1_work_catalog import get_work_item, list_work_items
 
 
 MODULE_01_MATERIAL_HUB = "MODULE_01_MATERIAL_HUB"
@@ -224,28 +224,134 @@ def validate_provider_work_cost_payload(payload: ProviderWorkCostOfferPayload) -
     )
 
 
-def provider_work_cost_offer_to_dict(offer: ProviderWorkCostOffer) -> dict[str, Any]:
+def list_work_catalog_options() -> tuple[dict[str, Any], ...]:
+    return tuple(
+        {
+            "workCode": item.work_code,
+            "workTitle": item.work_name,
+            "workGroup": item.work_group,
+            "workGroupTitle": item.work_category,
+            "defaultUnit": item.default_unit,
+            "allowedUnits": tuple(
+                {"code": unit, "label": pricing_unit_label(unit)}
+                for unit in item.allowed_units
+            ),
+            "isRangeAllowed": item.is_range_allowed,
+        }
+        for item in list_work_items()
+    )
+
+
+def provider_work_cost_offer_to_dict(offer: ProviderWorkCostOffer, user: Any | None = None) -> dict[str, Any]:
     work_item = get_work_item(offer.work_code)
+    can_edit = _can_edit_offer(user, offer)
     return {
         "id": str(offer.id),
         "workCode": offer.work_code,
         "workName": work_item.work_name if work_item else None,
         "workGroup": work_item.work_group if work_item else None,
+        "workTitle": work_item.work_name if work_item else "Работа требует проверки",
+        "workGroupTitle": work_item.work_category if work_item else "Раздел требует проверки",
         "ownerUserId": str(offer.owner_user_id),
+        "ownerDisplayName": _owner_display_name(offer, user),
         "region": offer.region,
+        "regionDisplayName": offer.region,
         "pricingMode": offer.pricing_mode,
+        "pricingModeLabel": pricing_mode_label(offer.pricing_mode),
         "fixedAmount": offer.fixed_amount,
         "minimumAmount": offer.minimum_amount,
         "maximumAmount": offer.maximum_amount,
         "currency": offer.currency,
         "pricingUnit": offer.pricing_unit,
+        "pricingUnitLabel": pricing_unit_label(offer.pricing_unit),
+        "priceLabel": price_label(offer),
         "validFrom": offer.valid_from,
         "validUntil": offer.valid_until,
+        "validityLabel": validity_label(offer),
         "status": offer.status,
+        "statusLabel": status_label(offer),
+        "qualityFlags": quality_flags(offer),
+        "canEdit": can_edit,
+        "canActivate": can_edit and offer.status != "active",
+        "canDeactivate": can_edit and offer.status != "inactive",
         "comment": offer.comment,
         "createdAt": offer.created_at,
         "updatedAt": offer.updated_at,
     }
+
+
+def pricing_mode_label(value: str | None) -> str:
+    return {
+        "fixed": "Фиксированная",
+        "range": "Диапазон",
+    }.get((value or "").lower(), "Требует проверки")
+
+
+def pricing_unit_label(value: str | None) -> str:
+    labels = {
+        "work": "за работу",
+        "object": "за объект",
+        "m2": "за м²",
+        "m3": "за м³",
+        "linear_meter": "за пог. м",
+        "lm": "за пог. м",
+        "point": "за точку",
+        "visit": "за выезд",
+        "piece": "за шт.",
+        "hour": "за час",
+        "day": "за день",
+        "kg": "за кг",
+        "ton": "за т",
+        "set": "за комплект",
+    }
+    if not value:
+        return "единица не указана"
+    return labels.get(value, f"за {value}")
+
+
+def price_label(offer: ProviderWorkCostOffer) -> str:
+    if offer.pricing_mode == "fixed":
+        return f"{_format_money(offer.fixed_amount)} ₽"
+    if offer.pricing_mode == "range":
+        return f"от {_format_money(offer.minimum_amount)} до {_format_money(offer.maximum_amount)} ₽"
+    return "Требует проверки"
+
+
+def validity_label(offer: ProviderWorkCostOffer) -> str:
+    if _is_expired(offer):
+        return "Срок истёк"
+    if offer.valid_until is None:
+        return "Срок не ограничен"
+    return offer.valid_until.strftime("%Y.%m.%d")
+
+
+def status_label(offer: ProviderWorkCostOffer) -> str:
+    if _is_expired(offer):
+        return "Срок истёк"
+    return {
+        "draft": "Черновик",
+        "active": "Активно",
+        "inactive": "Неактивно",
+    }.get(offer.status, "Требует проверки")
+
+
+def quality_flags(offer: ProviderWorkCostOffer) -> list[dict[str, str]]:
+    flags: list[dict[str, str]] = []
+    if _is_expired(offer):
+        flags.append({"code": "expired", "label": "Срок истёк", "tone": "warning"})
+    if get_work_item(offer.work_code) is None:
+        flags.append({"code": "catalog_work_missing", "label": "Работа требует проверки", "tone": "warning"})
+    if offer.pricing_mode == "fixed" and (offer.fixed_amount is None or offer.fixed_amount <= 0):
+        flags.append({"code": "invalid_amount", "label": "Стоимость требует проверки", "tone": "danger"})
+    if offer.pricing_mode == "range" and (
+        offer.minimum_amount is None
+        or offer.maximum_amount is None
+        or offer.minimum_amount <= 0
+        or offer.maximum_amount <= 0
+        or offer.minimum_amount > offer.maximum_amount
+    ):
+        flags.append({"code": "invalid_range", "label": "Диапазон требует проверки", "tone": "danger"})
+    return flags
 
 
 async def _get_offer_or_404(db: AsyncSession, offer_id: UUID) -> ProviderWorkCostOffer:
@@ -358,6 +464,51 @@ def _decimal_or_none(value: Any) -> Decimal | None:
         return Decimal(str(value))
     except (InvalidOperation, ValueError) as exc:
         raise ValidationError("amount values must be valid decimals") from exc
+
+
+def _is_expired(offer: ProviderWorkCostOffer) -> bool:
+    return offer.status == "active" and offer.valid_until is not None and offer.valid_until < date.today()
+
+
+def _format_money(value: Any) -> str:
+    if value is None:
+        return "не указано"
+    amount = _decimal_or_none(value)
+    if amount is None:
+        return "не указано"
+    if amount == amount.to_integral_value():
+        formatted = f"{int(amount):,}".replace(",", " ")
+    else:
+        formatted = f"{amount:,.2f}".replace(",", " ").replace(".", ",")
+    return formatted
+
+
+def _owner_display_name(offer: ProviderWorkCostOffer, user: Any | None) -> str:
+    if user is not None:
+        try:
+            if str(_user_id(user)) == str(offer.owner_user_id):
+                return "Моё предложение"
+        except ForbiddenError:
+            pass
+    owner = getattr(offer, "owner", None)
+    if owner is not None:
+        name = _optional_str(getattr(owner, "name", None))
+        if name:
+            return name
+        email = _optional_str(getattr(owner, "email", None))
+        if email:
+            return email
+    return "Исполнитель"
+
+
+def _can_edit_offer(user: Any | None, offer: ProviderWorkCostOffer) -> bool:
+    if user is None:
+        return False
+    try:
+        _require_update_permission(user, offer)
+        return True
+    except ForbiddenError:
+        return False
 
 
 def _get_value(source: Any, field_name: str) -> Any:

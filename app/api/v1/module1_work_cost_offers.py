@@ -15,6 +15,7 @@ from app.services.module1_provider_work_cost_offers import (
     deactivate_provider_work_cost_offer,
     get_provider_work_cost_offer,
     list_provider_work_cost_offers,
+    list_work_catalog_options,
     provider_work_cost_offer_to_dict,
     update_provider_work_cost_offer,
 )
@@ -26,7 +27,7 @@ router = APIRouter(prefix="/admin/material-hub/work-cost-offers", tags=["module1
 @router.post("", response_model=ProviderWorkCostOfferRead, status_code=201)
 async def create_work_cost_offer(data: ProviderWorkCostOfferCreate, db: DBSession, user: CurrentUser):
     offer = await create_provider_work_cost_offer(db, _payload_from_schema(data), user)
-    return provider_work_cost_offer_to_dict(offer)
+    return provider_work_cost_offer_to_dict(offer, user)
 
 
 @router.get("", response_model=PaginatedResponse[ProviderWorkCostOfferRead])
@@ -53,17 +54,20 @@ async def list_work_cost_offers(
         limit=limit,
     )
     return PaginatedResponse(
-        items=[provider_work_cost_offer_to_dict(item) for item in result.items],
+        items=[provider_work_cost_offer_to_dict(item, user) for item in result.items],
         total=result.total,
         offset=result.offset,
         limit=result.limit,
     )
 
 
+@router.get("/work-catalog")
+async def list_work_cost_catalog(user: CurrentUser):
+    return {"items": list(list_work_catalog_options())}
 @router.get("/{offer_id}", response_model=ProviderWorkCostOfferRead)
 async def get_work_cost_offer(offer_id: UUID, db: DBSession, user: CurrentUser):
     offer = await get_provider_work_cost_offer(db, offer_id, user)
-    return provider_work_cost_offer_to_dict(offer)
+    return provider_work_cost_offer_to_dict(offer, user)
 
 
 @router.put("/{offer_id}", response_model=ProviderWorkCostOfferRead)
@@ -74,13 +78,13 @@ async def update_work_cost_offer(
     user: CurrentUser,
 ):
     offer = await update_provider_work_cost_offer(db, offer_id, _payload_from_schema(data), user)
-    return provider_work_cost_offer_to_dict(offer)
+    return provider_work_cost_offer_to_dict(offer, user)
 
 
 @router.post("/{offer_id}/deactivate", response_model=ProviderWorkCostOfferRead)
 async def deactivate_work_cost_offer(offer_id: UUID, db: DBSession, user: CurrentUser):
     offer = await deactivate_provider_work_cost_offer(db, offer_id, user)
-    return provider_work_cost_offer_to_dict(offer)
+    return provider_work_cost_offer_to_dict(offer, user)
 
 
 def _payload_from_schema(data: ProviderWorkCostOfferCreate | ProviderWorkCostOfferUpdate) -> ProviderWorkCostOfferPayload:

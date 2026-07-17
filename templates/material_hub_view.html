@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
@@ -900,35 +900,21 @@
     </section>
 
     <section>
-      <h2>Блок 5 · Работы и расценки</h2>
-      <div class="muted">Module №1 готовит первичный слой наблюдений WorkRateObservation. Цены работ не смешиваются с ценами материалов; полноценная бизнес-логика остается за будущим MODULE_04_WORKS_COSTS.</div>
+      <h2>Блок 5 · Стоимость работ</h2>
+      <div class="muted">Предложения исполнителей хранятся отдельно от цен материалов. Здесь открывается рабочее место для фиксированной стоимости и диапазонов по нормализованному справочнику работ.</div>
       <div class="workspace-grid" style="margin-top:12px">
         <div class="info-panel">
-          <h3>Источники и ввод</h3>
-          <div class="mini-stat"><strong>{{ work_rates_workspace_summary.open_sources_available }}</strong><span class="muted">открытых источников доступно для подготовки</span></div>
-          <div style="margin-top:8px">
-            {% for item in work_rates_workspace_summary.supported_inputs %}
-              <span class="pill">{{ item }}</span>
-            {% endfor %}
-          </div>
+          <h3>Предложения исполнителей</h3>
+          <div class="muted">Работа выбирается из справочника, исполнитель назначается сервером, стоимость может быть фиксированной или диапазоном.</div>
+          <a class="card-action" href="/api/v1/admin/material-hub/view/work-costs">Открыть стоимость работ</a>
         </div>
         <div class="info-panel">
-          <h3>Региональность наблюдения</h3>
-          <div class="muted">Каждое наблюдение расценки должно иметь региональный контекст.</div>
-          <div style="margin-top:8px">
-            {% for field in work_rates_workspace_summary.regional_fields %}
-              <span class="pill">{{ field }}</span>
-            {% endfor %}
-          </div>
+          <h3>Граница материалов</h3>
+          <div class="muted">Стоимость работ не создает материалы, карточки товаров, наблюдения цены материала и не меняет готовность материалов к смете.</div>
         </div>
         <div class="info-panel">
-          <h3>Будущая связь с производителем работ</h3>
-          <div class="muted">{{ work_rates_workspace_summary.note }}</div>
-          <div style="margin-top:8px">
-            {% for field in work_rates_workspace_summary.account_link_fields %}
-              <span class="pill">{{ field }}</span>
-            {% endfor %}
-          </div>
+          <h3>Качество данных</h3>
+          <div class="muted">Workspace показывает срок действия, состояние предложения и диагностические флаги без изменения исходных записей.</div>
         </div>
       </div>
     </section>
