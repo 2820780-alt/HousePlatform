@@ -41,10 +41,11 @@ class Settings(BaseSettings):
     MATERIAL_HUB_SOURCE_CITY_ID: Optional[str] = None
     MATERIAL_HUB_DELIVERY_ZONE_ID: Optional[str] = None
 
-    # Module 01 REF artifacts remain inactive. artifact_validation and
-    # dual_read are diagnostics-only modes accepted by Decisions 034/035.
+    # Module 01 REF defaults to legacy. Decisions 034-036 additionally allow
+    # validation, diagnostics and the approved admin-only ref1_read mode.
     MODULE1_REF_RUNTIME_MODE: str = "legacy"
     MODULE1_REF_ARTIFACT_SET_ID: str = "ref-runtime-v1-122079b1c558fefc"
+    MODULE1_REF_APPROVAL_ID: str = "ref1-read-v1-1a15fed6ebdd"
 
     class Config:
         env_file = ".env"

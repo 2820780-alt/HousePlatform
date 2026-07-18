@@ -69,12 +69,13 @@ def _compare_copy(package: Path) -> Module1RefDualReadResult:
 
 
 def test_modes_are_explicit_and_default_remains_legacy() -> None:
-    assert SUPPORTED_MODES == {"legacy", "artifact_validation", "dual_read"}
+    assert SUPPORTED_MODES == {"legacy", "artifact_validation", "dual_read", "ref1_read"}
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
     assert validate_module1_ref_runtime("legacy").package_validated is False
     assert validate_module1_ref_runtime("artifact_validation").status == "PASS"
+    assert validate_module1_ref_runtime("ref1_read").status == "PASS"
     with pytest.raises(Module1RefRuntimeConfigurationError, match="Unsupported"):
-        validate_module1_ref_runtime("ref1_read")
+        validate_module1_ref_runtime("ref1_write")
 
 
 def test_dual_read_returns_versioned_immutable_diagnostic_result() -> None:

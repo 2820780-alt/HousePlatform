@@ -272,14 +272,14 @@ def test_current_runtime_package_files_match_committed_manifest() -> None:
 
 def test_runtime_modes_startup_and_public_registry_remain_legacy() -> None:
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
-    assert "ref1_read" not in SUPPORTED_MODES
+    assert "ref1_read" in SUPPORTED_MODES
 
     snapshot = build_legacy_taxonomy_snapshot(get_material_knowledge_seed_registry())
     assert len(snapshot["groups"]) == 19
     assert len(snapshot["material_types"]) == 192
 
 
-def test_tooling_has_no_runtime_database_or_public_api_integration() -> None:
+def test_runtime_activation_does_not_import_build_tooling_or_database() -> None:
     project_root = Path(__file__).resolve().parents[1]
     tool_source = (
         project_root / "tools" / "module1_ref_projection" / "ref1_read_approval.py"
@@ -295,11 +295,17 @@ def test_tooling_has_no_runtime_database_or_public_api_integration() -> None:
         for path in (project_root / "app").rglob("*.py")
     )
     assert "module1_ref_projection.ref1_read_approval" not in app_sources
-    assert "admin_taxonomy_read" not in app_sources
-    assert "/ref1-taxonomy" not in app_sources
+    assert "admin_taxonomy_read" in app_sources
+    assert "/ref1-taxonomy" in app_sources
+    policy_source = (
+        project_root / "app" / "services" / "module1_ref1_read_policy.py"
+    ).read_text(encoding="utf-8")
+    assert "sqlalchemy" not in policy_source
+    assert "app.database" not in policy_source
+    assert "app.models" not in policy_source
 
 
-def test_decision_036_is_present_without_implementing_ref1_read() -> None:
+def test_decision_036_is_present_with_governed_ref1_read_implementation() -> None:
     project_root = Path(__file__).resolve().parents[1]
     decisions = (project_root / "docs" / "Decisions.md").read_text(encoding="utf-8")
     main_source = (project_root / "app" / "main.py").read_text(encoding="utf-8")
@@ -308,4 +314,5 @@ def test_decision_036_is_present_without_implementing_ref1_read() -> None:
     assert decisions.count("## Решение №036") == 1
     assert "Статус:\nПринято." in decisions.split("## Решение №036", 1)[1]
     assert "ref1_read_approval" not in main_source
-    assert "ref1_read" not in config_source
+    assert "ref1_read" in config_source
+    assert "module1_ref_runtime" in main_source

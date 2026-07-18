@@ -13,6 +13,7 @@ from app.services.module1_ref_runtime_artifacts import validate_configured_modul
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ref_validation = validate_configured_module1_ref_runtime()
+    app.state.module1_ref_runtime = ref_validation
     app.state.module1_ref_artifact_validation = ref_validation.as_dict()
     await init_db()
     try:
