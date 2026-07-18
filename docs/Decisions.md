@@ -945,3 +945,78 @@ Registry mutation, database writes, REF-only writes и автоматическ�
 Принято.
 
 ---
+
+## Решение №036
+
+Дата:
+18.07.2026
+
+Название:
+Module №1 — Governed REF-1 Read-Only Activation Contract without REF-Only Writes.
+
+Причина:
+Decision №034 зафиксировало deterministic immutable REF runtime artifacts в
+validation-only режиме, а Decision №035 разрешило только приватное
+диагностическое сравнение dual_read. Проверка совместимости подтвердила 192
+совпадающих legacy material types и 786 REF-only material types. До реализации
+бизнес-чтения необходимо отдельно утвердить consumer allowlist, отделить read
+eligibility от write eligibility и обеспечить rollback без изменения базы
+данных.
+
+Решение:
+Будущий режим ref1_read допускается только после отдельного implementation
+спринта и проверки immutable approval artifact. Архитектурный вариант первого
+этапа — Variant B: отдельная административная read-only REF-1 projection с
+явным purpose-scoped allowlist. Projection не является вторым публичным
+registry. Публичные методы и семантика MaterialKnowledgeSeedRegistry остаются
+legacy-only.
+
+Первый allowlist содержит только purposes internal_diagnostics и
+admin_taxonomy_read. Legacy-only остаются documents, Analyzer business
+processing, normalizer, matching, moderation, readiness/export, Material и
+CatalogProduct create/update, Module №2, Module №5, Dashboard и Widgets.
+Существующие Material table и Material details не получают REF-only taxonomy
+на первом этапе.
+
+Для 786 REF-only material types recognised_for_ref_read может быть true только
+для allowlisted purpose. eligible_for_material_write,
+eligible_for_catalog_product_write, eligible_for_normalizer_output,
+eligible_for_matching и eligible_for_moderation_approval остаются false.
+Export REF-only codes также запрещён. Для 192 legacy material types текущее
+legacy write behavior не меняется.
+
+Текущий package ref-runtime-v1-122079b1c558fefc остаётся immutable и не
+редактируется. Approval хранится отдельно как versioned immutable artifact и
+pin-ит runtime package ID, runtime manifest hash, source hashes, artifact schema
+version и compatibility map version. Source REF packages с
+integration_allowed=false не изменяются. В будущем implementation effective
+read integration и runtime_activation_allowed=true разрешены только при
+валидном approval и только для allowlist; write_activation_allowed=false.
+Approval не разрешает REF-2 или REF-3.
+
+Для liquid_waterproofing сохраняется один canonical code с REF parent
+waterproofing. Оба legacy paths остаются metadata-only; existing records не
+мигрируют и не reparent-ятся, duplicate canonical registration и новые REF
+writes запрещены. В admin read representation разрешён canonical REF parent,
+но legacy business lookups не меняются.
+
+lm является canonical code для lumen. linear_meter остаётся отдельным canonical
+unit code. Legacy mapping lm -> linear_meter требует контекста и не может
+применяться автоматически. Unit registry и REF-3 этим решением не активируются.
+
+Rollback будущего read-only режима выполняется возвратом
+MODULE1_REF_RUNTIME_MODE=legacy и restart приложения, без DB migration,
+reclassification и удаления artifacts. REF-only codes не сохраняются в user
+filters/preferences первого этапа; unknown purpose и stale code deny/ignore
+fail-closed без автоматического mapping или write.
+
+Последствия:
+Само наличие approval artifact не активирует ref1_read. Runtime config, startup
+loader, registry, API/UI и business consumers в этом решении не меняются. Любая
+REF write activation требует нового отдельного Decision, compatibility-aware
+persistence plan и rollback release.
+
+Статус:
+Принято.
+
+---

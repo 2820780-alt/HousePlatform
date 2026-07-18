@@ -1,0 +1,115 @@
+{
+  "activation_effect": "approval_metadata_only_no_runtime_activation",
+  "approval_id": "ref1-read-v1-1a15fed6ebdd",
+  "approval_schema_version": "1.0",
+  "approval_version": "1.0",
+  "approved_modes": [
+    "ref1_read"
+  ],
+  "approved_scope": "module1_ref1_read_only_taxonomy_projection",
+  "artifact_schema_version": "1.0",
+  "canonical_conflict_policies": {
+    "liquid_waterproofing": {
+      "admin_read_uses_canonical_ref_parent": true,
+      "canonical_ref_parent": "waterproofing",
+      "code": "liquid_waterproofing",
+      "duplicate_canonical_registration_allowed": false,
+      "existing_records_migrated": false,
+      "legacy_business_lookups_changed": false,
+      "legacy_paths": [
+        "primers_chemicals_sealants",
+        "waterproofing"
+      ],
+      "legacy_paths_metadata_only": true,
+      "ref_only_write_allowed": false
+    },
+    "lm": {
+      "automatic_normalization_allowed": false,
+      "canonical_code": "lm",
+      "canonical_meaning": "lumen",
+      "legacy_lm_to_linear_meter": "context_required",
+      "linear_meter_canonical_code": "linear_meter",
+      "ref3_activation_allowed": false
+    }
+  },
+  "compatibility_map_version": "1.0",
+  "consumer_allowlist": [
+    "admin_taxonomy_read",
+    "internal_diagnostics"
+  ],
+  "consumer_bindings": {
+    "admin_taxonomy_read": "module1.admin.taxonomy_view",
+    "internal_diagnostics": "module1.internal.ref_diagnostics"
+  },
+  "consumer_denylist": [
+    "analyzer_business_processing",
+    "catalog_product_write",
+    "dashboard",
+    "existing_material_details",
+    "existing_materials_table",
+    "matching_candidate",
+    "material_write",
+    "moderation_approval",
+    "module2_export",
+    "module5_export",
+    "normalizer_output",
+    "readiness_export",
+    "widgets"
+  ],
+  "decision_number": "036",
+  "deterministic": true,
+  "integration_allowed_for_read": true,
+  "read_policy": {
+    "legacy_material_types": {
+      "count": 192,
+      "recognised_for_legacy_read": true,
+      "write_behavior": "unchanged_legacy"
+    },
+    "ref_only_material_types": {
+      "count": 786,
+      "recognised_for_ref_read": "allowlisted_purpose_only"
+    },
+    "unknown_code": "deny",
+    "unknown_purpose": "deny"
+  },
+  "ref2_activation_allowed": false,
+  "ref3_activation_allowed": false,
+  "rollback_policy": {
+    "artifact_deletion_required": false,
+    "database_migration_required": false,
+    "mode": "legacy",
+    "reclassification_required": false,
+    "restart_required": true,
+    "saved_ref_only_preferences_allowed": false,
+    "stale_ref_only_code_behavior": "ignore_as_unknown_without_mapping_or_write"
+  },
+  "runtime_activation_allowed": true,
+  "runtime_manifest_hash": "1a15fed6ebddb77c293b8a77539f790b5733215ef3a748a52f3c83a33fe75e9f",
+  "runtime_package_id": "ref-runtime-v1-122079b1c558fefc",
+  "source_bundle_hash": "c0f4b9786242ece6008d65513dd23ffb47460bf99004766eb1aa6a9b5df4c450",
+  "source_hashes": {
+    "ATOM_REF1_Material_Taxonomy_v2_PRELIMINARY_APPROVED.json": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+    "ATOM_REF2_Field_Dictionary_v1_DRAFT.json": "22b3201b55381a1da626aab2e8fea066e94882f97a237495b8ac7307c50adc5d",
+    "ATOM_REF2_Material_Characteristic_Profiles_v1_DRAFT.json": "1ac98e68f88c6f8288c534452bd46de5308808ae1e6f60446f124e0af08beb3c",
+    "ATOM_REF3_Geometry_Coverage_Consumption_Rules_v1_DRAFT.json": "23eefba57ef415527db3f9cf0fa395614d7064c06d2db753f4072209560b7b28",
+    "ATOM_REF3_Package_Manifest_v1_DRAFT.json": "30bde8789f2352797b41cf41cf8f86bea35103f026d5222741a7988bb750799a",
+    "ATOM_REF3_Packaging_Quantity_Profiles_v1_DRAFT.json": "e42f6b0dede8eff8bd33146477ae909990892924d802b5cb37e326262977252b",
+    "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json": "342957cf9ea88ee9873595d1bac4c848d50b3423d2a61fdeadf2556f3e522cfb"
+  },
+  "write_activation_allowed": false,
+  "write_policy": {
+    "legacy_material_types": {
+      "count": 192,
+      "write_behavior": "unchanged_legacy"
+    },
+    "ref_only_material_types": {
+      "count": 786,
+      "eligible_for_catalog_product_write": false,
+      "eligible_for_export": false,
+      "eligible_for_matching": false,
+      "eligible_for_material_write": false,
+      "eligible_for_moderation_approval": false,
+      "eligible_for_normalizer_output": false
+    }
+  }
+}
