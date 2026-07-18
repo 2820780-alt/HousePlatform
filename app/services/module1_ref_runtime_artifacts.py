@@ -5,12 +5,15 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 from app.services.module1_material_seed_registry import (
     MaterialKnowledgeSeedRegistry,
     get_material_knowledge_seed_registry,
 )
+
+if TYPE_CHECKING:
+    from app.services.module1_ref_dual_read import Module1RefDualReadResult
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -19,7 +22,8 @@ DEFAULT_ARTIFACT_SET_ID = "ref-runtime-v1-122079b1c558fefc"
 DEFAULT_ARTIFACT_DIR = RUNTIME_REFERENCE_ROOT / DEFAULT_ARTIFACT_SET_ID
 ARTIFACT_SCHEMA_VERSION = "1.0"
 COMPATIBILITY_MAP_VERSION = "1.0"
-SUPPORTED_MODES = frozenset({"legacy", "artifact_validation"})
+ARTIFACT_SUPPORTED_MODES = frozenset({"legacy", "artifact_validation"})
+SUPPORTED_MODES = frozenset({"legacy", "artifact_validation", "dual_read"})
 REQUIRED_ARTIFACT_FILES = frozenset(
     {
         "taxonomy.json",
@@ -94,11 +98,19 @@ def validate_module1_ref_runtime(
     artifact_dir: str | Path = DEFAULT_ARTIFACT_DIR,
     allowed_root: str | Path = RUNTIME_REFERENCE_ROOT,
     registry: MaterialKnowledgeSeedRegistry | None = None,
-) -> Module1RefValidationResult:
+) -> Module1RefValidationResult | Module1RefDualReadResult:
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode not in SUPPORTED_MODES:
         raise Module1RefRuntimeConfigurationError(
             f"Unsupported Module 1 REF runtime mode: {mode!r}"
+        )
+    if normalized_mode == "dual_read":
+        from app.services.module1_ref_dual_read import compare_module1_ref_runtime
+
+        return compare_module1_ref_runtime(
+            artifact_dir=artifact_dir,
+            allowed_root=allowed_root,
+            registry=registry,
         )
     if normalized_mode == "legacy":
         return Module1RefValidationResult(
@@ -186,7 +198,7 @@ def require_module1_ref_runtime_validation(
     artifact_dir: str | Path = DEFAULT_ARTIFACT_DIR,
     allowed_root: str | Path = RUNTIME_REFERENCE_ROOT,
     registry: MaterialKnowledgeSeedRegistry | None = None,
-) -> Module1RefValidationResult:
+) -> Module1RefValidationResult | Module1RefDualReadResult:
     result = validate_module1_ref_runtime(
         mode,
         artifact_dir=artifact_dir,
@@ -201,7 +213,7 @@ def require_module1_ref_runtime_validation(
     return result
 
 
-def validate_configured_module1_ref_runtime() -> Module1RefValidationResult:
+def validate_configured_module1_ref_runtime() -> Module1RefValidationResult | Module1RefDualReadResult:
     from app.config import settings
 
     artifact_dir = RUNTIME_REFERENCE_ROOT / settings.MODULE1_REF_ARTIFACT_SET_ID
@@ -258,8 +270,8 @@ def _validate_manifest(
         issues.append(Module1RefValidationIssue("SOURCE_INTEGRATION_FORBIDDEN", "Source integration flag must remain false"))
     if manifest.get("default_loader_mode") != "legacy":
         issues.append(Module1RefValidationIssue("DEFAULT_MODE_INVALID", "Default loader mode must be legacy"))
-    if set(manifest.get("supported_loader_modes") or []) != SUPPORTED_MODES:
-        issues.append(Module1RefValidationIssue("LOADER_MODES_INVALID", "Only legacy and artifact_validation modes are supported"))
+    if set(manifest.get("supported_loader_modes") or []) != ARTIFACT_SUPPORTED_MODES:
+        issues.append(Module1RefValidationIssue("LOADER_MODES_INVALID", "Artifact package supports only legacy and artifact_validation"))
 
     source_packages = manifest.get("source_packages")
     if not isinstance(source_packages, list):

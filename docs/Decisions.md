@@ -913,3 +913,35 @@ Source package `integration_allowed=false` сохраняется. Generated man
 Принято.
 
 ---
+
+## Решение №035
+
+Дата:
+18.07.2026
+
+Название:
+Module №1 — Diagnostic REF-1 Dual-Read Comparison without Runtime Activation.
+
+Причина:
+После создания детерминированных inactive REF artifacts требуется проверить фактическую совместимость legacy taxonomy и REF-1 до любого read- или write-подключения. Такая проверка не должна менять production behavior, публичные lookup-контракты или существующий `MaterialKnowledgeSeedRegistry`.
+
+Решение:
+Для Module №1 разрешён режим `dual_read` исключительно как приватный диагностический comparison mode. Режим по умолчанию остаётся `legacy`; `artifact_validation` сохраняет прежнее validation-only поведение.
+
+В `dual_read` immutable artifact package сначала проходит fail-closed validation. После этого private adapter сравнивает snapshot legacy registry с taxonomy и compatibility artifacts по стабильным кодам, parent paths и доступной semantic metadata. Результат сравнения является versioned immutable diagnostics contract, но не является runtime registry, lookup provider или источником business data.
+
+Legacy `MaterialKnowledgeSeedRegistry` остаётся единственным business source of truth. Его public methods и semantics не меняются. REF-only groups и material types не становятся доступны normalizer, matching, moderation, Material/CatalogProduct validation, Module №2, Module №5, UI или API.
+
+Registry mutation, database writes, REF-only writes и автоматическая регистрация REF entries запрещены. Comparison result не используется normalizer, matching или moderation. `integration_allowed=false`, `runtime_activation_allowed=false` и `write_activation_allowed=false` сохраняются.
+
+`dual_read` обязан завершаться fail-closed при невалидном manifest/package, compatibility conflict, duplicate canonical type, неожиданном legacy-only code или обнаруженной mutation. Silent fallback и переход в REF read mode запрещены.
+
+Любая последующая REF read activation требует отдельного решения и отдельного approval. Режимы REF write остаются запрещены до compatibility-aware persistence и rollback release.
+
+Последствия:
+Разрешены только внутренние diagnostics и локальные audit outputs вне репозитория. Второй публичный registry, новый API endpoint, UI-панель, ORM/migrations и изменения business consumers не создаются.
+
+Статус:
+Принято.
+
+---

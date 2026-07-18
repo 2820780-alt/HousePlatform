@@ -86,7 +86,7 @@ def test_artifact_validation_is_structured_and_does_not_mutate_registry_or_datab
 
 def test_unknown_mode_is_an_explicit_configuration_error() -> None:
     with pytest.raises(Module1RefRuntimeConfigurationError, match="Unsupported"):
-        validate_module1_ref_runtime("dual_read")
+        validate_module1_ref_runtime("ref1_read")
 
 
 def test_missing_manifest_fails_closed(tmp_path: Path) -> None:
