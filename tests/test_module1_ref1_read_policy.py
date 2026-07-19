@@ -33,7 +33,7 @@ def activation() -> Module1Ref1ReadActivation:
 def test_supported_modes_include_ref1_read_while_default_remains_legacy() -> None:
     from app.config import settings
 
-    assert SUPPORTED_MODES == {"legacy", "artifact_validation", "dual_read", "ref1_read"}
+    assert SUPPORTED_MODES == {"legacy", "artifact_validation", "dual_read", "ref1_read", "ref2_read"}
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
 
 

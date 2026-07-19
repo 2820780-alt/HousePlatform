@@ -41,11 +41,12 @@ class Settings(BaseSettings):
     MATERIAL_HUB_SOURCE_CITY_ID: Optional[str] = None
     MATERIAL_HUB_DELIVERY_ZONE_ID: Optional[str] = None
 
-    # Module 01 REF defaults to legacy. Decisions 034-036 additionally allow
-    # validation, diagnostics and the approved admin-only ref1_read mode.
+    # Module 01 REF defaults to legacy. Decisions 034-037 additionally allow
+    # validation, diagnostics and approved admin-only ref1_read/ref2_read modes.
     MODULE1_REF_RUNTIME_MODE: str = "legacy"
     MODULE1_REF_ARTIFACT_SET_ID: str = "ref-runtime-v1-122079b1c558fefc"
     MODULE1_REF_APPROVAL_ID: str = "ref1-read-v1-1a15fed6ebdd"
+    MODULE1_REF2_APPROVAL_ID: str = "ref2-read-v1-1a15fed6ebdd"
 
     class Config:
         env_file = ".env"

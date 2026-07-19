@@ -256,21 +256,21 @@ def test_runtime_package_and_ref1_approval_files_are_unchanged() -> None:
         assert path.stat().st_size == contract["size_bytes"]
 
 
-def test_decision_exists_but_runtime_mode_endpoint_startup_and_ui_are_not_implemented() -> None:
+def test_decision_and_approved_runtime_mode_are_present_without_tooling_import() -> None:
     project_root = Path(__file__).resolve().parents[1]
     decisions = (project_root / "docs" / "Decisions.md").read_text(encoding="utf-8")
     config = (project_root / "app" / "config.py").read_text(encoding="utf-8")
-    main = (project_root / "app" / "main.py").read_text(encoding="utf-8")
     app_sources = "\n".join(path.read_text(encoding="utf-8") for path in (project_root / "app").rglob("*.py"))
 
-    assert decisions.count("## Решение №037") == 1
-    assert "Статус:\nПринято." in decisions.split("## Решение №037", 1)[1]
+    decision_heading = "## \u0420\u0435\u0448\u0435\u043d\u0438\u0435 \u2116037"
+    accepted_status = "\u0421\u0442\u0430\u0442\u0443\u0441:\n\u041f\u0440\u0438\u043d\u044f\u0442\u043e."
+    assert decisions.count(decision_heading) == 1
+    assert accepted_status in decisions.split(decision_heading, 1)[1]
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
-    assert "ref2_read" not in SUPPORTED_MODES
-    assert "ref2_read" not in config
-    assert "ref2_read_approval" not in main
+    assert "ref2_read" in SUPPORTED_MODES
+    assert "MODULE1_REF2_APPROVAL_ID" in config
     assert "module1_ref_projection.ref2_read_approval" not in app_sources
-    assert "/ref2-characteristic-schemas" not in app_sources
+    assert "/ref2-characteristic-schemas" in app_sources
 
 
 def test_tooling_has_no_database_orm_ui_or_runtime_imports() -> None:

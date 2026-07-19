@@ -15,6 +15,7 @@ from app.services.module1_material_seed_registry import (
 if TYPE_CHECKING:
     from app.services.module1_ref_dual_read import Module1RefDualReadResult
     from app.services.module1_ref1_read_policy import Module1Ref1ReadActivation
+    from app.services.module1_ref2_read_policy import Module1Ref2ReadActivation
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -24,10 +25,12 @@ DEFAULT_ARTIFACT_SET_ID = "ref-runtime-v1-122079b1c558fefc"
 DEFAULT_ARTIFACT_DIR = RUNTIME_REFERENCE_ROOT / DEFAULT_ARTIFACT_SET_ID
 DEFAULT_APPROVAL_ID = "ref1-read-v1-1a15fed6ebdd"
 DEFAULT_APPROVAL_DIR = APPROVAL_ROOT / DEFAULT_APPROVAL_ID
+DEFAULT_REF2_APPROVAL_ID = "ref2-read-v1-1a15fed6ebdd"
+DEFAULT_REF2_APPROVAL_DIR = APPROVAL_ROOT / DEFAULT_REF2_APPROVAL_ID
 ARTIFACT_SCHEMA_VERSION = "1.0"
 COMPATIBILITY_MAP_VERSION = "1.0"
 ARTIFACT_SUPPORTED_MODES = frozenset({"legacy", "artifact_validation"})
-SUPPORTED_MODES = frozenset({"legacy", "artifact_validation", "dual_read", "ref1_read"})
+SUPPORTED_MODES = frozenset({"legacy", "artifact_validation", "dual_read", "ref1_read", "ref2_read"})
 REQUIRED_ARTIFACT_FILES = frozenset(
     {
         "taxonomy.json",
@@ -102,9 +105,10 @@ def validate_module1_ref_runtime(
     artifact_dir: str | Path = DEFAULT_ARTIFACT_DIR,
     allowed_root: str | Path = RUNTIME_REFERENCE_ROOT,
     approval_dir: str | Path = DEFAULT_APPROVAL_DIR,
+    ref2_approval_dir: str | Path = DEFAULT_REF2_APPROVAL_DIR,
     approval_allowed_root: str | Path = APPROVAL_ROOT,
     registry: MaterialKnowledgeSeedRegistry | None = None,
-) -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation:
+) -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation | Module1Ref2ReadActivation:
     normalized_mode = str(mode or "").strip().lower()
     if normalized_mode not in SUPPORTED_MODES:
         raise Module1RefRuntimeConfigurationError(
@@ -131,6 +135,24 @@ def validate_module1_ref_runtime(
         return activate_module1_ref1_read(
             artifact_dir=Path(artifact_dir),
             approval_dir=Path(approval_dir),
+            approval_allowed_root=Path(approval_allowed_root),
+            package_validation=package_validation,
+            registry=effective_registry,
+        )
+    if normalized_mode == "ref2_read":
+        from app.services.module1_ref2_read_policy import activate_module1_ref2_read
+
+        effective_registry = registry or get_material_knowledge_seed_registry()
+        package_validation = validate_module1_ref_runtime(
+            "artifact_validation",
+            artifact_dir=artifact_dir,
+            allowed_root=allowed_root,
+            registry=effective_registry,
+        )
+        return activate_module1_ref2_read(
+            artifact_dir=Path(artifact_dir),
+            ref1_approval_dir=Path(approval_dir),
+            ref2_approval_dir=Path(ref2_approval_dir),
             approval_allowed_root=Path(approval_allowed_root),
             package_validation=package_validation,
             registry=effective_registry,
@@ -221,14 +243,16 @@ def require_module1_ref_runtime_validation(
     artifact_dir: str | Path = DEFAULT_ARTIFACT_DIR,
     allowed_root: str | Path = RUNTIME_REFERENCE_ROOT,
     approval_dir: str | Path = DEFAULT_APPROVAL_DIR,
+    ref2_approval_dir: str | Path = DEFAULT_REF2_APPROVAL_DIR,
     approval_allowed_root: str | Path = APPROVAL_ROOT,
     registry: MaterialKnowledgeSeedRegistry | None = None,
-) -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation:
+) -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation | Module1Ref2ReadActivation:
     result = validate_module1_ref_runtime(
         mode,
         artifact_dir=artifact_dir,
         allowed_root=allowed_root,
         approval_dir=approval_dir,
+        ref2_approval_dir=ref2_approval_dir,
         approval_allowed_root=approval_allowed_root,
         registry=registry,
     )
@@ -240,7 +264,7 @@ def require_module1_ref_runtime_validation(
     return result
 
 
-def validate_configured_module1_ref_runtime() -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation:
+def validate_configured_module1_ref_runtime() -> Module1RefValidationResult | Module1RefDualReadResult | Module1Ref1ReadActivation | Module1Ref2ReadActivation:
     from app.config import settings
 
     artifact_dir = RUNTIME_REFERENCE_ROOT / settings.MODULE1_REF_ARTIFACT_SET_ID
@@ -248,6 +272,7 @@ def validate_configured_module1_ref_runtime() -> Module1RefValidationResult | Mo
         settings.MODULE1_REF_RUNTIME_MODE,
         artifact_dir=artifact_dir,
         approval_dir=APPROVAL_ROOT / settings.MODULE1_REF_APPROVAL_ID,
+        ref2_approval_dir=APPROVAL_ROOT / settings.MODULE1_REF2_APPROVAL_ID,
     )
 
 

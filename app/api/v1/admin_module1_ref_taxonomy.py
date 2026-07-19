@@ -11,6 +11,7 @@ from app.services.module1_ref1_read_policy import (
     APPROVAL_VERSION,
     Module1Ref1ReadActivation,
 )
+from app.services.module1_ref2_read_policy import Module1Ref2ReadActivation
 
 
 router = APIRouter(
@@ -30,8 +31,14 @@ async def get_ref1_taxonomy(
     if user.role != UserRole.ADMIN:
         raise ForbiddenError()
 
-    activation = getattr(request.app.state, "module1_ref_runtime", None)
-    if not isinstance(activation, Module1Ref1ReadActivation) or not activation.is_valid:
+    runtime_activation = getattr(request.app.state, "module1_ref_runtime", None)
+    if isinstance(runtime_activation, Module1Ref2ReadActivation):
+        activation = runtime_activation.ref1_activation
+    elif isinstance(runtime_activation, Module1Ref1ReadActivation):
+        activation = runtime_activation
+    else:
+        activation = None
+    if activation is None or not activation.is_valid:
         raise NotFoundError("REF-1 taxonomy projection is not active")
     if activation.projection is None or activation.policy is None:
         raise NotFoundError("REF-1 taxonomy projection is not active")
@@ -50,7 +57,7 @@ async def get_ref1_taxonomy(
         "filters_persisted": False,
         "groups": [item.as_dict() for item in projection.groups],
         "material_types": [item.as_dict() for item in projection.material_types],
-        "mode": "ref1_read",
+        "mode": runtime_activation.mode,
         "read_only": True,
         "ref_only_write_eligibility": False,
     }
