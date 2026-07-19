@@ -1175,3 +1175,41 @@ artifact и pure build-time/test validator.
 Принято.
 
 ---
+
+## Решение №039
+
+Дата:
+19.07.2026
+
+Название:
+Module №1 — Consolidated REF-1/REF-2/REF-3 Read-Only Runtime Compatibility and Rollback Contract.
+
+Причина:
+После реализации immutable REF artifacts, режимов `artifact_validation`, `dual_read`, `ref1_read`, `ref2_read` и `ref3_read` требуется единообразно закрепить границы завершённого административного read-only этапа, совместимость с legacy business runtime и безопасный rollback до любой будущей write activation.
+
+Решение:
+REF-1, REF-2 и REF-3 интегрированы только как governed administrative read-only projections. Они не являются вторым публичным registry и не заменяют существующие legacy registries.
+
+Legacy registries остаются единственным business source of truth для Material и CatalogProduct writes, normalizer, matching, moderation, readiness/export, Work Cost, Module №2 и Module №5. REF-only codes не разрешены для business writes.
+
+Текущий read-only этап не требует destructive legacy migration. Существующие записи базы данных не мигрируют, не переклассифицируются и не получают новые REF identifiers. Пустые dictionary tables не заполняются read-only artifacts.
+
+Rollback выполняется mode switch и restart по цепочке `ref3_read → ref2_read → ref1_read → legacy`. Он не требует DB migration, удаления artifacts или approvals, reclassification записей либо rewrite legacy registries. Immutable artifacts и approvals остаются version-pinned.
+
+Review subsets и diagnostics сохраняются без автоматического утверждения: REF-2 review-excluded — 48; REF-3 unit review-excluded — 17; packaging review-excluded — 51; packaging/REF-2 mismatches — 345.
+
+Каноническая единица `lm` означает lumen. `linear_meter` остаётся отдельным code; автоматический mapping `lm → linear_meter` запрещён.
+
+REF conversions и extended rules остаются non-executable. Object/work calculations и executable work→material mappings равны нулю.
+
+Любая будущая write activation требует отдельного Decision, compatibility-aware rollback release, persistence/migration plan и отдельной regression. До выполнения этих условий destructive migration и REF-only writes запрещены.
+
+Step M1-34 для текущей read-only фазы закрывается как: `no destructive migration required; compatibility and rollback proven`.
+
+Последствия:
+Подтверждена безопасная эксплуатация шести runtime modes без изменения legacy business behavior, базы данных, preferences, ORM, UI и других модулей. Следующий write-oriented этап не может использовать это решение как разрешение на запись или execution.
+
+Статус:
+Принято.
+
+---
