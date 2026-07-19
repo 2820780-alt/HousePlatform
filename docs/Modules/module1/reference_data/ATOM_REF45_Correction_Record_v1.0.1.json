@@ -1,0 +1,27 @@
+{
+  "approval": {
+    "approved_by_user": true,
+    "approved_on": "2026-07-19",
+    "automatic_subtype_resolution_remains_forbidden": true
+  },
+  "changed_fields": [
+    "legacy_normalized_value",
+    "scope"
+  ],
+  "changed_rule_ids": [
+    "legacy_alias_060",
+    "legacy_alias_061",
+    "legacy_alias_062"
+  ],
+  "new_value": "gypsum_board_regular",
+  "old_incorrect_value": "gypsum_board_moisture_resistant",
+  "preserved_fields": {
+    "automatic_material_type_resolution_allowed": false,
+    "classification": "context_required",
+    "status": "review_required",
+    "target_candidate_lists_changed": false
+  },
+  "reason": "Exact legacy parity with module1_source_profile_registry.py:172.",
+  "status": "approved_correction",
+  "version": "1.0.1"
+}

@@ -1213,3 +1213,67 @@ Step M1-34 для текущей read-only фазы закрывается ка�
 Принято.
 
 ---
+
+## Решение №040
+
+Дата:
+20.07.2026
+
+Название:
+Module №1 — Governed REF-4 Normalization and REF-5 Compatibility Policy Activation.
+
+Причина:
+После управляемой read-only интеграции REF-1, REF-2 и REF-3 требуется отдельно
+зафиксировать безопасное применение утверждённых REF-4 правил нормализации и
+REF-5 правил аналогов, альтернатив и совместимости. Source package подготовлен
+ассистентом, утверждён пользователем и повторно утверждён в версии 1.0.1 после
+исправления трёх legacy mappings. Codex выполняет только проверку, детерминированную
+проекцию и интеграцию утверждённого содержания.
+
+Решение:
+REF-4 baseline содержит 978 material type profiles и 89 alias rules: 44 trusted
+automatic rules и 45 context/review rules, duplicate alias keys равны нулю.
+Правила `legacy_alias_060`, `legacy_alias_061` и `legacy_alias_062` для `gkl`,
+`plasterboard` и `drywall` имеют legacy scope `gypsum_board_regular`, но остаются
+`context_required`, `review_required` и не разрешают automatic subtype selection.
+Generic aliases не определяют конкретный subtype автоматически.
+
+Normalization policy сохраняет dimensions, grades, brands и product variants.
+Source/category mappings остаются source/profile scoped; precedence равен
+`source_profile → material_direction → global`. Fuzzy resolution и automatic
+alias learning запрещены. Matching и moderation не создают aliases автоматически.
+
+REF-5 baseline ограничен 15 context compatibility rules и 13 substitution rules.
+Только 3 substitution policies имеют active read-only/safety status; 10 остаются
+review-only. Automatic replacement и automatic selection равны нулю. Full analog
+требует одинаковый material type, наличие и равенство обязательных technical
+fields, совместимые units и application restrictions, а также отсутствие review
+flags. Conditional, technical и functional replacements направленные; forbidden
+replacements остаются safety guards.
+
+Relation `cement_screed → dry_screed` остаётся review-only. Suggested identifiers
+не считаются утверждёнными. REF-5 не выбирает SKU, не выполняет replacement, не
+пишет `MaterialAnalog` и не выполняет расчёты Module №2 или Module №5.
+Executable work→material mappings равны нулю.
+
+Production runtime читает REF-4/REF-5 только через deterministic immutable
+generated artifacts и versioned approval. Чтение authoring files из
+`docs/Modules/module1/reference_data` и импорт build-time tooling production-кодом
+запрещены. Независимый mode `MODULE1_REF45_MODE` поддерживает только `legacy` и
+`approved`; default остаётся `legacy`. Approved mode валидирует artifact и approval
+fail-closed, а rollback выполняется возвратом в `legacy` и restart.
+
+Активация не создаёт DB writes, migrations, `MaterialAlias`, `MaterialAnalog`,
+`Material` или `CatalogProduct`, не изменяет Price Gate, Work Cost, REF-1/2/3,
+Widgets, Quick Actions, Dashboard, UI и Module №2/№3/№5. Write activation,
+automatic replacement и reclassification existing records запрещены.
+
+Последствия:
+Любое расширение aliases, analogs, compatibility rules, review subsets или
+исполняемых сценариев требует нового пользовательского утверждения и отдельного
+Decision. Source package версии 1.0.1 не редактируется интеграционным кодом.
+
+Статус:
+Принято.
+
+---

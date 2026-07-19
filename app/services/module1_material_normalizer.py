@@ -6,6 +6,9 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from app.services.material_normalization_rules import normalize_material_title as legacy_normalize_material_title
+from app.config import settings
+from app.services.module1_ref4_normalization_policy import resolve_ref4_alias
+from app.services.module1_source_profile_registry import SOURCE_TARGET_GROUPS
 from app.services.module1_characteristic_schema_registry import CharacteristicSchemaRegistry
 from app.services.module1_extraction_blueprint_registry import ExtractionBlueprintRegistry
 from app.services.module1_raw_ingestion_pipeline import Module1RawIngestionItem
@@ -182,6 +185,29 @@ def normalize_characteristics(
 
 
 def infer_material_group(raw_item: Module1RawIngestionItem) -> str | None:
+    if settings.MODULE1_REF45_MODE == "approved":
+        source_scopes = SOURCE_TARGET_GROUPS.get(str(raw_item.source_code or "").upper(), tuple())
+        resolutions = [
+            resolve_ref4_alias(raw_item.raw_category, scope=scope)
+            for scope in source_scopes
+        ]
+        resolutions.extend(
+            (
+                resolve_ref4_alias(raw_item.raw_category),
+                resolve_ref4_alias(raw_item.raw_title),
+            )
+        )
+        trusted_targets = {
+            resolution.material_type_id
+            for resolution in resolutions
+            if resolution.state in {"trusted_match", "scoped_trusted_match"}
+            and resolution.material_type_id
+        }
+        if len(trusted_targets) == 1:
+            return next(iter(trusted_targets))
+        if any(resolution.state in {"context_required", "review_required"} for resolution in resolutions):
+            return None
+
     text = _clean_text(" ".join(filter(None, [raw_item.raw_title, raw_item.raw_category])))
     markers = (
         ("aerated_concrete_block", ("газоблок", "газобетон", "d500", "d400", "d600")),

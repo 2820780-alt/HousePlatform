@@ -1,0 +1,129 @@
+{
+  "activation_flags": {
+    "automatic_alias_learning_allowed": false,
+    "automatic_replacement_allowed": false,
+    "context_alias_auto_resolution_allowed": false,
+    "fuzzy_alias_resolution_allowed": false,
+    "module2_execution_allowed": false,
+    "module5_execution_allowed": false,
+    "ref5_read_policy_allowed": true,
+    "trusted_alias_resolution_allowed": true,
+    "work_mapping_activation_allowed": false,
+    "write_activation_allowed": false
+  },
+  "approval_id": "ref45-activation-v1-5fe5e067d0dd",
+  "approval_schema_version": "1.0",
+  "approval_version": "1.0",
+  "approved_modes": [
+    "approved"
+  ],
+  "approved_scope": "module1_ref4_ref5_governed_policy",
+  "canonical_serialization": {
+    "bom": false,
+    "encoding": "UTF-8",
+    "ensure_ascii": false,
+    "indent": 2,
+    "line_ending": "LF",
+    "sort_keys": true,
+    "trailing_newline": true
+  },
+  "counts": {
+    "automatic_replacements": 0,
+    "ref4_alias_rules": 89,
+    "ref4_review_rules": 45,
+    "ref4_trusted_alias_rules": 44,
+    "ref5_active_substitution_policies": 3,
+    "ref5_context_rules": 15,
+    "ref5_review_rules": 10,
+    "ref5_substitution_rules": 13,
+    "taxonomy_material_types": 978,
+    "work_material_mappings": 0
+  },
+  "decision_number": 40,
+  "review_policy": {
+    "automatic_review_approval_allowed": false,
+    "ref4_review_items": 45,
+    "ref5_review_items": 10,
+    "review_items_active_for_business_resolution": false
+  },
+  "rollback_policy": {
+    "artifact_deletion_required": false,
+    "database_migration_required": false,
+    "database_update_required": false,
+    "record_reclassification_required": false,
+    "requires_restart": true,
+    "target_mode": "legacy"
+  },
+  "runtime_artifact": {
+    "artifact_hashes": {
+      "legacy_compatibility": "96a272b73f62427433ef5bd0b4d01e561805b05041facf20c79e12a27cb79c00",
+      "ref4_alias_rules": "a1abb52976bd1d3abe9792d34583b191dce5fe8988a8c8f2de7ac1202f820fd4",
+      "ref4_material_type_profiles": "4a7f8fc50738182748f14b417f4a9b7a5217540ac409a2d2a99f6dba6752c6fc",
+      "ref4_normalization_policy": "e887ae76afafe1deb25f14f837a58cf8f09c61784d2e7d45761580d2a5561248",
+      "ref5_context_compatibility": "9af0344b891f3a904b247f96d29c19f0a2d90373ca1da00e0a9280884c7aa9d7",
+      "ref5_substitution_policies": "47f5eea2c7f0687dc90381907cf0479eaf2aeab8a24c57b992482169bb433a30",
+      "review_queue": "eacf483504748561d8c5caf3e9eb803e40a7eb43bfa62a78cbb24acac2774fde"
+    },
+    "artifact_schema_version": "1.0",
+    "manifest_sha256": "f5d385e8cf6b7e4847ee7b6d7e5f243671ac6472914e3c0f2e093e860b58b3dc",
+    "package_id": "ref45-runtime-v1-5fe5e067d0dd"
+  },
+  "source_package": {
+    "package_status": "preliminary_approved",
+    "source_hashes": {
+      "REF-4": {
+        "filename": "ATOM_REF4_Synonyms_Normalization_v1.0.1_PRELIMINARY_APPROVED.json",
+        "sha256": "22f030cc1dfee3e638999ab1f918552b38b8ffb5fe410969881c0daa181a632d"
+      },
+      "REF-45-APPROVAL": {
+        "filename": "ATOM_REF45_Approval_Record_v1.0.1.md",
+        "sha256": "1d7251d648a5c5b38a61a551e413fcd8cb4ff2b14ed5d695a51f4e40aa1682ee"
+      },
+      "REF-45-CORRECTION": {
+        "filename": "ATOM_REF45_Correction_Record_v1.0.1.json",
+        "sha256": "770d7f0e71974e930cfb65a037cd34c77cd7fa969b78e74c44dcd2b7c0dbf9f3"
+      },
+      "REF-45-MANIFEST": {
+        "filename": "ATOM_REF45_Package_Manifest_v1.0.1_PRELIMINARY_APPROVED.json",
+        "sha256": "5fe5e067d0dd7235ac54062ed34bad640f1689d358b365dc98b728d0e9682ff7"
+      },
+      "REF-45-SUMMARY": {
+        "filename": "ATOM_REF45_Summary_v1.0.1_PRELIMINARY_APPROVED.json",
+        "sha256": "a0564f86eae192d5925af2829fb9225f7d2feafe0cee170267c0e6b54b2a287d"
+      },
+      "REF-5": {
+        "filename": "ATOM_REF5_Analogs_Alternatives_Compatibility_v1_PRELIMINARY_APPROVED.json",
+        "sha256": "8fd9a2bbeb95ee52b2879c5f6f1b269c0f80e75e37a24403cee26f9b1a9fb12d"
+      }
+    },
+    "version": "1.0.1"
+  },
+  "substitution_policy": {
+    "active_read_only_or_safety": 3,
+    "automatic_selection_allowed": false,
+    "automatic_write_allowed": false,
+    "cement_screed_to_dry_screed": "review_only",
+    "directed_relation_types": [
+      "conditional_replacement",
+      "functional_alternative",
+      "technical_alternative"
+    ],
+    "module2_calculation_allowed": false,
+    "module5_costing_allowed": false,
+    "review_rules": 10,
+    "rules": 13,
+    "work_material_mappings": 0
+  },
+  "trusted_policy": {
+    "automatic_rules": 44,
+    "brand_alias_creation_allowed": false,
+    "dimension_grade_variant_preservation_required": true,
+    "fuzzy_matching_allowed": false,
+    "generic_alias_subtype_resolution_allowed": false,
+    "scope_precedence": [
+      "source_profile",
+      "material_direction",
+      "global"
+    ]
+  }
+}

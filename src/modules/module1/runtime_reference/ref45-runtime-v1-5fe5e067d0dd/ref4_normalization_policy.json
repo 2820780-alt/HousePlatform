@@ -1,0 +1,428 @@
+{
+  "activation_scope": "approved_read_only_policy",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref45-runtime-v1-5fe5e067d0dd",
+  "artifact_type": "ref4_normalization_policy",
+  "blocked_automatic_mappings": [
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "board",
+        "edged_board",
+        "unedged_board",
+        "rafter_board",
+        "terrace_board",
+        "lining_board"
+      ],
+      "raw_value": "board",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "ready_mix_concrete",
+        "lean_concrete",
+        "lightweight_concrete",
+        "fine_grained_concrete"
+      ],
+      "raw_value": "concrete",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_plaster",
+        "cement_plaster",
+        "tile_adhesive",
+        "putty_start",
+        "putty_finish"
+      ],
+      "raw_value": "dry mix",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ],
+      "raw_value": "drywall",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [],
+      "raw_value": "electrics",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ],
+      "raw_value": "gkl",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ],
+      "raw_value": "gypsum board",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "xps_board",
+        "eps_board",
+        "pir_board"
+      ],
+      "raw_value": "insulation",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "board",
+        "beam",
+        "wood_bar"
+      ],
+      "raw_value": "lumber",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ],
+      "raw_value": "mineral wool",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_plaster",
+        "cement_plaster",
+        "decorative_plaster"
+      ],
+      "raw_value": "plaster",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ],
+      "raw_value": "plasterboard",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "deep_penetration_primer",
+        "adhesion_primer",
+        "universal_primer",
+        "concrete_contact"
+      ],
+      "raw_value": "primer",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "rebar",
+        "rebar_mesh",
+        "masonry_mesh"
+      ],
+      "raw_value": "reinforcement",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "profiled_sheet_roofing",
+        "fiber_cement_slate",
+        "polycarbonate_roof_sheet"
+      ],
+      "raw_value": "roof sheet",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "metal_tile",
+        "profiled_sheet_roofing",
+        "standing_seam_roofing",
+        "flexible_shingle",
+        "ceramic_roof_tile"
+      ],
+      "raw_value": "roofing",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "mineral_wool_slab",
+        "xps_board",
+        "eps_board",
+        "pir_board"
+      ],
+      "raw_value": "slab insulation",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "porcelain_tile",
+        "ceramic_floor_tile",
+        "wall_tile",
+        "facade_ceramic_tile"
+      ],
+      "raw_value": "tile",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "board",
+        "beam",
+        "wood_bar"
+      ],
+      "raw_value": "timber",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "u_block",
+        "aerated_concrete_u_block"
+      ],
+      "raw_value": "u block",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "aerated_concrete_block",
+        "ceramic_block",
+        "partition_block"
+      ],
+      "raw_value": "wall blocks",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "cable",
+        "binding_wire"
+      ],
+      "raw_value": "wire",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "cable",
+        "low_smoke_cable",
+        "fire_resistant_cable",
+        "power_cable"
+      ],
+      "raw_value": "ввгнг",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "windproof_membrane",
+        "facade_wind_membrane"
+      ],
+      "raw_value": "ветрозащита",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [],
+      "raw_value": "водосток",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant",
+        "gypsum_board_fire_moisture_resistant",
+        "gypsum_board_high_strength",
+        "gypsum_board_acoustic",
+        "gypsum_board_arch"
+      ],
+      "raw_value": "гкл",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ],
+      "raw_value": "каменная вата",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "u_block",
+        "aerated_concrete_u_block"
+      ],
+      "raw_value": "лотковый блок",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ],
+      "raw_value": "минвата",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "vapor_barrier",
+        "reinforced_vapor_barrier",
+        "smart_vapor_barrier",
+        "foil_vapor_barrier",
+        "floor_vapor_barrier"
+      ],
+      "raw_value": "пароизоляция",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "hdpe_pipe",
+        "polyethylene_film"
+      ],
+      "raw_value": "пнд",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "square_profile_pipe",
+        "rectangular_profile_pipe"
+      ],
+      "raw_value": "проф труба",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "profiled_sheet_roofing",
+        "profiled_sheet_fence"
+      ],
+      "raw_value": "профлист",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "brick_solid",
+        "brick_hollow",
+        "ceramic_brick_solid",
+        "ceramic_brick_hollow"
+      ],
+      "raw_value": "рядовой кирпич",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "pipe_fitting",
+        "ppr_fitting",
+        "pex_fitting",
+        "hdpe_fitting",
+        "press_fitting",
+        "compression_fitting",
+        "copper_fitting",
+        "sewer_fitting"
+      ],
+      "raw_value": "фитинг",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "xps_board",
+        "foundation_xps_board"
+      ],
+      "raw_value": "экструдированный пенополистирол",
+      "reason": "ambiguous_or_family_level"
+    },
+    {
+      "automatic_resolution_allowed": false,
+      "candidate_material_type_ids": [
+        "xps_board",
+        "foundation_xps_board"
+      ],
+      "raw_value": "эппс",
+      "reason": "ambiguous_or_family_level"
+    }
+  ],
+  "constitutional_boundaries": {
+    "alias_does_not_create_material": true,
+    "alias_does_not_merge_materials": true,
+    "brand_and_dimensions_are_not_material_type_synonyms": true,
+    "canonical_material_requires_positive_price": true,
+    "fuzzy_auto_mapping_allowed": false,
+    "matching_decision_remains_separate": true,
+    "supplier_specific_alias_requires_source_scope": true,
+    "unit_and_characteristic_aliases_owned_by_ref2_ref3": true
+  },
+  "module2_execution_allowed": false,
+  "module5_execution_allowed": false,
+  "normalization_policy": {
+    "automatic_alias_learning_from_match_decision": false,
+    "brand_removal": "only_when_explicit_brand_or_manufacturer_is_known",
+    "case_handling": "casefold",
+    "dimension_separators": [
+      "x",
+      "х",
+      "×"
+    ],
+    "dimensions_preserved_in_title_and_extracted_to_characteristics": true,
+    "punctuation": "normalize_without_removing_semantic_hyphens",
+    "replacement_order": "longest_source_token_first",
+    "scope_precedence": [
+      "source_profile",
+      "material_direction",
+      "global"
+    ],
+    "unicode_normalization": "NFKC",
+    "unknown_alias_behavior": "no_material_type_resolution",
+    "unknown_brand_token_removal_allowed": false,
+    "whitespace": "collapse"
+  },
+  "write_activation_allowed": false
+}

@@ -1,0 +1,70 @@
+{
+  "approval": {
+    "approved_by_user": true,
+    "approved_decisions": [
+      "generic_aliases_never_resolve_automatically_to_a_subtype",
+      "ref5_content_is_limited_to_existing_evidence_backed_rules",
+      "cement_screed_to_dry_screed_remains_review_only",
+      "legacy_alias_060_061_062_use_gypsum_board_regular_scope"
+    ],
+    "approved_on": "2026-07-19",
+    "codex_may_expand_content": false,
+    "correction_reapproved": true
+  },
+  "correction": {
+    "automatic_resolution_policy_changed": false,
+    "changed_rule_ids": [
+      "legacy_alias_060",
+      "legacy_alias_061",
+      "legacy_alias_062"
+    ],
+    "record_file": "ATOM_REF45_Correction_Record_v1.0.1.json",
+    "record_sha256": "770d7f0e71974e930cfb65a037cd34c77cd7fa969b78e74c44dcd2b7c0dbf9f3",
+    "ref5_content_changed": false
+  },
+  "date": "2026-07-19",
+  "files": [
+    {
+      "name": "ATOM_REF4_Synonyms_Normalization_v1.0.1_PRELIMINARY_APPROVED.json",
+      "package_id": "REF-4",
+      "sha256": "22f030cc1dfee3e638999ab1f918552b38b8ffb5fe410969881c0daa181a632d",
+      "version": "1.0.1-preliminary-approved"
+    },
+    {
+      "name": "ATOM_REF5_Analogs_Alternatives_Compatibility_v1_PRELIMINARY_APPROVED.json",
+      "package_id": "REF-5",
+      "sha256": "8fd9a2bbeb95ee52b2879c5f6f1b269c0f80e75e37a24403cee26f9b1a9fb12d",
+      "version": "1.0-preliminary-approved-unchanged"
+    },
+    {
+      "name": "ATOM_REF45_Correction_Record_v1.0.1.json",
+      "package_id": "REF-4-CORRECTION",
+      "sha256": "770d7f0e71974e930cfb65a037cd34c77cd7fa969b78e74c44dcd2b7c0dbf9f3",
+      "version": "1.0.1"
+    }
+  ],
+  "integration_boundary": {
+    "automatic_alias_learning_allowed": false,
+    "automatic_replacement_allowed": false,
+    "codex_may_invent_content": false,
+    "integration_allowed": true,
+    "runtime_activation_allowed": true,
+    "source_artifacts_only": true,
+    "work_material_mappings_allowed": false,
+    "write_activation_allowed": false
+  },
+  "module": 1,
+  "package_id": "REF-4-REF-5",
+  "package_name": "Synonyms, Normalization, Analogs and Compatibility Authoring Package",
+  "project": "ATOM",
+  "source_hashes": {
+    "ATOM_REF1_Material_Taxonomy_v2_PRELIMINARY_APPROVED.json": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+    "ATOM_REF2_Field_Dictionary_v1_DRAFT.json": "22b3201b55381a1da626aab2e8fea066e94882f97a237495b8ac7307c50adc5d",
+    "aliases_existing.json": "cefdc6e7ab0a076c33fd26569930455b1e49e91a8e9cca21dae15746010ef729",
+    "conflicts.json": "871191ad71f857d957ea86fc999b2cd8bd817f318105e62eeeba1a2d56d508fb",
+    "material_knowledge_seed.json": "4ee17abd61ca29fcefc060d2534049e128ea60ec1d1e3556b9d0050a33b8d853",
+    "relations_existing.json": "43ed9d012945a0f738443fa0a79bff9828503bc73d95b796292a983247222ab8"
+  },
+  "status": "preliminary_approved",
+  "version": "1.0.1-preliminary-approved"
+}

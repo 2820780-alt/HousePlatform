@@ -6,6 +6,8 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 from app.services.module1_characteristic_schema_registry import CharacteristicSchemaRegistry
+from app.config import settings
+from app.services.module1_ref5_compatibility_policy import list_ref5_substitution_policies
 from app.services.module1_material_roles import get_module2_role_hints
 from app.services.module1_material_seed_registry import (
     AlternativeRuleSeed,
@@ -135,6 +137,11 @@ class MaterialAlternativeReadinessReport:
 
 
 def list_alternative_rules() -> tuple[MaterialAlternativeRule, ...]:
+    if settings.MODULE1_REF45_MODE == "approved":
+        return tuple(
+            _rule_from_ref5_policy(rule)
+            for rule in list_ref5_substitution_policies(include_review=False)
+        )
     registry = get_material_knowledge_seed_registry()
     return tuple(_rule_from_seed(rule, seed_registry=registry) for rule in registry.alternative_rules)
 
@@ -332,6 +339,43 @@ def _rule_from_seed(
         module2_hints=module2_hints,
         module5_hints=module5_hints,
         warnings=warnings,
+    )
+
+
+def _rule_from_ref5_policy(policy: Mapping[str, Any]) -> MaterialAlternativeRule:
+    source = str(policy.get("source_material_type_id") or "")
+    target = str(policy.get("target_material_type_id") or "")
+    alternative_type = _normalize_alternative_type(str(policy.get("relation_type") or ""))
+    fields = tuple(str(field) for field in policy.get("required_matching_field_codes", ()))
+    status = str(policy.get("status") or "")
+    warnings = [
+        "REF-5 policy is read-only; automatic replacement and writes are disabled.",
+    ]
+    if status == "active_safety_guard":
+        warnings.append("REF-5 forbidden replacement safety guard is active.")
+    return MaterialAlternativeRule(
+        source_group=source,
+        target_group=target,
+        alternative_type=alternative_type,
+        recalculation_required=bool(policy.get("recalculation_required")),
+        technology_change_required=bool(policy.get("technology_change_required")),
+        condition=str(policy.get("condition_code") or "") or None,
+        required_matching_fields=fields,
+        module2_hints=MappingProxyType(
+            {
+                "module2ExecutionAllowed": False,
+                "technologyCalculated": False,
+                "automaticReplacement": False,
+            }
+        ),
+        module5_hints=MappingProxyType(
+            {
+                "module5ExecutionAllowed": False,
+                "estimateCalculated": False,
+                "automaticSelection": False,
+            }
+        ),
+        warnings=tuple(warnings),
     )
 
 

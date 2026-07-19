@@ -1,0 +1,824 @@
+{
+  "activation_scope": "approved_read_only_policy",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref45-runtime-v1-5fe5e067d0dd",
+  "artifact_type": "ref45_legacy_compatibility",
+  "conflicts": [],
+  "counts": {
+    "approved_rules": 89,
+    "exact_parity": 89,
+    "legacy_rules": 89,
+    "missing_from_approved": 0,
+    "not_in_legacy": 0,
+    "review_or_context": 45,
+    "trusted": 44
+  },
+  "missing_from_approved": [],
+  "module2_execution_allowed": false,
+  "module5_execution_allowed": false,
+  "not_in_legacy": [],
+  "rules": [
+    {
+      "alias_rule_id": "legacy_alias_001",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "газобетонный блок",
+      "parity": "exact",
+      "raw_value": "газоблок",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_002",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "газобетонный блок",
+      "parity": "exact",
+      "raw_value": "газосиликатный блок",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_003",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "газобетонный блок",
+      "parity": "exact",
+      "raw_value": "газобетон блок",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_004",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "u-блок",
+      "parity": "exact",
+      "raw_value": "лотковый блок",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_005",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "u-блок",
+      "parity": "exact",
+      "raw_value": "u block",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_006",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "профнастил",
+      "parity": "exact",
+      "raw_value": "профлист",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_007",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "osb",
+      "parity": "exact",
+      "raw_value": "осп",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_008",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "osb",
+      "parity": "exact",
+      "raw_value": "осб",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_009",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "гипсокартонный лист",
+      "parity": "exact",
+      "raw_value": "гкл",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_010",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "гипсоволокнистый лист",
+      "parity": "exact",
+      "raw_value": "гвл",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_011",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "минеральная вата",
+      "parity": "exact",
+      "raw_value": "минвата",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_012",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "базальтовая вата",
+      "parity": "exact",
+      "raw_value": "каменная вата",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_013",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "xps",
+      "parity": "exact",
+      "raw_value": "эппс",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_014",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "xps",
+      "parity": "exact",
+      "raw_value": "экструдированный пенополистирол",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_015",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "полипропиленовая труба",
+      "parity": "exact",
+      "raw_value": "пп труба",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_016",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "полиэтилен низкого давления",
+      "parity": "exact",
+      "raw_value": "пнд",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_017",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "саморез с epdm шайбой",
+      "parity": "exact",
+      "raw_value": "саморез кровельный",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_018",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "водосточная система",
+      "parity": "exact",
+      "raw_value": "водосток",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_019",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "газобетонный блок",
+      "parity": "exact",
+      "raw_value": "газоблок",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_020",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "газобетон",
+      "parity": "exact",
+      "raw_value": "газосиликат",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_021",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "керамический блок",
+      "parity": "exact",
+      "raw_value": "поризованный блок",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_022",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "кирпич рядовой",
+      "parity": "exact",
+      "raw_value": "рядовой кирпич",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_023",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "профнастил",
+      "parity": "exact",
+      "raw_value": "профлист",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_024",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "металлочерепица",
+      "parity": "exact",
+      "raw_value": "металлочерепица",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_025",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "водосточная система",
+      "parity": "exact",
+      "raw_value": "водосток",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_026",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "рулонная гидроизоляция",
+      "parity": "exact",
+      "raw_value": "гидроизоляция рулонная",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_027",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "osb",
+      "parity": "exact",
+      "raw_value": "осп",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_028",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "osb",
+      "parity": "exact",
+      "raw_value": "осб",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_029",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "обрезная доска",
+      "parity": "exact",
+      "raw_value": "доска обрезная",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_030",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "брусок",
+      "parity": "exact",
+      "raw_value": "брусок",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_031",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "диаметр",
+      "parity": "exact",
+      "raw_value": "ф",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_032",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "арматура а500с",
+      "parity": "exact",
+      "raw_value": "арматура а500с",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_033",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "профильная труба",
+      "parity": "exact",
+      "raw_value": "проф труба",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_034",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "швеллер",
+      "parity": "exact",
+      "raw_value": "швеллер",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_035",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "пескобетон",
+      "parity": "exact",
+      "raw_value": "пескобетон",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_036",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "гипсовая штукатурка",
+      "parity": "exact",
+      "raw_value": "штукатурка гипс",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_037",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "плиточный клей",
+      "parity": "exact",
+      "raw_value": "клей плиточный",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_038",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "клей для кладки газобетона",
+      "parity": "exact",
+      "raw_value": "клей для газобетона",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_039",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "минеральная вата",
+      "parity": "exact",
+      "raw_value": "минвата",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_040",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "базальтовая вата",
+      "parity": "exact",
+      "raw_value": "каменная вата",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_041",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "xps",
+      "parity": "exact",
+      "raw_value": "эппс",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_042",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "ветрозащитная мембрана",
+      "parity": "exact",
+      "raw_value": "ветрозащита",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_043",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "пароизоляционная мембрана",
+      "parity": "exact",
+      "raw_value": "пароизоляция",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_044",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "ввгнг",
+      "parity": "exact",
+      "raw_value": "ввгнг",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_045",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "полиэтиленовая труба низкого давления",
+      "parity": "exact",
+      "raw_value": "пнд труба",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_046",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "гофрированная труба",
+      "parity": "exact",
+      "raw_value": "гофра",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_047",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "светодиодный светильник",
+      "parity": "exact",
+      "raw_value": "светильник led",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_048",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "саморез с epdm шайбой",
+      "parity": "exact",
+      "raw_value": "саморез кровельный",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_049",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "дюбель-гвоздь",
+      "parity": "exact",
+      "raw_value": "дюбель гвоздь",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_050",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "анкерный болт",
+      "parity": "exact",
+      "raw_value": "анк болт",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_051",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "полипропиленовая труба",
+      "parity": "exact",
+      "raw_value": "пп труба",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_052",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "полиэтилен низкого давления",
+      "parity": "exact",
+      "raw_value": "пнд",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_053",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "металлопластиковая труба",
+      "parity": "exact",
+      "raw_value": "метапол",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_054",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "фитинг",
+      "parity": "exact",
+      "raw_value": "фитинг",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym"
+    },
+    {
+      "alias_rule_id": "legacy_alias_055",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "aerated_concrete_block",
+      "parity": "exact",
+      "raw_value": "gas block",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_056",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "aerated_concrete_block",
+      "parity": "exact",
+      "raw_value": "gazobeton",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_057",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "aerated_concrete_block",
+      "parity": "exact",
+      "raw_value": "wall blocks",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_058",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "aerated_concrete_block",
+      "parity": "exact",
+      "raw_value": "aerated concrete",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_059",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_board_moisture_resistant",
+      "parity": "exact",
+      "raw_value": "gypsum board",
+      "scope": "gypsum_board_moisture_resistant",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_060",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_board_regular",
+      "parity": "exact",
+      "raw_value": "gkl",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_061",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_board_regular",
+      "parity": "exact",
+      "raw_value": "plasterboard",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_062",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_board_regular",
+      "parity": "exact",
+      "raw_value": "drywall",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_063",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "rebar",
+      "parity": "exact",
+      "raw_value": "rebar",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_064",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "rebar",
+      "parity": "exact",
+      "raw_value": "reinforcement",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_065",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "rebar",
+      "parity": "exact",
+      "raw_value": "steel bars",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_066",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "rebar",
+      "parity": "exact",
+      "raw_value": "armature",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_067",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "ready_mix_concrete",
+      "parity": "exact",
+      "raw_value": "ready mix concrete",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_068",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "ready_mix_concrete",
+      "parity": "exact",
+      "raw_value": "concrete",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_069",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "ready_mix_concrete",
+      "parity": "exact",
+      "raw_value": "rbu",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_070",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_plaster",
+      "parity": "exact",
+      "raw_value": "dry mix",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_071",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "gypsum_plaster",
+      "parity": "exact",
+      "raw_value": "plaster",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_072",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "gypsum_plaster",
+      "parity": "exact",
+      "raw_value": "gypsum plaster",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_073",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "deep_penetration_primer",
+      "parity": "exact",
+      "raw_value": "primer",
+      "scope": "deep_penetration_primer",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_074",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "deep_penetration_primer",
+      "parity": "exact",
+      "raw_value": "deep penetration primer",
+      "scope": "deep_penetration_primer",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_075",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "porcelain_tile",
+      "parity": "exact",
+      "raw_value": "porcelain tile",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_076",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "porcelain_tile",
+      "parity": "exact",
+      "raw_value": "tile",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_077",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "porcelain_tile",
+      "parity": "exact",
+      "raw_value": "gres",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_078",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "metal_tile",
+      "parity": "exact",
+      "raw_value": "metal tile",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_079",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "metal_tile",
+      "parity": "exact",
+      "raw_value": "roofing",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_080",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "metal_tile",
+      "parity": "exact",
+      "raw_value": "roof sheet",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_081",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "board",
+      "parity": "exact",
+      "raw_value": "board",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_082",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "board",
+      "parity": "exact",
+      "raw_value": "timber",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_083",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "board",
+      "parity": "exact",
+      "raw_value": "lumber",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_084",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "mineral_wool_slab",
+      "parity": "exact",
+      "raw_value": "mineral wool",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_085",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "mineral_wool_slab",
+      "parity": "exact",
+      "raw_value": "insulation",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_086",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "mineral_wool_slab",
+      "parity": "exact",
+      "raw_value": "slab insulation",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_087",
+      "automatic_material_type_resolution_allowed": true,
+      "legacy_normalized_value": "cable",
+      "parity": "exact",
+      "raw_value": "cable",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_088",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "cable",
+      "parity": "exact",
+      "raw_value": "wire",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping"
+    },
+    {
+      "alias_rule_id": "legacy_alias_089",
+      "automatic_material_type_resolution_allowed": false,
+      "legacy_normalized_value": "cable",
+      "parity": "exact",
+      "raw_value": "electrics",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping"
+    }
+  ],
+  "write_activation_allowed": false
+}

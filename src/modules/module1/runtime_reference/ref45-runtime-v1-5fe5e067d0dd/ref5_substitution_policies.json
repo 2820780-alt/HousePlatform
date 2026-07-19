@@ -1,0 +1,345 @@
+{
+  "activation_scope": "approved_read_only_policy",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref45-runtime-v1-5fe5e067d0dd",
+  "artifact_type": "ref5_substitution_policies",
+  "automatic_replacement_allowed": false,
+  "counts": {
+    "active_read_only_or_safety": 3,
+    "review": 10,
+    "rules": 13
+  },
+  "module2_execution_allowed": false,
+  "module5_execution_allowed": false,
+  "rules": [
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "compare_consumption_and_layer_limits",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_001",
+      "relation_type": "technical_alternative",
+      "required_matching_field_codes": [
+        "consumption_kg_m2_mm",
+        "min_layer_mm",
+        "max_layer_mm"
+      ],
+      "source_material_type_id": "gypsum_plaster",
+      "status": "active_read_only_policy",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "gypsum_plaster",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "depends_on_room_and_substrate",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_002",
+      "relation_type": "conditional_replacement",
+      "required_matching_field_codes": [
+        "application",
+        "compatible_substrates"
+      ],
+      "source_material_type_id": "gypsum_plaster",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "cement_plaster",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_thickness_type_and_application",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_003",
+      "relation_type": "full_analog",
+      "required_matching_field_codes": [
+        "thickness_mm",
+        "board_type",
+        "application"
+      ],
+      "source_material_type_id": "gypsum_board_moisture_resistant",
+      "status": "review_required",
+      "symmetry_policy": "symmetric_candidate_only_after_field_equality",
+      "target_material_type_id": "gypsum_board_moisture_resistant",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "wet_room_or_higher_requirement",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_004",
+      "relation_type": "technical_alternative",
+      "required_matching_field_codes": [
+        "board_type",
+        "application"
+      ],
+      "source_material_type_id": "gypsum_board_regular",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "gypsum_board_moisture_resistant",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "wet_zone",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_005",
+      "relation_type": "forbidden_replacement",
+      "required_matching_field_codes": [
+        "board_type",
+        "application"
+      ],
+      "source_material_type_id": "gypsum_board_moisture_resistant",
+      "status": "active_safety_guard",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "gypsum_board_regular",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "not_foundation_or_high_moisture_or_high_load",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application",
+        "water_absorption"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_006",
+      "relation_type": "conditional_replacement",
+      "required_matching_field_codes": [
+        "application",
+        "compressive_strength_kpa",
+        "water_absorption"
+      ],
+      "source_material_type_id": "xps_board",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "eps_board",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "user_changes_floor_technology",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [
+        "cement_screed",
+        "dry_screed"
+      ],
+      "missing_ref2_field_codes": [
+        "floor_technology",
+        "dry_system_allowed"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_007",
+      "relation_type": "functional_alternative",
+      "required_matching_field_codes": [
+        "floor_technology",
+        "dry_system_allowed"
+      ],
+      "source_material_type_id": "cement_screed",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "dry_screed",
+      "technology_change_required": true
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_class_mobility_frost_and_water_resistance",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "frost_resistance",
+        "water_resistance"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_008",
+      "relation_type": "full_analog",
+      "required_matching_field_codes": [
+        "concrete_class",
+        "mobility_class",
+        "frost_resistance",
+        "water_resistance"
+      ],
+      "source_material_type_id": "ready_mix_concrete",
+      "status": "review_required",
+      "symmetry_policy": "symmetric_candidate_only_after_field_equality",
+      "target_material_type_id": "ready_mix_concrete",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_diameter_steel_class_and_profile",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_009",
+      "relation_type": "full_analog",
+      "required_matching_field_codes": [
+        "diameter_mm",
+        "steel_class",
+        "profile_type"
+      ],
+      "source_material_type_id": "rebar",
+      "status": "active_read_only_policy",
+      "symmetry_policy": "symmetric_candidate_only_after_field_equality",
+      "target_material_type_id": "rebar",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "depends_on_usage_role_and_dimensions",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application_hint"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_010",
+      "relation_type": "conditional_replacement",
+      "required_matching_field_codes": [
+        "application_hint",
+        "length_mm",
+        "width_mm",
+        "thickness_mm"
+      ],
+      "source_material_type_id": "board",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "board",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_density_thickness_and_application",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_011",
+      "relation_type": "technical_alternative",
+      "required_matching_field_codes": [
+        "density_kg_m3",
+        "thickness_mm",
+        "application"
+      ],
+      "source_material_type_id": "mineral_wool_slab",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "mineral_wool_slab",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_profile_effective_width_coating_and_thickness",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "profile_name",
+        "effective_width_mm",
+        "coating"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": true,
+      "relation_id": "substitution_rule_012",
+      "relation_type": "technical_alternative",
+      "required_matching_field_codes": [
+        "profile_name",
+        "effective_width_mm",
+        "coating",
+        "metal_thickness_mm"
+      ],
+      "source_material_type_id": "metal_tile",
+      "status": "review_required",
+      "symmetry_policy": "directed",
+      "target_material_type_id": "metal_tile",
+      "technology_change_required": false
+    },
+    {
+      "automatic_selection_allowed": false,
+      "automatic_write_allowed": false,
+      "condition_code": "match_indoor_outdoor_frost_and_heated_floor_support",
+      "direction": "source_to_target",
+      "missing_ref1_ids": [],
+      "missing_ref2_field_codes": [
+        "application"
+      ],
+      "module2_calculation_performed": false,
+      "module5_costing_performed": false,
+      "recalculation_required": false,
+      "relation_id": "substitution_rule_013",
+      "relation_type": "full_analog",
+      "required_matching_field_codes": [
+        "application",
+        "frost_resistant",
+        "heated_floor_allowed"
+      ],
+      "source_material_type_id": "tile_adhesive",
+      "status": "review_required",
+      "symmetry_policy": "symmetric_candidate_only_after_field_equality",
+      "target_material_type_id": "tile_adhesive",
+      "technology_change_required": false
+    }
+  ],
+  "write_activation_allowed": false
+}

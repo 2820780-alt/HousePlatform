@@ -1,0 +1,40 @@
+{
+  "approval": {
+    "approved_by_user": true,
+    "correction_reapproved": true,
+    "manifest_sha256": "5fe5e067d0dd7235ac54062ed34bad640f1689d358b365dc98b728d0e9682ff7",
+    "runtime_artifact_id_derivation": "ref45-runtime-v1-5fe5e067d0dd"
+  },
+  "correction": {
+    "automatic_subtype_resolution": false,
+    "changed_rules": 3,
+    "legacy_alias_060_scope": "gypsum_board_regular",
+    "legacy_alias_061_scope": "gypsum_board_regular",
+    "legacy_alias_062_scope": "gypsum_board_regular"
+  },
+  "files": {
+    "ATOM_REF45_Correction_Record_v1.0.1.json": "770d7f0e71974e930cfb65a037cd34c77cd7fa969b78e74c44dcd2b7c0dbf9f3",
+    "ATOM_REF45_Package_Manifest_v1.0.1_PRELIMINARY_APPROVED.json": "5fe5e067d0dd7235ac54062ed34bad640f1689d358b365dc98b728d0e9682ff7",
+    "ATOM_REF4_Synonyms_Normalization_v1.0.1_PRELIMINARY_APPROVED.json": "22f030cc1dfee3e638999ab1f918552b38b8ffb5fe410969881c0daa181a632d",
+    "ATOM_REF5_Analogs_Alternatives_Compatibility_v1_PRELIMINARY_APPROVED.json": "8fd9a2bbeb95ee52b2879c5f6f1b269c0f80e75e37a24403cee26f9b1a9fb12d"
+  },
+  "ref4": {
+    "all_target_material_type_ids_exist": true,
+    "context_or_review_rules": 45,
+    "duplicate_alias_rule_keys": 0,
+    "legacy_material_alias_rules": 89,
+    "review_queue_count": 45,
+    "taxonomy_material_types": 978,
+    "trusted_alias_rules": 44
+  },
+  "ref5": {
+    "active_context_rules": 15,
+    "active_substitution_policies": 3,
+    "all_active_ref1_ids_exist": true,
+    "automatic_selection_rules": 0,
+    "context_rules": 15,
+    "review_queue_count": 10,
+    "substitution_rules": 13,
+    "work_material_mappings_created": 0
+  }
+}

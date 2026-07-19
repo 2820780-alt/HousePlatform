@@ -1,0 +1,2331 @@
+{
+  "activation_scope": "approved_read_only_policy",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref45-runtime-v1-5fe5e067d0dd",
+  "artifact_type": "ref4_alias_rules",
+  "counts": {
+    "review_or_context": 45,
+    "rules": 89,
+    "trusted": 44
+  },
+  "module2_execution_allowed": false,
+  "module5_execution_allowed": false,
+  "rules": [
+    {
+      "alias_rule_id": "legacy_alias_001",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:154",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "газобетонный блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "газоблок",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_002",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:155",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "газобетонный блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "газосиликатный блок",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_003",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:156",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "газобетонный блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "газобетон блок",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_004",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:157",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "u-блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "лотковый блок",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "u_block",
+        "aerated_concrete_u_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_005",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:158",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "u-блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "u block",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "u_block",
+        "aerated_concrete_u_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_006",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:159",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "профнастил",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "профлист",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "profiled_sheet_roofing",
+        "profiled_sheet_fence"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_007",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:160",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "osb",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "осп",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "osb_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_008",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:161",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "osb",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "осб",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "osb_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_009",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:162",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "гипсокартонный лист",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "гкл",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant",
+        "gypsum_board_fire_moisture_resistant",
+        "gypsum_board_high_strength",
+        "gypsum_board_acoustic",
+        "gypsum_board_arch"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_010",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:163",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "гипсоволокнистый лист",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "гвл",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "gypsum_fiber_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_011",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:164",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "минеральная вата",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "минвата",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_012",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:165",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "базальтовая вата",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "каменная вата",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_013",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:166",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "xps",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "эппс",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "xps_board",
+        "foundation_xps_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_014",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:167",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "xps",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "экструдированный пенополистирол",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "xps_board",
+        "foundation_xps_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_015",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:168",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "полипропиленовая труба",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пп труба",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "ppr_pipe"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_016",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:169",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "полиэтилен низкого давления",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пнд",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "hdpe_pipe",
+        "polyethylene_film"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_017",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_global",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:170",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "саморез с epdm шайбой",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "саморез кровельный",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "roofing_fastener"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_018",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:380"
+        ],
+        "source": "app/services/material_normalization_rules.py:171",
+        "tests": [
+          "tests/test_material_normalization_rules.py:13"
+        ]
+      },
+      "legacy_normalized_value": "водосточная система",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "водосток",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "GLOBAL",
+      "source_rule_type": "general_synonym",
+      "status": "review_required",
+      "target_material_type_ids": []
+    },
+    {
+      "alias_rule_id": "legacy_alias_019",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:183",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "газобетонный блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "газоблок",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_020",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:184",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "газобетон",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "газосиликат",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_021",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:185",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "керамический блок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "поризованный блок",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "ceramic_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_022",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:186",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "кирпич рядовой",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "рядовой кирпич",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "WALL_MATERIALS",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "brick_solid",
+        "brick_hollow",
+        "ceramic_brick_solid",
+        "ceramic_brick_hollow"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_023",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:208",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "профнастил",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "профлист",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "profiled_sheet_roofing",
+        "profiled_sheet_fence"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_024",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:209",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "металлочерепица",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "металлочерепица",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "metal_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_025",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:210",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "водосточная система",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "водосток",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": []
+    },
+    {
+      "alias_rule_id": "legacy_alias_026",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:211",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "рулонная гидроизоляция",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "гидроизоляция рулонная",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ROOFING_DRAINAGE",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "roll_bitumen_waterproofing"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_027",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:228",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "osb",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "осп",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "osb_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_028",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:229",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "osb",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "осб",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "osb_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_029",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:230",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "обрезная доска",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "доска обрезная",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "edged_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_030",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "text_normalization_only",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:231",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "брусок",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "брусок",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "LUMBER_SHEET",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": []
+    },
+    {
+      "alias_rule_id": "legacy_alias_031",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "text_normalization_only",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:248",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "диаметр",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "ф",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": []
+    },
+    {
+      "alias_rule_id": "legacy_alias_032",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:249",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "арматура а500с",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "арматура а500с",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "rebar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_033",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:250",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "профильная труба",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "проф труба",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "square_profile_pipe",
+        "rectangular_profile_pipe"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_034",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:251",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "швеллер",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "швеллер",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "METAL_ROLLING",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "channel"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_035",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:264",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "пескобетон",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пескобетон",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "sand_concrete_mix"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_036",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:265",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "гипсовая штукатурка",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "штукатурка гипс",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "gypsum_plaster"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_037",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:266",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "плиточный клей",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "клей плиточный",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "tile_adhesive"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_038",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:267",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "клей для кладки газобетона",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "клей для газобетона",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "DRY_MIXES_CHEMISTRY",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_masonry_adhesive"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_039",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:284",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "минеральная вата",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "минвата",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_040",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:285",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "базальтовая вата",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "каменная вата",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_041",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:286",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "xps",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "эппс",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "xps_board",
+        "foundation_xps_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_042",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:287",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "ветрозащитная мембрана",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "ветрозащита",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "windproof_membrane",
+        "facade_wind_membrane"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_043",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:288",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "пароизоляционная мембрана",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пароизоляция",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "INSULATION_MEMBRANES",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "vapor_barrier",
+        "reinforced_vapor_barrier",
+        "smart_vapor_barrier",
+        "foil_vapor_barrier",
+        "floor_vapor_barrier"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_044",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:301",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "ввгнг",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "ввгнг",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "cable",
+        "low_smoke_cable",
+        "fire_resistant_cable",
+        "power_cable"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_045",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:302",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "полиэтиленовая труба низкого давления",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пнд труба",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "hdpe_pipe"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_046",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:303",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "гофрированная труба",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "гофра",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "conduit_corrugated"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_047",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:304",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "светодиодный светильник",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "светильник led",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ELECTRICAL_LIGHTING",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "lighting_fixture"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_048",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:317",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "саморез с epdm шайбой",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "саморез кровельный",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "roofing_fastener"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_049",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:318",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "дюбель-гвоздь",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "дюбель гвоздь",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "dowel_nail"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_050",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:319",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "анкерный болт",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "анк болт",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "FASTENERS_HARDWARE",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "anchor_bolt"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_051",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:332",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "полипропиленовая труба",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пп труба",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "ppr_pipe"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_052",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:333",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "полиэтилен низкого давления",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "пнд",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "hdpe_pipe",
+        "polyethylene_film"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_053",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:334",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "металлопластиковая труба",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "метапол",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "metal_plastic_pipe"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_054",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/material_normalization_rules.py:384"
+        ],
+        "source": "app/services/material_normalization_rules.py:335",
+        "tests": [
+          "tests/test_material_normalization_rules.py:64"
+        ]
+      },
+      "legacy_normalized_value": "фитинг",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "фитинг",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ENGINEERING_PLUMBING_HVAC",
+      "source_rule_type": "direction_synonym",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "pipe_fitting",
+        "ppr_fitting",
+        "pex_fitting",
+        "hdpe_fitting",
+        "press_fitting",
+        "compression_fitting",
+        "copper_fitting",
+        "sewer_fitting"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_055",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:171",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "aerated_concrete_block",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gas block",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_056",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:171",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "aerated_concrete_block",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gazobeton",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_057",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:171",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "aerated_concrete_block",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "wall blocks",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "aerated_concrete_block",
+        "ceramic_block",
+        "partition_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_058",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:171",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "aerated_concrete_block",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "aerated concrete",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "aerated_concrete_block",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "aerated_concrete_block"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_059",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:172",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_board_moisture_resistant",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gypsum board",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_board_moisture_resistant",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_060",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:172",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_board_regular",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gkl",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_061",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:172",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_board_regular",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "plasterboard",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_062",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:172",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_board_regular",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "drywall",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_board_regular",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_board_regular",
+        "gypsum_board_moisture_resistant",
+        "gypsum_board_fire_resistant"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_063",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:173",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "rebar",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "rebar",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "rebar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_064",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:173",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "rebar",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "reinforcement",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "rebar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_065",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:173",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "rebar",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "steel bars",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "rebar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_066",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:173",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "rebar",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "armature",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "rebar",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "rebar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_067",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:174",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "ready_mix_concrete",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "ready mix concrete",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "ready_mix_concrete"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_068",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:174",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "ready_mix_concrete",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "concrete",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "ready_mix_concrete",
+        "lean_concrete",
+        "lightweight_concrete",
+        "fine_grained_concrete"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_069",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "text_normalization_only",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:174",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "ready_mix_concrete",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "rbu",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "ready_mix_concrete",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": []
+    },
+    {
+      "alias_rule_id": "legacy_alias_070",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:175",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_plaster",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "dry mix",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_plaster",
+        "cement_plaster",
+        "tile_adhesive",
+        "putty_start",
+        "putty_finish"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_071",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:175",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_plaster",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "plaster",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "gypsum_plaster",
+        "cement_plaster",
+        "decorative_plaster"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_072",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:175",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "gypsum_plaster",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gypsum plaster",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "gypsum_plaster",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "gypsum_plaster"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_073",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:176",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "deep_penetration_primer",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "primer",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "deep_penetration_primer",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "deep_penetration_primer",
+        "adhesion_primer",
+        "universal_primer",
+        "concrete_contact"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_074",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:176",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "deep_penetration_primer",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "deep penetration primer",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "deep_penetration_primer",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "deep_penetration_primer"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_075",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:177",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "porcelain_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "porcelain tile",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "porcelain_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_076",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:177",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "porcelain_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "tile",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "porcelain_tile",
+        "ceramic_floor_tile",
+        "wall_tile",
+        "facade_ceramic_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_077",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:177",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "porcelain_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "gres",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "porcelain_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "porcelain_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_078",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:178",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "metal_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "metal tile",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "metal_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_079",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:178",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "metal_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "roofing",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "metal_tile",
+        "profiled_sheet_roofing",
+        "standing_seam_roofing",
+        "flexible_shingle",
+        "ceramic_roof_tile"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_080",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:178",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "metal_tile",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "roof sheet",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "metal_tile",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "profiled_sheet_roofing",
+        "fiber_cement_slate",
+        "polycarbonate_roof_sheet"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_081",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:179",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "board",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "board",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "board",
+        "edged_board",
+        "unedged_board",
+        "rafter_board",
+        "terrace_board",
+        "lining_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_082",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:179",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "board",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "timber",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "board",
+        "beam",
+        "wood_bar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_083",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:179",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "board",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "lumber",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "board",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "board",
+        "beam",
+        "wood_bar"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_084",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:180",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "mineral_wool_slab",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "mineral wool",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "roof_mineral_wool",
+        "facade_mineral_wool",
+        "acoustic_wool"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_085",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:180",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "mineral_wool_slab",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "insulation",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "mineral_wool_roll",
+        "xps_board",
+        "eps_board",
+        "pir_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_086",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:180",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "mineral_wool_slab",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "slab insulation",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "mineral_wool_slab",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "mineral_wool_slab",
+        "xps_board",
+        "eps_board",
+        "pir_board"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_087",
+      "automatic_material_type_resolution_allowed": true,
+      "brand_specific": false,
+      "classification": "trusted_scoped",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:181",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "cable",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "cable",
+      "reason_ru": "Existing runtime mapping is specific enough to one REF-1 material type within its declared scope.",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping",
+      "status": "approved_candidate",
+      "target_material_type_ids": [
+        "cable"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_088",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:181",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "cable",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "wire",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": [
+        "cable",
+        "binding_wire"
+      ]
+    },
+    {
+      "alias_rule_id": "legacy_alias_089",
+      "automatic_material_type_resolution_allowed": false,
+      "brand_specific": false,
+      "classification": "context_required",
+      "evidence": {
+        "runtime_consumers": [
+          "app/services/module1_source_profile_registry.py:398"
+        ],
+        "source": "app/services/module1_source_profile_registry.py:181",
+        "tests": [
+          "tests/test_module1_source_profile_registry.py:1"
+        ]
+      },
+      "legacy_normalized_value": "cable",
+      "preserve_dimensions_and_grade_tokens": true,
+      "raw_value": "electrics",
+      "reason_ru": "Term is generic, family-level, direction-dependent, or cannot safely resolve to one REF-1 material type.",
+      "scope": "cable",
+      "source_rule_type": "source_category_mapping",
+      "status": "review_required",
+      "target_material_type_ids": []
+    }
+  ],
+  "write_activation_allowed": false
+}

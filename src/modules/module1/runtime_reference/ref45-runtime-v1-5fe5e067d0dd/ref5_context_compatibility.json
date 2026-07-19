@@ -1,0 +1,248 @@
+{
+  "activation_scope": "approved_read_only_policy",
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref45-runtime-v1-5fe5e067d0dd",
+  "artifact_type": "ref5_context_compatibility",
+  "counts": {
+    "rules": 15
+  },
+  "execution_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_execution_allowed": false,
+  "rules": [
+    {
+      "application_context": "plaster",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Aerated concrete substrate requires deep penetration primer before plaster.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_001",
+      "required_additional_material_type_ids": [
+        "deep_penetration_primer"
+      ],
+      "source_material_type_id": "gypsum_plaster",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "plaster",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "warning",
+      "direction": "material_to_context",
+      "explanation": "Smooth concrete needs adhesion primer or concrete contact before plaster.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_002",
+      "required_additional_material_type_ids": [
+        "adhesion_primer",
+        "concrete_contact"
+      ],
+      "source_material_type_id": "gypsum_plaster",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "bathroom_tile",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Wet tile zones require waterproofing system before tile installation.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_003",
+      "required_additional_material_type_ids": [
+        "liquid_waterproofing",
+        "waterproofing_tape"
+      ],
+      "source_material_type_id": "wall_tile",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "wet_zone",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "forbidden",
+      "direction": "material_to_context",
+      "explanation": "Regular gypsum board is forbidden in wet zones.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_004",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "gypsum_board_regular",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "wet_zone",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Moisture-resistant gypsum board is allowed in wet rooms with waterproofing in wet zones.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_005",
+      "required_additional_material_type_ids": [
+        "liquid_waterproofing",
+        "waterproofing_tape"
+      ],
+      "source_material_type_id": "gypsum_board_moisture_resistant",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "exterior_tile",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "forbidden",
+      "direction": "material_to_context",
+      "explanation": "Indoor-only tile adhesive must not be used for exterior tile context.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_006",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "tile_adhesive",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "warm_floor_tile",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "warning",
+      "direction": "material_to_context",
+      "explanation": "Warm floor tile context requires adhesive support for heated floors.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_007",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "tile_adhesive",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "facade_insulation",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Facade mineral wool requires facade adhesive and dowels.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_008",
+      "required_additional_material_type_ids": [
+        "facade_adhesive",
+        "facade_dowel"
+      ],
+      "source_material_type_id": "mineral_wool_slab",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "facade_insulation",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "forbidden",
+      "direction": "material_to_context",
+      "explanation": "Soft acoustic wool must not be auto-approved for facade insulation.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_009",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "acoustic_wool",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "foundation_insulation",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "XPS can be used for foundation insulation when strength and water resistance are confirmed.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_010",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "xps_board",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "foundation",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Ready-mix concrete can be evaluated for foundation contexts by class and mobility without Module 1 quantity calculation.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_011",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "ready_mix_concrete",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "metal_tile_roof",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Metal tile roof requires roof build-up resources and fastening pattern hint.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_012",
+      "required_additional_material_type_ids": [
+        "batten",
+        "counter_batten",
+        "windproof_membrane",
+        "roofing_fastener"
+      ],
+      "source_material_type_id": "metal_tile",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "roof_batten",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Board can be used as roof batten when width, thickness and length are known.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_013",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "board",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "formwork_board",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Board can be used for formwork when dimensions are known.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_014",
+      "required_additional_material_type_ids": [],
+      "source_material_type_id": "board",
+      "status": "active_read_only"
+    },
+    {
+      "application_context": "flexible_shingle_roof",
+      "automatic_business_approval_allowed": false,
+      "compatibility_status": "allowed",
+      "direction": "material_to_context",
+      "explanation": "Flexible shingle roof requires solid base and underlayment.",
+      "missing_ref1_ids": [],
+      "module2_execution_allowed": false,
+      "module5_execution_allowed": false,
+      "relation_id": "context_compatibility_015",
+      "required_additional_material_type_ids": [
+        "osb_board",
+        "roofing_underlayment",
+        "roofing_nail"
+      ],
+      "source_material_type_id": "flexible_shingle",
+      "status": "active_read_only"
+    }
+  ],
+  "write_activation_allowed": false
+}

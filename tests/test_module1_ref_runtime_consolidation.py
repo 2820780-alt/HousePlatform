@@ -347,7 +347,14 @@ def test_ref_only_data_is_admin_metadata_and_business_services_remain_legacy_onl
     )
     for relative_path in business_paths:
         source = (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
-        assert "module1_ref" not in source
+        if relative_path == "app/services/module1_material_normalizer.py":
+            assert source.count("module1_ref") == 1
+            assert "module1_ref4_normalization_policy import resolve_ref4_alias" in source
+            assert "module1_ref1" not in source
+            assert "module1_ref2" not in source
+            assert "module1_ref3" not in source
+        else:
+            assert "module1_ref" not in source
         assert "runtime_reference" not in source
 
 
