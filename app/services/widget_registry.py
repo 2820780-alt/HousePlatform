@@ -63,6 +63,8 @@ class WidgetRegistryItemDefinition:
     requiresAccessDistribution: bool = False
     accessDistributionStatus: str = "DISTRIBUTED"
     isMock: bool = False
+    allowsMultipleInstances: bool = False
+    supportedPlacements: list[str] = field(default_factory=lambda: ["DASHBOARD"])
     registryLayer: str = WIDGET_REGISTRY_LAYER
     compatibilityNote: str = WIDGET_REGISTRY_NOTE
     createdAt: str | None = None
@@ -138,6 +140,8 @@ def widget_registry_item_from_dashboard(item: DashboardWidgetRegistryItem, *, or
         status=status,
         isSystem=True,
         isMock=bool(item.mockDataProvider or item.status == "mock_only"),
+        allowsMultipleInstances=item.allowsMultipleInstances,
+        supportedPlacements=list(item.supportedPlacements),
         order=order,
     )
 

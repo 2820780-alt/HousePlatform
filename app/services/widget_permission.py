@@ -192,10 +192,11 @@ def _role_profile_allows_widget(widget: WidgetRegistryItemDefinition, context: W
     }
     allowed_features = set(profile.get("allowedFeatureCodes") or [])
     default_widgets = set(profile.get("defaultWidgetCodes") or [])
+    allowed_widgets = set(profile.get("allowedWidgetCodes") or default_widgets)
     hidden_widgets = set(profile.get("hiddenWidgetCodes") or [])
     if widget.widgetCode in hidden_widgets:
         return False
-    if widget.widgetCode not in default_widgets:
+    if widget.widgetCode not in allowed_widgets:
         return False
     if _canonical_widget_module_code(widget) not in allowed_modules:
         return False

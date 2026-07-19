@@ -57,6 +57,8 @@ class DashboardWidgetRegistryItem:
     payloadSource: str = PAYLOAD_SOURCE_MODULE_OWNED
     payloadOwnerModuleCode: str | None = None
     isBusinessLogicOwner: bool = False
+    allowsMultipleInstances: bool = False
+    supportedPlacements: list[str] = field(default_factory=lambda: ["DASHBOARD"])
     compatibilityNote: str = (
         "DashboardWidgetRegistry is a temporary aggregator/mock compatibility layer. "
         "Business widget payload must be produced by the source module."
@@ -87,6 +89,8 @@ def _widget_item(
     route_to_source_module: str | None = None,
     required_module_status: str | None = None,
     planned_reason: str | None = None,
+    allows_multiple_instances: bool = False,
+    supported_placements: list[str] | None = None,
 ) -> DashboardWidgetRegistryItem:
     normalized_type = widget_type if widget_type in WIDGET_TYPES else "STATUS"
     normalized_size = default_size if default_size in WIDGET_SIZES else "medium"
@@ -124,6 +128,8 @@ def _widget_item(
         plannedReason=planned_reason,
         payloadSource=payload_source,
         payloadOwnerModuleCode=context_code or canonical_code,
+        allowsMultipleInstances=allows_multiple_instances,
+        supportedPlacements=supported_placements or ["DASHBOARD"],
     )
 
 
@@ -143,6 +149,81 @@ def _payload_source_for_widget(
 
 
 DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
+    _widget_item(
+        widget_code="MODULE_01_MATERIALS_REQUIRING_ATTENTION_WIDGET",
+        title="Материалы, требующие внимания",
+        description="Материалы с открытыми замечаниями по качеству, цене или классификации.",
+        widget_type="TASK_QUEUE",
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        component_key="Module01MaterialsAttentionWidget",
+        status="available",
+        default_size="medium",
+        default_settings={"reasons": ["open_quality_issue"], "limit": 5},
+        available_settings={"region": "region", "reasons": "multi_select", "limit": [3, 5, 10]},
+        route_to_source_module="/api/v1/admin/material-hub/view/moderation",
+        allows_multiple_instances=True,
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
+    _widget_item(
+        widget_code="MODULE_01_MATERIAL_PRICE_RELEVANCE_WIDGET",
+        title="Актуальность цен материалов",
+        description="Положительные наблюдения цен с контролем выбранного периода актуальности.",
+        widget_type="STATUS",
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        component_key="Module01MaterialPriceRelevanceWidget",
+        status="available",
+        default_size="medium",
+        default_settings={"freshnessDays": 60, "mode": "stale"},
+        available_settings={"region": "region", "freshnessDays": [30, 60, 90], "mode": ["missing", "stale", "current"], "limit": [3, 5, 10]},
+        route_to_source_module="/api/v1/admin/material-hub/view/prices",
+        allows_multiple_instances=True,
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
+    _widget_item(
+        widget_code="MODULE_01_DOCUMENTS_REQUIRING_REVIEW_WIDGET",
+        title="Документы, требующие проверки",
+        description="Документы на проверке, с истекающим сроком или без безопасной привязки.",
+        widget_type="TASK_QUEUE",
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        component_key="Module01DocumentsReviewWidget",
+        status="available",
+        default_size="medium",
+        default_settings={"status": "needs_review", "expiryDays": 30, "limit": 5},
+        available_settings={"documentType": "select", "status": ["needs_review", "expiring", "expired"], "expiryDays": [7, 30, 60, 90], "limit": [3, 5, 10]},
+        route_to_source_module="/api/v1/admin/material-hub/view/documents",
+        allows_multiple_instances=True,
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
+    _widget_item(
+        widget_code="MODULE_01_ANALYZER_STATUS_WIDGET",
+        title="Состояние анализатора",
+        description="Безопасная краткая сводка последнего запуска или выбранного источника.",
+        widget_type="STATUS",
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        component_key="Module01AnalyzerStatusWidget",
+        status="available",
+        default_size="medium",
+        default_settings={"mode": "latest", "limit": 3},
+        available_settings={"sourceId": "select", "mode": ["latest", "source"], "limit": [1, 3, 5]},
+        route_to_source_module="/api/v1/admin/material-hub/view/sources",
+        allows_multiple_instances=True,
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
+    _widget_item(
+        widget_code="MODULE_01_WORK_COST_OFFERS_REQUIRING_ATTENTION_WIDGET",
+        title="Предложения стоимости работ",
+        description="Собственные или доступные по роли предложения, требующие проверки.",
+        widget_type="TASK_QUEUE",
+        source_module_code="MODULE_01_MATERIAL_HUB",
+        component_key="Module01WorkCostAttentionWidget",
+        status="available",
+        default_size="medium",
+        default_settings={"status": "draft", "expiryDays": 30, "limit": 5},
+        available_settings={"workCode": "select", "region": "region", "status": ["draft", "expiring", "inactive"], "pricingMode": ["all", "fixed", "range"], "expiryDays": [7, 30, 60, 90], "limit": [3, 5, 10]},
+        route_to_source_module="/api/v1/admin/material-hub/view/work-costs",
+        allows_multiple_instances=True,
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
     _widget_item(
         widget_code="materials-kpi",
         title="Материалы",

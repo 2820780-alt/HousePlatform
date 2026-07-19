@@ -40,12 +40,19 @@ def get_role_dashboard_access_profile(role_code: str | None) -> dict[str, Any] |
     allowed_modules = _normalize_module_codes(profile.get("allowedModuleCodes") or [])
     allowed_features = _unique_strings(profile.get("allowedFeatureCodes") or [])
     hidden_widgets = _unique_strings(profile.get("hiddenWidgetCodes") or [])
+    allowed_widgets = _filter_allowed_widget_codes(
+        profile.get("allowedWidgetCodes") or profile.get("defaultWidgetCodes") or [],
+        allowed_module_codes=allowed_modules,
+        allowed_feature_codes=allowed_features,
+        hidden_widget_codes=hidden_widgets,
+    )
 
     profile["roleCode"] = normalized_role
     profile["sourceModuleCode"] = profile.get("sourceModuleCode") or SOURCE_MODULE_CODE
     profile["allowedModuleCodes"] = allowed_modules
     profile["allowedFeatureCodes"] = allowed_features
     profile["hiddenWidgetCodes"] = hidden_widgets
+    profile["allowedWidgetCodes"] = allowed_widgets
     profile["defaultWidgetCodes"] = _filter_default_widget_codes(
         profile.get("defaultWidgetCodes") or [],
         allowed_module_codes=allowed_modules,
@@ -92,6 +99,20 @@ def can_preview_dashboard_access_profiles(role_code: str | None) -> bool:
     normalized = (role_code or "").upper()
     return normalized in {"SUPER_ADMIN", "PLATFORM_ADMIN", *LEGACY_ADMIN_ROLE_CODES}
 
+
+def _filter_allowed_widget_codes(
+    widget_codes: list[str] | tuple[str, ...],
+    *,
+    allowed_module_codes: list[str],
+    allowed_feature_codes: list[str],
+    hidden_widget_codes: list[str],
+) -> list[str]:
+    return _filter_default_widget_codes(
+        widget_codes,
+        allowed_module_codes=allowed_module_codes,
+        allowed_feature_codes=allowed_feature_codes,
+        hidden_widget_codes=hidden_widget_codes,
+    )
 
 def _filter_default_widget_codes(
     widget_codes: list[str] | tuple[str, ...],

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
+from uuid import uuid4
 
 from app.services.audit_log_service import record_dashboard_layout_change
 from app.services.dashboard_module_registry import get_canonical_module_code
@@ -15,6 +17,7 @@ from app.services.widget_registry import get_widget_registry_item
 
 LAYOUT_ZONES = {"TOP", "CENTER", "BOTTOM", "RIGHT_OPTIONAL"}
 LAYOUT_SIZES = {"small", "medium", "large"}
+LAYOUT_PLACEMENTS = {"DASHBOARD", "MODULE_OVERVIEW"}
 DEFAULT_ZONE_BY_TYPE = {
     "KPI": "TOP",
     "ATOM_MAP": "CENTER",
@@ -30,9 +33,12 @@ class UserDashboardWidgetLayoutItem:
     isVisible: bool
     featureCode: str | None = None
     zone: str = "BOTTOM"
+    instanceId: str | None = None
+    placement: str | None = None
+    userSettings: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {key: value for key, value in asdict(self).items() if value is not None}
 
 
 @dataclass(frozen=True)
@@ -101,7 +107,16 @@ def validate_user_dashboard_layout(layout: Any, *, user: Any, context: Any | Non
     return normalized
 
 
-def add_widget_to_layout(layout: Any, widget_code: str, *, user: Any, context: Any | None = None) -> dict[str, Any]:
+def add_widget_to_layout(
+    layout: Any,
+    widget_code: str,
+    *,
+    user: Any,
+    context: Any | None = None,
+    instance_id: str | None = None,
+    placement: str | None = None,
+    user_settings: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     normalized = normalize_user_dashboard_layout(layout, user=user, context=context)
     effective_context = _merge_context(user, context, {
         "userDashboardLayout": normalized,
@@ -115,12 +130,20 @@ def add_widget_to_layout(layout: Any, widget_code: str, *, user: Any, context: A
             reason=f"Denied attempt to add unavailable widget {widget_code}.",
         )
         return normalized
-    if any(widget["widgetCode"] == widget_code for widget in normalized["widgets"]):
-        return normalized
     widget = get_widget_registry_item(widget_code)
     if not widget:
         return normalized
-    item = _layout_item_from_widget(widget, position=len(normalized["widgets"]) + 1)
+    if not widget.allowsMultipleInstances and any(
+        item["widgetCode"] == widget_code for item in normalized["widgets"]
+    ):
+        return normalized
+    item = _layout_item_from_widget(
+        widget,
+        position=len(normalized["widgets"]) + 1,
+        instance_id=instance_id or (str(uuid4()) if widget.allowsMultipleInstances else None),
+        placement=_normalize_placement(placement) if placement else None,
+        user_settings=dict(user_settings or {}) if user_settings is not None else None,
+    )
     normalized["widgets"].append(item.to_dict())
     record_dashboard_layout_change(
         user=user,
@@ -138,6 +161,92 @@ def hide_widget_in_layout(layout: Any, widget_code: str, *, user: Any | None = N
             widget["isVisible"] = False
     return normalized
 
+
+def update_widget_instance_in_layout(
+    layout: Any,
+    instance_id: str,
+    *,
+    user: Any,
+    placement: str | None = None,
+    user_settings: dict[str, Any] | None = None,
+    position: int | None = None,
+    is_visible: bool | None = None,
+) -> dict[str, Any]:
+    normalized = normalize_user_dashboard_layout(layout, user=user, context=layout)
+    old_layout = deepcopy(normalized)
+    updated_widgets: list[dict[str, Any]] = []
+    for item in normalized["widgets"]:
+        updated = dict(item)
+        if item.get("instanceId") == instance_id:
+            if placement is not None:
+                updated["placement"] = _normalize_placement(placement)
+            if user_settings is not None:
+                updated["userSettings"] = dict(user_settings)
+            if position is not None:
+                updated["position"] = max(1, int(position))
+            if is_visible is not None:
+                updated["isVisible"] = bool(is_visible)
+        updated_widgets.append(updated)
+    normalized["widgets"] = sorted(updated_widgets, key=lambda item: item["position"])
+    record_dashboard_layout_change(
+        user=user,
+        old_layout=old_layout,
+        new_layout=normalized,
+        reason=f"Widget instance {instance_id} updated in UserDashboardLayout.",
+    )
+    return normalized
+
+
+def remove_widget_instance_from_layout(layout: Any, instance_id: str, *, user: Any) -> dict[str, Any]:
+    normalized = normalize_user_dashboard_layout(layout, user=user, context=layout)
+    old_layout = deepcopy(normalized)
+    normalized["widgets"] = [
+        item for item in normalized["widgets"] if item.get("instanceId") != instance_id
+    ]
+    for index, item in enumerate(normalized["widgets"], start=1):
+        item["position"] = index
+    record_dashboard_layout_change(
+        user=user,
+        old_layout=old_layout,
+        new_layout=normalized,
+        reason=f"Widget instance {instance_id} removed from UserDashboardLayout.",
+    )
+    return normalized
+
+
+def reorder_widget_instances_in_layout(
+    layout: Any,
+    ordered_instance_ids: list[str],
+    *,
+    user: Any,
+) -> dict[str, Any]:
+    normalized = normalize_user_dashboard_layout(layout, user=user, context=layout)
+    old_layout = deepcopy(normalized)
+    requested = list(dict.fromkeys(ordered_instance_ids))
+    by_id = {
+        item.get("instanceId"): item
+        for item in normalized["widgets"]
+        if item.get("instanceId") in requested
+    }
+    ordered = [by_id[instance_id] for instance_id in requested if instance_id in by_id]
+    target_indexes = [
+        index
+        for index, item in enumerate(normalized["widgets"])
+        if item.get("instanceId") in by_id
+    ]
+    widgets = [dict(item) for item in normalized["widgets"]]
+    for index, item in zip(target_indexes, ordered):
+        widgets[index] = dict(item)
+    for position, item in enumerate(widgets, start=1):
+        item["position"] = position
+    normalized["widgets"] = widgets
+    record_dashboard_layout_change(
+        user=user,
+        old_layout=old_layout,
+        new_layout=normalized,
+        reason="Widget instances reordered in UserDashboardLayout.",
+    )
+    return normalized
 
 def reset_layout_to_role_profile(*, user: Any, role_code: str | None = None, context: Any | None = None) -> dict[str, Any]:
     data = _merge_context(user, context)
@@ -189,6 +298,15 @@ def normalize_dashboard_layout_widget(widget: Any) -> dict[str, Any] | None:
         zone=_normalize_zone(data.get("zone")),
         size=_normalize_size(data.get("size") or registry_item.defaultSize),
         isVisible=bool(data.get("isVisible", data.get("is_visible", True))),
+        instanceId=_string_or_none(data.get("instanceId") or data.get("instance_id")),
+        placement=_normalize_placement(data.get("placement")) if data.get("placement") else None,
+        userSettings=(
+            dict(data.get("userSettings") or data.get("user_settings") or {})
+            if isinstance(data.get("userSettings") or data.get("user_settings") or {}, dict)
+            else {}
+        )
+        if "userSettings" in data or "user_settings" in data
+        else None,
     )
     return item.to_dict()
 
@@ -200,7 +318,14 @@ def _layout_item_from_widget_code(widget_code: str, *, position: int) -> UserDas
     return _layout_item_from_widget(widget, position=position)
 
 
-def _layout_item_from_widget(widget: Any, *, position: int) -> UserDashboardWidgetLayoutItem:
+def _layout_item_from_widget(
+    widget: Any,
+    *,
+    position: int,
+    instance_id: str | None = None,
+    placement: str | None = None,
+    user_settings: dict[str, Any] | None = None,
+) -> UserDashboardWidgetLayoutItem:
     widget_type = _get_value(widget, "widgetType") or "STATUS"
     return UserDashboardWidgetLayoutItem(
         widgetCode=_get_value(widget, "widgetCode"),
@@ -210,7 +335,15 @@ def _layout_item_from_widget(widget: Any, *, position: int) -> UserDashboardWidg
         zone=DEFAULT_ZONE_BY_TYPE.get(widget_type, "BOTTOM"),
         size=_normalize_size(_get_value(widget, "defaultSize")),
         isVisible=True,
+        instanceId=instance_id,
+        placement=placement,
+        userSettings=user_settings,
     )
+
+
+def _normalize_placement(value: Any) -> str:
+    placement = str(value or "DASHBOARD").upper()
+    return placement if placement in LAYOUT_PLACEMENTS else "DASHBOARD"
 
 
 def _normalize_zone(value: Any) -> str:

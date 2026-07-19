@@ -27,11 +27,38 @@ from app.schemas.material_hub import (
 )
 from app.services.audit_service import log_event
 from app.services.material_hub_first_wave import first_wave_yufo_source_create_payloads, is_first_wave_blocked_source
+from app.services.module1_operational_widgets import (
+    add_module1_widget_instance,
+    build_module1_widget_instances,
+    get_module1_widget_catalog,
+    get_module1_widget_configuration_options,
+    list_module1_widget_instances,
+    remove_module1_widget_instance,
+    reorder_module1_widget_instances,
+    update_module1_widget_instance,
+)
 from app.services.source_profiles import attach_source_profile_snapshot
 from app.services.source_task_runner import run_source_task
 
 router = APIRouter(prefix="/admin/material-hub", tags=["admin-material-hub"])
 
+
+class Module1WidgetCreateRequest(BaseModel):
+    widgetCode: str
+    placement: str = "MODULE_OVERVIEW"
+    settings: dict[str, Any] = Field(default_factory=dict)
+    activeRegionCode: str | None = None
+
+
+class Module1WidgetUpdateRequest(BaseModel):
+    placement: str | None = None
+    settings: dict[str, Any] | None = None
+    position: int | None = Field(default=None, ge=1)
+    isVisible: bool | None = None
+
+
+class Module1WidgetReorderRequest(BaseModel):
+    instanceIds: list[str] = Field(default_factory=list)
 
 class SourceTaskOverviewLaunchRequest(BaseModel):
     source_names: list[str] = Field(default_factory=list)
@@ -338,6 +365,82 @@ def _safe_int(value: Any, default: int) -> int:
     except (TypeError, ValueError):
         return default
 
+
+@router.get("/widgets/catalog")
+async def module1_widget_catalog(db: DBSession, user: CurrentUser):
+    return {
+        "items": get_module1_widget_catalog(user),
+        "options": await get_module1_widget_configuration_options(db, user),
+    }
+
+
+@router.get("/widgets/instances")
+async def module1_widget_instances(
+    db: DBSession,
+    user: CurrentUser,
+    placement: str | None = None,
+    includePayloads: bool = True,
+):
+    if placement and includePayloads:
+        items = await build_module1_widget_instances(db, user, placement=placement)
+    else:
+        items = await list_module1_widget_instances(db, user, placement=placement)
+    return {"items": items}
+
+
+@router.post("/widgets/instances", status_code=201)
+async def create_module1_widget_instance(
+    data: Module1WidgetCreateRequest,
+    db: DBSession,
+    user: CurrentUser,
+):
+    item = await add_module1_widget_instance(
+        db,
+        user,
+        widget_code=data.widgetCode,
+        placement=data.placement,
+        settings=data.settings,
+        active_region_code=data.activeRegionCode,
+    )
+    return {"item": item}
+
+
+@router.patch("/widgets/instances/{instance_id}")
+async def edit_module1_widget_instance(
+    instance_id: str,
+    data: Module1WidgetUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+):
+    item = await update_module1_widget_instance(
+        db,
+        user,
+        instance_id,
+        placement=data.placement,
+        settings=data.settings,
+        position=data.position,
+        is_visible=data.isVisible,
+    )
+    return {"item": item}
+
+
+@router.delete("/widgets/instances/{instance_id}", status_code=204)
+async def delete_module1_widget_instance(
+    instance_id: str,
+    db: DBSession,
+    user: CurrentUser,
+):
+    await remove_module1_widget_instance(db, user, instance_id)
+    return None
+
+
+@router.put("/widgets/instances-order")
+async def reorder_module1_widgets(
+    data: Module1WidgetReorderRequest,
+    db: DBSession,
+    user: CurrentUser,
+):
+    return {"items": await reorder_module1_widget_instances(db, user, data.instanceIds)}
 
 @router.get("/tasks/{task_id}/logs", response_model=list[SourceTaskLogRead])
 async def list_task_logs(task_id: UUID, db: DBSession, user: CurrentUser):

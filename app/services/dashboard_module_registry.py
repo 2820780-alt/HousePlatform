@@ -174,7 +174,15 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         icon="database",
         color="#18d7f2",
         feature_codes=["CONSTRUCTION_APPLICABILITY"],
-        widget_codes=["materials-kpi", "classification-queue"],
+        widget_codes=[
+            "materials-kpi",
+            "classification-queue",
+            "MODULE_01_MATERIALS_REQUIRING_ATTENTION_WIDGET",
+            "MODULE_01_MATERIAL_PRICE_RELEVANCE_WIDGET",
+            "MODULE_01_DOCUMENTS_REQUIRING_REVIEW_WIDGET",
+            "MODULE_01_ANALYZER_STATUS_WIDGET",
+            "MODULE_01_WORK_COST_OFFERS_REQUIRING_ATTENTION_WIDGET",
+        ],
     ),
     _registry_item(
         "MODULE_02_KNOWLEDGE_BASE",

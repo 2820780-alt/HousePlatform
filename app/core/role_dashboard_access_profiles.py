@@ -28,11 +28,20 @@ MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
     "MODULE_03_WIDGETS_STATUS_WIDGET",
 )
 
+MODULE_01_OPERATIONAL_WIDGET_CODES: tuple[str, ...] = (
+    "MODULE_01_MATERIALS_REQUIRING_ATTENTION_WIDGET",
+    "MODULE_01_MATERIAL_PRICE_RELEVANCE_WIDGET",
+    "MODULE_01_DOCUMENTS_REQUIRING_REVIEW_WIDGET",
+    "MODULE_01_ANALYZER_STATUS_WIDGET",
+    "MODULE_01_WORK_COST_OFFERS_REQUIRING_ATTENTION_WIDGET",
+)
+
 @dataclass(frozen=True)
 class RoleDashboardAccessProfileDefinition:
     roleCode: str
     allowedModuleCodes: tuple[str, ...]
     defaultWidgetCodes: tuple[str, ...] = ()
+    allowedWidgetCodes: tuple[str, ...] = ()
     defaultQuickActionCodes: tuple[str, ...] = field(
         default_factory=tuple,
         metadata={"deprecated": DEPRECATED_DEFAULT_QUICK_ACTION_CODES_NOTE},
@@ -77,6 +86,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("SUPER_ADMIN"),
         allowedFeatureCodes=(*_role_features("SUPER_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
         defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES),
+        allowedWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES, *MODULE_01_OPERATIONAL_WIDGET_CODES),
         defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Owner-level profile for viewing and configuring the existing Dashboard shell.",
@@ -91,6 +101,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("PLATFORM_ADMIN"),
         allowedFeatureCodes=(*_role_features("PLATFORM_ADMIN"), "DASHBOARD_ROLE_PREVIEW", "DASHBOARD_REGISTRY_ADMIN"),
         defaultWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES),
+        allowedWidgetCodes=("materials-kpi", "classification-queue", "price-dynamics", "source-health", "system-alerts", "atom-map", *MODULE_03_DASHBOARD_WIDGET_CODES, *MODULE_01_OPERATIONAL_WIDGET_CODES),
         defaultQuickActionCodes=(),
         defaultLayoutCode="ADMIN_DASHBOARD_DEFAULT",
         description="Platform administration profile without Super Admin ownership-level operations.",
@@ -157,6 +168,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=("MODULE_01_MATERIAL_HUB", "MODULE_09_PROCUREMENT", "MODULE_10_MARKETPLACE"),
         allowedFeatureCodes=DEFAULT_DASHBOARD_FEATURES,
         defaultWidgetCodes=("materials-kpi", "atom-map"),
+        allowedWidgetCodes=("materials-kpi", "atom-map", "MODULE_01_WORK_COST_OFFERS_REQUIRING_ATTENTION_WIDGET"),
         defaultQuickActionCodes=(),
         defaultLayoutCode="SUPPLIER_DASHBOARD_DEFAULT",
         settings={
@@ -170,6 +182,7 @@ ROLE_DASHBOARD_ACCESS_PROFILES: tuple[RoleDashboardAccessProfileDefinition, ...]
         allowedModuleCodes=_role_modules("CONTRACTOR"),
         allowedFeatureCodes=_role_features("CONTRACTOR"),
         defaultWidgetCodes=("price-dynamics", "atom-map"),
+        allowedWidgetCodes=("price-dynamics", "atom-map", "MODULE_01_WORK_COST_OFFERS_REQUIRING_ATTENTION_WIDGET"),
         defaultQuickActionCodes=(),
         defaultLayoutCode="CONTRACTOR_DASHBOARD_DEFAULT",
         settings={

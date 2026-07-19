@@ -28,6 +28,7 @@ from app.models.price_history import PriceHistory
 from app.models.platform_region import PlatformRegion
 from app.models.source import Source
 from app.models.source_task import SourceTask
+from app.models.user import User
 from app.models.workspace import Workspace
 from app.services.dashboard_auth_adapters import (
     can_access_module,
@@ -68,6 +69,7 @@ from app.services.dashboard_widget_payload import (
 from app.services.dashboard_widget_registry import (
     get_dashboard_widget_registry,
 )
+from app.services.module1_operational_widgets import build_module1_widget_instances
 from app.services.preview_role import enter_preview_role
 
 
@@ -590,6 +592,19 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
     )
     for widget in admin_widgets:
         widget["payload"] = atom_widget_payload_from_admin_widget(widget)
+    module1_dashboard_widgets: list[dict] = []
+    profile_user_id = personalization.get("profile_user_id")
+    if profile_user_id:
+        profile_user = await db.get(User, profile_user_id)
+        if profile_user:
+            module1_dashboard_widgets = [
+                {"payload": item["payload"]}
+                for item in await build_module1_widget_instances(
+                    db,
+                    profile_user,
+                    placement="DASHBOARD",
+                )
+            ]
     module3_dashboard_widgets = [
         {"payload": payload}
         for payload in build_module3_dashboard_widget_payloads(
@@ -599,7 +614,7 @@ async def _load_dashboard_context(db: DBSession, cards: list[dict], preview_role
             updated_at=datetime.utcnow(),
         )
     ]
-    admin_widgets = module3_dashboard_widgets + admin_widgets
+    admin_widgets = module1_dashboard_widgets + module3_dashboard_widgets + admin_widgets
     analytics = {
         "construction_cost": f"{construction_cost:,.0f} ₽".replace(",", " "),
         "construction_delta_rub": "+187 432 ₽",
@@ -764,6 +779,7 @@ async def _load_personalization_context(db: DBSession, cards: list[dict]) -> dic
         "active_workspace": workspaces[0].name if workspaces else "Административное пространство",
         "workspaces": [workspace.name for workspace in workspaces] or ["Административное пространство"],
         "active_profile": profile.name if profile else "Администратор: обзор платформы",
+        "profile_user_id": profile.user_id if profile else None,
         "role": "Администратор",
         "role_options": [
             "Администратор",
