@@ -1092,3 +1092,86 @@ artifact и pure build-time/test validator.
 Принято.
 
 ---
+
+## Решение №038
+
+Дата:
+19.07.2026
+
+Название:
+Module №1 — Governed REF-3 Read-Only Administrative Projection Contract.
+
+Причина:
+Решения №034–№037 зафиксировали deterministic immutable REF runtime artifacts,
+диагностический dual-read и управляемые REF-1/REF-2 read-only projections. Для
+будущего подключения REF-3 требуется отдельный immutable approval, который
+сохраняет legacy execution и запрещает преждевременную активацию единиц,
+конверсий, упаковки и формульных правил.
+
+Решение:
+Для будущего режима `ref3_read` принят Option E. Default остаётся `legacy`.
+Режим требует валидные approvals REF-1 и REF-2 и использует один REF-3 approval
+для трёх private lazy projections: units/conversions, packaging и extended
+rules. Existing public unit, conversion и schema registries не расширяются и
+не заменяются; второй public registry запрещён.
+
+Purpose allowlist ограничен `admin_conversion_metadata_read`,
+`admin_extended_rule_read`, `admin_packaging_read`,
+`admin_unit_dictionary_read` и `internal_diagnostics`. Purpose задаётся
+сервером, unknown purpose получает deny. Материалы, CatalogProduct,
+normalizer, matching, moderation, readiness/export, Work Cost, Module №2,
+Module №5, Dashboard и Widgets остаются legacy-only.
+
+Unit baseline фиксируется как 90 source units, 73 eligible и 17
+review-excluded. Из 16 exact legacy units eligible остаются 14. `lm` означает
+lumen, `linear_meter` является отдельным canonical code, а legacy
+`lm -> linear_meter` требует контекста и не применяется автоматически.
+`linear_meter` и `m2_mm` остаются review-excluded.
+
+Conversion baseline содержит 47 правил: 12 simple, 28 technical и 7 formula.
+REF conversion execution равен нулю. Simple rules доступны только как admin
+metadata, technical rules требуют parameters, formula strings не исполняются.
+Legacy conversion executor остаётся единственным source of truth.
+
+Packaging baseline содержит 21 profile и 978 source assignments: 633 eligible,
+51 review-excluded. Известные 345 REF-2 mismatches затрагивают 316 material
+types и являются diagnostics-only. Review и mismatch sets проверяются по
+фактическим stable identifiers и не считаются непересекающимися: их overlap
+равен 22. Automatic correction, packaging write и внедрение packaging fields
+в REF-2 запрещены; package quantity и price basis не становятся
+characteristics.
+
+Extended rules baseline содержит 15 правил: 7 geometry, 2 coverage, 1 yield и
+5 consumption. Из них 6 являются pure-conversion candidates, 7 требуют
+параметров Module №2 и 2 остаются review-only. Executable rules, object/work
+scope calculations и work-to-material mappings равны нулю. REF-3 не заменяет
+Module №2, а Module №5 не исполняет REF formulas напрямую.
+
+Первый этап полностью artifact-backed, lazy и DB-write-free. Material и
+CatalogProduct writes, normalizer, matching, moderation, readiness/export и
+Work Cost не меняются. ORM, migrations и preferences changes отсутствуют.
+Formula, conversion и rule execution, packaging write, Module №2/№5 execution
+и write activation запрещены.
+
+Approval хранится отдельно как deterministic immutable artifact
+`ref3-read-v1-1a15fed6ebdd`, pin-ит REF-1/REF-2 approvals, runtime package,
+manifest, source hashes и artifacts units, conversions, packaging, rules и
+compatibility. Сам approval ничего не активирует. Future read implementation
+должна использовать bounded cache с invalidation при restart или смене package
+approval.
+
+Rollback будущего read-only режима выполняется переходом в `ref2_read` и
+restart, без DB migration/update, reclassification, изменения legacy registry
+или удаления artifacts. Stale REF-3 code игнорируется как unknown. Любая
+write-активация, выполнение conversions/rules или подключение к Module №2/№5
+требует отдельного будущего Decision.
+
+Последствия:
+В этом решении не добавляются runtime mode, startup loader, projection service,
+API endpoint, UI, ORM или migrations. Разрешены только immutable approval
+artifact и pure build-time/test validator.
+
+Статус:
+Принято.
+
+---

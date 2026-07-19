@@ -1,0 +1,214 @@
+{
+  "activation_flags": {
+    "conversion_execution_allowed": false,
+    "module2_execution_allowed": false,
+    "module5_execution_allowed": false,
+    "packaging_write_allowed": false,
+    "rule_execution_allowed": false,
+    "runtime_activation_allowed": true,
+    "write_activation_allowed": false
+  },
+  "approval_id": "ref3-read-v1-1a15fed6ebdd",
+  "approval_schema_version": "1.0",
+  "approval_version": "1.0",
+  "approved_modes": [
+    "ref3_read"
+  ],
+  "approved_scope": "module1_ref3_read_only_admin_projections",
+  "canonical_serialization": {
+    "bom": false,
+    "encoding": "UTF-8",
+    "ensure_ascii": false,
+    "hash_algorithm": "SHA-256",
+    "indent": 2,
+    "line_ending": "LF",
+    "sort_keys": true,
+    "trailing_newline": true
+  },
+  "conversion_policy": {
+    "formula_conversion_execution_allowed": false,
+    "formula_conversions": "metadata_only",
+    "legacy_conversion_executor_source_of_truth": true,
+    "ref_conversion_execution_allowed": false,
+    "simple_conversions": "admin_metadata_only",
+    "technical_conversions": "parameters_required_metadata_only",
+    "technical_execution_without_parameters_allowed": false
+  },
+  "counts": {
+    "conversions_executable": 0,
+    "conversions_formula": 7,
+    "conversions_simple": 12,
+    "conversions_technical": 28,
+    "conversions_total": 47,
+    "legacy_exact_units_eligible": 14,
+    "legacy_exact_units_source": 16,
+    "object_scope_calculations": 0,
+    "packaging_affected_material_types": 316,
+    "packaging_assignments_eligible": 633,
+    "packaging_assignments_review_excluded": 51,
+    "packaging_assignments_total": 978,
+    "packaging_mismatches": 345,
+    "packaging_profiles": 21,
+    "packaging_review_mismatch_overlap": 22,
+    "ref3_units_eligible": 73,
+    "ref3_units_review_excluded": 17,
+    "ref3_units_total": 90,
+    "rules_consumption": 5,
+    "rules_coverage": 2,
+    "rules_executable": 0,
+    "rules_geometry": 7,
+    "rules_pure_conversion_candidates": 6,
+    "rules_requires_module2_parameters": 7,
+    "rules_review_only": 2,
+    "rules_total": 15,
+    "rules_yield": 1,
+    "runtime_units": 16,
+    "work_material_mappings": 0,
+    "work_scope_calculations": 0
+  },
+  "decision_number": 38,
+  "packaging_policy": {
+    "automatic_correction_allowed": false,
+    "eligible_assignments_visible_for_admin_read": true,
+    "mismatch_policy": "diagnostics_only",
+    "package_quantity_is_characteristic": false,
+    "packaging_write_allowed": false,
+    "price_basis_is_characteristic": false,
+    "ref2_field_injection_allowed": false,
+    "review_excluded_interpretation": "packaging_review_excluded",
+    "review_excluded_visible_as_approved": false
+  },
+  "prerequisite_approvals": [
+    {
+      "approval_id": "ref1-read-v1-1a15fed6ebdd",
+      "approval_sha256": "55c9f09aa1db034f22108f02a2f2afe692bdf58650ff4d2a8d0d8b70b1799973",
+      "required_mode": "ref1_read"
+    },
+    {
+      "approval_id": "ref2-read-v1-1a15fed6ebdd",
+      "approval_sha256": "e5e13fba61a3aef4e94b27e22394f41d2ebbeb0b948e5f899742342e19d50e06",
+      "required_mode": "ref2_read"
+    }
+  ],
+  "projection_policy": {
+    "cache_bounded": true,
+    "cache_invalidation": "restart_or_package_approval_change",
+    "cache_key_components": [
+      "runtime_package_id",
+      "ref3_approval_id",
+      "purpose"
+    ],
+    "existing_public_registries_extended": false,
+    "lazy_load": true,
+    "projection_names": [
+      "units_and_conversions",
+      "packaging",
+      "extended_rules"
+    ],
+    "projection_scope": "private_internal",
+    "second_public_registry_allowed": false,
+    "startup_behavior": "validate_package_and_approvals_only"
+  },
+  "purpose_policy": {
+    "allow": [
+      "admin_conversion_metadata_read",
+      "admin_extended_rule_read",
+      "admin_packaging_read",
+      "admin_unit_dictionary_read",
+      "internal_diagnostics"
+    ],
+    "deny": [
+      "analyzer_business_processing",
+      "catalog_product_write",
+      "dashboard",
+      "existing_material_details",
+      "existing_materials_table",
+      "matching_candidate",
+      "material_write",
+      "moderation_approval",
+      "module2_execution",
+      "module5_execution",
+      "normalizer_output",
+      "readiness_export",
+      "widgets",
+      "work_cost"
+    ],
+    "purpose_source": "server_owned",
+    "unknown_purpose": "deny"
+  },
+  "rollback_policy": {
+    "allowed_target_modes": [
+      "ref2_read"
+    ],
+    "artifact_deletion_required": false,
+    "database_migration_required": false,
+    "database_update_required": false,
+    "existing_records_reclassification_required": false,
+    "legacy_registry_update_required": false,
+    "requires_restart": true,
+    "stale_ref3_code_behavior": "ignore_as_unknown"
+  },
+  "rule_policy": {
+    "formula_strings_executable": false,
+    "module2_execution_allowed": false,
+    "object_scope_calculation_allowed": false,
+    "ref6_mapping_required_for_work_execution": true,
+    "rule_execution_allowed": false,
+    "rule_visibility": "admin_metadata_only",
+    "work_scope_calculation_allowed": false
+  },
+  "runtime_package": {
+    "artifact_hashes": {
+      "compatibility": "43cf3b1bce4f0424ec9204de51cb09138b452ab2a365f3a7747292937848c726",
+      "conversions": "4a3e6371391a3fc798a6d7ba92f8f95a9c188785ae28e0f827c4b3bb167b2555",
+      "packaging": "1ab014d3e349d6486c9dceb8f13601a438de2be8c0fd0c3f1fe3e0316ca0ec2a",
+      "rules": "53a293dfad1913e873dfd6b370c58573b50213d3e0e3357c3808aa86f932334f",
+      "units": "7a3f8a6298977bb88616aeaafa0e9fa49a09cc10b653ec9d59bd96e318fb8e38"
+    },
+    "artifact_schema_version": "1.0",
+    "compatibility_map_version": "1.0",
+    "manifest_sha256": "1a15fed6ebddb77c293b8a77539f790b5733215ef3a748a52f3c83a33fe75e9f",
+    "package_id": "ref-runtime-v1-122079b1c558fefc",
+    "source_hashes": {
+      "ATOM_REF1_Material_Taxonomy_v2_PRELIMINARY_APPROVED.json": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+      "ATOM_REF2_Field_Dictionary_v1_DRAFT.json": "22b3201b55381a1da626aab2e8fea066e94882f97a237495b8ac7307c50adc5d",
+      "ATOM_REF2_Material_Characteristic_Profiles_v1_DRAFT.json": "1ac98e68f88c6f8288c534452bd46de5308808ae1e6f60446f124e0af08beb3c",
+      "ATOM_REF3_Geometry_Coverage_Consumption_Rules_v1_DRAFT.json": "23eefba57ef415527db3f9cf0fa395614d7064c06d2db753f4072209560b7b28",
+      "ATOM_REF3_Package_Manifest_v1_DRAFT.json": "30bde8789f2352797b41cf41cf8f86bea35103f026d5222741a7988bb750799a",
+      "ATOM_REF3_Packaging_Quantity_Profiles_v1_DRAFT.json": "e42f6b0dede8eff8bd33146477ae909990892924d802b5cb37e326262977252b",
+      "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json": "342957cf9ea88ee9873595d1bac4c848d50b3423d2a61fdeadf2556f3e522cfb"
+    }
+  },
+  "unit_alias_policy": {
+    "automatic_legacy_lm_mapping_allowed": false,
+    "canonical_lm_meaning": "lumen",
+    "canonical_output_for_linear_meter": "linear_meter",
+    "legacy_lm_to_linear_meter": "context_required",
+    "linear_meter_canonical_code": "linear_meter",
+    "review_excluded_codes": [
+      "linear_meter",
+      "m2_mm"
+    ]
+  },
+  "unit_policy": {
+    "eligible_units_visible_for_admin_read": true,
+    "existing_runtime_registry_extended": false,
+    "existing_runtime_registry_replaced": false,
+    "legacy_unit_execution_source_of_truth": true,
+    "ref_only_unit_write_allowed": false,
+    "review_excluded_interpretation": "unit_review_excluded",
+    "review_excluded_units_visible_as_approved": false
+  },
+  "write_execution_policy": {
+    "catalog_product_write_for_ref3_only_metadata": false,
+    "legacy_behavior_unchanged": true,
+    "matching_for_ref3_only_metadata": false,
+    "material_write_for_ref3_only_metadata": false,
+    "moderation_for_ref3_only_metadata": false,
+    "module2_execution": false,
+    "module5_execution": false,
+    "normalizer_output_for_ref3_only_metadata": false,
+    "readiness_export_for_ref3_only_metadata": false,
+    "work_cost_usage": false
+  }
+}
