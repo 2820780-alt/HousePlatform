@@ -1,0 +1,165 @@
+{
+  "activation_flags": {
+    "ref3_activation_allowed": false,
+    "runtime_activation_allowed": true,
+    "write_activation_allowed": false
+  },
+  "approval_id": "ref2-read-v1-1a15fed6ebdd",
+  "approval_schema_version": "1.0",
+  "approval_version": "1.0",
+  "approved_modes": [
+    "ref2_read"
+  ],
+  "approved_scope": "module1_ref2_read_only_admin_projection",
+  "assignment_policy": {
+    "blocked": 0,
+    "eligible": 930,
+    "fully_readable": 619,
+    "readable_with_warnings": 311,
+    "review_excluded": 48,
+    "review_excluded_interpretation": "schema_review_excluded",
+    "review_excluded_is_empty_schema": false,
+    "total": 978
+  },
+  "canonical_serialization": {
+    "bom": false,
+    "encoding": "UTF-8",
+    "ensure_ascii": false,
+    "hash_algorithm": "SHA-256",
+    "indent": 2,
+    "line_ending": "LF",
+    "sort_keys": true,
+    "trailing_newline": true
+  },
+  "counts": {
+    "assignments_blocked": 0,
+    "assignments_eligible": 930,
+    "assignments_fully_readable": 619,
+    "assignments_readable_with_warnings": 311,
+    "assignments_review_excluded": 48,
+    "assignments_total": 978,
+    "fields": 558,
+    "overlap_read_compatible": 21,
+    "overlap_required_semantics_mismatch": 6,
+    "overlap_review_required": 19,
+    "overlap_total": 46,
+    "packaging_affected_material_types": 316,
+    "packaging_mismatches": 345,
+    "profiles": 177,
+    "runtime_only_fields": 28
+  },
+  "decision_number": 37,
+  "overlap_compatibility_policy": {
+    "read_compatible": 21,
+    "required_semantics_mismatch": 6,
+    "review_required": 19,
+    "total": 46,
+    "write_compatibility_inferred": false
+  },
+  "packaging_boundary_policy": {
+    "affected_material_types": 316,
+    "automatic_correction_allowed": false,
+    "diagnostics_only": true,
+    "mismatches": 345,
+    "package_quantity_is_characteristic": false,
+    "packaging_owner": "REF-3",
+    "price_basis_is_characteristic": false,
+    "ref3_activation_allowed": false
+  },
+  "prerequisite_approvals": [
+    {
+      "approval_id": "ref1-read-v1-1a15fed6ebdd",
+      "approval_sha256": "55c9f09aa1db034f22108f02a2f2afe692bdf58650ff4d2a8d0d8b70b1799973",
+      "required_mode": "ref1_read"
+    }
+  ],
+  "purpose_policy": {
+    "allow": [
+      "admin_characteristic_schema_read",
+      "internal_diagnostics"
+    ],
+    "deny": [
+      "analyzer_business_processing",
+      "catalog_product_write",
+      "dashboard",
+      "documents_business_processing",
+      "existing_material_details",
+      "existing_materials_table",
+      "matching_candidate",
+      "material_write",
+      "moderation_approval",
+      "module2_export",
+      "module5_export",
+      "normalizer_output",
+      "readiness_export",
+      "widgets"
+    ],
+    "purpose_source": "server_owned",
+    "unknown_purpose": "deny"
+  },
+  "read_policy": {
+    "admin_projection_artifact_backed": true,
+    "database_reads_required": false,
+    "existing_schema_registry_extended": false,
+    "existing_schema_registry_replaced": false,
+    "second_public_registry_allowed": false,
+    "visible_for_allowlisted_admin_read": true
+  },
+  "required_semantics_policy": {
+    "automatic_required_activation": false,
+    "legacy_effective_required": "write_source_of_truth",
+    "ref_source_required": "metadata_only",
+    "required_mismatch_blocks_admin_read": false,
+    "required_mismatch_blocks_future_automatic_write_activation": true
+  },
+  "rollback_policy": {
+    "allowed_target_modes": [
+      "legacy",
+      "ref1_read"
+    ],
+    "artifact_deletion_required": false,
+    "database_migration_required": false,
+    "database_update_required": false,
+    "existing_records_reclassification_required": false,
+    "requires_restart": true,
+    "stale_ref2_field_code_behavior": "ignore_as_unknown"
+  },
+  "runtime_only_fields_policy": {
+    "automatic_deprecation_allowed": false,
+    "count": 28,
+    "delete_allowed": false,
+    "preserve": true,
+    "rename_allowed": false
+  },
+  "runtime_package": {
+    "artifact_hashes": {
+      "compatibility": "43cf3b1bce4f0424ec9204de51cb09138b452ab2a365f3a7747292937848c726",
+      "fields": "1162e96b6df21d6497da545f6bf36ba0212660505a3022ec247c043031ebc959",
+      "flattened_assignments": "5686cc00caac54eddf56949de4259a2ba0518d727ee5ab5fe0d79fd5b6b05e38"
+    },
+    "artifact_schema_version": "1.0",
+    "compatibility_map_version": "1.0",
+    "manifest_sha256": "1a15fed6ebddb77c293b8a77539f790b5733215ef3a748a52f3c83a33fe75e9f",
+    "package_id": "ref-runtime-v1-122079b1c558fefc",
+    "source_hashes": {
+      "ATOM_REF1_Material_Taxonomy_v2_PRELIMINARY_APPROVED.json": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+      "ATOM_REF2_Field_Dictionary_v1_DRAFT.json": "22b3201b55381a1da626aab2e8fea066e94882f97a237495b8ac7307c50adc5d",
+      "ATOM_REF2_Material_Characteristic_Profiles_v1_DRAFT.json": "1ac98e68f88c6f8288c534452bd46de5308808ae1e6f60446f124e0af08beb3c",
+      "ATOM_REF3_Geometry_Coverage_Consumption_Rules_v1_DRAFT.json": "23eefba57ef415527db3f9cf0fa395614d7064c06d2db753f4072209560b7b28",
+      "ATOM_REF3_Package_Manifest_v1_DRAFT.json": "30bde8789f2352797b41cf41cf8f86bea35103f026d5222741a7988bb750799a",
+      "ATOM_REF3_Packaging_Quantity_Profiles_v1_DRAFT.json": "e42f6b0dede8eff8bd33146477ae909990892924d802b5cb37e326262977252b",
+      "ATOM_REF3_Unit_Dictionary_v1_DRAFT.json": "342957cf9ea88ee9873595d1bac4c848d50b3423d2a61fdeadf2556f3e522cfb"
+    }
+  },
+  "write_policy": {
+    "catalog_product_write_for_ref_only_fields": false,
+    "legacy_behavior_unchanged": true,
+    "matching_for_ref_only_fields": false,
+    "material_write_for_ref_only_fields": false,
+    "moderation_for_ref_only_fields": false,
+    "module2_for_ref_only_fields": false,
+    "module5_for_ref_only_fields": false,
+    "normalizer_output_for_ref_only_fields": false,
+    "readiness_export_for_ref_only_fields": false
+  }
+}

@@ -1020,3 +1020,75 @@ persistence plan и rollback release.
 Принято.
 
 ---
+## Решение №037
+
+Дата:
+19.07.2026
+
+Название:
+Module №1 — Governed REF-2 Read-Only Administrative Projection Contract.
+
+Причина:
+Решения №034–№036 зафиксировали immutable REF runtime artifacts,
+диагностический dual-read и управляемую REF-1 read-only projection. Для
+первого подключения REF-2 требуется отдельный approval, который не меняет
+существующие characteristic schemas, write-validation и business behavior.
+
+Решение:
+Для будущего режима `ref2_read` принят Option E: отдельный административный
+GET contract поверх private flattened REF-2 projection. Existing
+`CharacteristicSchemaRegistry` остаётся legacy-only, не расширяется и не
+заменяется. Второй публичный schema registry запрещён.
+
+Режим `ref2_read` требует валидный и активный REF-1 read approval. Первый
+purpose allowlist содержит только `admin_characteristic_schema_read` и
+`internal_diagnostics`; unknown purpose получает `deny`. Material и
+CatalogProduct create/update, normalizer, matching, moderation,
+readiness/export, Analyzer и documents business processing, существующие
+Materials table/details, Module №2, Module №5, Dashboard и Widgets остаются
+legacy-only и не получают REF-2.
+
+`ref_source_required` является только informational metadata для разрешённого
+admin read. `legacy_effective_required` остаётся единственным write source of
+truth и сохраняет текущие 13 schema contracts. REF required не становится
+UI-required, не влияет на write-validation, readiness, normalizer, matching
+или moderation.
+
+Все 28 runtime-only fields сохраняются без удаления, rename и автоматической
+deprecation. Для 46 overlapping fields фиксируется compatibility baseline:
+21 read-compatible, 19 review-required и 6 required-semantics mismatch.
+Совпадение code не означает automatic semantic или write compatibility.
+
+Из 978 REF-2 assignments административному read доступны 930: 619 fully
+readable и 311 readable with warnings, blocked — 0. Остальные 48 имеют статус
+`schema_review_excluded`, не активируются и не интерпретируются как empty
+schema или отсутствие требуемых характеристик.
+
+Packaging остаётся границей REF-3. 345 mismatches для 316 material types
+являются diagnostics-only; automatic correction и внедрение package quantity
+или price basis в characteristic schemas запрещены. REF-3 activation не
+разрешается.
+
+Для REF-only fields Material write, CatalogProduct write, normalizer output,
+matching, moderation, readiness/export и Module №2/№5 eligibility равны
+false. Первый этап полностью artifact-backed: DB writes, migrations, ORM и
+preferences changes равны нулю.
+
+Approval хранится отдельно как deterministic immutable artifact
+`ref2-read-v1-1a15fed6ebdd`, pin-ит REF-1 prerequisite, runtime package,
+manifest и REF-2 artifact hashes. Сам approval ничего не активирует. Rollback
+будущего режима выполняется переходом в `ref1_read` либо `legacy` и restart,
+без изменения БД, legacy schemas, existing records и без удаления artifacts.
+
+Любая REF-2 write activation, подключение REF-3 или передача REF-2 в Module
+№2/№5 требует отдельного будущего Decision.
+
+Последствия:
+В этом решении не добавляются runtime mode, startup loader, projection service,
+API endpoint, UI, ORM или migrations. Разрешены только immutable approval
+artifact и pure build-time/test validator.
+
+Статус:
+Принято.
+
+---
