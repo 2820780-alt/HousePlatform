@@ -7,6 +7,7 @@ from app.api.v1 import (
     admin_materials,
     admin_module1_ref_taxonomy,
     admin_module1_ref2_characteristic_schemas,
+    admin_module1_ref3,
     admin_moderation,
     admin_module_registry_view,
     admin_suppliers,
@@ -35,6 +36,7 @@ api_router.include_router(admin_material_hub.router)
 api_router.include_router(admin_materials.router)
 api_router.include_router(admin_module1_ref_taxonomy.router)
 api_router.include_router(admin_module1_ref2_characteristic_schemas.router)
+api_router.include_router(admin_module1_ref3.router)
 api_router.include_router(admin_moderation.router)
 api_router.include_router(material_hub_view.router)
 api_router.include_router(module1_work_cost_offers.router)

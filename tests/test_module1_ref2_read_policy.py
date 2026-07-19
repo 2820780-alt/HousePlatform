@@ -71,6 +71,7 @@ def test_supported_modes_default_and_unknown_mode_contract() -> None:
         "dual_read",
         "ref1_read",
         "ref2_read",
+        "ref3_read",
     }
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
     with pytest.raises(Module1RefRuntimeConfigurationError):

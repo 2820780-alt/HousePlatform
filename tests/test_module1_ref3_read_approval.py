@@ -312,7 +312,7 @@ def test_validator_fails_closed_for_missing_or_changed_prerequisites(tmp_path: P
     assert "REF2_READ_APPROVAL_HASH_INVALID" in {issue.code for issue in invalid_ref2.issues}
 
 
-def test_decision_exists_but_ref3_runtime_mode_endpoint_and_startup_integration_do_not() -> None:
+def test_decision_and_approved_ref3_runtime_integration_are_present() -> None:
     project_root = Path(__file__).resolve().parents[1]
     decisions = (project_root / "docs" / "Decisions.md").read_text(encoding="utf-8")
     config = (project_root / "app" / "config.py").read_text(encoding="utf-8")
@@ -322,11 +322,14 @@ def test_decision_exists_but_ref3_runtime_mode_endpoint_and_startup_integration_
     assert decisions.count(heading) == 1
     assert "Статус:\nПринято." in decisions.split(heading, 1)[1]
     assert settings.MODULE1_REF_RUNTIME_MODE == "legacy"
-    assert "ref3_read" not in SUPPORTED_MODES
-    assert "MODULE1_REF3_APPROVAL_ID" not in config
+    assert "ref3_read" in SUPPORTED_MODES
+    assert "MODULE1_REF3_APPROVAL_ID" in config
     assert "module1_ref_projection.ref3_read_approval" not in app_sources
-    assert "ref3-read-v1-1a15fed6ebdd" not in app_sources
-    assert "/ref3" not in app_sources.lower()
+    assert "module1_ref3_read_policy" in app_sources
+    assert "/ref3-units" in app_sources
+    assert "/ref3-conversions" in app_sources
+    assert "/ref3-packaging" in app_sources
+    assert "/ref3-extended-rules" in app_sources
 
 
 def test_tooling_has_no_database_orm_ui_or_runtime_imports() -> None:
