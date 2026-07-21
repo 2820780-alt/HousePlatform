@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # JWT
-    JWT_SECRET_KEY: str = "change-me-to-random-secret-key-min-32-chars"
+    JWT_SECRET_KEY: str = "development-only-change-me"
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # Admin seed
     ADMIN_EMAIL: str = "admin@buildplatform.ru"
-    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_PASSWORD: str = "development-only-change-me"
     ENABLE_MODULE3_DEMO_USERS: bool = False
 
     # Ollama

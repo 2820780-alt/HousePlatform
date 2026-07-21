@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from app.api.deps import CurrentUser, DBSession
+from app.api.deps import CurrentUser, DBSession, require_admin
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.models.enums import SourceActionType, SourceStatus, SourceType, TaskStatus, UserRole
 from app.models.material_document import MaterialDocument
@@ -367,7 +367,7 @@ def _safe_int(value: Any, default: int) -> int:
 
 
 @router.get("/widgets/catalog")
-async def module1_widget_catalog(db: DBSession, user: CurrentUser):
+async def module1_widget_catalog(db: DBSession, user=require_admin()):
     return {
         "items": get_module1_widget_catalog(user),
         "options": await get_module1_widget_configuration_options(db, user),

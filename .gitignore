@@ -22,8 +22,9 @@ env/
 
 # Environment
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+!.env.*.example
 
 # Database
 *.db
@@ -42,6 +43,14 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Local security and deployment artifacts
+.tmp-ssh/
+.deploy_artifacts/
+_atom_audit/
+*.pem
+*.key
+*.tar
 
 # Backups (large dumps)
 backup/dumps/

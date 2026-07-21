@@ -5,7 +5,7 @@ from app.models.user import User
 from app.models.enums import UserRole, UserStatus
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
 from app.core.exceptions import ConflictError, UnauthorizedError
-from app.schemas.auth import RegisterRequest, TokenResponse
+from app.schemas.auth import PUBLIC_REGISTRATION_ROLE, RegisterRequest, TokenResponse
 
 
 async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
@@ -19,7 +19,7 @@ async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
         password_hash=hash_password(data.password),
         name=data.name,
         phone=data.phone,
-        role=data.role,
+        role=PUBLIC_REGISTRATION_ROLE,
         status=UserStatus.ACTIVE,
     )
     db.add(user)

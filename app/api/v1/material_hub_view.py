@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import DBSession
+from app.api.deps import DBSession, require_admin
 from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
@@ -60,7 +60,11 @@ from app.services.supplier_price_standard import (
 )
 
 
-router = APIRouter(prefix="/admin/material-hub/view", tags=["material-hub-view"])
+router = APIRouter(
+    prefix="/admin/material-hub/view",
+    tags=["material-hub-view"],
+    dependencies=[require_admin()],
+)
 templates = Jinja2Templates(directory="templates")
 
 
