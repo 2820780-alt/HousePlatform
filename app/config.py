@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     MODULE1_REF2_APPROVAL_ID: str = "ref2-read-v1-1a15fed6ebdd"
     MODULE1_REF3_APPROVAL_ID: str = "ref3-read-v1-1a15fed6ebdd"
     MODULE1_REF45_MODE: Literal["legacy", "approved"] = "legacy"
+    MODULE1_REF6_MODE: Literal["legacy", "approved"] = "legacy"
 
     class Config:
         env_file = ".env"

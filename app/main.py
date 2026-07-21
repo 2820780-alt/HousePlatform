@@ -8,6 +8,7 @@ from app.api.v1.admin_users_roles_view import ui_router as admin_users_roles_ui_
 from app.config import settings
 from app.database import close_db, init_db
 from app.services.module1_ref4_normalization_policy import require_module1_ref45_runtime
+from app.services.module1_ref6_work_material_policy import require_module1_ref6_runtime
 from app.services.module1_ref_runtime_artifacts import validate_configured_module1_ref_runtime
 
 
@@ -19,6 +20,9 @@ async def lifespan(app: FastAPI):
     ref45_validation = require_module1_ref45_runtime()
     app.state.module1_ref45_runtime = ref45_validation
     app.state.module1_ref45_validation = ref45_validation.as_dict()
+    ref6_validation = require_module1_ref6_runtime()
+    app.state.module1_ref6_runtime = ref6_validation
+    app.state.module1_ref6_validation = ref6_validation.as_dict()
     await init_db()
     try:
         yield

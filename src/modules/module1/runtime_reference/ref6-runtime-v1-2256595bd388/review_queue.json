@@ -1,0 +1,291 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifact_type": "ref6_review_queue",
+  "automatic_approval_allowed": false,
+  "catalog_product_selection_allowed": false,
+  "database_write_allowed": false,
+  "items": [
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": null,
+      "reason_ru": "В REF-1 нет универсального типа экрана под ванну; возможны разные конструкции и листовые материалы.",
+      "review_id": "ref6_review_001",
+      "review_kind": "work_classification",
+      "suggested_action": "expert_review_required",
+      "work_code": "bathroom_wet_zones_montazh_ekrana_pod_vannu"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": null,
+      "reason_ru": "Материал обратной засыпки может быть местным грунтом либо привозным песком/смесью; автоматическая подсказка небезопасна.",
+      "review_id": "ref6_review_002",
+      "review_kind": "work_classification",
+      "suggested_action": "expert_review_required",
+      "work_code": "earthworks_obratnaya_zasypka"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": null,
+      "reason_ru": "Материал дверных откосов не задан, а специального type-level объекта недостаточно.",
+      "review_id": "ref6_review_003",
+      "review_kind": "work_classification",
+      "suggested_action": "expert_review_required",
+      "work_code": "windows_doors_slopes_ustroystvo_dvernyh_otkosov"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_020",
+      "reason_ru": "Набор зависит от типа точки и проекта.",
+      "review_id": "ref6_review_004",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "electrical_montazh_elektricheskoy_tochki"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_038",
+      "reason_ru": "Неоднозначная работа; candidates только для review.",
+      "review_id": "ref6_review_005",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "facade_naruzhnye_otkosy"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_096",
+      "reason_ru": "Технология должна быть указана.",
+      "review_id": "ref6_review_006",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "landscaping_ustroystvo_otmostki"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_132",
+      "reason_ru": "Состав точки задаётся проектом.",
+      "review_id": "ref6_review_007",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "sewerage_montazh_tochki_kanalizacii"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_141",
+      "reason_ru": "Тип плитки должен быть указан отдельно.",
+      "review_id": "ref6_review_008",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "tile_works_ukladka_plitki_po_diagonali"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_181",
+      "reason_ru": "Нужен явный тип прибора.",
+      "review_id": "ref6_review_009",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "water_supply_montazh_santehnicheskogo_pribora"
+    },
+    {
+      "automatic_approval_allowed": false,
+      "mapping_id": "ref6_mapping_182",
+      "reason_ru": "Материал трубы должен быть задан.",
+      "review_id": "ref6_review_010",
+      "review_kind": "role_mapping",
+      "suggested_action": "explicit_technology_or_product_context_required",
+      "work_code": "water_supply_montazh_tochki_vodosnabzheniya"
+    }
+  ],
+  "mapping_items": [
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "point_type_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_020",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Набор зависит от типа точки и проекта.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "electrical_point_components",
+      "role_kind": "conditional",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "cable",
+        "junction_box",
+        "socket_box"
+      ],
+      "work_code": "electrical_montazh_elektricheskoy_tochki"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "facade_system_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_038",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Неоднозначная работа; candidates только для review.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "exterior_slope_finish",
+      "role_kind": "primary",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "facade_plaster_basecoat",
+        "fiber_cement_board",
+        "metal_window_flashing"
+      ],
+      "work_code": "facade_naruzhnye_otkosy"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "blind_area_technology_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_096",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Технология должна быть указана.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "blind_area_finish",
+      "role_kind": "primary",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "paving_slab",
+        "ready_mix_concrete"
+      ],
+      "work_code": "landscaping_ustroystvo_otmostki"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "point_type_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_132",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Состав точки задаётся проектом.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "sewer_point_pipe",
+      "role_kind": "primary",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "internal_sewer_pipe",
+        "sewer_fitting"
+      ],
+      "work_code": "sewerage_montazh_tochki_kanalizacii"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "tile_type_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_141",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Тип плитки должен быть указан отдельно.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "tile",
+      "role_kind": "primary",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "ceramic_floor_tile",
+        "porcelain_tile",
+        "wall_tile"
+      ],
+      "work_code": "tile_works_ukladka_plitki_po_diagonali"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "fixture_type_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_181",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Нужен явный тип прибора.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "sanitary_fixture",
+      "role_kind": "primary",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "bidet",
+        "floor_toilet",
+        "kitchen_sink",
+        "shower_cabin",
+        "wall_hung_toilet",
+        "washbasin"
+      ],
+      "work_code": "water_supply_montazh_santehnicheskogo_pribora"
+    },
+    {
+      "catalog_product_selection_allowed": false,
+      "conditions": [
+        "pipe_system_required"
+      ],
+      "database_write_allowed": false,
+      "execution_status": "REVIEW_ONLY",
+      "existing_material_role_evidence": [],
+      "mapping_id": "ref6_mapping_182",
+      "material_creation_allowed": false,
+      "module2_execution_allowed": false,
+      "module5_costing_allowed": false,
+      "quantity_calculation_allowed": false,
+      "quantity_formula_activation_allowed": false,
+      "reason_ru": "Материал трубы должен быть задан.",
+      "required_fields_policy": "resolve_from_ref2_profile_at_consumer_boundary",
+      "role_code": "water_point_pipe",
+      "role_kind": "conditional",
+      "sku_selection_allowed": false,
+      "target_material_type_ids": [
+        "metal_plastic_pipe",
+        "pex_pipe",
+        "ppr_pipe"
+      ],
+      "work_code": "water_supply_montazh_tochki_vodosnabzheniya"
+    }
+  ],
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false
+}

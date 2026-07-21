@@ -1,0 +1,61 @@
+{
+  "approval_required": false,
+  "codex_may_expand_content": false,
+  "counts": {
+    "automatic_database_write_rules": 0,
+    "automatic_material_creation_rules": 0,
+    "conditional_role_hints": 104,
+    "conditional_works": 87,
+    "direct_works": 80,
+    "existing_material_role_evidence_rows": 42,
+    "no_material_works": 39,
+    "quantity_rules_activated": 0,
+    "ref1_material_types": 978,
+    "review_only_role_mappings": 7,
+    "review_only_works": 3,
+    "review_queue_items": 10,
+    "role_mappings": 193,
+    "safe_role_hints": 82,
+    "sku_selection_rules": 0,
+    "work_groups": 24,
+    "works": 209
+  },
+  "date": "2026-07-21",
+  "files": [
+    {
+      "name": "ATOM_REF6_Work_Material_Mappings_v1_PRELIMINARY_APPROVED.json",
+      "sha256": "747bcbf6beea33a127abcb843ec4ae8abcd383f73fbd0192138b9a54703ba20e"
+    },
+    {
+      "name": "ATOM_REF6_Review_v1.md",
+      "sha256": "d38bc322dc8d09fbb777c4f928d8314da035b14cc3c9109909b6992fa0f7ef21"
+    },
+    {
+      "name": "ATOM_REF6_Approval_Record_v1.md",
+      "sha256": "5b7fa692aa5d91ea1279cf484963dd40c94afd4aa3be9eeabab8753ef1b850e4"
+    }
+  ],
+  "informational_files": [
+    {
+      "hash_excluded_from_manifest_identity": true,
+      "name": "ATOM_REF6_Summary_v1.json"
+    }
+  ],
+  "integration_allowed": true,
+  "module": 1,
+  "package_id": "REF-6",
+  "project": "ATOM",
+  "runtime_activation_allowed": true,
+  "source_hashes": {
+    "ATOM_REF1_Material_Taxonomy_v2_PRELIMINARY_APPROVED.json": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+    "ATOM_REF2_Field_Dictionary_v1_DRAFT.json": "22b3201b55381a1da626aab2e8fea066e94882f97a237495b8ac7307c50adc5d",
+    "ATOM_REF3_Package_Manifest_v1_v0.3_DRAFT.json": "30bde8789f2352797b41cf41cf8f86bea35103f026d5222741a7988bb750799a",
+    "REF45_package_manifest_sha256": "5fe5e067d0dd7235ac54062ed34bad640f1689d358b365dc98b728d0e9682ff7",
+    "REF_runtime_manifest_sha256": "1a15fed6ebddb77c293b8a77539f790b5733215ef3a748a52f3c83a33fe75e9f",
+    "work_catalog_existing.json": "d2d263ae40d3577e2568c1d84bc16de333ab10a3dfbe1c779ff0e4f64b3177f8",
+    "work_material_existing.json": "ed5d9b3e867ef3c85fae78a5943598adcb4adc1b20168fff5db830c891a0be32"
+  },
+  "status": "preliminary_approved",
+  "version": "1.0-preliminary-approved",
+  "write_activation_allowed": false
+}

@@ -1,0 +1,601 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifact_type": "ref6_no_material_works",
+  "artificial_material_role_allowed": false,
+  "catalog_product_selection_allowed": false,
+  "database_write_allowed": false,
+  "items": [
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "door_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_dvernogo_bloka",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж дверного блока",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "electrical_point_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_elektriki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж электрики",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "brick_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_kirpichnyh_peregorodok",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж кирпичных перегородок",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "floor_covering_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_napolnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж напольного покрытия",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wallpaper_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_oboev",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж обоев",
+      "work_type": "apartment",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "window_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_okonnogo_bloka",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж оконного блока",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "gkl_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_peregorodok_gkl",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж перегородок ГКЛ",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "floor_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_plitki_s_pola",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж плитки с пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wall_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_plitki_so_sten",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж плитки со стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "ceiling_finish_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_potolochnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж потолочного покрытия",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "plumbing_fixture_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_santehniki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж сантехники",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "paint_putty_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_shpaklevki_kraski",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж шпаклевки / краски",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "plaster_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_shtukaturki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж штукатурки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "screed_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_styazhki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж стяжки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "base_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_planirovka_osnovaniya",
+      "work_group": "earthworks",
+      "work_name_ru": "Планировка основания",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "machine_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_razrabotka_grunta_tehnikoy",
+      "work_group": "earthworks",
+      "work_name_ru": "Разработка грунта техникой",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_razrabotka_grunta_vruchnuyu",
+      "work_group": "earthworks",
+      "work_name_ru": "Разработка грунта вручную",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "machine_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_ryte_transhei_tehnikoy",
+      "work_group": "earthworks",
+      "work_name_ru": "Рытье траншеи техникой",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_ryte_transhei_vruchnuyu",
+      "work_group": "earthworks",
+      "work_name_ru": "Рытье траншеи вручную",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "soil_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_vyvoz_grunta",
+      "work_group": "earthworks",
+      "work_name_ru": "Вывоз грунта",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "cable_chasing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "electrical_shtroblenie_pod_kabel",
+      "work_group": "electrical",
+      "work_name_ru": "Штробление под кабель",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "pile_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_burenie_pod_svai",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Бурение под сваи",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "formwork_removal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_demontazh_opalubki",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Демонтаж опалубки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "concrete_vibration",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_vibrirovanie_betona",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Вибрирование бетона",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "landscaping_planirovka_uchastka",
+      "work_group": "landscaping",
+      "work_name_ru": "Планировка участка",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "private_house_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_obmer_chastnogo_doma_obekta",
+      "work_group": "preparation",
+      "work_name_ru": "Обмер частного дома / объекта",
+      "work_type": "private_house",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "apartment_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_obmer_pomescheniya",
+      "work_group": "preparation",
+      "work_name_ru": "Обмер помещения",
+      "work_type": "apartment",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_loading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_pogruzka_stroitelnogo_musora",
+      "work_group": "preparation",
+      "work_name_ru": "Погрузка строительного мусора",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_clearing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_raschistka_uchastka",
+      "work_group": "preparation",
+      "work_name_ru": "Расчистка участка",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "room_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_razmetka_pomescheniy",
+      "work_group": "preparation",
+      "work_name_ru": "Разметка помещений",
+      "work_type": "both",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "building_footprint_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_razmetka_pyatna_zastroyki",
+      "work_group": "preparation",
+      "work_name_ru": "Разметка пятна застройки",
+      "work_type": "private_house",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_waste_cleanup",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_uborka_stroitelnogo_musora_vruchnuyu",
+      "work_group": "preparation",
+      "work_name_ru": "Уборка строительного мусора вручную",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "visit"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_specialist_visit",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_vyezd_specialista_na_obekt",
+      "work_group": "preparation",
+      "work_name_ru": "Выезд специалиста на объект",
+      "work_type": "both",
+      "work_unit": "visit"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "tile_cutting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "tile_works_podrezka_plitki",
+      "work_group": "tile_works",
+      "work_name_ru": "Подрезка плитки",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "tile_hole_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "tile_works_sverlenie_otverstiy_v_plitke",
+      "work_group": "tile_works",
+      "work_name_ru": "Сверление отверстий в плитке",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wall_sanding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "wall_finishing_shlifovka_sten",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Шлифовка стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_carrying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vynos_stroitelnogo_musora",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вынос строительного мусора",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_container_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_konteynerom",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вывоз строительного мусора контейнером",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "trip"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_truck_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_mashinoy",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вывоз строительного мусора машиной",
+      "work_type": "both",
+      "work_unit": "trip"
+    }
+  ],
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false
+}

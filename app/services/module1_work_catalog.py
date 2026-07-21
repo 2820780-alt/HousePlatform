@@ -212,6 +212,26 @@ def build_work_catalog_summary() -> WorkCatalogSummary:
     return get_work_catalog_registry().build_work_catalog_summary()
 
 
+def resolve_governed_work_material_hints(
+    work_code: str,
+    context: Mapping[str, Any] | None = None,
+) -> Any:
+    from app.services.module1_ref6_work_material_policy import resolve_work_material_hints
+
+    return resolve_work_material_hints(work_code, context)
+
+
+def build_governed_work_material_consumer_contract(
+    work_code: str,
+    context: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    from app.services.module1_ref6_work_material_policy import (
+        build_work_material_consumer_contract,
+    )
+
+    return build_work_material_consumer_contract(work_code, context)
+
+
 def validate_work_catalog(raw: Mapping[str, Any] | None = None) -> WorkCatalogValidationReport:
     if raw is None:
         seed_path = DEFAULT_WORK_CATALOG_SEED_PATH

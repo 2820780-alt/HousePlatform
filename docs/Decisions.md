@@ -1277,3 +1277,63 @@ Decision. Source package версии 1.0.1 не редактируется ин
 Принято.
 
 ---
+
+## Решение №041
+
+Дата:
+21.07.2026
+
+Название:
+Module №1 — Governed REF-6 Work-to-Material Type-Level Role Hint Activation.
+
+Причина:
+После утверждения нормализованного Work Catalog из 24 групп и 209 работ и
+управляемой интеграции REF-1–REF-5 требуется зафиксировать безопасную связь работ
+с допустимыми ролями и типами материалов. REF-6 подготовлен ассистентом и
+утверждён пользователем. Codex выполняет только validation, deterministic
+projection и integration; расширение утверждённого содержания запрещено.
+
+Решение:
+Work Catalog остаётся неизменным: 24 группы и 209 работ. REF-6 классифицирует
+работы как 39 `NO_MATERIAL`, 80 `DIRECT`, 87 `CONDITIONAL` и 3 `REVIEW_ONLY`.
+Набор содержит 193 type-level role mappings: 82 `SAFE_HINT`, 104
+`CONDITIONAL_HINT` и 7 `REVIEW_ONLY`; общая review queue равна 10. Существующие
+42 material-role rows сохраняются только как evidence и не становятся
+автоматическими work mappings.
+
+`SAFE_HINT` является управляемой подсказкой роли и типа материала. Он не
+рассчитывает количество, не выбирает SKU или `CatalogProduct`, не создаёт
+материал и не пишет в базу данных. `CONDITIONAL_HINT` требует будущего
+технологического контекста Module №2 и остаётся non-executable в Module №1.
+`REVIEW_ONLY` не может утверждаться автоматически. `NO_MATERIAL` является
+валидным явным результатом и не создаёт искусственную material role для
+демонтажа, измерений, уборки, земляных и tool-only операций.
+
+Граница ответственности сохраняется: Module №1 владеет допустимыми roles/types,
+conditions и restrictions; Module №2 владеет технологией, геометрией, объёмом и
+количеством; Module №5 владеет выбором цены, округлением упаковки и сметой.
+Активация формул REF-3, расчёт количества, выбор SKU, автоматическое создание
+`Material`, `CatalogProduct`, `MaterialAlias` или `MaterialAnalog` и любые DB
+writes равны нулю.
+
+Production runtime читает REF-6 только через deterministic immutable generated
+artifacts и versioned approval. Default `MODULE1_REF6_MODE` остаётся `legacy`;
+разрешены только `legacy` и `approved`. Approved mode валидируется fail-closed,
+а rollback выполняется возвратом в `legacy` и restart без migration, DB update,
+удаления artifacts или reclassification records. Approval не переключает mode
+автоматически.
+
+Work Cost, Price Gate, Analyzer runtime, Widgets, Quick Actions, Dashboard, UI,
+REF-1–REF-5 и production-код Module №2/№3/№5 не изменяются. Future requirement
+жизненного цикла Analyzer sources фиксируется отдельным документом для будущего
+спринта `M1-SOURCE-REFRESH-LIFECYCLE-1`, но не реализуется в рамках REF-6.
+
+Последствия:
+Любое расширение work mappings, активация conditional/review rules, расчёт
+количества, выбор SKU, запись в БД или изменение Work Catalog требует нового
+пользовательского утверждения и отдельного Decision.
+
+Статус:
+Принято.
+
+---

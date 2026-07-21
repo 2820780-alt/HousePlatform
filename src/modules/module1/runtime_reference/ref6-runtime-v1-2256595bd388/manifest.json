@@ -1,0 +1,86 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifacts": {
+    "conditional_role_hints.json": {
+      "sha256": "64205efb68075acee986eb691c96a64e7b296500c5dfc84b6eaa056a8f5dbcfa",
+      "size": 100799
+    },
+    "consumer_contracts.json": {
+      "sha256": "f96fd43193cfc48f850e72778fde2a8976b28f236e26f5aefb1825e8234c5f46",
+      "size": 2719
+    },
+    "legacy_material_role_evidence.json": {
+      "sha256": "d3a7dc28183433a3aa50b9d1d735983f171b077bb0b69419dcbf621a7455fc2e",
+      "size": 14818
+    },
+    "no_material_works.json": {
+      "sha256": "3d1629138de13ccda1b21e81bd2a3316e02fecb6129fc77c9c78017d47fc0876",
+      "size": 28307
+    },
+    "review_queue.json": {
+      "sha256": "fd1488c9b855ecb48e4d242c533623cb46a5b287532392ed1e85981ff4c13315",
+      "size": 11515
+    },
+    "safe_role_hints.json": {
+      "sha256": "fd6067238a785f2e4cc3734d1f989718d73b46ec90817d2d58374faacdb446f0",
+      "size": 73632
+    },
+    "work_profiles.json": {
+      "sha256": "73079934bc906030a4c8fa98a8e835b337f334f5bb3d7cd0cb2fbae4095c5e8e",
+      "size": 136373
+    }
+  },
+  "canonical_serialization": {
+    "bom": false,
+    "encoding": "UTF-8",
+    "ensure_ascii": false,
+    "indent": 2,
+    "line_ending": "LF",
+    "sort_keys": true,
+    "trailing_newline": true
+  },
+  "counts": {
+    "automatic_database_write_rules": 0,
+    "automatic_material_creation_rules": 0,
+    "conditional_role_hints": 104,
+    "conditional_works": 87,
+    "direct_works": 80,
+    "existing_material_role_evidence_rows": 42,
+    "no_material_works": 39,
+    "quantity_rules_activated": 0,
+    "ref1_material_types": 978,
+    "review_only_role_mappings": 7,
+    "review_only_works": 3,
+    "review_queue_items": 10,
+    "role_mappings": 193,
+    "safe_role_hints": 82,
+    "sku_selection_rules": 0,
+    "work_groups": 24,
+    "works": 209
+  },
+  "database_write_allowed": false,
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false,
+  "source_package": {
+    "package_id": "REF-6",
+    "source_hashes": {
+      "ATOM_REF6_Approval_Record_v1.md": "5b7fa692aa5d91ea1279cf484963dd40c94afd4aa3be9eeabab8753ef1b850e4",
+      "ATOM_REF6_Package_Manifest_v1_PRELIMINARY_APPROVED.json": "2256595bd3883192f1458902de48528104464d06e18449f0420e559b650bd2a9",
+      "ATOM_REF6_Review_v1.md": "d38bc322dc8d09fbb777c4f928d8314da035b14cc3c9109909b6992fa0f7ef21",
+      "ATOM_REF6_Summary_v1.json": "e6b83371a21f3d0636607d079b1e29137b4dd3ac0f86ec2c06992bd838e1d6e1",
+      "ATOM_REF6_Work_Material_Mappings_v1_PRELIMINARY_APPROVED.json": "747bcbf6beea33a127abcb843ec4ae8abcd383f73fbd0192138b9a54703ba20e"
+    },
+    "status": "preliminary_approved",
+    "version": "1.0-preliminary-approved"
+  },
+  "source_snapshots": {
+    "ref1_sha256": "48ed52a10d0192eecc7be649608c1ebc2ee5635617c34198133b030584ae0100",
+    "work_catalog_sha256": "2129670ddc418b2ce91a15c5d8a7b82130c352a5405f5a423e4121b57d45d78b"
+  },
+  "write_activation_allowed": false
+}

@@ -1,0 +1,394 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifact_type": "ref6_legacy_material_role_evidence",
+  "automatic_promotion_allowed": false,
+  "catalog_product_selection_allowed": false,
+  "database_write_allowed": false,
+  "items": [
+    {
+      "evidence_id": "legacy_material_role_001",
+      "material_role_identifier": "formwork_board",
+      "material_type_id": "board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_002",
+      "material_role_identifier": "roof_batten",
+      "material_type_id": "board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_003",
+      "material_role_identifier": "temporary_flooring",
+      "material_type_id": "board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_004",
+      "material_role_identifier": "auxiliary_lumber",
+      "material_type_id": "board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_005",
+      "material_role_identifier": "fence_structure",
+      "material_type_id": "board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_006",
+      "material_role_identifier": "strip_foundation_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_007",
+      "material_role_identifier": "slab_foundation_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_008",
+      "material_role_identifier": "pile_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_009",
+      "material_role_identifier": "bond_beam_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_010",
+      "material_role_identifier": "lintel_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_011",
+      "material_role_identifier": "blind_area_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_012",
+      "material_role_identifier": "concrete_path",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_013",
+      "material_role_identifier": "fence_post_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_014",
+      "material_role_identifier": "porch_concrete",
+      "material_type_id": "ready_mix_concrete",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_015",
+      "material_role_identifier": "foundation_reinforcement",
+      "material_type_id": "rebar",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_016",
+      "material_role_identifier": "slab_reinforcement",
+      "material_type_id": "rebar",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_017",
+      "material_role_identifier": "bond_beam_reinforcement",
+      "material_type_id": "rebar",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_018",
+      "material_role_identifier": "lintel_reinforcement",
+      "material_type_id": "rebar",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_019",
+      "material_role_identifier": "masonry_reinforcement",
+      "material_type_id": "rebar",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_020",
+      "material_role_identifier": "outer_wall_block",
+      "material_type_id": "aerated_concrete_block",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_021",
+      "material_role_identifier": "inner_wall_block",
+      "material_type_id": "aerated_concrete_block",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_022",
+      "material_role_identifier": "partition_block",
+      "material_type_id": "aerated_concrete_block",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_023",
+      "material_role_identifier": "foundation_insulation",
+      "material_type_id": "xps_board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_024",
+      "material_role_identifier": "blind_area_insulation",
+      "material_type_id": "xps_board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_025",
+      "material_role_identifier": "floor_insulation",
+      "material_type_id": "xps_board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_026",
+      "material_role_identifier": "plinth_insulation",
+      "material_type_id": "xps_board",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_027",
+      "material_role_identifier": "wall_lining",
+      "material_type_id": "gypsum_board_moisture_resistant",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_028",
+      "material_role_identifier": "partition_sheathing",
+      "material_type_id": "gypsum_board_moisture_resistant",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_029",
+      "material_role_identifier": "ceiling_sheathing",
+      "material_type_id": "gypsum_board_moisture_resistant",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_030",
+      "material_role_identifier": "wet_room_sheathing",
+      "material_type_id": "gypsum_board_moisture_resistant",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_031",
+      "material_role_identifier": "roof_covering",
+      "material_type_id": "metal_tile",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_032",
+      "material_role_identifier": "mansard_roof_covering",
+      "material_type_id": "metal_tile",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_033",
+      "material_role_identifier": "facade_insulation",
+      "material_type_id": "mineral_wool_slab",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_034",
+      "material_role_identifier": "roof_insulation",
+      "material_type_id": "mineral_wool_slab",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_035",
+      "material_role_identifier": "partition_sound_insulation",
+      "material_type_id": "mineral_wool_slab",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_036",
+      "material_role_identifier": "floor_insulation",
+      "material_type_id": "mineral_wool_slab",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_037",
+      "material_role_identifier": "plaster_substrate_primer",
+      "material_type_id": "deep_penetration_primer",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_038",
+      "material_role_identifier": "tile_substrate_primer",
+      "material_type_id": "deep_penetration_primer",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_039",
+      "material_role_identifier": "absorbent_substrate_primer",
+      "material_type_id": "deep_penetration_primer",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_040",
+      "material_role_identifier": "roof_covering",
+      "material_type_id": "flexible_shingle",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "secondary",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_041",
+      "material_role_identifier": "requires_solid_base",
+      "material_type_id": "flexible_shingle",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "conditional",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    },
+    {
+      "evidence_id": "legacy_material_role_042",
+      "material_role_identifier": "requires_underlayment",
+      "material_type_id": "flexible_shingle",
+      "promoted_to_executable_mapping_automatically": false,
+      "required_optional": "conditional",
+      "status": "evidence_only",
+      "work_code_present_in_source": false
+    }
+  ],
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false
+}

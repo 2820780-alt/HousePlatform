@@ -1,0 +1,74 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifact_type": "ref6_consumer_contracts",
+  "catalog_product_selection_allowed": false,
+  "constitutional_boundaries": {
+    "automatic_alias_or_analog_write_allowed": false,
+    "automatic_catalog_product_creation_allowed": false,
+    "automatic_material_creation_allowed": false,
+    "catalog_product_selection_allowed": false,
+    "conditional_hints_are_not_executable_without_module2_context": true,
+    "database_write_activation_allowed": false,
+    "material_characteristic_requirements_resolve_from_ref2": true,
+    "material_role_and_type_hint_owner": "Module_1",
+    "material_type_ids_must_exist_in_ref1": true,
+    "new_work_creation_allowed": false,
+    "price_and_packaging_rounding_owner": "Module_5",
+    "quantity_calculation_owner": "Module_2",
+    "ref3_quantity_formula_activation_allowed": false,
+    "review_items_are_not_executable": true,
+    "sku_selection_allowed": false,
+    "technology_selection_owner": "Module_2",
+    "unknown_work_or_mapping_is_allowed": false,
+    "work_catalog_changes_allowed": false,
+    "work_code_rename_allowed": false
+  },
+  "consumer_contracts": {
+    "module2": {
+      "may_not_request_sku_selection_from_ref6": true,
+      "may_read_conditional_candidates": true,
+      "may_read_safe_role_hints": true,
+      "must_supply_technology_and_conditions_for_conditional": true,
+      "owns_quantity_and_geometry_calculation": true
+    },
+    "module5": {
+      "may_receive_resolved_material_type_requirements_after_module2": true,
+      "owns_price_selection_packaging_rounding_and_estimate": true,
+      "ref6_direct_costing_allowed": false
+    }
+  },
+  "database_write_allowed": false,
+  "execution_policy": {
+    "CONDITIONAL_HINT": {
+      "database_write": false,
+      "executable_as_type_level_role_hint": false,
+      "quantity_calculation": false,
+      "readable": true,
+      "requires_module2_context": true,
+      "sku_selection": false
+    },
+    "NO_MATERIAL": {
+      "canonical_material_role_created": false,
+      "tools_equipment_and_incidental_consumables_excluded": true
+    },
+    "REVIEW_ONLY": {
+      "automatic_approval": false,
+      "executable": false,
+      "readable_for_admin_diagnostics": true
+    },
+    "SAFE_HINT": {
+      "database_write": false,
+      "executable_as_type_level_role_hint": true,
+      "quantity_calculation": false,
+      "readable": true,
+      "sku_selection": false
+    }
+  },
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false
+}

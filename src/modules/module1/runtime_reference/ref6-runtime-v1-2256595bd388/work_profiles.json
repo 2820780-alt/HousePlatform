@@ -1,0 +1,3150 @@
+{
+  "artifact_schema_version": "1.0",
+  "artifact_set_id": "ref6-runtime-v1-2256595bd388",
+  "artifact_type": "ref6_work_profiles",
+  "catalog_product_selection_allowed": false,
+  "database_write_allowed": false,
+  "items": [
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "wet_zone_sealing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "bathroom_wet_zones_germetizaciya_primykaniy",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Герметизация примыканий",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "bathroom_floor_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип гидроизоляционной системы зависит от основания и дальнейшей отделки.",
+      "work_code": "bathroom_wet_zones_gidroizolyaciya_pola_sanuzla",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Гидроизоляция пола санузла",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wet_zone_wall_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип гидроизоляционной системы зависит от основания и дальнейшей отделки.",
+      "work_code": "bathroom_wet_zones_gidroizolyaciya_sten_mokroy_zony",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Гидроизоляция стен мокрой зоны",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "shower_drain_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "bathroom_wet_zones_montazh_dushevogo_trapa",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Монтаж душевого трапа",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "REVIEW_ONLY",
+      "module2_usage_hint": "bath_screen_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "В REF-1 нет универсального типа экрана под ванну; возможны разные конструкции и листовые материалы.",
+      "work_code": "bathroom_wet_zones_montazh_ekrana_pod_vannu",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Монтаж экрана под ванну",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "waterproofing_tape",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "bathroom_wet_zones_montazh_gidroizolyacionnoy_lenty",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Монтаж гидроизоляционной ленты",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "toilet_installation_frame",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "bathroom_wet_zones_montazh_installyacii",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Монтаж инсталляции",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "bathroom_gkl_box",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Выбор влагостойкого ГКЛ, ГВЛ или цементной плиты зависит от зоны.",
+      "work_code": "bathroom_wet_zones_montazh_koroba_gkl_gvl",
+      "work_group": "bathroom_wet_zones",
+      "work_name_ru": "Монтаж короба ГКЛ/ГВЛ",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "gkl_ceiling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Subtype ГКЛ зависит от помещения и требований.",
+      "work_code": "ceilings_montazh_gkl_potolka",
+      "work_group": "ceilings",
+      "work_name_ru": "Монтаж ГКЛ-потолка",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "stretch_ceiling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип полотна не указан.",
+      "work_code": "ceilings_montazh_natyazhnogo_potolka",
+      "work_group": "ceilings",
+      "work_name_ru": "Монтаж натяжного потолка",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "ceiling_skirting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал потолочного плинтуса не указан.",
+      "work_code": "ceilings_montazh_potolochnogo_plintusa",
+      "work_group": "ceilings",
+      "work_name_ru": "Монтаж потолочного плинтуса",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "ceiling_light_backing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "ceilings_montazh_zakladnyh_pod_svetilniki",
+      "work_group": "ceilings",
+      "work_name_ru": "Монтаж закладных под светильники",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "ceiling_painting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "ceilings_pokraska_potolka",
+      "work_group": "ceilings",
+      "work_name_ru": "Покраска потолка",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "ceiling_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "ceilings_shpaklevka_potolka",
+      "work_group": "ceilings",
+      "work_name_ru": "Шпаклевка потолка",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "door_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_dvernogo_bloka",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж дверного блока",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "electrical_point_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_elektriki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж электрики",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "brick_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_kirpichnyh_peregorodok",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж кирпичных перегородок",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "floor_covering_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_napolnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж напольного покрытия",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wallpaper_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_oboev",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж обоев",
+      "work_type": "apartment",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "window_block_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_okonnogo_bloka",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж оконного блока",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "gkl_partition_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_peregorodok_gkl",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж перегородок ГКЛ",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "floor_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_plitki_s_pola",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж плитки с пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wall_tile_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_plitki_so_sten",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж плитки со стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "ceiling_finish_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_potolochnogo_pokrytiya",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж потолочного покрытия",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "plumbing_fixture_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_santehniki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж сантехники",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "paint_putty_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_shpaklevki_kraski",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж шпаклевки / краски",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "plaster_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_shtukaturki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж штукатурки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "screed_demolition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "demolition_demontazh_styazhki",
+      "work_group": "demolition",
+      "work_name_ru": "Демонтаж стяжки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "REVIEW_ONLY",
+      "module2_usage_hint": "backfilling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал обратной засыпки может быть местным грунтом либо привозным песком/смесью; автоматическая подсказка небезопасна.",
+      "work_code": "earthworks_obratnaya_zasypka",
+      "work_group": "earthworks",
+      "work_name_ru": "Обратная засыпка",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "base_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_planirovka_osnovaniya",
+      "work_group": "earthworks",
+      "work_name_ru": "Планировка основания",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "machine_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_razrabotka_grunta_tehnikoy",
+      "work_group": "earthworks",
+      "work_name_ru": "Разработка грунта техникой",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_razrabotka_grunta_vruchnuyu",
+      "work_group": "earthworks",
+      "work_name_ru": "Разработка грунта вручную",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "machine_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_ryte_transhei_tehnikoy",
+      "work_group": "earthworks",
+      "work_name_ru": "Рытье траншеи техникой",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_trench_excavation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_ryte_transhei_vruchnuyu",
+      "work_group": "earthworks",
+      "work_name_ru": "Рытье траншеи вручную",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "geotextile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "earthworks_ukladka_geotekstilya",
+      "work_group": "earthworks",
+      "work_name_ru": "Укладка геотекстиля",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "sand_bedding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "earthworks_ustroystvo_peschanoy_podushki",
+      "work_group": "earthworks",
+      "work_name_ru": "Устройство песчаной подушки",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "gravel_bedding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "earthworks_ustroystvo_schebenochnoy_podushki",
+      "work_group": "earthworks",
+      "work_name_ru": "Устройство щебеночной подушки",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "soil_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "earthworks_vyvoz_grunta",
+      "work_group": "earthworks",
+      "work_name_ru": "Вывоз грунта",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "breaker_rcd_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Название объединяет автомат и УЗО.",
+      "work_code": "electrical_montazh_avtomata_uzo",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж автомата / УЗО",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "electrical_point",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Точка — составная операция, тип конечного устройства не указан.",
+      "work_code": "electrical_montazh_elektricheskoy_tochki",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж электрической точки",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "socket_box_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_montazh_podrozetnika",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж подрозетника",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "junction_box_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_montazh_raspredelitelnoy_korobki",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж распределительной коробки",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "light_fixture_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_montazh_svetilnika",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж светильника",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "electric_underfloor_heating",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип системы может быть кабель или мат.",
+      "work_code": "electrical_montazh_teplogo_pola_elektricheskogo",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж теплого пола электрического",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "set"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "house_grounding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система состоит из электродов, полосы и соединителей.",
+      "work_code": "electrical_montazh_zazemleniya_chastnogo_doma",
+      "work_group": "electrical",
+      "work_name_ru": "Монтаж заземления частного дома",
+      "work_type": "private_house",
+      "work_unit": "set"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "cable_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_prokladka_kabelya",
+      "work_group": "electrical",
+      "work_name_ru": "Прокладка кабеля",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "electrical_panel_assembly",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Состав щита зависит от схемы.",
+      "work_code": "electrical_sborka_elektroschita",
+      "work_group": "electrical",
+      "work_name_ru": "Сборка электрощита",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "cable_chasing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "electrical_shtroblenie_pod_kabel",
+      "work_group": "electrical",
+      "work_name_ru": "Штробление под кабель",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "socket_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_ustanovka_rozetki",
+      "work_group": "electrical",
+      "work_name_ru": "Установка розетки",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "switch_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "electrical_ustanovka_vyklyuchatelya",
+      "work_group": "electrical",
+      "work_name_ru": "Установка выключателя",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "facade_decorative_plaster",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип декоративной штукатурки зависит от фасадной системы.",
+      "work_code": "facade_dekorativnaya_shtukaturka_fasada",
+      "work_group": "facade",
+      "work_name_ru": "Декоративная штукатурка фасада",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "facade_basecoat_mesh",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "facade_montazh_fasadnoy_setki_i_bazovogo_sloya",
+      "work_group": "facade",
+      "work_name_ru": "Монтаж фасадной сетки и базового слоя",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "siding_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип сайдинга и доборных элементов не задан.",
+      "work_code": "facade_montazh_saydinga",
+      "work_group": "facade",
+      "work_name_ru": "Монтаж сайдинга",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "ventilated_facade",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Составная фасадная система зависит от облицовки и подсистемы.",
+      "work_code": "facade_montazh_ventiliruemogo_fasada",
+      "work_group": "facade",
+      "work_name_ru": "Монтаж вентилируемого фасада",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "external_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал наружных откосов зависит от оконной и фасадной системы.",
+      "work_code": "facade_naruzhnye_otkosy",
+      "work_group": "facade",
+      "work_name_ru": "Наружные откосы",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "plinth_finish",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Отделка цоколя может выполняться панелями, плиткой или камнем.",
+      "work_code": "facade_otdelka_cokolya",
+      "work_group": "facade",
+      "work_name_ru": "Отделка цоколя",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "facade_mineral_wool_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "facade_uteplenie_fasada_minvatoy",
+      "work_group": "facade",
+      "work_name_ru": "Утепление фасада минватой",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "facade_eps_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "facade_uteplenie_fasada_penopolistirolom",
+      "work_group": "facade",
+      "work_name_ru": "Утепление фасада пенополистиролом",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "fence_post_concreting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс/объём бетона задаются проектом.",
+      "work_code": "fences_gates_betonirovanie_stolbov",
+      "work_group": "fences_gates",
+      "work_name_ru": "Бетонирование столбов",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "set"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "gate_automation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_avtomatiki_vorot",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж автоматики ворот",
+      "work_type": "private_house",
+      "work_unit": "set"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "wicket_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_kalitki",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж калитки",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "fence_post_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_stolbov_zabora",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж столбов забора",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "gate_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип ворот не указан.",
+      "work_code": "fences_gates_montazh_vorot",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж ворот",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "mesh_3d_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_zabora_3d_setka",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж забора 3D-сетка",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "euro_picket_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_zabora_iz_evroshtaketnika",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж забора из евроштакетника",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "profiled_sheet_fence",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "fences_gates_montazh_zabora_iz_profnastila",
+      "work_group": "fences_gates",
+      "work_name_ru": "Монтаж забора из профнастила",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "floor_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип гидроизоляции зависит от основания и помещения.",
+      "work_code": "floors_screeds_gidroizolyaciya_pola",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Гидроизоляция пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "floor_primer",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_gruntovka_pola",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Грунтовка пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "damper_tape_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_montazh_dempfernoy_lenty",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Монтаж демпферной ленты",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "skirting_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал плинтуса не указан.",
+      "work_code": "floors_screeds_montazh_plintusa",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Монтаж плинтуса",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "threshold_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_montazh_porozhkov",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Монтаж порожков",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "floor_reinforcement_mesh",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_ukladka_armiruyuschey_setki",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Укладка армирующей сетки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "vinyl_floor_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Кварцвинил может быть LVT или SPC и иметь клеевой/замковый монтаж.",
+      "work_code": "floors_screeds_ukladka_kvarcvinila",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Укладка кварцвинила",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "laminate_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_ukladka_laminata",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Укладка ламината",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "linoleum_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_ukladka_linoleuma",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Укладка линолеума",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "cement_screed",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_ustroystvo_cementno_peschanoy_styazhki",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Устройство цементно-песчаной стяжки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "self_leveling_floor",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_screeds_ustroystvo_nalivnogo_pola",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Устройство наливного пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "semi_dry_screed",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Состав полусухой стяжки и заводская/объектовая смесь зависят от технологии.",
+      "work_code": "floors_screeds_ustroystvo_polusuhoy_styazhki",
+      "work_group": "floors_screeds",
+      "work_name_ru": "Устройство полусухой стяжки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "wood_floor_beams",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_structural_montazh_derevyannyh_balok_perekrytiya",
+      "work_group": "floors_structural",
+      "work_name_ru": "Монтаж деревянных балок перекрытия",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "floor_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "floors_structural_montazh_paroizolyacii_perekrytiya",
+      "work_group": "floors_structural",
+      "work_name_ru": "Монтаж пароизоляции перекрытия",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "precast_slab_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип плиты определяется проектом.",
+      "work_code": "floors_structural_montazh_plit_perekrytiya",
+      "work_group": "floors_structural",
+      "work_name_ru": "Монтаж плит перекрытия",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "subfloor_on_joists",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал чернового настила зависит от системы пола.",
+      "work_code": "floors_structural_ustroystvo_chernovogo_pola_po_lagam",
+      "work_group": "floors_structural",
+      "work_name_ru": "Устройство чернового пола по лагам",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "monolithic_floor_slab",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Монолитное перекрытие требует бетона, армирования и опалубки.",
+      "work_code": "floors_structural_ustroystvo_monolitnogo_perekrytiya",
+      "work_group": "floors_structural",
+      "work_name_ru": "Устройство монолитного перекрытия",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "floor_structure_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип утеплителя зависит от перекрытия и режима влажности.",
+      "work_code": "floors_structural_uteplenie_perekrytiya",
+      "work_group": "floors_structural",
+      "work_name_ru": "Утепление перекрытия",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "concrete_placing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип/класс бетона определяется конструкцией Module №2.",
+      "work_code": "foundations_concrete_betonirovanie_konstrukciy",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Бетонирование конструкций",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "pile_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_burenie_pod_svai",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Бурение под сваи",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "formwork_removal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_demontazh_opalubki",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Демонтаж опалубки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "foundation_waterproofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система гидроизоляции выбирается по конструкции, грунтовым водам и основанию.",
+      "work_code": "foundations_concrete_gidroizolyaciya_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Гидроизоляция фундамента",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "foundation_formwork",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип опалубочной системы зависит от конструкции и повторного использования.",
+      "work_code": "foundations_concrete_montazh_opalubki_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Монтаж опалубки фундамента",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "screw_pile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "foundations_concrete_montazh_vintovyh_svay",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Монтаж винтовых свай",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "concrete_porch",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Комплексная конструкция включает бетон, армирование, опалубку, основание и защитные слои; технологию и состав определяет Module №2.",
+      "work_code": "foundations_concrete_ustroystvo_betonnogo_krylca",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство бетонного крыльца",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "strip_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Комплексная конструкция включает бетон, армирование, опалубку, основание и защитные слои; технологию и состав определяет Module №2.",
+      "work_code": "foundations_concrete_ustroystvo_lentochnogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство ленточного фундамента",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "concrete_blind_area",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Комплексная конструкция включает бетон, армирование, опалубку, основание и защитные слои; технологию и состав определяет Module №2.",
+      "work_code": "foundations_concrete_ustroystvo_otmostki_betonnoy",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство отмостки бетонной",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "slab_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Комплексная конструкция включает бетон, армирование, опалубку, основание и защитные слои; технологию и состав определяет Module №2.",
+      "work_code": "foundations_concrete_ustroystvo_plitnogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство плитного фундамента",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "lean_concrete",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс/состав подбетонки определяется технологией; разрешена только условная роль товарного/тощего бетона.",
+      "work_code": "foundations_concrete_ustroystvo_podbetonki",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство подбетонки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "pile_grillage_foundation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Комплексная конструкция включает бетон, армирование, опалубку, основание и защитные слои; технологию и состав определяет Module №2.",
+      "work_code": "foundations_concrete_ustroystvo_svayno_rostverkovogo_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Устройство свайно-ростверкового фундамента",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "foundation_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Марка и прочность утеплителя зависят от глубины и нагрузки.",
+      "work_code": "foundations_concrete_uteplenie_fundamenta",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Утепление фундамента",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "concrete_vibration",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "foundations_concrete_vibrirovanie_betona",
+      "work_group": "foundations_concrete",
+      "work_name_ru": "Вибрирование бетона",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "heating_safety_group",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "heating_montazh_gruppy_bezopasnosti",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж группы безопасности",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "heating_manifold",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "heating_montazh_kollektora_otopleniya",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж коллектора отопления",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "boiler_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип котла не указан.",
+      "work_code": "heating_montazh_kotla",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж котла",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "radiator_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип радиатора не указан.",
+      "work_code": "heating_montazh_radiatora",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж радиатора",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "expansion_tank_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "heating_montazh_rasshiritelnogo_baka",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж расширительного бака",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_underfloor_heating",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система включает трубу, маты/крепёж и коллектор.",
+      "work_code": "heating_montazh_vodyanogo_teplogo_pola",
+      "work_group": "heating",
+      "work_name_ru": "Монтаж водяного теплого пола",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "heating_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "heating_prokladka_trub_otopleniya",
+      "work_group": "heating",
+      "work_name_ru": "Прокладка труб отопления",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "deck_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал настила не указан.",
+      "work_code": "landscaping_montazh_terrasy_nastila",
+      "work_group": "landscaping",
+      "work_name_ru": "Монтаж террасы / настила",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_grading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "landscaping_planirovka_uchastka",
+      "work_group": "landscaping",
+      "work_name_ru": "Планировка участка",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "paving_slabs",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "landscaping_ukladka_trotuarnoy_plitki",
+      "work_group": "landscaping",
+      "work_name_ru": "Укладка тротуарной плитки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "curb_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "landscaping_ustanovka_bordyura",
+      "work_group": "landscaping",
+      "work_name_ru": "Установка бордюра",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "concrete_path",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс бетона и основание задаются проектом.",
+      "work_code": "landscaping_ustroystvo_betonnoy_dorozhki",
+      "work_group": "landscaping",
+      "work_name_ru": "Устройство бетонной дорожки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "site_drainage",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система включает трубу, геотекстиль, щебень и колодцы.",
+      "work_code": "landscaping_ustroystvo_drenazha_uchastka",
+      "work_group": "landscaping",
+      "work_name_ru": "Устройство дренажа участка",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "lawn_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Состав газона зависит от подготовки участка.",
+      "work_code": "landscaping_ustroystvo_gazona",
+      "work_group": "landscaping",
+      "work_name_ru": "Устройство газона",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "stormwater_drainage",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система включает трубы, дождеприёмники, лотки и колодцы.",
+      "work_code": "landscaping_ustroystvo_livnevoy_kanalizacii",
+      "work_group": "landscaping",
+      "work_name_ru": "Устройство ливневой канализации",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "blind_area",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Отмостка может быть бетонной, плиточной или мембранной.",
+      "work_code": "landscaping_ustroystvo_otmostki",
+      "work_group": "landscaping",
+      "work_name_ru": "Устройство отмостки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "mansard_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "mansard_insulation_montazh_paroizolyacii_mansardy",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Монтаж пароизоляции мансарды",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "mansard_inner_batten",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "mansard_insulation_montazh_vnutrenney_obreshetki_mansardy",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Монтаж внутренней обрешетки мансарды",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "mansard_gkl_lining",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Subtype ГКЛ зависит от помещения и требований.",
+      "work_code": "mansard_insulation_obshivka_mansardy_gkl",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Обшивка мансарды ГКЛ",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "mansard_wood_lining",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Название объединяет два разных материала.",
+      "work_code": "mansard_insulation_obshivka_mansardy_vagonkoy_imitaciey_brusa",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Обшивка мансарды вагонкой / имитацией бруса",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "mansard_cross_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал и толщина зависят от расчёта.",
+      "work_code": "mansard_insulation_perekrestnoe_uteplenie_mansardy",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Перекрестное утепление мансарды",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "mansard_rafter_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Плотность/толщина утеплителя зависят от теплотехнического расчёта.",
+      "work_code": "mansard_insulation_uteplenie_krovli_po_stropilam",
+      "work_group": "mansard_insulation",
+      "work_name_ru": "Утепление кровли по стропилам",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "private_house_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_obmer_chastnogo_doma_obekta",
+      "work_group": "preparation",
+      "work_name_ru": "Обмер частного дома / объекта",
+      "work_type": "private_house",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "apartment_measurement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_obmer_pomescheniya",
+      "work_group": "preparation",
+      "work_name_ru": "Обмер помещения",
+      "work_type": "apartment",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_loading",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_pogruzka_stroitelnogo_musora",
+      "work_group": "preparation",
+      "work_name_ru": "Погрузка строительного мусора",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_clearing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_raschistka_uchastka",
+      "work_group": "preparation",
+      "work_name_ru": "Расчистка участка",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "room_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_razmetka_pomescheniy",
+      "work_group": "preparation",
+      "work_name_ru": "Разметка помещений",
+      "work_type": "both",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "object"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "building_footprint_layout",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_razmetka_pyatna_zastroyki",
+      "work_group": "preparation",
+      "work_name_ru": "Разметка пятна застройки",
+      "work_type": "private_house",
+      "work_unit": "object"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "manual_waste_cleanup",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_uborka_stroitelnogo_musora_vruchnuyu",
+      "work_group": "preparation",
+      "work_name_ru": "Уборка строительного мусора вручную",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "surface_protection",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "preparation_vremennoe_ukrytie_i_zaschita_poverhnostey",
+      "work_group": "preparation",
+      "work_name_ru": "Временное укрытие и защита поверхностей",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "visit"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "site_specialist_visit",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "preparation_vyezd_specialista_na_obekt",
+      "work_group": "preparation",
+      "work_name_ru": "Выезд специалиста на объект",
+      "work_type": "both",
+      "work_unit": "visit"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "bond_beam_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс, диаметр и схема армирования задаются Module №2; типовая роль арматуры безопасна.",
+      "work_code": "reinforcement_armirovanie_armopoyasa",
+      "work_group": "reinforcement",
+      "work_name_ru": "Армирование армопояса",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "kg"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "foundation_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс, диаметр и схема армирования задаются Module №2; типовая роль арматуры безопасна.",
+      "work_code": "reinforcement_armirovanie_fundamenta",
+      "work_group": "reinforcement",
+      "work_name_ru": "Армирование фундамента",
+      "work_type": "private_house",
+      "work_unit": "kg"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "lintel_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс, диаметр и схема армирования задаются Module №2; типовая роль арматуры безопасна.",
+      "work_code": "reinforcement_armirovanie_peremychek",
+      "work_group": "reinforcement",
+      "work_name_ru": "Армирование перемычек",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "kg"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "slab_reinforcement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Класс, диаметр и схема армирования задаются Module №2; типовая роль арматуры безопасна.",
+      "work_code": "reinforcement_armirovanie_plity",
+      "work_group": "reinforcement",
+      "work_name_ru": "Армирование плиты",
+      "work_type": "private_house",
+      "work_unit": "kg"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "rebar_mesh_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "reinforcement_montazh_armaturnoy_setki",
+      "work_group": "reinforcement",
+      "work_name_ru": "Монтаж арматурной сетки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "kg"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "rebar_cage_binding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "reinforcement_vyazka_armaturnogo_karkasa",
+      "work_group": "reinforcement",
+      "work_name_ru": "Вязка арматурного каркаса",
+      "work_type": "private_house",
+      "work_unit": "kg"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "roof_valley_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_endovy",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж ендовы",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "roof_wind_membrane",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_gidro_vetrozaschity_krovli",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж гидро-ветрозащиты кровли",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "roof_ridge_accessories",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_konkov_i_dobornyh_elementov",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж коньков и доборных элементов",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "counter_batten_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_kontrobreshetki",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж контробрешетки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "mauerlat_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Сечение и порода древесины задаются проектом.",
+      "work_code": "roofing_montazh_mauerlata",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж мауэрлата",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "metal_tile_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_metallocherepicy",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж металлочерепицы",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "flexible_shingle_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_myagkoy_krovli",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж мягкой кровли",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "roof_batten_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_obreshetki",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж обрешетки",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "osb_roof_decking",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_osb_pod_myagkuyu_krovlyu",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж OSB под мягкую кровлю",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "roof_vapor_barrier",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_paroizolyacii_krovli",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж пароизоляции кровли",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "profiled_sheet_roofing",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_profnastila_na_krovlyu",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж профнастила на кровлю",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "snow_guard_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_snegozaderzhateley",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж снегозадержателей",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "rafter_system",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_montazh_stropilnoy_sistemy",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж стропильной системы",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "gutter_system_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Система включает жёлоб, трубы, кронштейны и фасонные части.",
+      "work_code": "roofing_montazh_vodostochnoy_sistemy",
+      "work_group": "roofing",
+      "work_name_ru": "Монтаж водосточной системы",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "soffit_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "roofing_podshivka_svesov_sofity",
+      "work_group": "roofing",
+      "work_name_ru": "Подшивка свесов / софиты",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "sewer_inspection_well",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип колодца зависит от системы.",
+      "work_code": "sewerage_montazh_revizionnogo_kolodca",
+      "work_group": "sewerage",
+      "work_name_ru": "Монтаж ревизионного колодца",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "septic_tank_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип очистного сооружения не указан.",
+      "work_code": "sewerage_montazh_septika",
+      "work_group": "sewerage",
+      "work_name_ru": "Монтаж септика",
+      "work_type": "private_house",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "sewer_riser",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "sewerage_montazh_stoyaka_kanalizacii",
+      "work_group": "sewerage",
+      "work_name_ru": "Монтаж стояка канализации",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "sewer_point",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Точка — составная операция, диаметр и комплект зависят от проекта.",
+      "work_code": "sewerage_montazh_tochki_kanalizacii",
+      "work_group": "sewerage",
+      "work_name_ru": "Монтаж точки канализации",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "external_sewer_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "sewerage_prokladka_naruzhnoy_kanalizacii",
+      "work_group": "sewerage",
+      "work_name_ru": "Прокладка наружной канализации",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "sewer_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "sewerage_prokladka_trub_kanalizacii",
+      "work_group": "sewerage",
+      "work_name_ru": "Прокладка труб канализации",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "tile_cutting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "tile_works_podrezka_plitki",
+      "work_group": "tile_works",
+      "work_name_ru": "Подрезка плитки",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "tile_hole_drilling",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "tile_works_sverlenie_otverstiy_v_plitke",
+      "work_group": "tile_works",
+      "work_name_ru": "Сверление отверстий в плитке",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "porcelain_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "tile_works_ukladka_keramogranita",
+      "work_group": "tile_works",
+      "work_name_ru": "Укладка керамогранита",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "floor_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип плитки и клея зависят от основания и помещения.",
+      "work_code": "tile_works_ukladka_plitki_na_pol",
+      "work_group": "tile_works",
+      "work_name_ru": "Укладка плитки на пол",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wall_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип плитки и клея зависят от зоны.",
+      "work_code": "tile_works_ukladka_plitki_na_steny",
+      "work_group": "tile_works",
+      "work_name_ru": "Укладка плитки на стены",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "diagonal_tile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Диагональ — способ укладки, а не тип плитки.",
+      "work_code": "tile_works_ukladka_plitki_po_diagonali",
+      "work_group": "tile_works",
+      "work_name_ru": "Укладка плитки по диагонали",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "tile_corner_profile",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "tile_works_ustanovka_plitochnogo_ugolka",
+      "work_group": "tile_works",
+      "work_name_ru": "Установка плиточного уголка",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "tile_grouting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "tile_works_zatirka_shvov",
+      "work_group": "tile_works",
+      "work_name_ru": "Затирка швов",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "kitchen_hood_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "ventilation_montazh_kuhonnoy_vytyazhki",
+      "work_group": "ventilation",
+      "work_name_ru": "Монтаж кухонной вытяжки",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "vent_duct_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Форма и материал воздуховода не указаны.",
+      "work_code": "ventilation_montazh_ventilyacionnogo_kanala",
+      "work_group": "ventilation",
+      "work_name_ru": "Монтаж вентиляционного канала",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "vent_grille_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "ventilation_montazh_ventilyacionnoy_reshetki",
+      "work_group": "ventilation",
+      "work_name_ru": "Монтаж вентиляционной решетки",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "exhaust_fan_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Назначение и производительность вентилятора не заданы.",
+      "work_code": "ventilation_montazh_vytyazhnogo_ventilyatora",
+      "work_group": "ventilation",
+      "work_name_ru": "Монтаж вытяжного вентилятора",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wall_primer",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип грунтовки зависит от впитываемости и состояния основания.",
+      "work_code": "wall_finishing_gruntovka_sten",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Грунтовка стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "decorative_wall_panels",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "wall_finishing_montazh_dekorativnyh_paneley_na_steny",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Монтаж декоративных панелей на стены",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "plaster_mesh_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "wall_finishing_montazh_shtukaturnoy_setki",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Монтаж штукатурной сетки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wallpaper_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип обоев не указан.",
+      "work_code": "wall_finishing_pokleyka_oboev",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Поклейка обоев",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wall_painting",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип краски зависит от помещения и основания.",
+      "work_code": "wall_finishing_pokraska_sten",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Покраска стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "wall_sanding",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "wall_finishing_shlifovka_sten",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Шлифовка стен",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "finish_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "wall_finishing_shpaklevka_finishnaya",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Шпаклевка финишная",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "start_putty",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "wall_finishing_shpaklevka_startovaya",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Шпаклевка стартовая",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wall_plaster_cement",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Ручной/машинный и составной вариант должны быть заданы.",
+      "work_code": "wall_finishing_shtukaturka_sten_cementnaya",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Штукатурка стен цементная",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "wall_plaster_gypsum",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Ручной/машинный вариант и требования основания должны быть заданы.",
+      "work_code": "wall_finishing_shtukaturka_sten_gipsovaya",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Штукатурка стен гипсовая",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "plaster_beacon_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "wall_finishing_ustanovka_mayakov",
+      "work_group": "wall_finishing",
+      "work_name_ru": "Установка маяков",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "aerated_concrete_outer_wall_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "walls_masonry_kladka_gazobloka_naruzhnyh_sten",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Кладка газоблока наружных стен",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "ceramic_block_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "walls_masonry_kladka_keramicheskogo_bloka",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Кладка керамического блока",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "brick_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Вид кирпича и раствора не задан названием работы.",
+      "work_code": "walls_masonry_kladka_kirpicha",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Кладка кирпича",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "facing_brick_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "walls_masonry_kladka_oblicovochnogo_kirpicha",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Кладка облицовочного кирпича",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "aerated_concrete_partition_masonry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "walls_masonry_kladka_peregorodok_iz_gazobloka",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Кладка перегородок из газоблока",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "gypsum_board_partition",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип листа и профилей зависит от влажности, огнестойкости и акустики.",
+      "work_code": "walls_masonry_montazh_gkl_peregorodki",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Монтаж ГКЛ-перегородки",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "frame_wall",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Каркасная стена — составная технология с несколькими слоями.",
+      "work_code": "walls_masonry_montazh_karkasnoy_steny",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Монтаж каркасной стены",
+      "work_type": "private_house",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "lintel_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип перемычки зависит от пролёта и стены.",
+      "work_code": "walls_masonry_montazh_peremychek",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Монтаж перемычек",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "bond_beam",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Монолитный элемент требует бетона, армирования и опалубки; состав определяет Module №2.",
+      "work_code": "walls_masonry_ustroystvo_armopoyasa",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Устройство армопояса",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "monolithic_inserts",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Монолитный элемент требует бетона, армирования и опалубки; состав определяет Module №2.",
+      "work_code": "walls_masonry_ustroystvo_monolitnyh_uchastkov",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Устройство монолитных участков",
+      "work_type": "private_house",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m2"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "partition_sound_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип звукоизоляции зависит от целевой системы.",
+      "work_code": "walls_masonry_zvukoizolyaciya_peregorodok",
+      "work_group": "walls_masonry",
+      "work_name_ru": "Звукоизоляция перегородок",
+      "work_type": "both",
+      "work_unit": "m2"
+    },
+    {
+      "allowed_units": [
+        "bag"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "waste_bagging",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "waste_disposal_upakovka_musora_v_meshki",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Упаковка мусора в мешки",
+      "work_type": "both",
+      "work_unit": "bag"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_carrying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vynos_stroitelnogo_musora",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вынос строительного мусора",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "m3"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_container_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_konteynerom",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вывоз строительного мусора контейнером",
+      "work_type": "both",
+      "work_unit": "m3"
+    },
+    {
+      "allowed_units": [
+        "trip"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "NO_MATERIAL",
+      "module2_usage_hint": "waste_truck_disposal",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Работа не формирует обязательную роль канонического материала; техника, инструмент и расходники не являются work→material mapping.",
+      "work_code": "waste_disposal_vyvoz_stroitelnogo_musora_mashinoy",
+      "work_group": "waste_disposal",
+      "work_name_ru": "Вывоз строительного мусора машиной",
+      "work_type": "both",
+      "work_unit": "trip"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_filter_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип фильтра зависит от анализа воды и назначения.",
+      "work_code": "water_supply_montazh_filtra",
+      "work_group": "water_supply",
+      "work_name_ru": "Монтаж фильтра",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "water_manifold_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "water_supply_montazh_kollektora_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_name_ru": "Монтаж коллектора водоснабжения",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "plumbing_fixture_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип сантехнического прибора не указан.",
+      "work_code": "water_supply_montazh_santehnicheskogo_pribora",
+      "work_group": "water_supply",
+      "work_name_ru": "Монтаж сантехнического прибора",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "point"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_supply_point",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Точка — составная операция, тип труб и арматуры зависит от проекта.",
+      "work_code": "water_supply_montazh_tochki_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_name_ru": "Монтаж точки водоснабжения",
+      "work_type": "both",
+      "work_unit": "point"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_heater_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип водонагревателя не указан.",
+      "work_code": "water_supply_montazh_vodonagrevatelya",
+      "work_group": "water_supply",
+      "work_name_ru": "Монтаж водонагревателя",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_pipe_laying",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал труб не указан.",
+      "work_code": "water_supply_prokladka_trub_vodosnabzheniya",
+      "work_group": "water_supply",
+      "work_name_ru": "Прокладка труб водоснабжения",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "water_pipe_insulation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип теплоизоляции зависит от диаметра и условий.",
+      "work_code": "water_supply_uteplenie_vodoprovodnoy_truby",
+      "work_group": "water_supply",
+      "work_name_ru": "Утепление водопроводной трубы",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "house_water_entry",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал трубы и узел ввода определяются проектом.",
+      "work_code": "water_supply_vvod_vody_v_dom",
+      "work_group": "water_supply",
+      "work_name_ru": "Ввод воды в дом",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": true,
+      "material_policy": "DIRECT",
+      "module2_usage_hint": "interior_door_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Наименование работы прямо и однозначно задаёт основной тип материала; количество и SKU не выбираются.",
+      "work_code": "windows_doors_slopes_montazh_mezhkomnatnoy_dveri",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Монтаж межкомнатной двери",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "window_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип оконного блока должен быть задан.",
+      "work_code": "windows_doors_slopes_montazh_okna",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Монтаж окна",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "external_sill_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал отлива не указан.",
+      "work_code": "windows_doors_slopes_montazh_otliva",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Монтаж отлива",
+      "work_type": "private_house",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "window_sill_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал подоконника не указан.",
+      "work_code": "windows_doors_slopes_montazh_podokonnika",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Монтаж подоконника",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "piece"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "entrance_door_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Тип входной двери должен быть задан.",
+      "work_code": "windows_doors_slopes_montazh_vhodnoy_dveri",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Монтаж входной двери",
+      "work_type": "both",
+      "work_unit": "piece"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "REVIEW_ONLY",
+      "module2_usage_hint": "door_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал дверных откосов не задан, а специального type-level объекта недостаточно.",
+      "work_code": "windows_doors_slopes_ustroystvo_dvernyh_otkosov",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Устройство дверных откосов",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    },
+    {
+      "allowed_units": [
+        "linear_meter"
+      ],
+      "executable_role_hint_allowed": false,
+      "material_policy": "CONDITIONAL",
+      "module2_usage_hint": "window_slopes",
+      "module5_usage_hint": "labor_cost_line",
+      "reason_ru": "Материал откосов не указан.",
+      "work_code": "windows_doors_slopes_ustroystvo_okonnyh_otkosov",
+      "work_group": "windows_doors_slopes",
+      "work_name_ru": "Устройство оконных откосов",
+      "work_type": "both",
+      "work_unit": "linear_meter"
+    }
+  ],
+  "material_creation_allowed": false,
+  "module2_execution_allowed": false,
+  "module5_costing_allowed": false,
+  "quantity_calculation_allowed": false,
+  "ref3_formula_activation_allowed": false,
+  "sku_selection_allowed": false
+}

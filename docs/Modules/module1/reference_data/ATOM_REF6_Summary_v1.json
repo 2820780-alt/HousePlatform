@@ -1,0 +1,41 @@
+{
+  "approval": {
+    "approved_by_user": true,
+    "manifest_sha256": "2256595bd3883192f1458902de48528104464d06e18449f0420e559b650bd2a9",
+    "proposed_activation_approval_id": "ref6-activation-v1-2256595bd388",
+    "proposed_runtime_artifact_id": "ref6-runtime-v1-2256595bd388"
+  },
+  "counts": {
+    "automatic_database_write_rules": 0,
+    "automatic_material_creation_rules": 0,
+    "conditional_role_hints": 104,
+    "conditional_works": 87,
+    "direct_works": 80,
+    "existing_material_role_evidence_rows": 42,
+    "no_material_works": 39,
+    "quantity_rules_activated": 0,
+    "ref1_material_types": 978,
+    "review_only_role_mappings": 7,
+    "review_only_works": 3,
+    "review_queue_items": 10,
+    "role_mappings": 193,
+    "safe_role_hints": 82,
+    "sku_selection_rules": 0,
+    "work_groups": 24,
+    "works": 209
+  },
+  "files": {
+    "ATOM_REF6_Approval_Record_v1.md": "5b7fa692aa5d91ea1279cf484963dd40c94afd4aa3be9eeabab8753ef1b850e4",
+    "ATOM_REF6_Package_Manifest_v1_PRELIMINARY_APPROVED.json": "2256595bd3883192f1458902de48528104464d06e18449f0420e559b650bd2a9",
+    "ATOM_REF6_Review_v1.md": "d38bc322dc8d09fbb777c4f928d8314da035b14cc3c9109909b6992fa0f7ef21",
+    "ATOM_REF6_Work_Material_Mappings_v1_PRELIMINARY_APPROVED.json": "747bcbf6beea33a127abcb843ec4ae8abcd383f73fbd0192138b9a54703ba20e"
+  },
+  "safety": {
+    "all_material_type_ids_exist": true,
+    "all_work_codes_exist": true,
+    "database_writes": 0,
+    "duplicate_mapping_keys": 0,
+    "duplicate_work_codes": 0,
+    "quantity_rules_activated": 0
+  }
+}
