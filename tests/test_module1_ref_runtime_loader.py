@@ -103,7 +103,9 @@ def test_missing_manifest_fails_closed(tmp_path: Path) -> None:
 
 def test_artifact_hash_mismatch_fails_closed(tmp_path: Path) -> None:
     package = _copy_package(tmp_path)
-    (package / "fields.json").write_bytes((package / "fields.json").read_bytes() + b" ")
+    payload = _read(package / "fields.json")
+    payload["fields"][0]["label_ru"] += " changed"
+    _write(package / "fields.json", payload)
 
     result = _validate_copy(package)
 

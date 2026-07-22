@@ -10,6 +10,8 @@ from types import MappingProxyType
 from typing import Any, Mapping
 import unicodedata
 
+from app.services.module1_ref_artifact_portability import validate_portable_file
+
 from app.config import settings
 
 
@@ -335,9 +337,15 @@ def _verify_hash(
     if not path.is_file():
         issues.append(Module1Ref45Issue(f"{code_prefix}_MISSING", str(path.name)))
         return None
-    actual = hashlib.sha256(path.read_bytes()).hexdigest()
-    if actual != expected:
-        issues.append(Module1Ref45Issue(f"{code_prefix}_HASH_INVALID", str(path.name)))
+    result = validate_portable_file(path, expected_raw_sha256=expected)
+    actual = result.approved_raw_sha256 if result.accepted else result.raw_sha256
+    if not result.accepted:
+        issues.append(
+            Module1Ref45Issue(
+                f"{code_prefix}_HASH_INVALID",
+                f"{path.name}: {result.status}",
+            )
+        )
     return actual
 
 

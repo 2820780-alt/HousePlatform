@@ -8,6 +8,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from .portability import portable_identity_or_raw
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REFERENCE_ROOT = PROJECT_ROOT / "docs" / "Modules" / "module1" / "reference_data"
@@ -279,7 +281,7 @@ def canonical_serialization_contract() -> dict[str, Any]:
 
 
 def sha256_file(path: str | Path) -> str:
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    return portable_identity_or_raw(path)
 
 
 def sha256_bytes(content: bytes) -> str:

@@ -7,6 +7,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping
 
+from app.services.module1_ref_artifact_portability import (
+    PortabilityValidationError,
+    portable_identity_or_raw,
+    strict_json_file,
+    validate_portable_file,
+)
+
 from app.services.module1_material_seed_registry import (
     MaterialKnowledgeSeedRegistry,
     get_material_knowledge_seed_registry,
@@ -379,9 +386,20 @@ def _validate_manifest(
         path = target / filename
         if not path.is_file():
             continue
-        if not isinstance(metadata, dict) or metadata.get("sha256") != _sha256_file(path):
-            issues.append(Module1RefValidationIssue("ARTIFACT_HASH_MISMATCH", f"Hash mismatch for {filename}"))
-        if isinstance(metadata, dict) and metadata.get("size_bytes") != path.stat().st_size:
+        expected_hash = metadata.get("sha256") if isinstance(metadata, dict) else None
+        portability = validate_portable_file(path, expected_raw_sha256=expected_hash)
+        if not portability.accepted:
+            issues.append(
+                Module1RefValidationIssue(
+                    "ARTIFACT_HASH_MISMATCH",
+                    f"Validation failed for {filename}: {portability.status}",
+                )
+            )
+        if (
+            portability.status == "raw_exact_match"
+            and isinstance(metadata, dict)
+            and metadata.get("size_bytes") != path.stat().st_size
+        ):
             issues.append(Module1RefValidationIssue("ARTIFACT_SIZE_MISMATCH", f"Size mismatch for {filename}"))
 
 
@@ -603,9 +621,10 @@ def _read_json(
     issues: list[Module1RefValidationIssue],
 ) -> dict[str, Any]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        issues.append(Module1RefValidationIssue(error_code, f"Invalid JSON file: {path.name}"))
+        payload = strict_json_file(path)
+    except (OSError, PortabilityValidationError) as exc:
+        code = exc.status.upper() if isinstance(exc, PortabilityValidationError) else error_code
+        issues.append(Module1RefValidationIssue(code, f"Invalid JSON file: {path.name}"))
         return {}
     if not isinstance(payload, dict):
         issues.append(Module1RefValidationIssue(error_code, f"JSON root must be an object: {path.name}"))
@@ -618,7 +637,7 @@ def _json_bytes(payload: Any) -> bytes:
 
 
 def _sha256_file(path: Path) -> str:
-    return _sha256_bytes(path.read_bytes())
+    return portable_identity_or_raw(path)
 
 
 def _sha256_bytes(content: bytes) -> str:

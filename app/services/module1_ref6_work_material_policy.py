@@ -8,6 +8,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from app.services.module1_ref_artifact_portability import validate_portable_file
+
 from app.config import settings
 from app.services.module1_work_catalog import get_work_item
 
@@ -499,9 +501,15 @@ def _verify_hash(
     if not path.is_file():
         issues.append(Module1Ref6Issue(f"{prefix}_MISSING", path.name))
         return None
-    actual = hashlib.sha256(path.read_bytes()).hexdigest()
-    if actual != expected:
-        issues.append(Module1Ref6Issue(f"{prefix}_HASH_INVALID", path.name))
+    result = validate_portable_file(path, expected_raw_sha256=expected)
+    actual = result.approved_raw_sha256 if result.accepted else result.raw_sha256
+    if not result.accepted:
+        issues.append(
+            Module1Ref6Issue(
+                f"{prefix}_HASH_INVALID",
+                f"{path.name}: {result.status}",
+            )
+        )
     return actual
 
 

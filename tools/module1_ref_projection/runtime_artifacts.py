@@ -13,6 +13,7 @@ from typing import Any, Mapping
 from .combined import project_combined_ref_validation
 from .loader import DEFAULT_PACKAGE_FILES, RefPackageLoader
 from .models import IssueSeverity
+from .portability import portable_identity_or_raw
 from .ref1 import DEFAULT_RUNTIME_TAXONOMY_PATH, normalize_code, project_ref1_taxonomy
 from .ref2 import project_ref2_characteristics
 from .ref3_extended import DEFAULT_WORK_CATALOG_PATH, project_ref3_extended
@@ -821,7 +822,7 @@ def _json_bytes(payload: Any) -> bytes:
 
 
 def _sha256_file(path: Path) -> str:
-    return _sha256_bytes(path.read_bytes())
+    return portable_identity_or_raw(path)
 
 
 def _sha256_bytes(content: bytes) -> str:

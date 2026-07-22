@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from .portability import portable_identity_or_raw
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_REFERENCE_ROOT = PROJECT_ROOT / "src" / "modules" / "module1" / "runtime_reference"
@@ -260,4 +262,4 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return portable_identity_or_raw(path)

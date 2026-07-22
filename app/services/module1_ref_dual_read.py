@@ -10,6 +10,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from app.services.module1_ref_artifact_portability import portable_identity_or_raw
 from app.services.module1_material_seed_registry import (
     MaterialKnowledgeSeedRegistry,
     get_material_knowledge_seed_registry,
@@ -648,7 +649,7 @@ def _canonical_json_bytes(value: Any) -> bytes:
 
 
 def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return portable_identity_or_raw(path)
 
 
 def _freeze_mapping(value: Mapping[str, Any]) -> Mapping[str, Any]:

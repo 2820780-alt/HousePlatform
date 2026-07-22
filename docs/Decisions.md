@@ -1337,3 +1337,37 @@ REF-1–REF-5 и production-код Module №2/№3/№5 не изменяютс
 Принято.
 
 ---
+
+## Решение №042
+
+Дата:
+22.07.2026
+
+Название:
+Module №1 — Cross-Platform REF Artifact and Approval Portability Contract.
+
+Причина:
+Финальный readiness gate подтвердил функциональную корректность REF-1–REF-6, но выявил зависимость части source, runtime artifact и approval validation от конкретной CRLF/LF materialization. Эквивалентное справочное содержание не должно терять утверждённый read-only режим только из-за line endings операционной системы, при этом fail-closed и неизменность утверждённой семантики должны сохраняться.
+
+Решение:
+REF approval identity не зависит только от OS line endings. Существующие raw SHA-256 сохраняются без переписывания как source provenance и evidence. Для cross-platform activation validation вводится versioned canonical content SHA-256 через существующий REF validation/projection framework и отдельный immutable portability approval addendum; старые approvals не удаляются и не редактируются in place.
+
+JSON canonicalization версии `1.0` является parse-based и fail-closed. Обязательны UTF-8 без BOM, strict JSON parse, запрет duplicate object keys, invalid JSON, invalid UTF-8, NaN и Infinity. Object keys сортируются и их порядок не является semantic change. Порядок array elements остаётся значимым. Строковые значения, включая внутренние и trailing spaces, не нормализуются. Числа не принимаются, если canonical serialization приводит к потере точности.
+
+Markdown и text approval records canonicalize только переводами строк: CRLF и CR приводятся к LF. Содержимое строк, trailing whitespace, Markdown structure и наличие финальной строки не переписываются. Любое иное изменение текста является semantic change. Binary artifacts не canonicalize без отдельного утверждённого contract и остаются raw-byte exact.
+
+При exact raw hash результат равен `raw_exact_match`. При несовпадении raw hash и совпадении canonical digest результат равен `canonical_portable_match`; raw mismatch обязательно сохраняется как diagnostic и не игнорируется молча. Semantic mismatch, missing file, invalid encoding, BOM, duplicate key, invalid JSON, invalid number, unknown canonicalization и raw provenance mismatch завершаются fail-closed. Полный source payload в errors/logs не раскрывается.
+
+Business content REF-1–REF-6, material IDs, work IDs, aliases, units, packaging, relations, mappings, review queues и существующие raw hashes не меняются. Любое semantic content change требует нового reference approval. Portability addendum не разрешает automatic replacement, quantity execution, write activation или DB mutation.
+
+Runtime defaults остаются `legacy`; write activation не разрешается. Rollback остаётся mode switch + restart, без migrations, DB mutation, удаления artifacts или approvals. Authoritative REF write остаётся отдельным future epic. Analyzer Source Lifecycle и site adapters остаются future post-completion stages.
+
+Module №3 и Module №8 находятся вне scope и не изменяются. Deploy запрещён до полного portability PASS и отдельной финальной credential rotation. Требование ротации ранее раскрытых или потенциально скомпрометированных credentials остаётся обязательным и не заменяется этим решением.
+
+Последствия:
+Approved REF modes могут проходить одинаковую строгую проверку в Windows/CRLF и Linux/LF checkout при неизменном canonical content. Raw provenance остаётся проверяемым, semantic mutations не принимаются как форматирование, а существующий read-only/rollback contract Decisions №034–№041 сохраняется.
+
+Статус:
+Принято.
+
+---

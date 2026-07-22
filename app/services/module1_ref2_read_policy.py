@@ -9,6 +9,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from app.services.module1_ref_artifact_portability import portable_identity_or_raw
+
 from app.services.module1_material_seed_registry import MaterialKnowledgeSeedRegistry
 from app.services.module1_ref1_read_policy import (
     APPROVAL_ID as REF1_APPROVAL_ID,
@@ -962,7 +964,7 @@ def _read_json(
 
 
 def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return portable_identity_or_raw(path)
 
 
 def _sha256_file_or_none(path: Path) -> str | None:

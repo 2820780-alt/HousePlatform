@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import json
 from collections import Counter
 from pathlib import Path
 from typing import Any, Mapping
 
 from .models import IssueSeverity, ProjectionIssue, ProjectionSource, ProjectionSummary
+from .portability import PortabilityValidationError, strict_json_file
 
 
 DEFAULT_PACKAGE_FILES: Mapping[str, str] = {
@@ -101,13 +101,17 @@ class RefPackageLoader:
         issues: list[ProjectionIssue],
     ) -> dict[str, Any] | None:
         try:
-            return json.loads(path.read_text(encoding="utf-8-sig"))
-        except json.JSONDecodeError as exc:
+            payload = strict_json_file(path)
+            if not isinstance(payload, dict):
+                raise PortabilityValidationError("invalid_json", "JSON root must be an object")
+            return payload
+        except PortabilityValidationError as exc:
+            issue_code = "REF_MALFORMED_JSON" if exc.status == "invalid_json" else f"REF_{exc.status.upper()}"
             issues.append(
                 ProjectionIssue(
-                    code="REF_MALFORMED_JSON",
+                    code=issue_code,
                     severity=IssueSeverity.BLOCKER,
-                    message=f"Malformed JSON: {exc.msg}",
+                    message=f"REF source validation failed: {exc.status}",
                     source_path=path,
                     package_id=package_id,
                 )

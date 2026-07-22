@@ -4,7 +4,7 @@ Sprint: M1-CROSS-MODULE-FINAL-REGRESSION-2
 
 Overall status: **PASS_WITH_WARNINGS**
 
-Module No. 1 satisfies the agreed functional Definition of Done and the security-regressed limited-pilot gate. No deploy was performed. A deploy sprint must complete manual credential rotation and explicitly control the byte-sensitive REF artifact packaging described below.
+Module No. 1 satisfies the agreed functional Definition of Done, the security-regressed limited-pilot gate, and the governed cross-platform REF portability gate. No deploy was performed. A deploy sprint must still complete manual credential rotation and use the approved portability contract.
 
 ## 1. Baseline and scope
 
@@ -29,7 +29,7 @@ The readiness commit is created after this report with message: fix(module1): cl
 | Concern | Result | Meaning |
 |---|---|---|
 | Agreed Module No. 1 functional DoD | PASS | E2E, price gate, REF reads, Work Cost, documents, exports, widgets, idempotency, and boundaries pass |
-| Limited production pilot | PASS_WITH_WARNINGS | Security and container smoke pass; manual credential rotation and artifact-byte deployment control remain pre-deploy actions |
+| Limited production pilot | PASS_WITH_WARNINGS | Security and CRLF/LF container smoke pass; manual credential rotation remains a pre-deploy action |
 | Authoritative REF write model | NOT READY | REF remains governed read-only; review queues and compatibility work are intentionally open |
 | Whole Module No. 1 to No. 2 to No. 5 execution | NOT READY | Read contracts pass, but technology, quantity, estimate, and final-cost consumers are future work |
 
@@ -247,46 +247,34 @@ Synthetic 1,000 observations:
 
 ## 9. Docker build, E2E, restart, and security
 
-Final validated image:
+Final no-cache portability images:
 
-- tag: atom-module1-readiness:aaf0cb2-final-worktree
-- image ID: sha256:76f2815726fc9a2b7ed3e20759c9d4a1a2982d9ea9cfeafe67dba717c0b1e334
-- clean no-cache build: passed
-- passlib: 1.7.4
-- bcrypt: 4.0.1
-- .env files in image: 0
-- known local credential hits in image/layers/history/build log: 0
-- test credential hits in image/layers/history/container logs: 0
-- Docker readiness E2E: 7 passed
-- isolated startup and health: passed
-- registration/login/wrong password: passed
-- public ADMIN/SUPER_ADMIN registration: 422
-- admin Material Hub and widget catalog: 200
-- supplier/contractor/customer admin widget catalog: 403
-- Work Cost ownership isolation: passed
-- container restart and existing-fixture login/readback: passed
-- full mode matrix and rollback: passed
-- clean shutdown: passed
+- CRLF tag/digest: `atom-module1-portability:normal-pass` / `sha256:81bf555797164a0309a33725cd7c1d223010dca4a20d46908e89b4d504b49ae7`;
+- LF tag/digest: `atom-module1-portability:lf-pass` / `sha256:21c2efa7a5c3570144f5506d72ccb485ba2cee606bb22c132ff0fb4225afb33e`;
+- passlib: 1.7.4;
+- bcrypt: 4.0.1;
+- `.env.docker` files in either image: 0;
+- private-key markers in either image: 0;
+- credential markers in either image history: 0;
+- Docker readiness E2E: 7 passed in CRLF and 7 passed in LF;
+- isolated startup, auth/RBAC, mode matrix, four-step rollback and zero policy-load DB writes: passed.
 
-The isolated stack used a disposable database and network. No deploy or remote server operation occurred.
+The isolated stack used local disposable QA services. No deploy or remote server operation occurred.
 
-## 10. Artifact portability warning
+## 10. Artifact portability closure
 
-An additional clean diagnostic image was materialized from canonical Git archive bytes. The build succeeded, but ref3_read startup failed closed because all 30 approved runtime REF JSON files were LF in the archive while the approvals match CRLF worktree bytes.
+Decision No. 042 and approval `ref-portability-v1-db5b6b691b8b` replace raw-byte-only cross-platform identity with strict canonical identity while retaining every approved raw SHA-256 as provenance.
 
-This did not change source packages, runtime artifacts, manifests, or approvals. The existing Windows worktree Docker contract produced the validated green image above.
+- portability manifest canonical SHA-256: `cb6e7864a8f2b08d9b771a78f2d68721c0c4ccca0239af6dd5c8967ed6a89f10`;
+- governed pre-existing files: 49;
+- CRLF materialization: 49 raw mismatches, 0 canonical mismatches;
+- LF materialization: 0 raw mismatches, 0 canonical mismatches;
+- canonical aggregate in both images: `96cefa8bfc961692eb52a0a5f5019a0e2441a7e0ff4db2998bc61ec581e34686`;
+- original and LF mode matrices: 6 of 6 passed;
+- original and LF rollback chains: 4 of 4 passed;
+- generated main, REF-4/5 and REF-6 artifacts remained byte-identical.
 
-Risk:
-
-- a Linux checkout or any pipeline that normalizes these files to LF can fail startup;
-- approvals are intentionally byte-sensitive, so silent conversion or re-signing is forbidden.
-
-Required follow-up:
-
-- either pin deploy to the validated image digest/build path;
-- or run a separate governed artifact-portability sprint that defines line endings and regenerates approvals without changing business content.
-
-This is a deployment portability warning, not a runtime fallback. Fail-closed behavior worked correctly.
+Only newline materialization and non-semantic JSON representation changes are portable. Semantic values, strings, arrays and text whitespace remain protected. Duplicate keys, BOM, invalid UTF-8/JSON and non-finite numbers fail closed. There is no silent fallback or automatic re-signing.
 
 ## 11. Security regression
 
@@ -350,21 +338,21 @@ Post-completion epics:
 - real external-source pilot;
 - authoritative REF write migration under a separate Decision;
 - broader Module No. 2 and No. 5 E2E;
-- REF artifact line-ending portability.
+- governed authoritative REF write activation.
 
 ## 14. Tests and checks
 
-- local production-readiness E2E: 7 passed
-- Docker production-readiness E2E: 7 passed
-- targeted readiness/security regression: 185 passed
-- full tracked repository suite: 1343 passed, 510 deprecation warnings
+- portability unit/contract suite: 16 passed
+- extended targeted REF regression: 272 passed
+- Docker production-readiness E2E: 7 passed on CRLF and 7 passed on LF
+- full tracked repository suite: 1366 passed, 551 deprecation warnings
 - compileall for changed Python paths: passed at sprint close
 - configured lint/typecheck: no separate configured command found
 - git diff --check: passed at sprint close
 - forbidden old untracked regression test: not run
 - no automatic internet call was made by tests
 
-Warnings are existing Pydantic, Starlette, datetime.utcnow, and HTTP status deprecations, plus the artifact byte-portability warning above.
+Warnings are existing Pydantic, Starlette, datetime.utcnow, and HTTP status deprecations. Manual credential rotation remains mandatory before deployment.
 
 ## 15. Final recommendation
 
@@ -374,7 +362,7 @@ That sprint must:
 
 1. complete and record manual credential rotations;
 2. verify database backup and restore;
-3. either use the exact validated image digest or close the REF line-ending portability warning;
+3. verify Decision No. 042 portability approval and canonical digest during the build;
 4. repeat image secret scan and health/auth smoke;
 5. preserve legacy defaults and rollback controls;
 6. obtain explicit deploy authorization.

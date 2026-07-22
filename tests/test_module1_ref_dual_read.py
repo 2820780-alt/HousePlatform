@@ -224,7 +224,9 @@ def test_dual_read_is_fail_closed_for_package_validation_errors(tmp_path: Path) 
     assert missing_result.categories == {}
 
     changed = _copy_package(tmp_path / "hash")
-    (changed / "taxonomy.json").write_bytes((changed / "taxonomy.json").read_bytes() + b" ")
+    taxonomy = _read(changed / "taxonomy.json")
+    taxonomy["groups"][0]["name_ru"] += " changed"
+    _write(changed / "taxonomy.json", taxonomy)
     changed_result = _compare_copy(changed)
     assert "ARTIFACT_HASH_MISMATCH" in {item.code for item in changed_result.blockers}
 

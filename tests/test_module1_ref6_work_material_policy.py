@@ -81,7 +81,9 @@ def test_invalid_artifact_and_approval_fail_closed(tmp_path: Path) -> None:
     assert any("HASH_INVALID" in item.code for item in invalid_artifact.issues)
     shutil.rmtree(artifact)
     shutil.copytree(DEFAULT_ARTIFACT_DIR, artifact)
-    approval.write_bytes(approval.read_bytes() + b"\n")
+    approval_payload = json.loads(approval.read_text(encoding="utf-8"))
+    approval_payload["activation_flags"]["database_write_allowed"] = True
+    approval.write_text(json.dumps(approval_payload), encoding="utf-8")
     invalid_approval = validate_module1_ref6_runtime(
         "approved", artifact_dir=artifact, approval_path=approval, allowed_root=tmp_path
     )

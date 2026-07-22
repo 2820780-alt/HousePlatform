@@ -8,6 +8,8 @@ import time
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from app.services.module1_ref_artifact_portability import portable_identity_or_raw
+
 from app.services.module1_material_seed_registry import MaterialKnowledgeSeedRegistry
 from app.services.module1_ref2_read_policy import (
     APPROVAL_ID as REF2_APPROVAL_ID,
@@ -203,7 +205,7 @@ def activate_module1_ref3_read(
         )
     else:
         approval_bytes = approval_path.read_bytes()
-        approval_sha256 = hashlib.sha256(approval_bytes).hexdigest()
+        approval_sha256 = portable_identity_or_raw(approval_path)
         if approval_sha256 != EXPECTED_APPROVAL_SHA256:
             issues.append(
                 Module1Ref3ReadIssue(
@@ -605,10 +607,7 @@ def _validate_approval_contract(
             == expected_runtime["manifest_sha256"],
             "PACKAGE_VALIDATION_INVALID",
         ),
-        (
-            approval_bytes == _canonical_json_bytes(approval),
-            "APPROVAL_BYTES_NOT_CANONICAL",
-        ),
+
     )
     for passed, code in checks:
         if not passed:
@@ -681,7 +680,7 @@ def _canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
 def _sha256_file_or_none(path: Path) -> str | None:
     if not path.is_file():
         return None
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return portable_identity_or_raw(path)
 
 
 def _text(value: Any) -> str | None:

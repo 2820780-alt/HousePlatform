@@ -71,7 +71,7 @@ Use the existing repository Docker contract:
     docker compose up -d --wait
     docker compose ps
 
-Build from a checkout that preserves the approved runtime artifact bytes. Current approvals are byte-sensitive and the validated Windows checkout uses CRLF runtime JSON. A Git-blob/LF materialization fails closed. Do not normalize or re-sign those files during deployment; resolve cross-platform line-ending governance in a separate artifact sprint.
+Decision No. 042 governs cross-platform REF identity. Raw SHA-256 remains provenance, while approved runtime identity uses strict canonical content SHA-256. JSON object-key order and token whitespace, plus CRLF/LF/CR newline materialization, are portable; array order, string values, text whitespace and business content remain significant. BOM, duplicate JSON keys, invalid UTF-8/JSON and NaN/Infinity fail closed. Both CRLF and LF no-cache Docker builds are validated.
 
 The first startup against an empty database may exceed the health retry window while schema initialization runs. Do not treat starting or unhealthy as ready.
 
@@ -92,7 +92,7 @@ Authenticated API smoke also checks /api/v1/auth/me, sources, widget catalog, Wo
 
 ## 7. Approval validation
 
-Each enabled read mode must validate source hashes, runtime manifest, and approval manifest before serving traffic. Expected validation is is_valid=true. Silent fallback is prohibited.
+Each enabled read mode must validate source provenance, canonical digest, runtime manifest, portability approval and mode approval before serving traffic. Expected validation is is_valid=true. `raw_exact_match` and `canonical_portable_match` are accepted after strict parsing; the latter must remain observable as a diagnostic. Semantic mismatch and malformed content fail closed. Silent fallback is prohibited.
 
 Do not edit approval manifests, change approved REF bytes, activate review subsets, enable REF-3 formulas, enable REF-5 automatic replacement, or enable REF-6 quantity/SKU selection.
 

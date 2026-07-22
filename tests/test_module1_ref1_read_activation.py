@@ -115,7 +115,9 @@ def test_approval_contract_mutations_fail_closed(
 
 def test_package_mismatch_fails_before_projection(tmp_path: Path) -> None:
     artifact_dir, runtime_root, approval_dir, approval_root = _copy_runtime(tmp_path)
-    (artifact_dir / "taxonomy.json").write_bytes((artifact_dir / "taxonomy.json").read_bytes() + b" ")
+    payload = json.loads((artifact_dir / "taxonomy.json").read_text(encoding="utf-8"))
+    payload["groups"][0]["name_ru"] += " changed"
+    (artifact_dir / "taxonomy.json").write_text(json.dumps(payload), encoding="utf-8")
 
     result = validate_module1_ref_runtime(
         "ref1_read",
