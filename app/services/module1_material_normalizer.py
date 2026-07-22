@@ -229,7 +229,12 @@ def infer_material_group(raw_item: Module1RawIngestionItem) -> str | None:
 
 def build_normalization_report(raw_item: Module1RawIngestionItem) -> MaterialNormalizationReport:
     candidate = normalize_raw_ingestion_item(raw_item)
-    ready = bool(candidate.suggested_group_code and not candidate.missing_required_fields and _has_positive_price_hint(candidate.price_hint))
+    ready = bool(
+        candidate.suggested_group_code
+        and candidate.normalized_unit
+        and not candidate.missing_required_fields
+        and _has_positive_price_hint(candidate.price_hint)
+    )
     return MaterialNormalizationReport(
         candidate=candidate,
         is_ready_for_matching=ready,

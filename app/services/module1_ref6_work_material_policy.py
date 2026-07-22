@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -264,11 +265,21 @@ def validate_module1_ref6_runtime(
 
 
 def require_module1_ref6_runtime(mode: str | None = None) -> Module1Ref6Activation:
-    activation = validate_module1_ref6_runtime(mode)
+    selected = str(mode if mode is not None else settings.MODULE1_REF6_MODE).strip().lower()
+    activation = _load_default_module1_ref6_runtime(selected)
     if not activation.is_valid:
         detail = "; ".join(f"{item.code}: {item.message}" for item in activation.issues)
         raise Module1Ref6ConfigurationError(detail)
     return activation
+
+
+@lru_cache(maxsize=2)
+def _load_default_module1_ref6_runtime(mode: str) -> Module1Ref6Activation:
+    return validate_module1_ref6_runtime(mode)
+
+
+def clear_module1_ref6_runtime_cache() -> None:
+    _load_default_module1_ref6_runtime.cache_clear()
 
 
 def resolve_work_material_hints(
