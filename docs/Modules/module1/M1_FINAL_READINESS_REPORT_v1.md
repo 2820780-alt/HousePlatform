@@ -368,3 +368,40 @@ That sprint must:
 6. obtain explicit deploy authorization.
 
 Module No. 1 is complete under the agreed read-only governed architecture. Authoritative REF writes, site analyzers, and Module No. 2/No. 5 execution remain intentionally outside this readiness result.
+
+## 16. Final local release gate addendum
+
+M1-FINAL-LOCAL-RELEASE-SMOKE-1 completed on 2026-07-28 after this report's original sprint. This addendum records the later evidence without rewriting the earlier readiness history.
+
+Final result:
+
+- release gate: **PASS_WITH_WARNINGS**;
+- completion status: **MODULE_1_COMPLETE_BY_AGREED_LOCAL_DOD**;
+- initial gate baseline: `452b7f76fdb814da6018b317b7774c36a40262c1`;
+- final product commit: `40e10f939fa54c8daa06acef414555e2711f6f9e`;
+- final image: `atom-module1-local-release:40e10f9-final`;
+- final image ID: `sha256:a528dd77f6918f45dda253d43c5af82b328d4c8ddf12da58fa1fc71c0b2358b0`;
+- final modes: `ref3_read / approved / approved`;
+- push and production deploy: not performed.
+
+The local gate completed the previously outstanding local backup and credential-rotation prerequisite. A restricted 898221-byte PostgreSQL custom-format backup passed `pg_restore --list`, and its SHA-256 is `9c99ea4b70eb36569e1e09e0ac0adfba5ea043730f055fdfbcda55e58e7f80c5`. New local database, administrator, and JWT credentials passed; their previous values were rejected. Production credentials were neither accessed nor changed, so production rotation and backup remain requirements of a separate deploy-preflight.
+
+Real candidate smoke exposed and then verified a minimal Module No. 1 fix for async Work Cost owner loading. The correction is isolated in `40e10f939fa54c8daa06acef414555e2711f6f9e`; it changed only the Work Cost service and its targeted test. No schema, migration, Module No. 3, or Module No. 8 change occurred.
+
+Later test evidence:
+
+- targeted Work Cost regression: 20 passed;
+- platform security suite against the real ignored environment: 12 passed;
+- portability suite: 16 passed;
+- governed CRLF acceptance: 49 of 49 with zero canonical mismatches;
+- Docker readiness E2E: 7 passed on LF and 7 passed on governed-only CRLF;
+- exact tracked full suite: 1366 passed, 1 skipped, 29 warnings;
+- the one tracked-snapshot skip passed separately in the 12-test platform security run.
+
+The complete activation sequence, final self-cleaning API smoke, restart/readback, governed rollback chain, prior-image startup, and final-image restoration all passed. Material Hub authentication, six tabs, widget RBAC, Work Catalog, fixed/range Work Cost ownership, and multiple widget-instance persistence were exercised over real HTTP. Current and old credential-value scans of the exact tracked source, image, history, build log, and final container log found zero hits.
+
+All recorded Module No. 1 counts were identical before and after the gate. Disposable smoke records were removed. The final candidate was restored to the final image and approved read-only modes.
+
+Remaining warnings are local Redis without authentication, local `APP_DEBUG=true` verbose logging, non-uniform structured REF startup observability, existing deprecation warnings, and the already-deferred site-adapter, external-pilot, and Analyzer lifecycle work.
+
+The detailed evidence and triage are in `M1_FINAL_LOCAL_RELEASE_REPORT_v1.md`. This result authorizes no push or production deployment.

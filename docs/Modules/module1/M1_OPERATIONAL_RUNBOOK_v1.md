@@ -202,3 +202,33 @@ Real site adapters, internet collection, and a real external-source pilot are po
 - no destructive data fix without verified backup and Decision;
 - no remote deploy from an uncommitted or unvalidated tree;
 - no Module No. 2, 3, 5, or 8, Dashboard, Quick Action, or shared UI change as an incident shortcut.
+
+## 21. Final local release gate record
+
+The M1-FINAL-LOCAL-RELEASE-SMOKE-1 local gate completed on 2026-07-28 with `PASS_WITH_WARNINGS` and `MODULE_1_COMPLETE_BY_AGREED_LOCAL_DOD`. Its complete evidence is recorded in `M1_FINAL_LOCAL_RELEASE_REPORT_v1.md`.
+
+The validated replay order is:
+
+1. verify the exact branch, HEAD, upstream divergence, empty staging area, and known working-tree exceptions;
+2. create a restricted PostgreSQL custom-format backup and prove it with `pg_restore --list`;
+3. rotate local database, administrator, and JWT secrets without printing or committing them, then prove both new acceptance and old rejection;
+4. build a no-cache image from an exact clean commit and scan its filesystem, history, build log, source context, and final container log;
+5. activate `legacy/legacy/legacy` through `ref3_read/approved/approved` one governed step at a time;
+6. run health, auth/RBAC, six-tab Material Hub, widgets, Work Catalog, Work Cost ownership, portability, and data-count checks at the applicable steps;
+7. restart without clearing PostgreSQL or Redis and prove readback;
+8. roll back through the governed mode chain, start the prior image in legacy mode, and restore the final image and modes;
+9. remove only explicitly identified disposable smoke records and verify exact before/after counts.
+
+The final validated local image is `atom-module1-local-release:40e10f9-final`, built from commit `40e10f939fa54c8daa06acef414555e2711f6f9e`. The final governed modes are:
+
+- `MODULE1_REF_RUNTIME_MODE=ref3_read`;
+- `MODULE1_REF45_MODE=approved`;
+- `MODULE1_REF6_MODE=approved`.
+
+The final candidate uses an isolated local port. It is not a production deployment. Production must use its own credentials and backup, must not reuse the local candidate's `APP_DEBUG=true`, and still requires separate deploy authorization.
+
+The local Redis URL contained no credential, so Redis authentication was not rotated and Redis was not flushed. Treat missing Redis authentication as an explicit deployment warning, not as evidence that a production Redis instance may remain unauthenticated.
+
+When reproducing the portability check, convert only the 49 Decision No. 042 governed files. A whole-repository newline rewrite is not a valid portability test because unrelated future documents may intentionally retain raw-byte identity.
+
+The FastAPI test harness must not assume that an HTTP response proves completion of dependency-finalizer commits. For self-cleaning smoke only, use bounded readback before cleanup. Do not change application transaction semantics merely to accommodate the harness.
