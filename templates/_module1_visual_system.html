@@ -1032,3 +1032,43 @@
     document.addEventListener("DOMContentLoaded", initResizableTables);
   })();
 </script>
+<script>
+  (() => {
+    if (window.__atomModule1SessionFetchInstalled) return;
+    window.__atomModule1SessionFetchInstalled = true;
+    const originalFetch = window.fetch.bind(window);
+    const safeMethods = new Set(["GET", "HEAD", "OPTIONS"]);
+
+    function readCookie(name) {
+      const prefix = `${encodeURIComponent(name)}=`;
+      const item = document.cookie
+        .split(";")
+        .map((value) => value.trim())
+        .find((value) => value.startsWith(prefix));
+      return item ? decodeURIComponent(item.slice(prefix.length)) : "";
+    }
+
+    window.fetch = function module1SessionFetch(input, init = {}) {
+      const request = input instanceof Request ? input : null;
+      const url = new URL(request ? request.url : String(input), window.location.href);
+      const method = String(init.method || request?.method || "GET").toUpperCase();
+      const options = { ...init, credentials: init.credentials || "same-origin" };
+
+      if (url.origin === window.location.origin && !safeMethods.has(method)) {
+        const csrfToken = readCookie("atom_csrf_token");
+        const headers = new Headers(init.headers || request?.headers || {});
+        if (csrfToken) headers.set("X-CSRF-Token", csrfToken);
+        options.headers = headers;
+      }
+
+      const preparedInput = request ? new Request(request, options) : input;
+      return originalFetch(preparedInput, request ? undefined : options).then((response) => {
+        if (response.status === 401 && url.origin === window.location.origin) {
+          const next = `${window.location.pathname}${window.location.search}`;
+          window.location.assign(`/api/v1/auth/login/view?next=${encodeURIComponent(next)}`);
+        }
+        return response;
+      });
+    };
+  })();
+</script>

@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.api.v1 import api_router
 from app.api.v1.admin_users_roles_view import ui_router as admin_users_roles_ui_router
 from app.config import settings
+from app.core.browser_auth import browser_auth_redirect_middleware
 from app.database import close_db, init_db
 from app.services.module1_ref4_normalization_policy import require_module1_ref45_runtime
 from app.services.module1_ref6_work_material_policy import require_module1_ref6_runtime
@@ -37,6 +38,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+app.middleware("http")(browser_auth_redirect_middleware)
 
 @app.get("/api/v1/health", tags=["system"])
 async def health_check():
