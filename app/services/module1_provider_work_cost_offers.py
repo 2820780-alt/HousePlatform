@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.core.permission_guard import can
@@ -102,7 +103,7 @@ async def list_provider_work_cost_offers(
     offset: int = 0,
     limit: int = 50,
 ) -> ProviderWorkCostOfferListResult:
-    query = select(ProviderWorkCostOffer)
+    query = select(ProviderWorkCostOffer).options(selectinload(ProviderWorkCostOffer.owner))
     query = _apply_list_permissions(query, user, owner_user_id=owner_user_id)
     query = _apply_filters(
         query,
@@ -367,7 +368,11 @@ def quality_flags(offer: ProviderWorkCostOffer) -> list[dict[str, str]]:
 
 
 async def _get_offer_or_404(db: AsyncSession, offer_id: UUID) -> ProviderWorkCostOffer:
-    result = await db.execute(select(ProviderWorkCostOffer).where(ProviderWorkCostOffer.id == offer_id))
+    result = await db.execute(
+        select(ProviderWorkCostOffer)
+        .options(selectinload(ProviderWorkCostOffer.owner))
+        .where(ProviderWorkCostOffer.id == offer_id)
+    )
     offer = result.scalar_one_or_none()
     if offer is None:
         raise NotFoundError("Provider work cost offer not found")

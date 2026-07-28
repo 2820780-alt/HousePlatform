@@ -234,6 +234,23 @@ def test_list_permissions_scope_admin_and_owner():
         service._apply_list_permissions(service.select(ProviderWorkCostOffer), _customer(), owner_user_id=None)
 
 
+@pytest.mark.asyncio
+async def test_work_cost_read_queries_eager_load_owner_for_async_serialization():
+    owner_id = uuid4()
+    offer = _offer(owner_id)
+
+    list_db = FakeDB(offer=offer)
+    await service.list_provider_work_cost_offers(list_db, _admin())
+    list_query = list_db.statements[-1]
+
+    get_db = FakeDB(offer=offer)
+    await service.get_provider_work_cost_offer(get_db, offer.id, _admin())
+    get_query = get_db.statements[-1]
+
+    assert "ProviderWorkCostOffer.owner" in str(list_query._with_options[0].path)
+    assert "ProviderWorkCostOffer.owner" in str(get_query._with_options[0].path)
+
+
 def test_read_dto_enriches_from_work_catalog_and_hides_raw_internals():
     offer = _offer(uuid4())
     payload = provider_work_cost_offer_to_dict(offer)
