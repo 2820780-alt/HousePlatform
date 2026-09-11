@@ -54,6 +54,14 @@ from app.models.function_access import FunctionAccess
 from app.models.knowledge_candidate import KnowledgeCandidate
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.knowledge_resource_link import KnowledgeResourceLink
+from app.models.module2_technology import (
+    Technology,
+    TechnologyEvidenceReference,
+    TechnologyLayer,
+    TechnologyMaterialRequirement,
+    TechnologyNode,
+    TechnologyWorkStep,
+)
 from app.models.material_analog import MaterialAnalog
 from app.models.module_access import ModuleAccess
 from app.models.partner_portal import (
@@ -178,6 +186,12 @@ __all__ = [
     "KnowledgeCandidate",
     "KnowledgeResource",
     "KnowledgeResourceLink",
+    "Technology",
+    "TechnologyEvidenceReference",
+    "TechnologyLayer",
+    "TechnologyMaterialRequirement",
+    "TechnologyNode",
+    "TechnologyWorkStep",
     "MaterialAnalog",
     "MaterialType",
     "MaterialStatus",
