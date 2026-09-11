@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Module1 Work Catalog Seed Schema",
+  "type": "object",
+  "required": [
+    "version",
+    "module",
+    "domain",
+    "rules",
+    "units",
+    "groups",
+    "works"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "module": {
+      "const": "module1"
+    },
+    "domain": {
+      "const": "work_catalog"
+    },
+    "description": {
+      "type": "string"
+    },
+    "rules": {
+      "type": "object",
+      "required": [
+        "work_cost_source",
+        "forbidden_sources",
+        "no_prices_in_catalog",
+        "no_providers_in_catalog",
+        "no_contacts_in_catalog"
+      ],
+      "properties": {
+        "work_cost_source": {
+          "type": "string"
+        },
+        "forbidden_sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "no_prices_in_catalog": {
+          "const": true
+        },
+        "no_providers_in_catalog": {
+          "const": true
+        },
+        "no_contacts_in_catalog": {
+          "const": true
+        }
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "work_group",
+          "work_category"
+        ],
+        "properties": {
+          "work_group": {
+            "type": "string",
+            "minLength": 1
+          },
+          "work_category": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "works": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "work_code",
+          "work_group",
+          "work_category",
+          "work_name",
+          "default_unit",
+          "allowed_units",
+          "is_range_allowed",
+          "applies_to",
+          "module2_usage_hint",
+          "module5_usage_hint"
+        ],
+        "properties": {
+          "work_code": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "work_group": {
+            "type": "string",
+            "minLength": 1
+          },
+          "work_category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "work_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default_unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "allowed_units": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_range_allowed": {
+            "type": "boolean"
+          },
+          "applies_to": {
+            "enum": [
+              "private_house",
+              "apartment",
+              "both"
+            ]
+          },
+          "module2_usage_hint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "module5_usage_hint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
