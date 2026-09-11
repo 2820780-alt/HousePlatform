@@ -28,6 +28,8 @@ GROUP_CATEGORY_HINTS: Mapping[str, str] = {
     "mineral_wool_slab": "insulation",
 }
 
+TECHNOLOGY_ONLY_CHARACTERISTIC_KEYS = frozenset({"screw_consumption", "screws_per_m2"})
+
 
 @dataclass(frozen=True)
 class NormalizedMaterialCandidate:
@@ -313,13 +315,18 @@ def _missing_schema_fields(group_code: str | None, characteristics: Mapping[str,
 
 
 def _filter_to_schema(group_code: str | None, values: Mapping[str, Any]) -> Mapping[str, Any]:
+    material_values = {
+        key: value
+        for key, value in values.items()
+        if key not in TECHNOLOGY_ONLY_CHARACTERISTIC_KEYS
+    }
     if not group_code:
-        return dict(values)
+        return material_values
     schema = CharacteristicSchemaRegistry().get_schema(group_code)
-    allowed = set(schema.all_characteristic_codes() if schema else frozenset(values.keys()))
+    allowed = set(schema.all_characteristic_codes() if schema else frozenset(material_values.keys()))
     if group_code == "metal_tile":
         allowed.add("coating")
-    return {key: value for key, value in values.items() if key in allowed}
+    return {key: value for key, value in material_values.items() if key in allowed}
 
 
 def _extract_manufacturer_brand(raw_item: Module1RawIngestionItem, normalized_title: str) -> tuple[str | None, str | None]:
