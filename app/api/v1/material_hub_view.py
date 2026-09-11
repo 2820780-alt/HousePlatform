@@ -51,7 +51,11 @@ from app.services.material_hub_first_wave import (
 )
 from app.services.module1_source_profile_registry import build_profile_readiness_report, get_extraction_profile, get_source_profile
 from app.services.module1_ui_view_models import build_module1_ui_preview_context
-from app.services.module1_provider_work_cost_offers import list_work_catalog_options, provider_work_cost_offer_to_dict
+from app.services.module1_provider_work_cost_offers import (
+    build_provider_work_cost_market_sanity_map,
+    list_work_catalog_options,
+    provider_work_cost_offer_to_dict,
+)
 from app.services.source_document_refs import is_document_url
 from app.services.supplier_price_standard import (
     TEMPLATE_BASENAME,
@@ -1390,7 +1394,15 @@ async def _load_provider_work_cost_offer_rows(db: DBSession) -> list[dict[str, A
         .order_by(ProviderWorkCostOffer.updated_at.desc())
         .limit(50)
     )
-    return [provider_work_cost_offer_to_dict(offer) for offer in result.scalars().all()]
+    offers = tuple(result.scalars().all())
+    market_sanity = await build_provider_work_cost_market_sanity_map(db, offers)
+    return [
+        provider_work_cost_offer_to_dict(
+            offer,
+            market_sanity=market_sanity.get(str(offer.id)),
+        )
+        for offer in offers
+    ]
 
 async def _load_materials(db: DBSession) -> list[Material]:
     result = await db.execute(

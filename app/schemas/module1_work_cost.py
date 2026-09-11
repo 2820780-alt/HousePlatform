@@ -25,6 +25,24 @@ class ProviderWorkCostOfferUpdate(ProviderWorkCostOfferCreate):
     pass
 
 
+class ProviderWorkCostMarketReferenceRead(BaseModel):
+    median: Decimal
+    q1: Decimal
+    q3: Decimal
+    lowerBound: Decimal
+    upperBound: Decimal
+
+
+class ProviderWorkCostMarketSanityRead(BaseModel):
+    status: str
+    statusLabel: str
+    comparableOfferCount: int
+    reason: str
+    explanation: str
+    asOf: date
+    referenceStats: ProviderWorkCostMarketReferenceRead | None = None
+
+
 class ProviderWorkCostOfferRead(BaseModel):
     id: UUID
     workCode: str
@@ -51,6 +69,7 @@ class ProviderWorkCostOfferRead(BaseModel):
     status: str
     statusLabel: str | None = None
     qualityFlags: list[dict[str, Any]] = Field(default_factory=list)
+    marketSanity: ProviderWorkCostMarketSanityRead | None = None
     canEdit: bool = False
     canActivate: bool = False
     canDeactivate: bool = False

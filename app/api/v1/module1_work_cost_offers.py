@@ -12,6 +12,7 @@ from app.schemas.module1_work_cost import (
 )
 from app.services.module1_provider_work_cost_offers import (
     ProviderWorkCostOfferPayload,
+    build_provider_work_cost_market_sanity_map,
     create_provider_work_cost_offer,
     deactivate_provider_work_cost_offer,
     get_provider_work_cost_offer,
@@ -58,8 +59,16 @@ async def list_work_cost_offers(
         offset=offset,
         limit=limit,
     )
+    market_sanity = await build_provider_work_cost_market_sanity_map(db, result.items)
     return PaginatedResponse(
-        items=[provider_work_cost_offer_to_dict(item, user) for item in result.items],
+        items=[
+            provider_work_cost_offer_to_dict(
+                item,
+                user,
+                market_sanity=market_sanity.get(str(item.id)),
+            )
+            for item in result.items
+        ],
         total=result.total,
         offset=result.offset,
         limit=result.limit,

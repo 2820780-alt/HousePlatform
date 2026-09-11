@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
+from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -22,6 +24,8 @@ MODULE_04_WORKS_COSTS = "MODULE_04_WORKS_COSTS"
 PRICING_MODES = frozenset({"fixed", "range"})
 STATUSES = frozenset({"draft", "active", "inactive"})
 SUPPORTED_CURRENCIES = frozenset({"RUB"})
+MIN_COMPARABLE_OFFERS = 5
+MARKET_SANITY_IQR_MULTIPLIER = Decimal("1.5")
 
 
 @dataclass(frozen=True)
@@ -46,6 +50,33 @@ class ProviderWorkCostOfferListResult:
     total: int
     offset: int
     limit: int
+
+
+class ProviderWorkCostMarketSanityStatus(str, Enum):
+    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
+    WITHIN_COMPARABLE_RANGE = "WITHIN_COMPARABLE_RANGE"
+    LOW_OUTLIER = "LOW_OUTLIER"
+    HIGH_OUTLIER = "HIGH_OUTLIER"
+    REVIEW = "REVIEW"
+
+
+@dataclass(frozen=True)
+class ProviderWorkCostMarketReferenceStats:
+    median: Decimal
+    q1: Decimal
+    q3: Decimal
+    lower_bound: Decimal
+    upper_bound: Decimal
+
+
+@dataclass(frozen=True)
+class ProviderWorkCostMarketSanity:
+    status: ProviderWorkCostMarketSanityStatus
+    comparable_offer_count: int
+    reason: str
+    explanation: str
+    as_of: date
+    reference_stats: ProviderWorkCostMarketReferenceStats | None = None
 
 
 async def create_provider_work_cost_offer(
@@ -130,6 +161,385 @@ async def list_provider_work_cost_offers(
         limit=limit,
     )
 
+
+def evaluate_provider_work_cost_market_sanity(
+    target: ProviderWorkCostOffer,
+    offers: Iterable[ProviderWorkCostOffer],
+    *,
+    as_of: date | datetime | None = None,
+) -> ProviderWorkCostMarketSanity:
+    as_of_date = _market_as_of_date(as_of)
+    cohort_key = _market_cohort_key(target)
+    if cohort_key is None:
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.REVIEW,
+            0,
+            "invalid_target_cohort",
+            "Нельзя определить точную сопоставимую группу предложения.",
+            as_of_date,
+        )
+
+    cohort_offers = tuple(
+        offer
+        for offer in offers
+        if _market_cohort_key(offer) == cohort_key and _is_market_offer_effective(offer, as_of_date)
+    )
+    return _evaluate_market_sanity_for_cohort(target, cohort_offers, as_of_date)
+
+
+def evaluate_provider_work_cost_market_sanity_batch(
+    targets: Iterable[ProviderWorkCostOffer],
+    offers: Iterable[ProviderWorkCostOffer],
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, ProviderWorkCostMarketSanity]:
+    as_of_date = _market_as_of_date(as_of)
+    target_items = tuple(targets)
+    cohorts: dict[tuple[str, str, str, str], list[ProviderWorkCostOffer]] = {}
+
+    for offer in offers:
+        cohort_key = _market_cohort_key(offer)
+        if cohort_key is None or not _is_market_offer_effective(offer, as_of_date):
+            continue
+        cohorts.setdefault(cohort_key, []).append(offer)
+
+    return {
+        _market_offer_result_key(target): (
+            _evaluate_market_sanity_for_cohort(target, cohorts.get(cohort_key, ()), as_of_date)
+            if (cohort_key := _market_cohort_key(target)) is not None
+            else _market_sanity_result(
+                ProviderWorkCostMarketSanityStatus.REVIEW,
+                0,
+                "invalid_target_cohort",
+                "Нельзя определить точную сопоставимую группу предложения.",
+                as_of_date,
+            )
+        )
+        for target in target_items
+    }
+
+
+async def build_provider_work_cost_market_sanity_map(
+    db: AsyncSession,
+    targets: Iterable[ProviderWorkCostOffer],
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, ProviderWorkCostMarketSanity]:
+    target_items = tuple(targets)
+    as_of_date = _market_as_of_date(as_of)
+    cohort_keys = {
+        cohort_key
+        for target in target_items
+        if (cohort_key := _market_cohort_key(target)) is not None
+    }
+
+    peer_offers: Sequence[ProviderWorkCostOffer] = ()
+    if cohort_keys:
+        cohort_clauses = tuple(
+            and_(
+                ProviderWorkCostOffer.work_code == work_code,
+                ProviderWorkCostOffer.pricing_unit == pricing_unit,
+                ProviderWorkCostOffer.currency == currency,
+                ProviderWorkCostOffer.region == region,
+            )
+            for work_code, pricing_unit, currency, region in cohort_keys
+        )
+        result = await db.execute(
+            select(ProviderWorkCostOffer).where(
+                ProviderWorkCostOffer.status == "active",
+                or_(ProviderWorkCostOffer.valid_from.is_(None), ProviderWorkCostOffer.valid_from <= as_of_date),
+                or_(ProviderWorkCostOffer.valid_until.is_(None), ProviderWorkCostOffer.valid_until >= as_of_date),
+                or_(*cohort_clauses),
+            )
+        )
+        peer_offers = tuple(result.scalars().all())
+
+    return evaluate_provider_work_cost_market_sanity_batch(
+        target_items,
+        peer_offers,
+        as_of=as_of_date,
+    )
+
+
+def provider_work_cost_market_sanity_to_dict(
+    signal: ProviderWorkCostMarketSanity,
+) -> dict[str, Any]:
+    reference_stats = signal.reference_stats
+    return {
+        "status": signal.status.value,
+        "statusLabel": _market_sanity_status_label(signal.status),
+        "comparableOfferCount": signal.comparable_offer_count,
+        "reason": signal.reason,
+        "explanation": signal.explanation,
+        "asOf": signal.as_of,
+        "referenceStats": (
+            {
+                "median": reference_stats.median,
+                "q1": reference_stats.q1,
+                "q3": reference_stats.q3,
+                "lowerBound": reference_stats.lower_bound,
+                "upperBound": reference_stats.upper_bound,
+            }
+            if reference_stats is not None
+            else None
+        ),
+    }
+
+
+def _evaluate_market_sanity_for_cohort(
+    target: ProviderWorkCostOffer,
+    cohort_offers: Sequence[ProviderWorkCostOffer],
+    as_of: date,
+) -> ProviderWorkCostMarketSanity:
+    representatives = _market_peer_representatives(target, cohort_offers)
+    comparable_count = len(representatives)
+    if comparable_count < MIN_COMPARABLE_OFFERS:
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.INSUFFICIENT_DATA,
+            comparable_count,
+            "minimum_comparable_offers_not_met",
+            (
+                f"Нужно не менее {MIN_COMPARABLE_OFFERS} актуальных предложений "
+                f"других исполнителей; найдено: {comparable_count}."
+            ),
+            as_of,
+        )
+
+    stats = _market_reference_stats(representatives)
+    target_interval = _market_amount_interval(target)
+    if target_interval is None:
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.REVIEW,
+            comparable_count,
+            "invalid_target_amount",
+            "Сумма или диапазон предложения не соответствует контракту стоимости работ.",
+            as_of,
+            stats,
+        )
+
+    target_minimum, target_maximum = target_interval
+    if stats.q1 == stats.q3:
+        if target_minimum <= stats.median <= target_maximum:
+            return _market_sanity_result(
+                ProviderWorkCostMarketSanityStatus.WITHIN_COMPARABLE_RANGE,
+                comparable_count,
+                "target_overlaps_zero_iqr_reference",
+                "Предложение включает единственное устойчивое значение сопоставимой группы.",
+                as_of,
+                stats,
+            )
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.REVIEW,
+            comparable_count,
+            "zero_iqr_requires_review",
+            "У сопоставимых предложений нулевой межквартильный размах; отклонение нельзя надежно классифицировать.",
+            as_of,
+            stats,
+        )
+
+    if target_maximum < stats.lower_bound:
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.LOW_OUTLIER,
+            comparable_count,
+            "target_fully_below_lower_bound",
+            "Предложение полностью ниже устойчивого диапазона сопоставимой группы.",
+            as_of,
+            stats,
+        )
+    if target_minimum > stats.upper_bound:
+        return _market_sanity_result(
+            ProviderWorkCostMarketSanityStatus.HIGH_OUTLIER,
+            comparable_count,
+            "target_fully_above_upper_bound",
+            "Предложение полностью выше устойчивого диапазона сопоставимой группы.",
+            as_of,
+            stats,
+        )
+    return _market_sanity_result(
+        ProviderWorkCostMarketSanityStatus.WITHIN_COMPARABLE_RANGE,
+        comparable_count,
+        "target_overlaps_comparable_range",
+        "Предложение пересекает устойчивый диапазон сопоставимой группы.",
+        as_of,
+        stats,
+    )
+
+
+def _market_peer_representatives(
+    target: ProviderWorkCostOffer,
+    cohort_offers: Sequence[ProviderWorkCostOffer],
+) -> tuple[Decimal, ...]:
+    latest_by_owner: dict[str, ProviderWorkCostOffer] = {}
+    target_owner = _market_owner_key(target)
+
+    for offer in cohort_offers:
+        if _is_same_market_offer(target, offer):
+            continue
+        owner_key = _market_owner_key(offer)
+        if owner_key is None or owner_key == target_owner:
+            continue
+        current = latest_by_owner.get(owner_key)
+        if current is None or _market_offer_recency_key(offer) > _market_offer_recency_key(current):
+            latest_by_owner[owner_key] = offer
+
+    representatives: list[Decimal] = []
+    for offer in latest_by_owner.values():
+        interval = _market_amount_interval(offer)
+        if interval is None:
+            continue
+        minimum, maximum = interval
+        representatives.append((minimum + maximum) / Decimal("2"))
+    return tuple(representatives)
+
+
+def _market_reference_stats(values: Sequence[Decimal]) -> ProviderWorkCostMarketReferenceStats:
+    ordered = tuple(sorted(values))
+    midpoint = len(ordered) // 2
+    lower_half = ordered[:midpoint]
+    upper_half = ordered[midpoint + 1 :] if len(ordered) % 2 else ordered[midpoint:]
+    median = _market_median(ordered)
+    q1 = _market_median(lower_half)
+    q3 = _market_median(upper_half)
+    iqr = q3 - q1
+    return ProviderWorkCostMarketReferenceStats(
+        median=median,
+        q1=q1,
+        q3=q3,
+        lower_bound=q1 - MARKET_SANITY_IQR_MULTIPLIER * iqr,
+        upper_bound=q3 + MARKET_SANITY_IQR_MULTIPLIER * iqr,
+    )
+
+
+def _market_median(values: Sequence[Decimal]) -> Decimal:
+    midpoint = len(values) // 2
+    if len(values) % 2:
+        return values[midpoint]
+    return (values[midpoint - 1] + values[midpoint]) / Decimal("2")
+
+
+def _market_amount_interval(offer: ProviderWorkCostOffer) -> tuple[Decimal, Decimal] | None:
+    pricing_mode = _get_value(offer, "pricing_mode")
+    if pricing_mode == "fixed":
+        fixed_amount = _market_decimal(_get_value(offer, "fixed_amount"))
+        if fixed_amount is None or fixed_amount <= 0:
+            return None
+        return fixed_amount, fixed_amount
+    if pricing_mode == "range":
+        minimum_amount = _market_decimal(_get_value(offer, "minimum_amount"))
+        maximum_amount = _market_decimal(_get_value(offer, "maximum_amount"))
+        if (
+            minimum_amount is None
+            or maximum_amount is None
+            or minimum_amount <= 0
+            or maximum_amount <= 0
+            or minimum_amount > maximum_amount
+        ):
+            return None
+        return minimum_amount, maximum_amount
+    return None
+
+
+def _market_decimal(value: Any) -> Decimal | None:
+    if value is None or value == "":
+        return None
+    try:
+        amount = value if isinstance(value, Decimal) else Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+    return amount if amount.is_finite() else None
+
+
+def _market_cohort_key(offer: ProviderWorkCostOffer) -> tuple[str, str, str, str] | None:
+    values = (
+        _get_value(offer, "work_code"),
+        _get_value(offer, "pricing_unit"),
+        _get_value(offer, "currency"),
+        _get_value(offer, "region"),
+    )
+    if not all(isinstance(value, str) and value for value in values):
+        return None
+    return values
+
+
+def _is_market_offer_effective(offer: ProviderWorkCostOffer, as_of: date) -> bool:
+    if _get_value(offer, "status") != "active":
+        return False
+    valid_from = _get_value(offer, "valid_from")
+    valid_until = _get_value(offer, "valid_until")
+    if valid_from is not None and valid_from > as_of:
+        return False
+    if valid_until is not None and valid_until < as_of:
+        return False
+    return True
+
+
+def _is_same_market_offer(target: ProviderWorkCostOffer, offer: ProviderWorkCostOffer) -> bool:
+    if target is offer:
+        return True
+    target_id = _get_value(target, "id")
+    offer_id = _get_value(offer, "id")
+    return target_id is not None and offer_id is not None and str(target_id) == str(offer_id)
+
+
+def _market_owner_key(offer: ProviderWorkCostOffer) -> str | None:
+    owner_user_id = _get_value(offer, "owner_user_id")
+    return str(owner_user_id) if owner_user_id is not None else None
+
+
+def _market_offer_result_key(offer: ProviderWorkCostOffer) -> str:
+    offer_id = _get_value(offer, "id")
+    return str(offer_id) if offer_id is not None else f"object:{id(offer)}"
+
+
+def _market_offer_recency_key(offer: ProviderWorkCostOffer) -> tuple[datetime, datetime, date, str]:
+    return (
+        _market_sortable_datetime(_get_value(offer, "updated_at")),
+        _market_sortable_datetime(_get_value(offer, "created_at")),
+        _get_value(offer, "valid_from") or date.min,
+        str(_get_value(offer, "id") or ""),
+    )
+
+
+def _market_sortable_datetime(value: Any) -> datetime:
+    if not isinstance(value, datetime):
+        return datetime.min
+    if value.tzinfo is None:
+        return value
+    return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def _market_as_of_date(value: date | datetime | None) -> date:
+    if value is None:
+        return date.today()
+    return value.date() if isinstance(value, datetime) else value
+
+
+def _market_sanity_status_label(status: ProviderWorkCostMarketSanityStatus) -> str:
+    return {
+        ProviderWorkCostMarketSanityStatus.INSUFFICIENT_DATA: "Недостаточно данных",
+        ProviderWorkCostMarketSanityStatus.WITHIN_COMPARABLE_RANGE: "В сопоставимом диапазоне",
+        ProviderWorkCostMarketSanityStatus.LOW_OUTLIER: "Ниже сопоставимого диапазона",
+        ProviderWorkCostMarketSanityStatus.HIGH_OUTLIER: "Выше сопоставимого диапазона",
+        ProviderWorkCostMarketSanityStatus.REVIEW: "Требует проверки",
+    }[status]
+
+
+def _market_sanity_result(
+    status: ProviderWorkCostMarketSanityStatus,
+    comparable_offer_count: int,
+    reason: str,
+    explanation: str,
+    as_of: date,
+    reference_stats: ProviderWorkCostMarketReferenceStats | None = None,
+) -> ProviderWorkCostMarketSanity:
+    return ProviderWorkCostMarketSanity(
+        status=status,
+        comparable_offer_count=comparable_offer_count,
+        reason=reason,
+        explanation=explanation,
+        as_of=as_of,
+        reference_stats=reference_stats,
+    )
 
 async def update_provider_work_cost_offer(
     db: AsyncSession,
@@ -255,7 +665,11 @@ def list_work_catalog_options() -> tuple[dict[str, Any], ...]:
     )
 
 
-def provider_work_cost_offer_to_dict(offer: ProviderWorkCostOffer, user: Any | None = None) -> dict[str, Any]:
+def provider_work_cost_offer_to_dict(
+    offer: ProviderWorkCostOffer,
+    user: Any | None = None,
+    market_sanity: ProviderWorkCostMarketSanity | None = None,
+) -> dict[str, Any]:
     work_item = get_work_item(offer.work_code)
     can_edit = _can_edit_offer(user, offer)
     return {
@@ -284,6 +698,11 @@ def provider_work_cost_offer_to_dict(offer: ProviderWorkCostOffer, user: Any | N
         "status": offer.status,
         "statusLabel": status_label(offer),
         "qualityFlags": quality_flags(offer),
+        "marketSanity": (
+            provider_work_cost_market_sanity_to_dict(market_sanity)
+            if market_sanity is not None
+            else None
+        ),
         "canEdit": can_edit,
         "canActivate": can_edit and offer.status != "active",
         "canDeactivate": can_edit and offer.status != "inactive",
