@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.3
+# Module №2 / Technology Knowledge Base v1.4
 
 ## Purpose
 
@@ -37,8 +37,8 @@ merged or deprecated by Sprint 2.1-2.2.
 
 ## Current module status
 
-The implemented Technology domain and internal Technology Workbench are
-`FOUNDATION / BETA`. The server-rendered contour is available at
+The implemented Technology domain, internal Technology Workbench and read-only
+M2-to-M5 estimation input contract are `FOUNDATION / BETA`. The server-rendered contour is available at
 `/api/v1/admin/module2/workbench` when the M2 schema is present. No widget,
 Quick Action or dashboard activation is included. The historical module-registry
 `ACTIVE` value is a known metadata inconsistency to resolve in a separate
@@ -246,6 +246,10 @@ seed, alter or delete M1 data.
 Sprint 2.5 adds no migration and no new infrastructure. The Workbench uses the
 existing M2 tables, HousePlatform web application and database connection.
 
+Sprint 2.6 also adds no migration and no new infrastructure. The estimation
+input package is assembled from existing M2 and referenced M1 records without
+persisting an export, estimate or calculation result.
+
 ### FUTURE_DEPLOYMENT_BLOCKER
 
 The live HousePlatform database must not receive these M2 migrations during this
@@ -291,12 +295,57 @@ could create M2 tables outside the reviewed migration flow.
   remain explicit warnings and block only the relevant knowledge activation;
 - verified the contour against an isolated HousePlatform database.
 
-## Deferred to Sprint 2.6
+## M2-to-M5 estimation input contract
 
-- explicit M2-to-M5 consumption-norm read contract;
-- quantity application, rounding and calculation trace owned by M5;
-- selected-material recalculation inputs;
-- no price, estimate or object calculation moves into M2.
+`Module5EstimationInputPackage` is the versioned, typed, read-only handoff from
+`MODULE_02_KNOWLEDGE_BASE` to the planned `MODULE_05_ESTIMATE_ENGINE`. The
+current contract version is `1`. It does not create an M5 aggregate or imply
+that the M5 calculation engine is implemented.
+
+The package pins one exact ACTIVE Technology identity and revision and carries:
+
+- material requirements as selectors or canonical M1 references, never Material copies;
+- ordered layers and their engineering restrictions;
+- ordered M1 Work Catalog codes and applicability expressions;
+- ACTIVE relative consumption norms with explicit quantities and units;
+- calculation-relevant ACTIVE compatibility and knowledge constraints;
+- scoped M1 evidence references, verification state, structured blockers and warnings.
+
+Production export rejects DRAFT, REVIEW and ARCHIVED Technology revisions. An
+ACTIVE revision is `ready_for_estimation` only when its activation foundation is
+valid, at least one ACTIVE norm is available, all included knowledge has verified
+evidence, selectors/scopes resolve, units have a known quantity basis, M1 work
+codes resolve and active rules do not conflict. Non-ACTIVE knowledge is excluded
+with a warning rather than silently promoted.
+
+Unit handling is intentionally conservative. M2 classifies canonical units into
+area, area-thickness, volume, length, count or mass bases, but never converts a
+quantity. Unknown or unsupported units remain visible and block readiness. M5
+must apply object geometry, quantity conversion, waste, rounding and calculation
+trace rules.
+
+The builder performs only reads and deterministic DTO assembly. It creates no
+database record and exposes explicit `no_object_quantity_result`,
+`no_price_result` and `no_side_effects` invariants. Prices, provider work costs,
+material resolution, estimate lines, totals, procurement and project geometry
+remain outside Module №2.
+
+## Implemented in Sprint 2.6
+
+- audited the planned M5 boundary and found no existing estimate engine or conflicting contract;
+- added strict immutable DTOs for the M2-to-M5 estimation input package;
+- added deterministic read-only assembly from one exact ACTIVE Technology revision;
+- reused M1 canonical units and Work Catalog through read-only services;
+- propagated evidence traceability, blockers, warnings and applicability conditions;
+- added contract, serialization, revision pinning, no-write and ownership-boundary tests;
+- kept M5 calculations, persistence, API and UI out of scope.
+
+## Deferred after Sprint 2.6
+
+- M5 quantity application, conversions, waste, rounding and calculation trace;
+- M5 estimate persistence, line items, pricing and totals;
+- project/object geometry input and selected-material recalculation;
+- Module №2 summary widgets and Quick Actions, subject to Sprint 2.7 review.
 
 ## Non-goals and guards
 
@@ -315,3 +364,4 @@ still subject to the controlled M2 schema deployment described above.
 - 11.09.2026: v1.1 Sprint 2.1-2.2 boundary lock and Technology foundation.
 - 13.09.2026: v1.2 Sprint 2.3-2.4 evidence, norms and knowledge rules foundation.
 - 13.09.2026: v1.3 Sprint 2.5 Technology Workbench and guarded moderation UI.
+- 13.09.2026: v1.4 Sprint 2.6 typed read-only M2-to-M5 estimation input contract.
