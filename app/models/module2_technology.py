@@ -97,6 +97,21 @@ class Technology(Base):
         back_populates="technology",
         cascade="all, delete-orphan",
     )
+    consumption_norms = relationship(
+        "ConsumptionNorm",
+        back_populates="technology",
+        cascade="all, delete-orphan",
+    )
+    compatibility_rules = relationship(
+        "CompatibilityRule",
+        back_populates="technology",
+        cascade="all, delete-orphan",
+    )
+    knowledge_rules = relationship(
+        "KnowledgeRule",
+        back_populates="technology",
+        cascade="all, delete-orphan",
+    )
 
 
 class TechnologyMaterialRequirement(Base):
@@ -215,6 +230,16 @@ class TechnologyEvidenceReference(Base):
             "(document_id IS NOT NULL AND knowledge_resource_id IS NULL) OR "
             "(document_id IS NULL AND knowledge_resource_id IS NOT NULL)",
             name="ck_module2_evidence_exactly_one_reference",
+        ),
+        CheckConstraint(
+            "target_kind IN ('TECHNOLOGY', 'LAYER', 'MATERIAL_REQUIREMENT', "
+            "'NODE', 'WORK_STEP', 'CONSUMPTION_NORM', 'COMPATIBILITY_RULE', "
+            "'KNOWLEDGE_RULE')",
+            name="ck_module2_evidence_target_kind",
+        ),
+        CheckConstraint(
+            "target_kind = 'TECHNOLOGY' OR target_reference IS NOT NULL",
+            name="ck_module2_evidence_target_reference",
         ),
     )
 

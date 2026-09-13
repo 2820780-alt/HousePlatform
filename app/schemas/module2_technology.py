@@ -84,6 +84,23 @@ class TechnologyEvidenceReferenceInput(BaseModel):
     def exactly_one_m1_reference(self) -> "TechnologyEvidenceReferenceInput":
         if (self.document_id is None) == (self.knowledge_resource_id is None):
             raise ValueError("evidence must reference exactly one M1 document or knowledge resource")
+        allowed_targets = {
+            "TECHNOLOGY",
+            "LAYER",
+            "MATERIAL_REQUIREMENT",
+            "NODE",
+            "WORK_STEP",
+            "CONSUMPTION_NORM",
+            "COMPATIBILITY_RULE",
+            "KNOWLEDGE_RULE",
+        }
+        if self.target_kind not in allowed_targets:
+            raise ValueError("unsupported Module2 evidence target_kind")
+        if (
+            self.target_kind != "TECHNOLOGY"
+            and not self.target_reference
+        ):
+            raise ValueError("non-technology evidence requires target_reference")
         return self
 
 

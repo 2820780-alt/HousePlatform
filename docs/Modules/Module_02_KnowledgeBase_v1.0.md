@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.1
+# Module №2 / Technology Knowledge Base v1.2
 
 ## Purpose
 
@@ -104,32 +104,71 @@ It stores only the existing M1 `work_code`; creation validates the code through
 the read-only Work Catalog service. It cannot create or modify Work Catalog
 items and contains no provider work cost.
 
-## Future ConsumptionNorm contract
+## ConsumptionNorm
 
-A future `ConsumptionNorm` binds:
+`ConsumptionNorm` is a versioned relative engineering norm attached to one
+Technology revision. It stores:
 
-- Technology code and revision;
-- material requirement;
-- basis quantity and unit;
-- consumption quantity and unit;
-- conditions;
-- M1 evidence references.
+- a stable norm code and revision;
+- optional layer, material requirement and work-step scope;
+- a structured resource selector containing M1 IDs or M2 requirement semantics;
+- a positive basis quantity and canonical basis unit;
+- a positive consumption quantity and canonical consumption unit;
+- structured applicability conditions;
+- lifecycle, blockers, provenance and supersession.
 
-Sprint 2.1-2.2 defines this schema contract only. Formula evaluation, geometry,
-fallbacks, rounding and calculation traces belong to Sprint 2.3-2.4.
+The M1 `UnitConversionRegistry` normalizes both units. Unknown units are
+rejected and no implicit conversion is performed. The stored relation can express
+`5 kg / 1 m2`, but M2 never multiplies it by object geometry and never applies a
+price. Quantity application and cost belong to M5.
 
-## Future KnowledgeRule contract
+## Structured conditions
 
-A future `KnowledgeRule` binds a Technology revision to:
+`StructuredCondition` permits only declared fields, a source
+(`M1_MATERIAL_PROPERTY` or `CONTEXT`) and these deterministic operators:
 
-- structured IF conditions;
-- constraint, warning, requirement or prohibition effect;
-- effect payload;
-- M1 evidence references.
+`EQUAL`, `NOT_EQUAL`, `IN`, `NOT_IN`, `GT`, `GTE`, `LT`, `LTE`,
+`BETWEEN` and `EXISTS`.
 
-No generic rules engine or runtime AI/LLM integration is implemented now.
-Existing `KnowledgeCandidate` remains an M1 moderation input and is not reused
-as an approved rule.
+There is no executable expression, Python/JavaScript/SQL payload, `eval`, DSL,
+recursive inference or AI evaluator. M1 property values are consumed through the
+read-only `Module2TechnologyInputPackage`; they are not copied into M2 tables.
+Missing values produce `UNKNOWN`, and fields marked critical for activation
+produce an activation blocker.
+
+## CompatibilityRule
+
+`CompatibilityRule` is an independently versioned M2 entity scoped to a
+Technology revision. Subject and object are structured selectors for canonical
+M1 materials, M1 material classes, M2 material requirements, technical
+constraints or roles. The relation is one of:
+
+- `COMPATIBLE`;
+- `INCOMPATIBLE`;
+- `CONDITIONAL`;
+- `UNKNOWN`.
+
+The evaluator matches active rules and evaluates only their structured
+conditions. Missing evidence or properties returns `UNKNOWN`. A simultaneous
+compatible/conditional and incompatible result returns `REVIEW` with every
+matching rule and evidence reference; it is never silently resolved. This is a
+validation foundation, not a recommender.
+
+## KnowledgeRule
+
+`KnowledgeRule` binds structured IF conditions to one outcome:
+
+- `REQUIREMENT`;
+- `WARNING`;
+- `PROHIBITION`;
+- `CONSTRAINT`;
+- `INFORMATION`.
+
+Its scope must resolve to a Technology, layer, material requirement, node, work
+step, consumption norm or compatibility rule. The evaluator returns
+`APPLIES`, `DOES_NOT_APPLY`, `UNKNOWN` or `REVIEW`; it does not execute
+arbitrary code or infer new engineering facts. Existing `KnowledgeCandidate`
+remains an M1 moderation input and is not reused as approved M2 knowledge.
 
 ## Evidence ownership
 
@@ -138,7 +177,15 @@ an M1 `MaterialDocument` or an M1 `KnowledgeResource`, plus the M2-owned
 engineering interpretation. It does not duplicate files, URLs, certificate
 contents, extracted text or document metadata.
 
-M1 owns the evidence. M2 owns its engineering interpretation.
+The same typed link now targets a Technology, layer, material requirement, node,
+work step, consumption norm, compatibility rule or knowledge rule by an M2
+target kind and revision-specific reference. This deliberately reuses the
+existing evidence table instead of creating a parallel polymorphic evidence
+system. Before activation, a read-only query verifies that every referenced M1
+record exists; a missing or unverified reference is a blocker.
+
+M1 owns primary evidence and its lifecycle. M2 owns only engineering
+interpretation, applicability and links to M2 knowledge.
 
 ## Versioning and lifecycle
 
@@ -149,9 +196,13 @@ Allowed transitions:
 - `REVIEW -> ACTIVE`;
 - `ACTIVE -> ARCHIVED`.
 
-An ACTIVE Technology cannot be edited in place. A change creates the next
-DRAFT revision with the same stable code and a `supersedes_id` reference.
-Activation is blocked while M1 input contains missing fields or blockers.
+ACTIVE Technology, ConsumptionNorm, CompatibilityRule and KnowledgeRule records
+are immutable. A change creates a new DRAFT revision with the same stable code
+and a `supersedes_id` reference; evidence is revision-specific and must be
+attached and verified for that revision.
+
+Activation is blocked by missing/broken evidence, unresolved critical M1
+properties, inherited Technology input blockers or conflicting active rules.
 
 ## RBAC
 
@@ -169,7 +220,7 @@ work.
 
 ## Persistence and migration
 
-Sprint 2.1-2.2 adds only `module2_*` tables:
+Sprint 2.1-2.2 added these `module2_*` tables:
 
 - technologies;
 - material requirements;
@@ -178,13 +229,23 @@ Sprint 2.1-2.2 adds only `module2_*` tables:
 - work steps;
 - evidence references.
 
-The migration is additive and includes a manual reverse order. It does not
-alter, seed or delete M1 tables. It must not be applied to the live HousePlatform
-database in this sprint. Application startup currently calls
-`Base.metadata.create_all()`, so a web image containing these models must not
-replace/restart the live web container before a separate migration approval;
-otherwise the ORM would create the missing M2 tables outside the reviewed
-migration flow.
+Sprint 2.3-2.4 adds only:
+
+- consumption norms;
+- compatibility rules;
+- knowledge rules;
+- two target-integrity constraints on the existing M2 evidence table.
+
+Both migrations are additive and include a manual reverse order. They do not
+seed, alter or delete M1 data.
+
+### FUTURE_DEPLOYMENT_BLOCKER
+
+The live HousePlatform database must not receive these M2 migrations during this
+sprint. Application startup still calls `Base.metadata.create_all()`; therefore
+a web image containing the new models must not replace or restart the live web
+container before controlled schema-lifecycle approval. Otherwise ORM startup
+could create M2 tables outside the reviewed migration flow.
 
 ## Implemented in Sprint 2.1-2.2
 
@@ -197,15 +258,30 @@ migration flow.
 - reused platform RBAC and M1 Work Catalog read contract;
 - added targeted boundary and migration tests.
 
-## Deferred to Sprint 2.3-2.4
+## Implemented in Sprint 2.3-2.4
 
-- persisted ConsumptionNorm;
-- persisted KnowledgeRule;
-- deterministic formula/rule evaluation;
-- geometry, quantity and consumption calculations;
-- trace, assumptions, warnings and fallback engine;
-- selected-material recalculation contract with Module №5;
-- runtime API, moderation UI and golden technology packs.
+- persisted relative ConsumptionNorm records with canonical unit validation;
+- persisted CompatibilityRule and KnowledgeRule records;
+- reused typed M1 evidence references for every M2 knowledge scope;
+- added deterministic structured-condition evaluation;
+- added explicit UNKNOWN/insufficient-evidence semantics;
+- added activation blockers, conflict detection and evidence verification;
+- extended ACTIVE immutability and revision semantics to all knowledge entities;
+- reused the existing platform RBAC without a new auth contour.
+
+## Deferred to Sprint 2.5
+
+- internal Technology Workbench/moderation UI;
+- draft-oriented internal API and route guards;
+- evidence, validation and conflict-review presentation;
+- golden technology packs only after evidence-backed curation.
+
+## Deferred to Sprint 2.6
+
+- explicit M2-to-M5 consumption-norm read contract;
+- quantity application, rounding and calculation trace owned by M5;
+- selected-material recalculation inputs;
+- no price, estimate or object calculation moves into M2.
 
 ## Non-goals and guards
 
@@ -218,3 +294,4 @@ records. Runtime AI/LLM generation is forbidden.
 
 - 17.06.2026: v1.0 initial outline.
 - 11.09.2026: v1.1 Sprint 2.1-2.2 boundary lock and Technology foundation.
+- 13.09.2026: v1.2 Sprint 2.3-2.4 evidence, norms and knowledge rules foundation.

@@ -369,6 +369,9 @@ async def read_technology(
             selectinload(Technology.nodes),
             selectinload(Technology.work_steps),
             selectinload(Technology.evidence_references),
+            selectinload(Technology.consumption_norms),
+            selectinload(Technology.compatibility_rules),
+            selectinload(Technology.knowledge_rules),
         )
     )
     return result.scalar_one_or_none()

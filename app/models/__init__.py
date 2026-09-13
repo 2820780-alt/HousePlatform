@@ -62,6 +62,7 @@ from app.models.module2_technology import (
     TechnologyNode,
     TechnologyWorkStep,
 )
+from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.material_analog import MaterialAnalog
 from app.models.module_access import ModuleAccess
 from app.models.partner_portal import (
@@ -192,6 +193,9 @@ __all__ = [
     "TechnologyMaterialRequirement",
     "TechnologyNode",
     "TechnologyWorkStep",
+    "CompatibilityRule",
+    "ConsumptionNorm",
+    "KnowledgeRule",
     "MaterialAnalog",
     "MaterialType",
     "MaterialStatus",
