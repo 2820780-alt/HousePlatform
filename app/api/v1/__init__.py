@@ -15,6 +15,7 @@ from app.api.v1 import (
     auth,
     dev_material_hub,
     material_hub_view,
+    module2_workbench,
     module1_work_cost_offers,
     partner_portal_view,
     price_dynamics_view,
@@ -39,6 +40,7 @@ api_router.include_router(admin_module1_ref2_characteristic_schemas.router)
 api_router.include_router(admin_module1_ref3.router)
 api_router.include_router(admin_moderation.router)
 api_router.include_router(material_hub_view.router)
+api_router.include_router(module2_workbench.router)
 api_router.include_router(module1_work_cost_offers.router)
 api_router.include_router(partner_portal_view.router)
 api_router.include_router(price_dynamics_view.router)

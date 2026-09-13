@@ -1,0 +1,489 @@
+{% macro hidden_context(section, item_id='') -%}
+  <input type="hidden" name="section" value="{{ section }}">
+  {% if item_id %}<input type="hidden" name="item_id" value="{{ item_id }}">{% endif %}
+{%- endmacro %}
+
+{% macro selector_fields(prefix, values={}) -%}
+  <label><span>Тип ресурса</span>
+    <select name="{{ prefix }}_kind" required>
+      {% for value, label in [('MATERIAL_REQUIREMENT','Требование технологии'),('CANONICAL_MATERIAL','Материал M1'),('MATERIAL_CLASS','Класс материалов M1'),('TECHNICAL_CONSTRAINTS','Технические ограничения'),('ROLE','Функциональная роль')] %}
+      <option value="{{ value }}" {% if values.kind == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label><span>Требование технологии</span>
+    <select name="{{ prefix }}_material_requirement_id">
+      <option value="">Не выбрано</option>
+      {% for option in requirements %}<option value="{{ option.model.id }}" {% if values.material_requirement_id|string == option.model.id|string %}selected{% endif %}>{{ option.model.code }}</option>{% endfor %}
+    </select>
+  </label>
+  <label><span>Материал M1</span>
+    <select name="{{ prefix }}_canonical_material_id">
+      <option value="">Не выбран</option>
+      {% for option_id, label in material_options %}<option value="{{ option_id }}" {% if values.canonical_material_id|string == option_id|string %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label><span>Категория M1</span>
+    <select name="{{ prefix }}_material_category_id">
+      <option value="">Не выбрана</option>
+      {% for option_id, label in category_options %}<option value="{{ option_id }}" {% if values.material_category_id|string == option_id|string %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label><span>Тип материала M1</span>
+    <select name="{{ prefix }}_material_type_id">
+      <option value="">Не выбран</option>
+      {% for option_id, label in type_options %}<option value="{{ option_id }}" {% if values.material_type_id|string == option_id|string %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label><span>Код роли</span><input name="{{ prefix }}_material_role_code" value="{{ values.material_role_code|default('') }}"></label>
+  <label><span>Параметр ограничения</span><input name="{{ prefix }}_constraint_field" value="{{ values.constraint_field|default('') }}" placeholder="frost_resistance"></label>
+  <label><span>Значение</span><input name="{{ prefix }}_constraint_value" value="{{ values.constraint_value|default('') }}"></label>
+{%- endmacro %}
+
+{% macro condition_fields(values={}) -%}
+  <label><span>Источник условия</span>
+    <select name="condition_source">
+      <option value="CONTEXT" {% if values.source != 'M1_MATERIAL_PROPERTY' %}selected{% endif %}>Контекст технологии</option>
+      <option value="M1_MATERIAL_PROPERTY" {% if values.source == 'M1_MATERIAL_PROPERTY' %}selected{% endif %}>Свойство материала M1</option>
+    </select>
+  </label>
+  <label><span>Параметр</span><input name="condition_field" value="{{ values.field|default('') }}" placeholder="temperature_c"></label>
+  <label><span>Сравнение</span>
+    <select name="condition_operator">
+      {% for value, label in [('EQUAL','Равно'),('NOT_EQUAL','Не равно'),('GT','Больше'),('GTE','Не ниже'),('LT','Меньше'),('LTE','Не выше'),('BETWEEN','Диапазон'),('IN','Одно из'),('NOT_IN','Не входит в'),('EXISTS','Задано')] %}
+      <option value="{{ value }}" {% if values.operator == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label><span>Значение</span><input name="condition_value" value="{{ values.value|default('') }}"></label>
+  <label class="m2-check"><input type="checkbox" name="condition_required" {% if values.required %}checked{% endif %}> Обязательно для активации</label>
+{%- endmacro %}
+
+{% macro delete_button(component, item_id, section) -%}
+  <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/delete" data-m2-form>
+    {{ hidden_context(section, item_id) }}
+    <input type="hidden" name="component" value="{{ component }}">
+    <button class="m2-button m2-icon-button danger" type="submit" title="Удалить" aria-label="Удалить">×</button>
+  </form>
+{%- endmacro %}
+
+{% macro knowledge_actions(component, item, section) -%}
+  <div class="m2-item-actions">
+    {% if item.model.status == 'DRAFT' and permissions.edit %}
+    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
+      {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="REVIEW">
+      <button class="m2-button ghost" type="submit">На проверку</button>
+    </form>
+    {% elif item.model.status == 'REVIEW' and permissions.approve %}
+    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
+      {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="DRAFT">
+      <button class="m2-button ghost" type="submit">Вернуть</button>
+    </form>
+    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
+      {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="ACTIVE">
+      <button class="m2-button primary" type="submit" {% if item.blockers or item.conflicts|default([]) %}disabled title="Сначала устраните блокирующие причины и конфликты"{% endif %}>Активировать</button>
+    </form>
+    {% elif item.model.status == 'ACTIVE' and permissions.admin %}
+    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
+      {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="ARCHIVED">
+      <button class="m2-button danger" type="submit">В архив</button>
+    </form>
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ technology.name }} · Technology Workbench</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module2_workbench_styles.html" %}
+</head>
+<body data-atom-page data-rbac-ready data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <main class="m2-shell">
+    <header class="m2-page-head">
+      <div>
+        <div class="m2-eyebrow">Technology Workbench · Foundation / Beta</div>
+        <h1>{{ technology.name }}</h1>
+        <div class="m2-status-line">
+          <span class="m2-code">{{ technology.technology_code }}</span>
+          <span>Редакция № {{ technology.revision }}</span>
+          <span class="m2-status" data-status="{{ technology.status }}">{{ status_label }}</span>
+        </div>
+      </div>
+      <div class="m2-actions">
+        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench">К списку</a>
+        {% if technology.status == 'DRAFT' and permissions.edit %}
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
+          {{ hidden_context('general') }}<input type="hidden" name="target" value="REVIEW">
+          <button class="m2-button" type="submit">Передать на проверку</button>
+        </form>
+        {% elif technology.status == 'REVIEW' and permissions.approve %}
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
+          {{ hidden_context('general') }}<input type="hidden" name="target" value="DRAFT">
+          <button class="m2-button" type="submit">Вернуть в черновик</button>
+        </form>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
+          {{ hidden_context('validation') }}<input type="hidden" name="target" value="ACTIVE">
+          <button class="m2-button primary" type="submit" {% if activation_blockers %}disabled title="Сначала устраните блокирующие причины"{% endif %}>Активировать</button>
+        </form>
+        {% elif technology.status == 'ACTIVE' and permissions.edit %}
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/create-revision" data-m2-form>
+          {{ hidden_context('general') }}<button class="m2-button primary" type="submit">Создать новую редакцию</button>
+        </form>
+        {% endif %}
+        {% if technology.status == 'ACTIVE' and permissions.admin %}
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
+          {{ hidden_context('general') }}<input type="hidden" name="target" value="ARCHIVED">
+          <button class="m2-button danger" type="submit">В архив</button>
+        </form>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
+    {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
+
+    <nav class="m2-tabs" aria-label="Разделы технологии">
+      <a href="#general">Общее</a><a href="#validation">Готовность</a><a href="#layers">Слои</a>
+      <a href="#materials">Материалы</a><a href="#works">Работы</a><a href="#norms">Нормы</a>
+      <a href="#nodes">Узлы</a><a href="#compatibility">Совместимость</a><a href="#rules">Правила</a>
+      <a href="#evidence">Evidence</a><a href="#revisions">Редакции</a>
+    </nav>
+
+    <section class="m2-panel m2-section" id="general">
+      <div class="m2-panel-head"><h2>Общее</h2><span class="m2-badge">{{ technology.source_kind|replace('_',' ')|lower }}</span></div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <form class="m2-panel-body" method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/update-general" data-m2-form>
+        {{ hidden_context('general') }}
+        <div class="m2-form-grid">
+          <label class="wide"><span>Название</span><input name="name" value="{{ technology.name }}" required></label>
+          <label><span>Код</span><input value="{{ technology.technology_code }}" disabled></label>
+          <label><span>Система</span><input name="system_code" value="{{ technology.system_code or '' }}"></label>
+          <label class="full"><span>Описание</span><textarea name="description">{{ technology.description or '' }}</textarea></label>
+        </div>
+        <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить</button></div>
+      </form>
+      {% else %}
+      <div class="m2-definition-grid">
+        <div class="m2-definition"><span>Код</span>{{ technology.technology_code }}</div>
+        <div class="m2-definition"><span>Система</span>{{ technology.system_code or 'Не задана' }}</div>
+        <div class="m2-definition"><span>Редакция</span>№ {{ technology.revision }}</div>
+        <div class="m2-definition"><span>Статус</span>{{ status_label }}</div>
+      </div>
+      <div class="m2-panel-body">{{ technology.description or 'Описание не заполнено.' }}</div>
+      {% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="validation">
+      <div class="m2-panel-head"><h2>Готовность</h2><span class="m2-count">{{ activation_blockers|length }} блок. · {{ warnings|length }} предупр.</span></div>
+      <div class="m2-panel-body m2-blocker-grid">
+        <div class="m2-blocker-column">
+          <h3>Блокирующие причины</h3>
+          {% if activation_blockers %}<ul>{% for item in activation_blockers %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<div>Блокирующих причин нет.</div>{% endif %}
+        </div>
+        <div class="m2-blocker-column warning">
+          <h3>Предупреждения</h3>
+          {% if warnings %}<ul>{% for item in warnings %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<div>Предупреждений нет.</div>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="m2-panel m2-section" id="layers">
+      <div class="m2-panel-head"><h2>Слои</h2><span class="m2-count">{{ layers|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in layers %}
+        <article class="m2-record">
+          <div class="m2-record-main">
+            <div><strong>{{ item.model.position }}. {{ item.model.functional_role|replace('_',' ')|lower }}</strong><small>{{ item.requirement }}</small></div>
+            <div>{{ item.model.thickness_expression or 'Толщина не задана' }}</div>
+            <div>{{ 'Обязательный' if item.model.is_mandatory else 'Опциональный' }}</div>
+            <div>{{ item.restrictions or 'Без ограничений' }}</div>
+            {% if technology.status == 'DRAFT' and permissions.edit %}
+            <div class="m2-item-actions">
+              {% for direction, symbol, title in [('up','↑','Выше'),('down','↓','Ниже')] %}
+              <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/move" data-m2-form>
+                {{ hidden_context('layers', item.model.id) }}<input type="hidden" name="component" value="layer"><input type="hidden" name="direction" value="{{ direction }}">
+                <button class="m2-button m2-icon-button ghost" type="submit" title="{{ title }}" aria-label="{{ title }}">{{ symbol }}</button>
+              </form>
+              {% endfor %}
+              {{ delete_button('layer', item.model.id, 'layers') }}
+            </div>
+            {% endif %}
+          </div>
+          {% if item.model.notes %}<div class="m2-record-detail">{{ item.model.notes }}</div>{% endif %}
+          {% if technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить слой</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-layer" data-m2-form>
+              {{ hidden_context('layers', item.model.id) }}
+              <div class="m2-form-grid">
+                <label><span>Порядок</span><input type="number" min="1" name="position" value="{{ item.model.position }}" required></label>
+                <label><span>Функциональная роль</span><input name="functional_role" value="{{ item.model.functional_role }}" required></label>
+                <label><span>Требование</span><select name="requirement_code"><option value="">Без привязки</option>{% for req in requirements %}<option value="{{ req.model.code }}" {% if item.model.material_requirement_id == req.model.id %}selected{% endif %}>{{ req.model.code }}</option>{% endfor %}</select></label>
+                <label><span>Толщина</span><input name="thickness_expression" value="{{ item.model.thickness_expression or '' }}"></label>
+                <label><span>Ограничение</span><input name="restriction_field" value="{{ item.restriction_pair[0] }}"></label>
+                <label><span>Значение</span><input name="restriction_value" value="{{ item.restriction_pair[1] }}"></label>
+                <label class="m2-check"><input type="checkbox" name="is_mandatory" {% if item.model.is_mandatory %}checked{% endif %}> Обязательный слой</label>
+                <label class="full"><span>Примечание</span><textarea name="notes">{{ item.model.notes or '' }}</textarea></label>
+              </div>
+              <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить слой</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Слои не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить слой</summary>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-layer" data-m2-form>
+          {{ hidden_context('layers') }}
+          <div class="m2-form-grid">
+            <label><span>Порядок</span><input type="number" min="1" name="position" value="{{ layers|length + 1 }}" required></label>
+            <label><span>Функциональная роль</span><input name="functional_role" required></label>
+            <label><span>Требование</span><select name="requirement_code"><option value="">Без привязки</option>{% for req in requirements %}<option value="{{ req.model.code }}">{{ req.model.code }}</option>{% endfor %}</select></label>
+            <label><span>Толщина</span><input name="thickness_expression"></label>
+            <label><span>Ограничение</span><input name="restriction_field"></label><label><span>Значение</span><input name="restriction_value"></label>
+            <label class="m2-check"><input type="checkbox" name="is_mandatory" checked> Обязательный слой</label>
+            <label class="full"><span>Примечание</span><textarea name="notes"></textarea></label>
+          </div>
+          <div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="materials">
+      <div class="m2-panel-head"><h2>Материалы и требования</h2><span class="m2-count">{{ requirements|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in requirements %}
+        <article class="m2-record">
+          <div class="m2-record-main">
+            <div><strong>{{ item.model.code }}</strong><small>{{ item.selector_label }}</small></div>
+            <div>{{ item.reference }}</div><div>{{ item.model.material_role_code or 'Роль не задана' }}</div><div>{{ item.constraints or item.model.notes or 'Без дополнительных условий' }}</div>
+            {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
+          </div>
+          {% if technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить требование</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-requirement" data-m2-form>
+              {{ hidden_context('materials', item.model.id) }}
+              <div class="m2-form-grid">
+                <label><span>Код требования</span><input name="code" value="{{ item.model.code }}" required></label>
+                <label><span>Тип требования</span><select name="selector_kind">{% for value, label in [('CANONICAL_MATERIAL','Материал M1'),('MATERIAL_CLASS','Класс материалов M1'),('TECHNICAL_CONSTRAINTS','Технические ограничения'),('ROLE','Функциональная роль')] %}<option value="{{ value }}" {% if item.model.selector_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                <label><span>Материал M1</span><select name="canonical_material_id"><option value="">Не выбран</option>{% for option_id, label in material_options %}<option value="{{ option_id }}" {% if item.model.canonical_material_id == option_id %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                <label><span>Категория M1</span><select name="material_category_id"><option value="">Не выбрана</option>{% for option_id, label in category_options %}<option value="{{ option_id }}" {% if item.model.material_category_id == option_id %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                <label><span>Тип материала M1</span><select name="material_type_id"><option value="">Не выбран</option>{% for option_id, label in type_options %}<option value="{{ option_id }}" {% if item.model.material_type_id == option_id %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                <label><span>Код роли</span><input name="material_role_code" value="{{ item.model.material_role_code or '' }}"></label>
+                <label><span>Параметр</span><input name="constraint_field" value="{{ item.constraint_pair[0] }}"></label><label><span>Значение</span><input name="constraint_value" value="{{ item.constraint_pair[1] }}"></label>
+                <label class="full"><span>Примечание</span><textarea name="notes">{{ item.model.notes or '' }}</textarea></label>
+              </div>
+              <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить требование</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Требования не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить требование</summary>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-requirement" data-m2-form>
+          {{ hidden_context('materials') }}
+          <div class="m2-form-grid">
+            <label><span>Код требования</span><input name="code" required></label>
+            <label><span>Тип требования</span><select name="selector_kind"><option value="CANONICAL_MATERIAL">Материал M1</option><option value="MATERIAL_CLASS">Класс материалов M1</option><option value="TECHNICAL_CONSTRAINTS">Технические ограничения</option><option value="ROLE">Функциональная роль</option></select></label>
+            <label><span>Материал M1</span><select name="canonical_material_id"><option value="">Не выбран</option>{% for option_id, label in material_options %}<option value="{{ option_id }}">{{ label }}</option>{% endfor %}</select></label>
+            <label><span>Категория M1</span><select name="material_category_id"><option value="">Не выбрана</option>{% for option_id, label in category_options %}<option value="{{ option_id }}">{{ label }}</option>{% endfor %}</select></label>
+            <label><span>Тип материала M1</span><select name="material_type_id"><option value="">Не выбран</option>{% for option_id, label in type_options %}<option value="{{ option_id }}">{{ label }}</option>{% endfor %}</select></label>
+            <label><span>Код роли</span><input name="material_role_code"></label><label><span>Параметр</span><input name="constraint_field"></label><label><span>Значение</span><input name="constraint_value"></label>
+            <label class="full"><span>Примечание</span><textarea name="notes"></textarea></label>
+          </div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="works">
+      <div class="m2-panel-head"><h2>Работы</h2><span class="m2-count">{{ work_steps|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in work_steps %}
+        <article class="m2-record">
+          <div class="m2-record-main">
+            <div><strong>{{ item.model.position }}. {{ item.work_name }}</strong><small>{{ item.model.work_code }}</small></div>
+            <div>{{ item.dependencies }}</div><div>{{ item.model.applicability_expression or 'Без условий применения' }}</div><div>{{ item.model.instructions or 'Без инструкции' }}</div>
+            {% if technology.status == 'DRAFT' and permissions.edit %}<div class="m2-item-actions">{{ delete_button('work-step', item.model.id, 'works') }}</div>{% endif %}
+          </div>
+          {% if item.catalog_missing %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Работа отсутствует в Work Catalog M1</span></div>{% endif %}
+          {% if technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить работу</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-work-step" data-m2-form>
+              {{ hidden_context('works', item.model.id) }}
+              <div class="m2-form-grid">
+                <label><span>Порядок</span><input type="number" min="1" name="position" value="{{ item.model.position }}" required></label>
+                <label class="wide"><span>Работа из M1</span><select name="work_code" required>{% for work in work_catalog %}<option value="{{ work.work_code }}" {% if item.model.work_code == work.work_code %}selected{% endif %}>{{ work.work_name }}</option>{% endfor %}</select></label>
+                <label><span>Зависимости, коды</span><input name="dependency_step_codes" value="{{ item.model.dependency_step_codes|join(', ') }}"></label>
+                <label class="wide"><span>Условие применения</span><input name="applicability_expression" value="{{ item.model.applicability_expression or '' }}"></label>
+                <label class="wide"><span>Инструкция</span><textarea name="instructions">{{ item.model.instructions or '' }}</textarea></label>
+              </div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить работу</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Работы не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить работу из Work Catalog M1</summary>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-work-step" data-m2-form>
+          {{ hidden_context('works') }}<div class="m2-form-grid">
+            <label><span>Порядок</span><input type="number" min="1" name="position" value="{{ work_steps|length + 1 }}" required></label>
+            <label class="wide"><span>Работа</span><select name="work_code" required>{% for work in work_catalog %}<option value="{{ work.work_code }}">{{ work.work_name }}</option>{% endfor %}</select></label>
+            <label><span>Зависимости, коды</span><input name="dependency_step_codes"></label>
+            <label class="wide"><span>Условие применения</span><input name="applicability_expression"></label><label class="wide"><span>Инструкция</span><textarea name="instructions"></textarea></label>
+          </div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="norms">
+      <div class="m2-panel-head"><h2>Нормы расхода</h2><span class="m2-count">{{ norms|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in norms %}
+        <article class="m2-record">
+          <div class="m2-record-main">
+            <div><strong>{{ item.model.norm_code }}</strong><small>{{ item.resource }}</small></div><div>{{ item.summary }}</div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span></div><div>{{ item.conditions|join('; ') if item.conditions else 'Без условий' }}</div>
+            <div>{{ knowledge_actions('norm', item, 'norms') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('norm', item.model.id, 'norms') }}{% endif %}</div>
+          </div>
+          {% if item.blockers %}<div class="m2-record-detail"><strong>Проверка:</strong><ul class="m2-inline-list">{% for blocker in item.blockers %}<li>{{ blocker }}</li>{% endfor %}</ul></div>{% endif %}
+          {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить норму</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-norm" data-m2-form>
+              {{ hidden_context('norms', item.model.id) }}
+              <div class="m2-form-grid">
+                <label><span>Код нормы</span><input name="norm_code" value="{{ item.model.norm_code }}" required></label>
+                <label><span>Количество расхода</span><input name="consumption_quantity" value="{{ item.model.consumption_quantity }}" inputmode="decimal" required></label><label><span>Единица расхода</span><input name="consumption_unit" value="{{ item.model.consumption_unit }}" required></label>
+                <label><span>На количество</span><input name="basis_quantity" value="{{ item.model.basis_quantity }}" inputmode="decimal" required></label><label><span>Единица основания</span><input name="basis_unit" value="{{ item.model.basis_unit }}" required></label>
+                <label><span>Слой</span><select name="scope_layer_id"><option value="">Вся технология</option>{% for layer in layers %}<option value="{{ layer.model.id }}" {% if item.model.scope_layer_id == layer.model.id %}selected{% endif %}>{{ layer.model.position }}. {{ layer.model.functional_role }}</option>{% endfor %}</select></label>
+                <label><span>Требование</span><select name="scope_requirement_id"><option value="">Не выбрано</option>{% for req in requirements %}<option value="{{ req.model.id }}" {% if item.model.scope_requirement_id == req.model.id %}selected{% endif %}>{{ req.model.code }}</option>{% endfor %}</select></label>
+                <label><span>Работа</span><select name="scope_work_step_id"><option value="">Не выбрана</option>{% for step in work_steps %}<option value="{{ step.model.id }}" {% if item.model.scope_work_step_id == step.model.id %}selected{% endif %}>{{ step.model.position }}. {{ step.work_name }}</option>{% endfor %}</select></label>
+                {{ selector_fields('resource', item.selector_form) }}{{ condition_fields(item.condition_form) }}
+                <label class="full"><span>Блокирующие замечания</span><input name="blockers" value="{{ item.model.blockers|join(', ') }}"></label>
+              </div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить норму</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Нормы расхода не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить норму расхода</summary>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-norm" data-m2-form>
+          {{ hidden_context('norms') }}<div class="m2-form-grid">
+            <label><span>Код нормы</span><input name="norm_code" required></label>
+            <label><span>Количество расхода</span><input name="consumption_quantity" inputmode="decimal" required></label><label><span>Единица расхода</span><input name="consumption_unit" value="kg" required></label>
+            <label><span>На количество</span><input name="basis_quantity" value="1" inputmode="decimal" required></label><label><span>Единица основания</span><input name="basis_unit" value="m2" required></label>
+            <label><span>Слой</span><select name="scope_layer_id"><option value="">Вся технология</option>{% for layer in layers %}<option value="{{ layer.model.id }}">{{ layer.model.position }}. {{ layer.model.functional_role }}</option>{% endfor %}</select></label>
+            <label><span>Требование</span><select name="scope_requirement_id"><option value="">Не выбрано</option>{% for req in requirements %}<option value="{{ req.model.id }}">{{ req.model.code }}</option>{% endfor %}</select></label>
+            <label><span>Работа</span><select name="scope_work_step_id"><option value="">Не выбрана</option>{% for step in work_steps %}<option value="{{ step.model.id }}">{{ step.model.position }}. {{ step.work_name }}</option>{% endfor %}</select></label>
+            {{ selector_fields('resource') }}{{ condition_fields() }}
+            <label class="full"><span>Блокирующие замечания</span><input name="blockers"></label>
+          </div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить норму</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="nodes">
+      <div class="m2-panel-head"><h2>Узлы</h2><span class="m2-count">{{ nodes|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in nodes %}
+        <article class="m2-record">
+          <div class="m2-record-main"><div><strong>{{ item.model.name }}</strong><small>{{ item.model.code }}</small></div><div>{{ item.model.node_type|replace('_',' ')|lower }}</div><div>{{ item.conditions or 'Без условий' }}</div><div>{{ item.model.description or 'Без описания' }}</div>{% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('node', item.model.id, 'nodes') }}</div>{% endif %}</div>
+          {% if technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить узел</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-node" data-m2-form>
+              {{ hidden_context('nodes', item.model.id) }}
+              <div class="m2-form-grid"><label><span>Код</span><input name="code" value="{{ item.model.code }}" required></label><label><span>Тип</span><input name="node_type" value="{{ item.model.node_type }}" required></label><label class="wide"><span>Название</span><input name="name" value="{{ item.model.name }}" required></label><label><span>Параметр условия</span><input name="condition_field" value="{{ item.condition_pair[0] }}"></label><label><span>Значение</span><input name="condition_value" value="{{ item.condition_pair[1] }}"></label><label class="full"><span>Описание</span><textarea name="description">{{ item.model.description or '' }}</textarea></label></div>
+              <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить узел</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Узлы не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить узел</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-node" data-m2-form>
+        {{ hidden_context('nodes') }}<div class="m2-form-grid"><label><span>Код</span><input name="code" required></label><label><span>Тип</span><input name="node_type" required></label><label class="wide"><span>Название</span><input name="name" required></label><label><span>Параметр условия</span><input name="condition_field"></label><label><span>Значение</span><input name="condition_value"></label><label class="full"><span>Описание</span><textarea name="description"></textarea></label></div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить узел</button></div>
+      </form></details>{% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="compatibility">
+      <div class="m2-panel-head"><h2>Совместимость</h2><span class="m2-count">{{ compatibility|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in compatibility %}
+        <article class="m2-record">
+          <div class="m2-record-main"><div><strong>{{ item.relation_label }}</strong><small>{{ item.model.rule_code }}</small></div><div>{{ item.subject }} → {{ item.object }}</div><div>{{ item.conditions|join('; ') if item.conditions else 'Без условий' }}</div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span><small>{{ item.model.reason or 'Причина не указана' }}</small></div><div>{{ knowledge_actions('compatibility', item, 'compatibility') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('compatibility', item.model.id, 'compatibility') }}{% endif %}</div></div>
+          {% if item.conflicts %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Конфликт с действующим правилом</span></div>{% endif %}
+          {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить правило совместимости</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-compatibility" data-m2-form>
+              {{ hidden_context('compatibility', item.model.id) }}
+              <div class="m2-form-grid"><label><span>Код правила</span><input name="rule_code" value="{{ item.model.rule_code }}" required></label><label><span>Результат</span><select name="relation">{% for value, label in [('COMPATIBLE','Совместимо'),('INCOMPATIBLE','Несовместимо'),('CONDITIONAL','Условно совместимо'),('UNKNOWN','Недостаточно данных')] %}<option value="{{ value }}" {% if item.model.relation == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{{ selector_fields('subject', item.subject_form) }}{{ selector_fields('object', item.object_form) }}{{ condition_fields(item.condition_form) }}<label class="full"><span>Причина</span><textarea name="reason">{{ item.model.reason or '' }}</textarea></label><label class="m2-check"><input type="checkbox" name="is_symmetric" {% if item.model.is_symmetric %}checked{% endif %}> Симметричное правило</label><label class="wide"><span>Блокирующие замечания</span><input name="blockers" value="{{ item.model.blockers|join(', ') }}"></label></div>
+              <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить правило</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Правила совместимости не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить правило совместимости</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-compatibility" data-m2-form>
+        {{ hidden_context('compatibility') }}<div class="m2-form-grid"><label><span>Код правила</span><input name="rule_code" required></label><label><span>Результат</span><select name="relation"><option value="COMPATIBLE">Совместимо</option><option value="INCOMPATIBLE">Несовместимо</option><option value="CONDITIONAL">Условно совместимо</option><option value="UNKNOWN">Недостаточно данных</option></select></label>{{ selector_fields('subject') }}{{ selector_fields('object') }}{{ condition_fields() }}<label class="full"><span>Причина</span><textarea name="reason"></textarea></label><label class="m2-check"><input type="checkbox" name="is_symmetric" checked> Симметричное правило</label><label class="wide"><span>Блокирующие замечания</span><input name="blockers"></label></div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить правило</button></div>
+      </form></details>{% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="rules">
+      <div class="m2-panel-head"><h2>Инженерные правила</h2><span class="m2-count">{{ rules|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in rules %}
+        <article class="m2-record">
+          <div class="m2-record-main"><div><strong>{{ item.outcome_label }}</strong><small>{{ item.model.rule_code }}</small></div><div>{{ item.model.scope_kind|replace('_',' ')|lower }}{% if item.model.scope_reference %}: {{ item.model.scope_reference }}{% endif %}</div><div>{{ item.conditions|join('; ') }}</div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span><small>{{ item.outcome or 'Результат не заполнен' }}</small></div><div>{{ knowledge_actions('rule', item, 'rules') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('rule', item.model.id, 'rules') }}{% endif %}</div></div>
+          {% if item.conflicts %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Конфликт с действующим правилом</span></div>{% endif %}
+          {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
+          <details class="m2-editor"><summary>Изменить инженерное правило</summary>
+            <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-rule" data-m2-form>
+              {{ hidden_context('rules', item.model.id) }}
+              <div class="m2-form-grid"><label><span>Код правила</span><input name="rule_code" value="{{ item.model.rule_code }}" required></label><label><span>Область</span><select name="scope_kind">{% for value, label in [('TECHNOLOGY','Технология'),('LAYER','Слой'),('MATERIAL_REQUIREMENT','Требование к материалу'),('NODE','Узел'),('WORK_STEP','Работа'),('CONSUMPTION_NORM','Норма расхода'),('COMPATIBILITY_RULE','Совместимость')] %}<option value="{{ value }}" {% if item.model.scope_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><label><span>Ссылка области</span><input name="scope_reference" value="{{ item.model.scope_reference or '' }}"></label><label><span>Результат</span><select name="outcome_type">{% for value, label in [('REQUIREMENT','Требование'),('WARNING','Предупреждение'),('PROHIBITION','Запрет'),('CONSTRAINT','Ограничение'),('INFORMATION','Информация')] %}<option value="{{ value }}" {% if item.model.outcome_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{{ condition_fields(item.condition_form) }}<label><span>Параметр результата</span><input name="outcome_field" value="{{ item.outcome_pair[0] }}" required></label><label class="wide"><span>Формулировка результата</span><input name="outcome_value" value="{{ item.outcome_pair[1] }}" required></label><label class="full"><span>Блокирующие замечания</span><input name="blockers" value="{{ item.model.blockers|join(', ') }}"></label></div>
+              <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить правило</button></div>
+            </form>
+          </details>
+          {% endif %}
+        </article>
+        {% else %}<div class="m2-empty">Инженерные правила не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить инженерное правило</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-rule" data-m2-form>
+        {{ hidden_context('rules') }}<div class="m2-form-grid"><label><span>Код правила</span><input name="rule_code" required></label><label><span>Область</span><select name="scope_kind"><option value="TECHNOLOGY">Технология</option><option value="LAYER">Слой</option><option value="MATERIAL_REQUIREMENT">Требование к материалу</option><option value="NODE">Узел</option><option value="WORK_STEP">Работа</option><option value="CONSUMPTION_NORM">Норма расхода</option><option value="COMPATIBILITY_RULE">Совместимость</option></select></label><label><span>Ссылка области</span><input name="scope_reference"></label><label><span>Результат</span><select name="outcome_type"><option value="REQUIREMENT">Требование</option><option value="WARNING">Предупреждение</option><option value="PROHIBITION">Запрет</option><option value="CONSTRAINT">Ограничение</option><option value="INFORMATION">Информация</option></select></label>{{ condition_fields() }}<label><span>Параметр результата</span><input name="outcome_field" required></label><label class="wide"><span>Формулировка результата</span><input name="outcome_value" required></label><label class="full"><span>Блокирующие замечания</span><input name="blockers"></label></div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить правило</button></div>
+      </form></details>{% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="evidence">
+      <div class="m2-panel-head"><h2>Evidence M1</h2><span class="m2-count">{{ evidence|length }}</span></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in evidence %}<article class="m2-record"><div class="m2-record-main"><div><strong>{{ item.title }}</strong><small>{{ item.source_type }}</small></div><div>{{ item.target_label }}</div><div><span class="m2-status" data-status="{{ 'ACTIVE' if item.verified else 'REVIEW' }}">{{ 'Подтверждено' if item.verified else 'Ссылка недоступна' }}</span></div><div>{{ item.model.interpretation or 'Интерпретация не добавлена' }}</div>{% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('evidence', item.model.id, 'evidence') }}</div>{% endif %}</div></article>{% else %}<div class="m2-empty">Подтверждения M1 не добавлены.</div>{% endfor %}
+      </div>
+      {% if technology.status == 'DRAFT' and permissions.edit %}
+      <details class="m2-add"><summary>Добавить подтверждение M1</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/add-evidence" data-m2-form>
+        {{ hidden_context('evidence') }}<div class="m2-form-grid"><label class="wide"><span>Документ или ресурс M1</span><select name="source_reference" required><option value="">Не выбран</option>{% for option_id, label in document_options %}<option value="document:{{ option_id }}">Документ · {{ label }}</option>{% endfor %}{% for option_id, label in resource_options %}<option value="resource:{{ option_id }}">Ресурс · {{ label }}</option>{% endfor %}</select></label><label><span>Относится к</span><select name="target_kind"><option value="TECHNOLOGY">Технология</option><option value="LAYER">Слой</option><option value="MATERIAL_REQUIREMENT">Требование</option><option value="NODE">Узел</option><option value="WORK_STEP">Работа</option><option value="CONSUMPTION_NORM">Норма</option><option value="COMPATIBILITY_RULE">Совместимость</option><option value="KNOWLEDGE_RULE">Правило</option></select></label><label><span>Ссылка на запись</span><select name="target_reference"><option value="">Вся технология</option>{% for item in layers %}<option value="{{ item.model.id }}">Слой {{ item.model.position }}</option>{% endfor %}{% for item in requirements %}<option value="{{ item.model.id }}">Требование {{ item.model.code }}</option>{% endfor %}{% for item in nodes %}<option value="{{ item.model.id }}">Узел {{ item.model.code }}</option>{% endfor %}{% for item in work_steps %}<option value="{{ item.model.id }}">Работа {{ item.model.position }}</option>{% endfor %}{% for item in norms %}<option value="{{ item.model.id }}">Норма {{ item.model.norm_code }}</option>{% endfor %}{% for item in compatibility %}<option value="{{ item.model.id }}">Совместимость {{ item.model.rule_code }}</option>{% endfor %}{% for item in rules %}<option value="{{ item.model.id }}">Правило {{ item.model.rule_code }}</option>{% endfor %}</select></label><label class="full"><span>Инженерная интерпретация M2</span><textarea name="interpretation"></textarea></label></div><div class="m2-form-actions"><a class="m2-button ghost" href="/api/v1/admin/material-hub/view/documents">Документы M1</a><button class="m2-button primary" type="submit">Добавить</button></div>
+      </form></details>{% endif %}
+    </section>
+
+    <section class="m2-panel m2-section" id="revisions">
+      <div class="m2-panel-head"><h2>Редакции</h2><span class="m2-count">{{ revisions|length }}</span></div>
+      <div class="m2-table-wrap"><table class="m2-table"><thead><tr><th>Редакция</th><th>Статус</th><th>Создана</th><th>Обновлена</th></tr></thead><tbody>{% for item in revisions %}<tr><td><a class="m2-name-link" href="/api/v1/admin/module2/workbench/{{ item.id }}">№ {{ item.revision }}</a></td><td><span class="m2-status" data-status="{{ item.status }}">{{ item.status|replace('_',' ')|lower }}</span></td><td>{{ item.created_at.strftime('%d.%m.%Y %H:%M') if item.created_at else '—' }}</td><td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td></tr>{% endfor %}</tbody></table></div>
+    </section>
+  </main>
+  {% include "_module2_workbench_scripts.html" %}
+</body>
+</html>

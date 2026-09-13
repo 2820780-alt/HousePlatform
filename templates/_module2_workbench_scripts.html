@@ -1,0 +1,29 @@
+<script>
+  function module2Cookie(name) {
+    const prefix = encodeURIComponent(name) + "=";
+    const value = document.cookie.split("; ").find((item) => item.startsWith(prefix));
+    return value ? decodeURIComponent(value.slice(prefix.length)) : "";
+  }
+
+  document.querySelectorAll("form[data-m2-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector("button[type=submit]");
+      if (submit) submit.disabled = true;
+      const headers = { "Accept": "text/html" };
+      const csrf = module2Cookie("atom_csrf_token");
+      if (csrf) headers["X-CSRF-Token"] = csrf;
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers,
+          credentials: "same-origin"
+        });
+        window.location.assign(response.url || form.action);
+      } catch (_error) {
+        if (submit) submit.disabled = false;
+      }
+    });
+  });
+</script>

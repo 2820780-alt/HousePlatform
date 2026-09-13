@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Technology Workbench · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module2_workbench_styles.html" %}
+</head>
+<body data-atom-page data-rbac-ready data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <main class="m2-shell">
+    <header class="m2-page-head">
+      <div>
+        <div class="m2-eyebrow">Module №2 · Foundation / Beta</div>
+        <h1>Технологии</h1>
+        <p>Редакции, инженерные правила и подтверждения.</p>
+      </div>
+      <div class="m2-actions">
+        <a class="m2-button ghost" href="/api/v1/admin/cabinet/view/modules/2">Паспорт модуля</a>
+        {% if permissions.edit %}
+        <button class="m2-button primary" type="button" onclick="document.getElementById('create-technology').showModal()">Новая технология</button>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
+    {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
+
+    <section class="m2-panel" aria-labelledby="technology-list-title">
+      <div class="m2-panel-head">
+        <h2 id="technology-list-title">Реестр технологий</h2>
+        <span class="m2-count">{{ technologies|length }}</span>
+      </div>
+      <div class="m2-panel-body">
+        <form class="m2-toolbar" method="get">
+          <div class="m2-filter">
+            <input type="search" name="q" value="{{ query }}" placeholder="Название, код или система" aria-label="Поиск технологий">
+            <select name="status" aria-label="Статус технологии">
+              <option value="">Все статусы</option>
+              <option value="DRAFT" {% if status_filter == 'DRAFT' %}selected{% endif %}>Черновик</option>
+              <option value="REVIEW" {% if status_filter == 'REVIEW' %}selected{% endif %}>На проверке</option>
+              <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Действует</option>
+              <option value="ARCHIVED" {% if status_filter == 'ARCHIVED' %}selected{% endif %}>Архив</option>
+            </select>
+            <button class="m2-button" type="submit">Найти</button>
+          </div>
+        </form>
+
+        {% if technologies %}
+        <div class="m2-table-wrap">
+          <table class="m2-table">
+            <thead>
+              <tr>
+                <th>Технология</th>
+                <th>Редакция</th>
+                <th>Статус</th>
+                <th>Система</th>
+                <th>Готовность</th>
+                <th>Обновлена</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in technologies %}
+              <tr>
+                <td>
+                  <a class="m2-name-link" href="/api/v1/admin/module2/workbench/{{ item.id }}">{{ item.name }}</a>
+                  <div class="m2-code">{{ item.code }}</div>
+                </td>
+                <td>№ {{ item.revision }}</td>
+                <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
+                <td>{{ item.system_code }}</td>
+                <td>
+                  {% if item.blocker_count %}
+                  <span class="m2-status" data-status="REVIEW">{{ item.blocker_count }} блок.</span>
+                  {% else %}
+                  <span class="m2-status" data-status="ACTIVE">Без блокеров M1</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="m2-empty">Технологии не найдены.</div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+
+  {% if permissions.edit %}
+  <dialog id="create-technology">
+    <div class="m2-dialog-head">
+      <h2>Новая технология</h2>
+      <button class="m2-button m2-icon-button ghost" type="button" title="Закрыть" aria-label="Закрыть" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <form class="m2-dialog-body" method="post" action="/api/v1/admin/module2/workbench/create" data-m2-form>
+      <div class="m2-form-grid">
+        <label><span>Код</span><input name="technology_code" required pattern="[A-Z][A-Z0-9_]+" placeholder="WALL_SYSTEM"></label>
+        <label class="wide"><span>Название</span><input name="name" required maxlength="255"></label>
+        <label><span>Система</span><input name="system_code" maxlength="120" placeholder="EXTERNAL_WALL"></label>
+        <label class="full"><span>Описание</span><textarea name="description"></textarea></label>
+      </div>
+      <div class="m2-form-actions">
+        <button class="m2-button ghost" type="button" onclick="this.closest('dialog').close()">Отмена</button>
+        <button class="m2-button primary" type="submit">Создать черновик</button>
+      </div>
+    </form>
+  </dialog>
+  {% endif %}
+
+  {% include "_module2_workbench_scripts.html" %}
+</body>
+</html>

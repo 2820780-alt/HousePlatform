@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.2
+# Module №2 / Technology Knowledge Base v1.3
 
 ## Purpose
 
@@ -37,10 +37,12 @@ merged or deprecated by Sprint 2.1-2.2.
 
 ## Current module status
 
-The implemented Technology domain is FOUNDATION and uses the existing platform
-lifecycle value `DRAFT`. No Module №2 route, widget or Quick Action is activated.
-The historical module-registry `ACTIVE` value is a known metadata inconsistency
-to resolve in a separate Module №3 decision.
+The implemented Technology domain and internal Technology Workbench are
+`FOUNDATION / BETA`. The server-rendered contour is available at
+`/api/v1/admin/module2/workbench` when the M2 schema is present. No widget,
+Quick Action or dashboard activation is included. The historical module-registry
+`ACTIVE` value is a known metadata inconsistency to resolve in a separate
+Module №3 decision.
 
 ## Canonical Technology aggregate
 
@@ -215,8 +217,10 @@ The service consumes the existing platform role-access matrix for
 - ADMIN can archive;
 - no separate Module №2 authentication or permissions are introduced.
 
-No API or UI is exposed in this sprint, so server route guards remain future
-work.
+The Workbench applies the same permission guard on every GET and POST route.
+The template hides draft editors and lifecycle actions that the current user
+cannot execute, while backend checks remain authoritative. Legacy application
+role `ADMIN` is normalized to the existing `PLATFORM_ADMIN` matrix role.
 
 ## Persistence and migration
 
@@ -238,6 +242,9 @@ Sprint 2.3-2.4 adds only:
 
 Both migrations are additive and include a manual reverse order. They do not
 seed, alter or delete M1 data.
+
+Sprint 2.5 adds no migration and no new infrastructure. The Workbench uses the
+existing M2 tables, HousePlatform web application and database connection.
 
 ### FUTURE_DEPLOYMENT_BLOCKER
 
@@ -269,12 +276,20 @@ could create M2 tables outside the reviewed migration flow.
 - extended ACTIVE immutability and revision semantics to all knowledge entities;
 - reused the existing platform RBAC without a new auth contour.
 
-## Deferred to Sprint 2.5
+## Implemented in Sprint 2.5
 
-- internal Technology Workbench/moderation UI;
-- draft-oriented internal API and route guards;
-- evidence, validation and conflict-review presentation;
-- golden technology packs only after evidence-backed curation.
+- added server-rendered Technology list, filters, detail and revision history;
+- added structured DRAFT create/edit controls for layers, material requirements,
+  nodes, M1 Work Catalog steps, norms, compatibility and engineering rules;
+- added lifecycle controls with backend and frontend RBAC enforcement;
+- rendered conditions, selectors, norms, blockers and conflicts in human-readable
+  form without a raw JSON editor;
+- added read-only M1 material, taxonomy, document, resource and Work Catalog
+  lookups without creating or changing M1 records;
+- added evidence verification and safe unavailable-reference presentation;
+- kept Technology activation on the shared domain validator; knowledge conflicts
+  remain explicit warnings and block only the relevant knowledge activation;
+- verified the contour against an isolated HousePlatform database.
 
 ## Deferred to Sprint 2.6
 
@@ -290,8 +305,13 @@ object geometry. It does not create Material, MaterialPrice,
 ProviderWorkCostOffer, Supplier, Manufacturer, MaterialDocument or Work Catalog
 records. Runtime AI/LLM generation is forbidden.
 
+The Workbench is an internal HousePlatform contour, not a separate application,
+Compose project, database service or Module №2 container. Live availability is
+still subject to the controlled M2 schema deployment described above.
+
 ## History
 
 - 17.06.2026: v1.0 initial outline.
 - 11.09.2026: v1.1 Sprint 2.1-2.2 boundary lock and Technology foundation.
 - 13.09.2026: v1.2 Sprint 2.3-2.4 evidence, norms and knowledge rules foundation.
+- 13.09.2026: v1.3 Sprint 2.5 Technology Workbench and guarded moderation UI.

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.access_levels import AccessLevel
+from app.core.permission_guard import LEGACY_ROLE_ALIASES
 from app.core.role_access_matrix import STARTER_ROLE_MODULE_ACCESS
 from app.models.module2_technology import (
     MODULE2_OWNER_CODE,
@@ -239,13 +240,24 @@ def transition_technology(
     require_module2_access(actor_role_code, required_access)
 
     if target_status == TechnologyLifecycle.ACTIVE:
+        blockers = validate_technology_activation(technology)
         if technology.input_missing_fields or technology.input_blockers:
             raise Module2TechnologyError("incomplete M1 input cannot activate a technology")
-        if not technology.layers:
+        if "missing_layer" in blockers:
             raise Module2TechnologyError("technology requires at least one layer before activation")
 
     technology.status = target_status.value
     return technology
+
+
+def validate_technology_activation(technology: Technology) -> tuple[str, ...]:
+    blockers = [
+        *(f"missing_m1_field:{item}" for item in technology.input_missing_fields or ()),
+        *(f"m1_blocker:{item}" for item in technology.input_blockers or ()),
+    ]
+    if not technology.layers:
+        blockers.append("missing_layer")
+    return _unique(blockers)
 
 
 def create_next_revision(
@@ -401,7 +413,8 @@ def require_module2_access(role_code: str, required: AccessLevel) -> None:
 
 
 def _module2_access_level(role_code: str) -> AccessLevel:
-    normalized = str(role_code).upper()
+    raw_role_code = str(role_code).upper()
+    normalized = LEGACY_ROLE_ALIASES.get(raw_role_code, raw_role_code)
     levels = [
         AccessLevel(rule.accessLevel)
         for rule in STARTER_ROLE_MODULE_ACCESS
