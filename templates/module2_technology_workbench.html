@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Technology Workbench · АТОМ</title>
   {% include "_atom_ui_standards.html" %}
+  {% include "_atom_quick_action_menu.html" %}
   {% include "_module2_workbench_styles.html" %}
 </head>
 <body data-atom-page data-rbac-ready data-module2-workbench>
@@ -19,10 +20,35 @@
       <div class="m2-actions">
         <a class="m2-button ghost" href="/api/v1/admin/cabinet/view/modules/2">Паспорт модуля</a>
         {% if permissions.edit %}
-        <button class="m2-button primary" type="button" onclick="document.getElementById('create-technology').showModal()">Новая технология</button>
+        <div class="atom-action-with-menu">
+          <button
+            id="quick-action-create-technology-draft"
+            class="m2-button primary"
+            type="button"
+            onclick="document.getElementById('create-technology').showModal()"
+            data-quick-action-candidate
+            data-quick-action-source-module-code="MODULE_02_KNOWLEDGE_BASE"
+            data-quick-action-feature-code="TECHNOLOGY_CONSTRUCTION_GROUPS"
+            data-quick-action-key="EDIT"
+            data-quick-action-permission-key="EDIT"
+            data-quick-action-title="Новая технология"
+            data-quick-action-route="/api/v1/admin/module2/workbench?create=1"
+            data-quick-action-icon="plus"
+            data-quick-action-atom-card-accent="green"
+          >Новая технология</button>
+          <button
+            class="atom-quick-action-menu-button"
+            type="button"
+            aria-label="Меню быстрого действия"
+            title="Меню быстрого действия"
+            data-quick-action-menu-for="quick-action-create-technology-draft"
+          ></button>
+        </div>
         {% endif %}
       </div>
     </header>
+
+    <div class="atom-module-quick-actions" data-quick-action-module-bar="MODULE_02_KNOWLEDGE_BASE"></div>
 
     {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
     {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
@@ -64,7 +90,20 @@
               {% for item in technologies %}
               <tr>
                 <td>
-                  <a class="m2-name-link" href="/api/v1/admin/module2/workbench/{{ item.id }}">{{ item.name }}</a>
+                  <a
+                    class="m2-name-link"
+                    href="/api/v1/admin/module2/workbench/{{ item.id }}"
+                    data-quick-action-candidate
+                    data-quick-action-source-module-code="MODULE_02_KNOWLEDGE_BASE"
+                    data-quick-action-feature-code="TECHNOLOGY_CONSTRUCTION_GROUPS"
+                    data-quick-action-key="VIEW"
+                    data-quick-action-permission-key="VIEW"
+                    data-quick-action-title="Открыть технологию: {{ item.name }}"
+                    data-quick-action-route="/api/v1/admin/module2/workbench/{{ item.id }}"
+                    data-quick-action-config-snapshot='{"technologyId":"{{ item.id }}"}'
+                    data-quick-action-icon="workflow"
+                    data-quick-action-atom-card-accent="green"
+                  >{{ item.name }}</a>
                   <div class="m2-code">{{ item.code }}</div>
                 </td>
                 <td>№ {{ item.revision }}</td>

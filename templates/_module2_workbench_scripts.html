@@ -28,4 +28,13 @@
       }
     });
   });
+
+  const createTechnologyDialog = document.getElementById("create-technology");
+  if (
+    createTechnologyDialog
+    && new URLSearchParams(window.location.search).get("create") === "1"
+    && !createTechnologyDialog.open
+  ) {
+    createTechnologyDialog.showModal();
+  }
 </script>

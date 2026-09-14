@@ -9,6 +9,7 @@ from app.services.dashboard_module_registry import (
     normalize_dashboard_layout,
     resolve_module_route,
 )
+from app.api.v1.admin_cabinet_view import _module_passports
 
 
 def test_price_history_legacy_module_resolves_to_analytics_feature():
@@ -112,6 +113,18 @@ def test_construction_groups_are_deprecated_material_hub_feature_alias():
     assert "CONSTRUCTION_APPLICABILITY" in material_hub.featureCodes
     assert knowledge_base is not None
     assert "TECHNOLOGY_CONSTRUCTION_GROUPS" in knowledge_base.featureCodes
+
+
+def test_module2_registry_and_passport_open_the_beta_workbench():
+    knowledge_base = get_dashboard_module_registry_item("MODULE_02_KNOWLEDGE_BASE")
+    passports = _module_passports(0, 0, 0, 0, 0, {"market": "empty", "categories": 0})
+    passport = next(item for item in passports if item["number"] == 2)
+
+    assert knowledge_base is not None
+    assert knowledge_base.route == "/api/v1/admin/module2/workbench"
+    assert knowledge_base.moduleOwnedWidgets == ["MODULE_02_TECHNOLOGY_READINESS_WIDGET"]
+    assert passport["status"] == "Foundation / Beta"
+    assert passport["href"] == "/api/v1/admin/module2/workbench"
 
 
 def test_legacy_admin_cabinet_is_deprecated_context_alias_not_active_module_16():

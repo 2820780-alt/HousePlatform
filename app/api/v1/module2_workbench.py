@@ -33,6 +33,7 @@ from app.services.module2_knowledge_foundation import (
     transition_knowledge_rule,
     verify_evidence_references,
 )
+from app.services.module2_operational_widgets import build_technology_readiness_widget
 from app.services.module2_technology_foundation import (
     build_draft_technology,
     create_next_revision,
@@ -108,6 +109,11 @@ async def technology_workbench_create(request: Request, db: DBSession, user: Cur
         await db.rollback()
         return _redirect_list(error=_human_error(exc))
     return _redirect_detail(technology.id, notice="Черновик технологии создан.")
+
+
+@router.get("/widgets/technology-readiness")
+async def technology_readiness_widget(db: DBSession, user: CurrentUser):
+    return await build_technology_readiness_widget(db, user)
 
 
 @router.get("/{technology_id}", response_class=HTMLResponse)

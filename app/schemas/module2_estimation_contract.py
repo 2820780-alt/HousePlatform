@@ -97,6 +97,7 @@ class EstimationWorkStep(EstimationContractModel):
     work_step_id: UUID
     order: int = Field(ge=1)
     work_code: str
+    work_group: str | None = None
     applicability_expression: str | None = None
     dependency_step_codes: tuple[str, ...] = tuple()
     consumption_norm_ids: tuple[UUID, ...] = tuple()

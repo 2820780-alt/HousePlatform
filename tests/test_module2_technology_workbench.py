@@ -10,15 +10,18 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.api.v1.module2_workbench import router
+from app.api.v1.user_module_quick_actions import router as quick_action_router
 from app.core.exceptions import ForbiddenError
 from app.database import engine, get_db
 from app.models.enums import UserRole
 from app.models.module2_technology import TechnologyEvidenceReference
 from app.models.user import User
+from app.models.user_module_quick_action import UserModuleQuickAction
 from app.schemas.module2_knowledge import ConsumptionNormDraftInput, KnowledgeSelectorInput
 from app.schemas.module2_technology import (
     MaterialRequirementSelector,
@@ -56,6 +59,7 @@ from app.services.module2_workbench import (
 ROOT = Path(__file__).resolve().parents[1]
 ADMIN = SimpleNamespace(id=uuid4(), role=UserRole.ADMIN)
 VIEWER = SimpleNamespace(id=uuid4(), role="ANALYST")
+SUPPLIER = SimpleNamespace(id=ADMIN.id, role=UserRole.SUPPLIER)
 
 
 def _draft(*, with_layer: bool = True, with_work: bool = False):
@@ -122,6 +126,7 @@ async def _session():
 def _app(session: AsyncSession, user=ADMIN) -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
+    app.include_router(quick_action_router, prefix="/api/v1")
 
     async def session_override():
         yield session
@@ -217,6 +222,106 @@ async def test_viewer_can_open_but_cannot_create_or_edit() -> None:
             "approve": False,
             "admin": False,
         }
+
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_readiness_widget_uses_real_data_and_enforces_module_rbac() -> None:
+    async with _session() as session:
+        technology = _draft()
+        await persist_technology_draft(session, technology)
+        await session.flush()
+
+        admin_app = _app(session)
+        admin_transport = httpx.ASGITransport(app=admin_app)
+        async with httpx.AsyncClient(transport=admin_transport, base_url="http://test") as client:
+            response = await client.get(
+                "/api/v1/admin/module2/workbench/widgets/technology-readiness"
+            )
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["widgetCode"] == "MODULE_02_TECHNOLOGY_READINESS_WIDGET"
+        assert payload["sourceModuleCode"] == "MODULE_02_KNOWLEDGE_BASE"
+        assert payload["primaryValue"] >= 1
+        assert next(item for item in payload["items"] if item["label"] == "DRAFT")["value"] >= 1
+
+        supplier_app = _app(session, SUPPLIER)
+        supplier_transport = httpx.ASGITransport(app=supplier_app)
+        async with httpx.AsyncClient(transport=supplier_transport, base_url="http://test") as client:
+            denied = await client.get(
+                "/api/v1/admin/module2/workbench/widgets/technology-readiness"
+            )
+        assert denied.status_code == 403
+
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_module2_quick_action_is_user_owned_persisted_and_rechecked_on_run() -> None:
+    async with _session() as session:
+        technology = _draft()
+        await persist_technology_draft(session, technology)
+        await session.flush()
+        before = await session.scalar(select(func.count()).select_from(UserModuleQuickAction))
+
+        admin_app = _app(session)
+        admin_transport = httpx.ASGITransport(app=admin_app)
+        async with httpx.AsyncClient(transport=admin_transport, base_url="http://test") as client:
+            listing = await client.get("/api/v1/admin/module2/workbench")
+            detail = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}")
+            created = await client.post(
+                "/api/v1/quick-actions/user-module",
+                json={
+                    "sourceModuleCode": "MODULE_02_KNOWLEDGE_BASE",
+                    "featureCode": "TECHNOLOGY_CONSTRUCTION_GROUPS",
+                    "actionKey": "EDIT",
+                    "title": "Новая технология",
+                    "route": "/api/v1/admin/module2/workbench?create=1",
+                    "configSnapshot": {"permissionKey": "EDIT"},
+                    "atomCardAccent": "green",
+                },
+            )
+            assert created.status_code == 201
+            action_id = created.json()["quickActionId"]
+            pinned = await client.post(
+                f"/api/v1/quick-actions/user-module/{action_id}/pin-atom-card"
+                "?sourceModuleCode=MODULE_02_KNOWLEDGE_BASE",
+                json={"atomCardAccent": "green"},
+            )
+            run = await client.post(
+                f"/api/v1/quick-actions/user-module/{action_id}/run",
+                json={
+                    "sourceModuleCode": "MODULE_02_KNOWLEDGE_BASE",
+                    "actionKey": "EDIT",
+                },
+            )
+
+        assert before == 0
+        assert "data-quick-action-module-bar=\"MODULE_02_KNOWLEDGE_BASE\"" in listing.text
+        assert f"data-quick-action-route=\"/api/v1/admin/module2/workbench/{technology.id}\"" in listing.text
+        assert "data-quick-action-title=\"Открыть реестр технологий\"" in detail.text
+        assert pinned.status_code == 200
+        assert pinned.json()["isPinnedToAtomCard"] is True
+        assert pinned.json()["route"] == "/api/v1/admin/module2/workbench?create=1"
+        assert run.status_code == 200
+        assert run.json()["status"] == "OPEN_MODULE_HANDLER"
+        assert run.json()["route"] == "/api/v1/admin/module2/workbench?create=1"
+
+        persisted = await session.get(UserModuleQuickAction, UUID(action_id))
+        assert persisted is not None
+        assert persisted.user_id == ADMIN.id
+        assert persisted.source_module_code == "MODULE_02_KNOWLEDGE_BASE"
+        assert persisted.is_pinned_to_atom_card is True
+
+        supplier_app = _app(session, SUPPLIER)
+        supplier_transport = httpx.ASGITransport(app=supplier_app)
+        async with httpx.AsyncClient(transport=supplier_transport, base_url="http://test") as client:
+            denied = await client.post(
+                f"/api/v1/quick-actions/user-module/{action_id}/run",
+                json={
+                    "sourceModuleCode": "MODULE_02_KNOWLEDGE_BASE",
+                    "actionKey": "EDIT",
+                },
+            )
+        assert denied.status_code == 403
 
 
 def test_draft_structure_mutations_validate_order_and_m1_work_catalog() -> None:
@@ -409,7 +514,16 @@ def test_templates_cover_workbench_sections_without_raw_json_editor() -> None:
     assert "application/json" not in detail
     assert "JSON.stringify" not in detail
     assert "Итого на дом" not in detail
-    assert "data-quick-action-candidate" not in detail
+    assert "data-quick-action-candidate" in detail
+    assert "data-quick-action-candidate" in listing
+    assert "_atom_quick_action_menu.html" in detail
+    assert "_atom_quick_action_menu.html" in listing
+    assert 'data-quick-action-key="EDIT"' in listing
+    assert 'data-quick-action-key="VIEW"' in detail
+    assert "data-quick-action-config-snapshot" in listing
+    assert "new URLSearchParams(window.location.search)" in scripts
+    quick_action_menu = (ROOT / "templates" / "_atom_quick_action_menu.html").read_text(encoding="utf-8")
+    assert 'document.createElement(item.status === "ACTIVE" && (item.deepLink || item.route) ? "a" : "button")' in quick_action_menu
     assert "transition-knowledge" in detail
     assert "Готовность к активации" in detail
     assert "Входные данные M1" in listing

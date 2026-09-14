@@ -15,6 +15,10 @@ PLANNED_STATUSES = {"planned", "draft"}
 HIDDEN_ACTIVE_STATUSES = {"disabled", "deprecated", "archived", "merged"}
 
 
+MODULE_02_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
+    "MODULE_02_TECHNOLOGY_READINESS_WIDGET",
+)
+
 MODULE_03_DASHBOARD_WIDGET_CODES: tuple[str, ...] = (
     "MODULE_03_USERS_SUMMARY_WIDGET",
     "MODULE_03_MODERATION_QUEUE_WIDGET",
@@ -189,12 +193,13 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         "База знаний",
         number=2,
         order=20,
-        route="/api/v1/admin/cabinet/view/modules/2",
+        route="/api/v1/admin/module2/workbench",
         short_title="Знания",
         description="Технологии, нормы, документы и правила применения.",
         icon="file-text",
         color="#22c55e",
         feature_codes=["TECHNOLOGY_CONSTRUCTION_GROUPS"],
+        module_owned_widgets=list(MODULE_02_DASHBOARD_WIDGET_CODES),
     ),
     _registry_item(
         "MODULE_03_USERS_ROLES",

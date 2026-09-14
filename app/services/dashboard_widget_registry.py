@@ -5,6 +5,7 @@ from typing import Any
 
 from app.services.dashboard_module_registry import (
     ACTIVE_STATUS,
+    MODULE_02_DASHBOARD_WIDGET_CODES,
     get_canonical_module_code,
     get_dashboard_module_registry_item,
     resolve_module_route,
@@ -149,6 +150,20 @@ def _payload_source_for_widget(
 
 
 DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
+    _widget_item(
+        widget_code=MODULE_02_DASHBOARD_WIDGET_CODES[0],
+        title="Готовность базы технологий",
+        description="Состояние редакций технологий и блокирующих причин активации.",
+        widget_type="STATUS",
+        source_module_code="MODULE_02_KNOWLEDGE_BASE",
+        component_key="Module02TechnologyReadinessWidget",
+        status="disabled",
+        feature_code="TECHNOLOGY_CONSTRUCTION_GROUPS",
+        required_permissions=["VIEW"],
+        route_to_source_module="/api/v1/admin/module2/workbench",
+        planned_reason="Foundation / Beta: activation requires a formal widget lifecycle decision.",
+        supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
+    ),
     _widget_item(
         widget_code="MODULE_01_MATERIALS_REQUIRING_ATTENTION_WIDGET",
         title="Материалы, требующие внимания",

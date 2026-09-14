@@ -293,7 +293,10 @@ async def test_active_revision_builds_ready_typed_estimation_input() -> None:
         assert package.consumption_norms[0].quantity_basis == QuantityBasis.AREA
         assert package.consumption_norms[0].basis_quantity == 1
         assert package.consumption_norms[0].consumption_quantity == 5
-        assert package.work_steps[0].work_code == list_work_items()[0].work_code
+        work_item = list_work_items()[0]
+        assert package.work_steps[0].work_code == work_item.work_code
+        assert package.work_steps[0].work_group == work_item.work_group
+        assert package.work_steps[0].order == 1
         assert package.work_steps[0].consumption_norm_ids == (
             package.consumption_norms[0].norm_id,
         )
@@ -313,6 +316,9 @@ async def test_contract_serialization_round_trip_preserves_revision_and_traceabi
 
         assert restored == package
         assert restored.technology.technology_id == technology.id
+        assert restored.work_steps[0].work_group == package.work_steps[0].work_group
+        assert restored.work_steps[0].work_code == package.work_steps[0].work_code
+        assert restored.work_steps[0].order == package.work_steps[0].order
         assert restored.consumption_norms[0].evidence_reference_ids
         assert set(restored.consumption_norms[0].evidence_reference_ids).issubset(
             {item.evidence_reference_id for item in restored.evidence_references}
@@ -400,6 +406,20 @@ async def test_builder_is_read_only_and_creates_no_m5_records() -> None:
 
 
 @pytest.mark.asyncio(loop_scope="module")
+async def test_unknown_work_code_has_no_invented_group_and_returns_blocker() -> None:
+    async with _session() as session:
+        technology, _ = await _persist_active_fixture(session)
+        technology.work_steps[0].work_code = "UNKNOWN_M1_WORK_CODE"
+        await session.flush()
+
+        package = await build_module5_estimation_input_package(session, technology.id)
+
+        assert package.work_steps[0].work_group is None
+        assert "unknown_m1_work_code" in package.work_steps[0].blockers
+        assert any(issue.code == "unknown_m1_work_code" for issue in package.blockers)
+
+
+@pytest.mark.asyncio(loop_scope="module")
 async def test_package_remains_pinned_when_a_new_revision_is_created() -> None:
     async with _session() as session:
         technology, _ = await _persist_active_fixture(session)
@@ -481,3 +501,12 @@ def test_contract_boundary_has_no_estimate_persistence_or_commercial_ownership()
         "Procurement(",
     ):
         assert forbidden not in combined
+
+
+def test_contract_does_not_define_a_module2_work_catalog_clone() -> None:
+    schema_source = (ROOT / "app" / "schemas" / "module2_estimation_contract.py").read_text(encoding="utf-8")
+    service_source = (ROOT / "app" / "services" / "module2_estimation_export.py").read_text(encoding="utf-8")
+
+    assert "class WorkGroup" not in schema_source + service_source
+    assert "class WorkItem" not in schema_source + service_source
+    assert "get_work_item(step.work_code)" in service_source

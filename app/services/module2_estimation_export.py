@@ -203,7 +203,8 @@ async def build_module5_estimation_input_package(
     work_steps = []
     for step in sorted(technology.work_steps, key=lambda item: (item.position, str(item.id))):
         local_blockers = []
-        if get_work_item(step.work_code) is None:
+        work_item = get_work_item(step.work_code)
+        if work_item is None:
             local_blockers.append("unknown_m1_work_code")
         local_blockers = _record_local_blockers(
             blockers,
@@ -216,6 +217,7 @@ async def build_module5_estimation_input_package(
                 work_step_id=step.id,
                 order=step.position,
                 work_code=step.work_code,
+                work_group=work_item.work_group if work_item else None,
                 applicability_expression=step.applicability_expression,
                 dependency_step_codes=tuple(step.dependency_step_codes or ()),
                 consumption_norm_ids=tuple(sorted(norm_ids_by_work_step.get(step.id, ()), key=str)),

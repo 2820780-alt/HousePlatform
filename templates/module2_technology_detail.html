@@ -99,6 +99,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ technology.name }} · Technology Workbench</title>
   {% include "_atom_ui_standards.html" %}
+  {% include "_atom_quick_action_menu.html" %}
   {% include "_module2_workbench_styles.html" %}
 </head>
 <body data-atom-page data-rbac-ready data-module2-workbench>
@@ -115,7 +116,19 @@
         </div>
       </div>
       <div class="m2-actions">
-        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench">К списку</a>
+        <a
+          class="m2-button ghost"
+          href="/api/v1/admin/module2/workbench"
+          data-quick-action-candidate
+          data-quick-action-source-module-code="MODULE_02_KNOWLEDGE_BASE"
+          data-quick-action-feature-code="TECHNOLOGY_CONSTRUCTION_GROUPS"
+          data-quick-action-key="VIEW"
+          data-quick-action-permission-key="VIEW"
+          data-quick-action-title="Открыть реестр технологий"
+          data-quick-action-route="/api/v1/admin/module2/workbench"
+          data-quick-action-icon="list"
+          data-quick-action-atom-card-accent="green"
+        >К списку</a>
         {% if technology.status == 'DRAFT' and permissions.edit %}
         <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
           {{ hidden_context('general') }}<input type="hidden" name="target" value="REVIEW">
@@ -143,6 +156,8 @@
         {% endif %}
       </div>
     </header>
+
+    <div class="atom-module-quick-actions" data-quick-action-module-bar="MODULE_02_KNOWLEDGE_BASE"></div>
 
     {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
     {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}

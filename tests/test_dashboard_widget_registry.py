@@ -1,5 +1,6 @@
 from app.services.dashboard_widget_registry import (
     DASHBOARD_WIDGET_REGISTRY_LAYER,
+    PAYLOAD_SOURCE_MODULE_OWNED,
     PAYLOAD_SOURCE_MODULE_OWNED_MOCK,
     PAYLOAD_SOURCE_PLANNED_MODULE,
     PAYLOAD_SOURCE_SYSTEM_CONTEXT,
@@ -75,6 +76,35 @@ def test_widget_registry_is_marked_as_aggregator_not_business_owner():
     assert all(widget["isBusinessLogicOwner"] is False for widget in registry)
     assert all(widget["payloadOwnerModuleCode"] for widget in registry)
     assert all("temporary aggregator" in widget["compatibilityNote"] for widget in registry)
+
+
+def test_module2_readiness_widget_is_real_but_hidden_during_beta():
+    widget = get_dashboard_widget_registry_item("MODULE_02_TECHNOLOGY_READINESS_WIDGET")
+
+    assert widget is not None
+    assert widget.sourceModuleCode == "MODULE_02_KNOWLEDGE_BASE"
+    assert widget.payloadOwnerModuleCode == "MODULE_02_KNOWLEDGE_BASE"
+    assert widget.payloadSource == PAYLOAD_SOURCE_MODULE_OWNED
+    assert widget.status == "disabled"
+    assert widget.isEnabledByDefault is False
+    assert widget.mockDataProvider is None
+    assert widget.type == "STATUS"
+    assert widget.type != "ACTIONS"
+    assert widget.defaultSettings == {}
+    assert widget.availableSettings == {}
+    assert widget.requiredPermissions == ["VIEW"]
+    assert widget.routeToSourceModule == "/api/v1/admin/module2/workbench"
+
+    profile = {
+        "roleCode": "ADMIN",
+        "authMode": "mock",
+        "allowedModuleCodes": ["MODULE_02_KNOWLEDGE_BASE"],
+        "allowedWidgetCodes": [widget.widgetCode],
+    }
+    assert widget.widgetCode not in {
+        item["widgetCode"] for item in get_available_dashboard_widgets(profile)
+    }
+    assert get_quick_action_registry_items_for_module("MODULE_02_KNOWLEDGE_BASE") == []
 
 
 def test_legacy_admin_cabinet_allowed_module_is_canonicalized_for_widgets():

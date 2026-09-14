@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.5
+# Module №2 / Technology Knowledge Base v1.6
 
 ## Purpose
 
@@ -39,17 +39,19 @@ merged or deprecated by Sprint 2.1-2.2.
 
 The implemented Technology domain, internal Technology Workbench and read-only
 M2-to-M5 estimation input contract are `FOUNDATION / BETA`. The server-rendered contour is available at
-`/api/v1/admin/module2/workbench` when the M2 schema is present. No widget,
-Quick Action or dashboard activation is included. The historical module-registry
-`ACTIVE` value is a known metadata inconsistency to resolve in a separate
-Module №3 decision.
+`/api/v1/admin/module2/workbench` when the M2 schema is present. The passport and
+module route now open that contour. One real module-owned readiness payload and
+safe user-owned Quick Action candidates are implemented. The widget remains
+`DISABLED` and hidden because the common registry has no `BETA` lifecycle. The
+historical module-registry `ACTIVE` value remains a metadata limitation to resolve
+in a separate Module №3 decision.
 
 ## Sprint 2.7 action and widget review
 
-The formal Module №2 widget and Quick Action inventory is empty in both the
-code registries and the inspected HousePlatform database. The Technology
-Workbench contains contextual controls, not dashboard widgets or saved Quick
-Actions. No estimate-like or M5 action is exposed.
+The initial Sprint 2.7 audit found an empty formal Module №2 widget inventory and
+no M2-specific Quick Action candidates. Corrective 2.7.C closes the useful parts
+of that gap without adding a module-specific persistence layer. No estimate-like
+or M5 action is exposed.
 
 | Surface | Existing action | Lifecycle / RBAC result | Sprint 2.7 decision |
 | --- | --- | --- | --- |
@@ -60,14 +62,16 @@ Actions. No estimate-like or M5 action is exposed.
 | Knowledge records | Submit review, return to DRAFT, activate, archive | EDIT / APPROVE / ADMIN; blockers disable activation | Keep; clarify labels and confirm archive |
 | Readiness panels | M1 input blockers and Technology activation blockers | Read-only | Clarify scope; not M5 calculation readiness |
 
-The generic Module №2 passport still reports `Запланирован` and has no Workbench
-route. This is a discoverability/registry metadata gap, but the common dashboard
-and Module №3-owned registry contour is intentionally unchanged in Sprint 2.7.
+The generic Module №2 passport reports `Foundation / Beta` and opens the existing
+Workbench. The common module registry resolves the same route.
 
-No widget is added merely to fill the dashboard. A future attention widget may
-be useful only after its product payload and ownership are approved. A saved
-Quick Action for opening the registry or creating a DRAFT also remains a product
-decision; no action that implies M5 calculation is allowed before M5 exists.
+The single readiness widget is backed by real Technology records and module RBAC.
+Its registry definition is deliberately disabled, has no mock provider, no default
+settings and no automatic placement. The Workbench exposes safe candidates for
+opening the registry, opening a concrete Technology and creating a DRAFT. Saving,
+pinning and running those shortcuts uses the existing user-owned platform service;
+no default or seeded Quick Action is created. Lifecycle transitions, delete,
+archive and M5-like actions are not Quick Action candidates.
 
 ## Canonical Technology aggregate
 
@@ -142,21 +146,21 @@ There are no stage, substage or operation entities in the current M1 catalog.
 
 | Level | Entity / model | Stable identity | Ordering | Lifecycle | Technology / M2 usage | M2-to-M5 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `WorkGroup` | `work_group`; `work_category` is display text | Seed list order only; no explicit position | No status field; loaded entries are available | Resolved from M1 through each work item's `work_group`; not copied into M2 | Recoverable from M1 by `work_code`; not duplicated in package |
-| 2 | `WorkItem` | `work_code`; `work_name` is display text | Seed list order only; no explicit position | No status field; inactive state is not represented | `TechnologyWorkStep.work_code` is validated against M1; Technology owns only its step `position`, conditions, dependencies and instructions | Sends `work_step_id`, `order` and stable `work_code`, never display name as identity |
+| 1 | `WorkGroup` | `work_group`; `work_category` is display text | Seed list order only; no explicit position | No status field; loaded entries are available | Resolved from M1 through each work item's `work_group`; not copied into M2 | Sends stable `work_group`, resolved read-only from M1 by `work_code` |
+| 2 | `WorkItem` | `work_code`; `work_name` is display text | Seed list order only; no explicit position | No status field; inactive state is not represented | `TechnologyWorkStep.work_code` is validated against M1; Technology owns only its step `position`, conditions, dependencies and instructions | Sends `work_step_id`, `order`, stable `work_code` and its M1 `work_group`, never display name as identity |
 
 The catalog currently contains 24 groups and 209 work items. M2 renders the
 Technology work composition by resolving names from M1, stores no copied catalog
 name/category, and preserves Technology-specific work order in
-`TechnologyWorkStep.position`. The estimation package preserves that order and
-the stable M1 `work_code`, so a consumer can resolve the canonical group and
-item from M1 without a duplicate M2 catalog.
+`TechnologyWorkStep.position`. The estimation package preserves that order, the
+stable M1 `work_code` and its read-only resolved `work_group`. An unknown code
+produces `unknown_m1_work_code`, leaves `work_group` empty and never invents a
+catalog value.
 
 Gaps recorded for later decision: M1 has no explicit catalog ordering field,
 lifecycle/status or stage/substage/operation hierarchy; the M2 selector is flat;
-the estimation package references hierarchy through `work_code` rather than
-embedding a catalog snapshot or catalog version. Sprint 2.7 does not invent or
-persist any of those missing concepts.
+the estimation package has no catalog snapshot or catalog version. Sprint 2.7
+does not invent or persist any of those missing concepts.
 
 ## ConsumptionNorm
 
@@ -358,7 +362,7 @@ The package pins one exact ACTIVE Technology identity and revision and carries:
 
 - material requirements as selectors or canonical M1 references, never Material copies;
 - ordered layers and their engineering restrictions;
-- ordered M1 Work Catalog codes and applicability expressions;
+- ordered M1 Work Catalog codes, stable groups and applicability expressions;
 - ACTIVE relative consumption norms with explicit quantities and units;
 - calculation-relevant ACTIVE compatibility and knowledge constraints;
 - scoped M1 evidence references, verification state, structured blockers and warnings.
@@ -400,15 +404,28 @@ remain outside Module №2.
 - added explicit confirmation for delete and archive actions;
 - distinguished M1 input completeness and Technology activation readiness from M5 readiness;
 - documented the actual two-level M1 Work Catalog and its M2/M5 references;
-- added no dashboard widget, Quick Action, estimate action, migration or M5 behavior.
+- added no estimate action, migration or M5 behavior.
+
+## Corrective 2.7.C
+
+- amended contract version `1` in place because no deployed M5 consumer exists;
+- resolved `work_code -> WorkItem -> work_group` through the read-only M1 service;
+- preserved `work_step_id`, Technology step order and stable catalog identities;
+- registered one real M2 readiness widget and kept it `DISABLED` during Beta;
+- added a real RBAC-protected payload endpoint with DRAFT, REVIEW, ACTIVE,
+  ARCHIVED and activation-blocker counts;
+- connected safe Workbench GET/create-DRAFT candidates to the existing user-owned
+  Quick Action persistence, pinning and run flow without defaults or seeds;
+- aligned the passport and canonical module route with Technology Workbench;
+- retained `Foundation / Beta` product semantics and added no database migration.
 
 ## Deferred after Sprint 2.7
 
 - M5 quantity application, conversions, waste, rounding and calculation trace;
 - M5 estimate persistence, line items, pricing and totals;
 - project/object geometry input and selected-material recalculation;
-- Module №2 attention widget and saved Quick Actions, pending product and registry ownership decisions.
-- Module №2 passport route/status alignment in the common dashboard registry contour.
+- formal `BETA` lifecycle support in the common module/widget registry;
+- activation and dashboard placement of the readiness widget after that lifecycle decision;
 - explicit Work Catalog ordering, lifecycle and deeper hierarchy, pending an M1 domain decision.
 
 ## Non-goals and guards
@@ -430,3 +447,4 @@ still subject to the controlled M2 schema deployment described above.
 - 13.09.2026: v1.3 Sprint 2.5 Technology Workbench and guarded moderation UI.
 - 13.09.2026: v1.4 Sprint 2.6 typed read-only M2-to-M5 estimation input contract.
 - 14.09.2026: v1.5 Sprint 2.7 action/widget review and M1 Work Catalog composition audit.
+- 14.09.2026: v1.6 Corrective 2.7.C hierarchy preservation, readiness widget, Quick Actions and navigation closure.
