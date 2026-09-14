@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.4
+# Module №2 / Technology Knowledge Base v1.5
 
 ## Purpose
 
@@ -43,6 +43,31 @@ M2-to-M5 estimation input contract are `FOUNDATION / BETA`. The server-rendered 
 Quick Action or dashboard activation is included. The historical module-registry
 `ACTIVE` value is a known metadata inconsistency to resolve in a separate
 Module №3 decision.
+
+## Sprint 2.7 action and widget review
+
+The formal Module №2 widget and Quick Action inventory is empty in both the
+code registries and the inspected HousePlatform database. The Technology
+Workbench contains contextual controls, not dashboard widgets or saved Quick
+Actions. No estimate-like or M5 action is exposed.
+
+| Surface | Existing action | Lifecycle / RBAC result | Sprint 2.7 decision |
+| --- | --- | --- | --- |
+| Technology list | Create DRAFT, search, status filter, open detail | Create requires EDIT | Keep |
+| Technology header | Submit review, return to DRAFT, activate, create revision, archive | EDIT / APPROVE / ADMIN; backend transition guard is authoritative | Keep; confirm archive |
+| DRAFT composition | Create, edit, delete requirements, layers, nodes, work steps and evidence | DRAFT plus EDIT | Keep; confirm delete |
+| Ordered composition | Move layers and work steps | DRAFT plus EDIT; shared move service | Expose existing work-step move control |
+| Knowledge records | Submit review, return to DRAFT, activate, archive | EDIT / APPROVE / ADMIN; blockers disable activation | Keep; clarify labels and confirm archive |
+| Readiness panels | M1 input blockers and Technology activation blockers | Read-only | Clarify scope; not M5 calculation readiness |
+
+The generic Module №2 passport still reports `Запланирован` and has no Workbench
+route. This is a discoverability/registry metadata gap, but the common dashboard
+and Module №3-owned registry contour is intentionally unchanged in Sprint 2.7.
+
+No widget is added merely to fill the dashboard. A future attention widget may
+be useful only after its product payload and ownership are approved. A saved
+Quick Action for opening the registry or creating a DRAFT also remains a product
+decision; no action that implies M5 calculation is allowed before M5 exists.
 
 ## Canonical Technology aggregate
 
@@ -105,6 +130,33 @@ constructor is included.
 It stores only the existing M1 `work_code`; creation validates the code through
 the read-only Work Catalog service. It cannot create or modify Work Catalog
 items and contains no provider work cost.
+
+### WORK CATALOG STRUCTURE FOUND
+
+The implemented M1 Work Catalog is an immutable, seed-backed read service and
+the only source of truth. Its actual hierarchy has exactly two levels:
+
+`WorkGroup -> WorkItem`
+
+There are no stage, substage or operation entities in the current M1 catalog.
+
+| Level | Entity / model | Stable identity | Ordering | Lifecycle | Technology / M2 usage | M2-to-M5 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | `WorkGroup` | `work_group`; `work_category` is display text | Seed list order only; no explicit position | No status field; loaded entries are available | Resolved from M1 through each work item's `work_group`; not copied into M2 | Recoverable from M1 by `work_code`; not duplicated in package |
+| 2 | `WorkItem` | `work_code`; `work_name` is display text | Seed list order only; no explicit position | No status field; inactive state is not represented | `TechnologyWorkStep.work_code` is validated against M1; Technology owns only its step `position`, conditions, dependencies and instructions | Sends `work_step_id`, `order` and stable `work_code`, never display name as identity |
+
+The catalog currently contains 24 groups and 209 work items. M2 renders the
+Technology work composition by resolving names from M1, stores no copied catalog
+name/category, and preserves Technology-specific work order in
+`TechnologyWorkStep.position`. The estimation package preserves that order and
+the stable M1 `work_code`, so a consumer can resolve the canonical group and
+item from M1 without a duplicate M2 catalog.
+
+Gaps recorded for later decision: M1 has no explicit catalog ordering field,
+lifecycle/status or stage/substage/operation hierarchy; the M2 selector is flat;
+the estimation package references hierarchy through `work_code` rather than
+embedding a catalog snapshot or catalog version. Sprint 2.7 does not invent or
+persist any of those missing concepts.
 
 ## ConsumptionNorm
 
@@ -340,12 +392,24 @@ remain outside Module №2.
 - added contract, serialization, revision pinning, no-write and ownership-boundary tests;
 - kept M5 calculations, persistence, API and UI out of scope.
 
-## Deferred after Sprint 2.6
+## Implemented in Sprint 2.7
+
+- audited formal Module №2 widgets and Quick Actions in code and live read-only data;
+- reviewed every Workbench contextual action against lifecycle and RBAC guards;
+- exposed the existing guarded work-step ordering operation in the UI;
+- added explicit confirmation for delete and archive actions;
+- distinguished M1 input completeness and Technology activation readiness from M5 readiness;
+- documented the actual two-level M1 Work Catalog and its M2/M5 references;
+- added no dashboard widget, Quick Action, estimate action, migration or M5 behavior.
+
+## Deferred after Sprint 2.7
 
 - M5 quantity application, conversions, waste, rounding and calculation trace;
 - M5 estimate persistence, line items, pricing and totals;
 - project/object geometry input and selected-material recalculation;
-- Module №2 summary widgets and Quick Actions, subject to Sprint 2.7 review.
+- Module №2 attention widget and saved Quick Actions, pending product and registry ownership decisions.
+- Module №2 passport route/status alignment in the common dashboard registry contour.
+- explicit Work Catalog ordering, lifecycle and deeper hierarchy, pending an M1 domain decision.
 
 ## Non-goals and guards
 
@@ -365,3 +429,4 @@ still subject to the controlled M2 schema deployment described above.
 - 13.09.2026: v1.2 Sprint 2.3-2.4 evidence, norms and knowledge rules foundation.
 - 13.09.2026: v1.3 Sprint 2.5 Technology Workbench and guarded moderation UI.
 - 13.09.2026: v1.4 Sprint 2.6 typed read-only M2-to-M5 estimation input contract.
+- 14.09.2026: v1.5 Sprint 2.7 action/widget review and M1 Work Catalog composition audit.

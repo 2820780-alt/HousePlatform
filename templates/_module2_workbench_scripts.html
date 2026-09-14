@@ -8,6 +8,8 @@
   document.querySelectorAll("form[data-m2-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const confirmation = form.dataset.m2Confirm;
+      if (confirmation && !window.confirm(confirmation)) return;
       const submit = form.querySelector("button[type=submit]");
       if (submit) submit.disabled = true;
       const headers = { "Accept": "text/html" };

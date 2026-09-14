@@ -60,7 +60,7 @@
 {%- endmacro %}
 
 {% macro delete_button(component, item_id, section) -%}
-  <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/delete" data-m2-form>
+  <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/delete" data-m2-form data-m2-confirm="Удалить эту запись?">
     {{ hidden_context(section, item_id) }}
     <input type="hidden" name="component" value="{{ component }}">
     <button class="m2-button m2-icon-button danger" type="submit" title="Удалить" aria-label="Удалить">×</button>
@@ -77,14 +77,14 @@
     {% elif item.model.status == 'REVIEW' and permissions.approve %}
     <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
       {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="DRAFT">
-      <button class="m2-button ghost" type="submit">Вернуть</button>
+      <button class="m2-button ghost" type="submit">Вернуть на доработку</button>
     </form>
     <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
       {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="ACTIVE">
-      <button class="m2-button primary" type="submit" {% if item.blockers or item.conflicts|default([]) %}disabled title="Сначала устраните блокирующие причины и конфликты"{% endif %}>Активировать</button>
+      <button class="m2-button primary" type="submit" {% if item.blockers or item.conflicts|default([]) %}disabled title="Сначала устраните блокирующие причины и конфликты"{% endif %}>Активировать запись</button>
     </form>
     {% elif item.model.status == 'ACTIVE' and permissions.admin %}
-    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
+    <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form data-m2-confirm="Архивировать эту запись?">
       {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="ARCHIVED">
       <button class="m2-button danger" type="submit">В архив</button>
     </form>
@@ -136,7 +136,7 @@
         </form>
         {% endif %}
         {% if technology.status == 'ACTIVE' and permissions.admin %}
-        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form>
+        <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition" data-m2-form data-m2-confirm="Архивировать эту технологию?">
           {{ hidden_context('general') }}<input type="hidden" name="target" value="ARCHIVED">
           <button class="m2-button danger" type="submit">В архив</button>
         </form>
@@ -148,7 +148,7 @@
     {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
 
     <nav class="m2-tabs" aria-label="Разделы технологии">
-      <a href="#general">Общее</a><a href="#validation">Готовность</a><a href="#layers">Слои</a>
+      <a href="#general">Общее</a><a href="#validation">Готовность к активации</a><a href="#layers">Слои</a>
       <a href="#materials">Материалы</a><a href="#works">Работы</a><a href="#norms">Нормы</a>
       <a href="#nodes">Узлы</a><a href="#compatibility">Совместимость</a><a href="#rules">Правила</a>
       <a href="#evidence">Evidence</a><a href="#revisions">Редакции</a>
@@ -179,7 +179,7 @@
     </section>
 
     <section class="m2-panel m2-section" id="validation">
-      <div class="m2-panel-head"><h2>Готовность</h2><span class="m2-count">{{ activation_blockers|length }} блок. · {{ warnings|length }} предупр.</span></div>
+      <div class="m2-panel-head"><h2>Готовность к активации</h2><span class="m2-count">{{ activation_blockers|length }} блок. · {{ warnings|length }} предупр.</span></div>
       <div class="m2-panel-body m2-blocker-grid">
         <div class="m2-blocker-column">
           <h3>Блокирующие причины</h3>
@@ -312,7 +312,17 @@
           <div class="m2-record-main">
             <div><strong>{{ item.model.position }}. {{ item.work_name }}</strong><small>{{ item.model.work_code }}</small></div>
             <div>{{ item.dependencies }}</div><div>{{ item.model.applicability_expression or 'Без условий применения' }}</div><div>{{ item.model.instructions or 'Без инструкции' }}</div>
-            {% if technology.status == 'DRAFT' and permissions.edit %}<div class="m2-item-actions">{{ delete_button('work-step', item.model.id, 'works') }}</div>{% endif %}
+            {% if technology.status == 'DRAFT' and permissions.edit %}
+            <div class="m2-item-actions">
+              {% for direction, symbol, title in [('up','↑','Выше'),('down','↓','Ниже')] %}
+              <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/move" data-m2-form>
+                {{ hidden_context('works', item.model.id) }}<input type="hidden" name="component" value="work-step"><input type="hidden" name="direction" value="{{ direction }}">
+                <button class="m2-button m2-icon-button ghost" type="submit" title="{{ title }}" aria-label="{{ title }}">{{ symbol }}</button>
+              </form>
+              {% endfor %}
+              {{ delete_button('work-step', item.model.id, 'works') }}
+            </div>
+            {% endif %}
           </div>
           {% if item.catalog_missing %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Работа отсутствует в Work Catalog M1</span></div>{% endif %}
           {% if technology.status == 'DRAFT' and permissions.edit %}

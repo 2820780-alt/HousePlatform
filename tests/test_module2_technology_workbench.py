@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
 
 import httpx
@@ -43,6 +44,7 @@ from app.services.module2_workbench import (
     delete_draft_component,
     format_condition,
     format_consumption_norm,
+    move_draft_ordered_item,
     upsert_consumption_norm,
     upsert_draft_layer,
     upsert_draft_requirement,
@@ -255,6 +257,37 @@ def test_draft_structure_mutations_validate_order_and_m1_work_catalog() -> None:
         )
 
 
+@pytest.mark.asyncio
+async def test_draft_work_steps_can_be_reordered_without_copying_m1_catalog_data() -> None:
+    technology = _draft(with_layer=False)
+    work_catalog = list_work_items()
+    first = upsert_draft_work_step(
+        technology,
+        TechnologyWorkStepInput(position=1, work_code=work_catalog[0].work_code),
+        actor_role_code="ADMIN",
+    )
+    second = upsert_draft_work_step(
+        technology,
+        TechnologyWorkStepInput(position=2, work_code=work_catalog[1].work_code),
+        actor_role_code="ADMIN",
+    )
+    db = SimpleNamespace(flush=AsyncMock())
+
+    await move_draft_ordered_item(
+        db,
+        technology,
+        "work-step",
+        second.id,
+        "up",
+        actor_role_code="ADMIN",
+    )
+
+    assert (second.position, first.position) == (1, 2)
+    assert second.work_code == work_catalog[1].work_code
+    assert not hasattr(second, "work_name")
+    assert db.flush.await_count == 3
+
+
 def test_consumption_norm_is_human_readable_and_not_an_object_total() -> None:
     technology = _draft()
     requirement = technology.requirements[0]
@@ -365,6 +398,7 @@ def test_draft_component_delete_respects_references() -> None:
 def test_templates_cover_workbench_sections_without_raw_json_editor() -> None:
     detail = (ROOT / "templates" / "module2_technology_detail.html").read_text(encoding="utf-8")
     listing = (ROOT / "templates" / "module2_technology_workbench.html").read_text(encoding="utf-8")
+    scripts = (ROOT / "templates" / "_module2_workbench_scripts.html").read_text(encoding="utf-8")
 
     for section in (
         "general", "validation", "layers", "materials", "works", "norms",
@@ -377,6 +411,13 @@ def test_templates_cover_workbench_sections_without_raw_json_editor() -> None:
     assert "Итого на дом" not in detail
     assert "data-quick-action-candidate" not in detail
     assert "transition-knowledge" in detail
+    assert "Готовность к активации" in detail
+    assert "Входные данные M1" in listing
+    assert detail.count("/actions/move") == 2
+    assert 'name="component" value="work-step"' in detail
+    assert 'data-m2-confirm="Удалить эту запись?"' in detail
+    assert 'data-m2-confirm="Архивировать эту технологию?"' in detail
+    assert "window.confirm" in scripts
     for editor_label in (
         "Изменить узел",
         "Изменить норму",
