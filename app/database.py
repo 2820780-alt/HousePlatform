@@ -1,3 +1,4 @@
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
@@ -20,12 +21,25 @@ class Base(DeclarativeBase):
     pass
 
 
-async def init_db() -> None:
+async def init_db(*, create_schema: bool = False) -> None:
     import app.models  # noqa: F401
+
+    if create_schema and settings.APP_ENV not in {"development", "test"}:
+        raise RuntimeError("Automatic schema creation is restricted to isolated development and tests.")
 
     await engine.dispose(close=False)
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        if create_schema:
+            await conn.run_sync(Base.metadata.create_all)
+        existing = await conn.run_sync(
+            lambda sync_conn: set(inspect(sync_conn).get_table_names())
+        )
+        missing = sorted(set(Base.metadata.tables) - existing)
+        if missing:
+            raise RuntimeError(
+                "Database schema is missing tables; apply controlled migrations: "
+                + ", ".join(missing)
+            )
 
 
 async def close_db() -> None:
