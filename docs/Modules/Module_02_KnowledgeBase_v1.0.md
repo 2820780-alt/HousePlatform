@@ -46,6 +46,11 @@ for user placement, but is not enabled or placed by default. Safe user-owned
 Quick Action candidates remain opt-in. M2-to-M5 is an input contract only; it
 does not run an M5 calculation or create an estimate.
 
+The proposed Technology Catalog and Construction Encyclopedia content layer is
+documented separately in [Module_02_Content_Catalog_Encyclopedia.md](Module_02_Content_Catalog_Encyclopedia.md).
+Its taxonomy is pending product approval; no production categories or sample
+technologies have been seeded.
+
 ## Sprint 2.7 action and widget review
 
 The initial Sprint 2.7 audit found an empty formal Module №2 widget inventory and
