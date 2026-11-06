@@ -984,3 +984,34 @@ M3-F6 + любые изменения
 Пользовательский UI должен быть информативным, эргономичным и без перегруза.
 Технические ID, UUID, enum и API routes не показывать в основном интерфейсе.
 ```
+
+---
+
+# Итоговое закрытие 3.C + 3.6
+
+**Статус:** COMPLETED.
+
+Production-маршруты Users/Roles и связанного административного Module Registry используют общий `CurrentUser`. Статические `DEV_USER` и `_dev_actor()` запрещены в production Admin routes.
+
+Для browser cookie session действует общий double-submit CSRF-контракт HousePlatform: unsafe-запрос разрешается только при совпадении cookie `atom_csrf_token` и заголовка `X-CSRF-Token`. Bearer API flow сохраняет штатное поведение без browser CSRF.
+
+Backend RBAC остаётся обязательным независимо от видимости элементов UI:
+
+```text
+- platform admin работает в разрешённом platform scope;
+- company admin работает только внутри назначенного workspace;
+- обычный пользователь не может выполнять admin mutations;
+- deny override имеет приоритет;
+- actor moderation, access mutations и audit events равен authenticated CurrentUser.
+```
+
+Финальные статусы:
+
+```text
+3.2 User/company card: DONE
+3.3 Users table: DONE
+3.4 Access Matrix: DONE
+3.5 Moderation/history: DONE
+3.6 Final QA closure: DONE
+Module №3: COMPLETED
+```

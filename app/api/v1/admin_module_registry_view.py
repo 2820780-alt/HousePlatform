@@ -4,14 +4,14 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.api.deps import DBSession
-from app.core.permission_guard import DEV_USER
+from app.api.deps import CurrentUser, DBSession
 from app.services.admin_module_registry_management import (
     ARCHIVE_CONFIRMATION,
     SYSTEM_CRITICAL_MODULE_CONFIRMATION,
     archive_module_registry_item,
     get_module_registry_detail,
     get_module_registry_overview,
+    require_module_registry_admin,
     update_module_registry_item,
 )
 
@@ -21,20 +21,20 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("", response_class=HTMLResponse)
-async def admin_module_registry_view(request: Request, db: DBSession):
-    actor = _dev_actor()
-    overview = await get_module_registry_overview(db, actor)
+async def admin_module_registry_view(request: Request, db: DBSession, user: CurrentUser):
+    require_module_registry_admin(user)
+    overview = await get_module_registry_overview(db, user)
     detail = None
     if overview["modules"]:
-        detail = await get_module_registry_detail(db, overview["modules"][0]["moduleCode"], actor)
+        detail = await get_module_registry_detail(db, overview["modules"][0]["moduleCode"], user)
     return _template(request, overview, detail)
 
 
 @router.get("/{module_code}", response_class=HTMLResponse)
-async def admin_module_registry_detail_view(module_code: str, request: Request, db: DBSession):
-    actor = _dev_actor()
-    overview = await get_module_registry_overview(db, actor)
-    detail = await get_module_registry_detail(db, module_code, actor)
+async def admin_module_registry_detail_view(module_code: str, request: Request, db: DBSession, user: CurrentUser):
+    require_module_registry_admin(user)
+    overview = await get_module_registry_overview(db, user)
+    detail = await get_module_registry_detail(db, module_code, user)
     return _template(request, overview, detail)
 
 
@@ -42,6 +42,7 @@ async def admin_module_registry_detail_view(module_code: str, request: Request, 
 async def admin_update_module_registry_item(
     module_code: str,
     db: DBSession,
+    user: CurrentUser,
     status: str = Form(...),
     visible_in_sidebar: bool = Form(False),
     visible_on_dashboard: bool = Form(False),
@@ -49,9 +50,10 @@ async def admin_update_module_registry_item(
     available_for_widgets: bool = Form(False),
     critical_confirmation: str | None = Form(None),
 ):
+    require_module_registry_admin(user)
     await update_module_registry_item(
         db,
-        actor=_dev_actor(),
+        actor=user,
         module_code=module_code,
         status=status,
         visible_in_sidebar=visible_in_sidebar,
@@ -68,12 +70,14 @@ async def admin_update_module_registry_item(
 async def admin_archive_module_registry_item(
     module_code: str,
     db: DBSession,
+    user: CurrentUser,
     confirmation: str = Form(...),
     critical_confirmation: str | None = Form(None),
 ):
+    require_module_registry_admin(user)
     await archive_module_registry_item(
         db,
-        actor=_dev_actor(),
+        actor=user,
         module_code=module_code,
         confirmation=confirmation,
         critical_confirmation=critical_confirmation,
@@ -95,7 +99,3 @@ def _template(request: Request, overview: dict, detail: dict | None):
             "atom_topbar_profile_name": "Администратор",
         },
     )
-
-
-def _dev_actor() -> dict[str, str]:
-    return DEV_USER

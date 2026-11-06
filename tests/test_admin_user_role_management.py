@@ -3,11 +3,13 @@ import uuid
 from datetime import datetime
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import select
 
 from app.main import app
+from app.api.deps import get_current_user
 from app.api.v1.admin_users_roles_view import router as admin_users_roles_router, ui_router as admin_users_roles_ui_router
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.database import async_session_factory
@@ -634,7 +636,7 @@ async def test_saving_user_type_access_matrix_writes_history_without_replacing_p
 
     await save_user_type_access_matrix_changes(
         None,
-        actor={"id": uuid.uuid4()},
+        actor={"id": uuid.uuid4(), "roleCode": "PLATFORM_ADMIN"},
         matrix_payload={
             "rows": [{"id": "module:MODULE_01_MATERIAL_HUB", "type": "MODULE"}],
             "changes": [{"rowId": "module:MODULE_01_MATERIAL_HUB", "userTypeCode": "SUPPLIER", "allowed": False}],
@@ -1591,7 +1593,10 @@ def test_app_lifespan_discards_connections_opened_on_previous_event_loop():
 
 
 def test_module3_tab_routes_redirect_to_hash_based_shell():
-    client = TestClient(app)
+    route_app = FastAPI()
+    route_app.include_router(admin_users_roles_router, prefix="/api/v1")
+    route_app.dependency_overrides[get_current_user] = lambda: _user(UserRole.ADMIN)
+    client = TestClient(route_app)
 
     expected = {
         "/api/v1/admin/users-roles/view/users": "/api/v1/admin/users-roles/view#users",

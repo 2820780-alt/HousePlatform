@@ -1,0 +1,43 @@
+<script>
+  (() => {
+    const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+    const readCookie = (name) => {
+      const prefix = `${encodeURIComponent(name)}=`;
+      const value = document.cookie.split("; ").find((item) => item.startsWith(prefix));
+      return value ? decodeURIComponent(value.slice(prefix.length)) : "";
+    };
+
+    window.atomCsrfFetch = (input, init = {}) => {
+      const method = String(init.method || "GET").toUpperCase();
+      const headers = new Headers(init.headers || {});
+      if (!SAFE_METHODS.has(method)) {
+        const token = readCookie("atom_csrf_token");
+        if (token) headers.set("X-CSRF-Token", token);
+      }
+      return window.fetch(input, { ...init, headers, credentials: init.credentials || "same-origin" });
+    };
+
+    document.addEventListener("submit", async (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const method = String(form.method || "GET").toUpperCase();
+      if (SAFE_METHODS.has(method)) return;
+
+      event.preventDefault();
+      await Promise.resolve();
+      const response = await window.atomCsrfFetch(form.action, {
+        method,
+        body: new FormData(form),
+        redirect: "follow",
+      });
+      if (response.redirected) {
+        window.location.assign(response.url);
+      } else if (response.ok) {
+        window.location.reload();
+      } else {
+        window.alert("Не удалось выполнить действие. Обновите страницу и повторите попытку.");
+      }
+    });
+  })();
+</script>

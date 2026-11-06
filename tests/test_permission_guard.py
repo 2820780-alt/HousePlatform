@@ -2,7 +2,6 @@ import pytest
 
 from app.core.exceptions import ForbiddenError
 from app.core.permission_guard import (
-    DEV_USER,
     can,
     canonical_module_code,
     requireOwnResource,
@@ -45,7 +44,8 @@ def test_aliases_are_normalized_before_permission_check():
 
 
 def test_default_registration_permissions_cover_future_modules():
-    assert can(DEV_USER, "MODULE_18_QUALITY_CONTROL", "ADMIN", "GLOBAL")
+    dev_user = {"userId": "test-admin", "roleCode": "SUPER_ADMIN"}
+    assert can(dev_user, "MODULE_18_QUALITY_CONTROL", "ADMIN", "GLOBAL")
     assert can({"roleCode": "MODERATOR"}, "MODULE_18_QUALITY_CONTROL", "APPROVE_CHECK", "GLOBAL")
     assert can({"roleCode": "CUSTOMER"}, "MODULE_18_QUALITY_CONTROL", "VIEW", "OWN")
     assert can({"roleCode": "CUSTOMER"}, "MODULE_18_QUALITY_CONTROL", "EDIT", "OWN") is False

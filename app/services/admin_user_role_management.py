@@ -4556,6 +4556,7 @@ async def save_user_type_access_matrix_changes(
     actor: Any,
     matrix_payload: dict[str, Any] | None,
 ) -> Any:
+    require_user_role_admin(actor)
     payload = matrix_payload or {}
     rows = payload.get("rows") if isinstance(payload, dict) else None
     changes = payload.get("changes") if isinstance(payload, dict) else None

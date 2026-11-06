@@ -5,6 +5,7 @@ from fastapi import Depends, Header, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.core.security import decode_token
@@ -18,6 +19,7 @@ from app.core.browser_auth import (
 )
 from app.models.user import User
 from app.models.enums import UserRole, UserStatus
+from app.models.user_role_assignment import UserRoleAssignment
 
 security = HTTPBearer(auto_error=False)
 
@@ -58,7 +60,15 @@ async def get_current_user(
     except ValueError:
         raise UnauthorizedError("Invalid token payload")
 
-    result = await db.execute(select(User).where(User.id == uid))
+    result = await db.execute(
+        select(User)
+        .options(
+            selectinload(User.role_assignments).selectinload(UserRoleAssignment.role),
+            selectinload(User.workspace_members),
+            selectinload(User.module_access),
+        )
+        .where(User.id == uid)
+    )
     user = result.scalar_one_or_none()
 
     if not user:

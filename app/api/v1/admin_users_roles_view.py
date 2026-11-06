@@ -7,9 +7,8 @@ from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.api.deps import DBSession
+from app.api.deps import CurrentUser, DBSession
 from app.core.exceptions import ValidationError
-from app.core.permission_guard import DEV_USER
 from app.services.admin_user_role_management import (
     DISABLE_CONFIRMATION,
     assign_company_admin,
@@ -20,6 +19,7 @@ from app.services.admin_user_role_management import (
     get_user_role_admin_history,
     get_user_role_admin_overview,
     moderate_company_workspace,
+    require_user_role_admin,
     revoke_company_admin,
     save_user_type_access_matrix_changes,
     set_company_employee_module_access,
@@ -50,8 +50,7 @@ def _module3_template_context(
     }
 
 
-async def _render_users_roles_list(request: Request, db: DBSession):
-    actor = _dev_actor()
+async def _render_users_roles_list(request: Request, db: DBSession, actor: CurrentUser):
     overview = await get_user_role_admin_overview(db, actor)
     return templates.TemplateResponse(
         request,
@@ -60,8 +59,7 @@ async def _render_users_roles_list(request: Request, db: DBSession):
     )
 
 
-async def _render_user_card(request: Request, db: DBSession, user_id: str):
-    actor = _dev_actor()
+async def _render_user_card(request: Request, db: DBSession, user_id: str, actor: CurrentUser):
     overview = await get_user_role_admin_overview(db, actor)
     try:
         parsed_user_id = UUID(str(user_id))
@@ -97,38 +95,40 @@ def _render_user_card_error(request: Request, overview: dict, *, status_code: in
 
 
 @router.get("", response_class=HTMLResponse)
-async def admin_users_roles_view(request: Request, db: DBSession):
-    return await _render_users_roles_list(request, db)
+async def admin_users_roles_view(request: Request, db: DBSession, user: CurrentUser):
+    return await _render_users_roles_list(request, db, user)
 
 
 @ui_router.get("", response_class=HTMLResponse)
-async def admin_users_roles_app_view(request: Request, db: DBSession):
-    return await _render_users_roles_list(request, db)
+async def admin_users_roles_app_view(request: Request, db: DBSession, user: CurrentUser):
+    return await _render_users_roles_list(request, db, user)
 
 
 @ui_router.get("/users/{user_id}", response_class=HTMLResponse)
-async def admin_user_card_app_view(user_id: str, request: Request, db: DBSession):
-    return await _render_user_card(request, db, user_id)
+async def admin_user_card_app_view(user_id: str, request: Request, db: DBSession, user: CurrentUser):
+    return await _render_user_card(request, db, user_id, user)
 
 @router.get("/users")
-async def admin_users_tab_redirect():
+async def admin_users_tab_redirect(user: CurrentUser):
+    require_user_role_admin(user)
     return RedirectResponse("/api/v1/admin/users-roles/view#users", status_code=307)
 
 
 @router.get("/access")
-async def admin_access_tab_redirect():
+async def admin_access_tab_redirect(user: CurrentUser):
+    require_user_role_admin(user)
     return RedirectResponse("/api/v1/admin/users-roles/view#access-matrix", status_code=307)
 
 
 @router.get("/access-matrix")
-async def admin_access_matrix_tab_redirect():
+async def admin_access_matrix_tab_redirect(user: CurrentUser):
+    require_user_role_admin(user)
     return RedirectResponse("/api/v1/admin/users-roles/view#access-matrix", status_code=307)
 
 
 @router.get("/history", response_class=HTMLResponse)
-async def admin_history_view(request: Request, db: DBSession):
-    actor = _dev_actor()
-    history_page = await get_user_role_admin_history(db, actor)
+async def admin_history_view(request: Request, db: DBSession, user: CurrentUser):
+    history_page = await get_user_role_admin_history(db, user)
     return templates.TemplateResponse(
         request,
         "admin_users_roles_history.html",
@@ -141,17 +141,20 @@ async def admin_history_view(request: Request, db: DBSession):
 
 
 @router.get("/history/full")
-async def admin_history_full_redirect():
+async def admin_history_full_redirect(user: CurrentUser):
+    require_user_role_admin(user)
     return RedirectResponse("/api/v1/admin/users-roles/view/history", status_code=307)
 
 
 @router.get("/settings")
-async def admin_settings_tab_redirect():
+async def admin_settings_tab_redirect(user: CurrentUser):
+    require_user_role_admin(user)
     return RedirectResponse("/api/v1/admin/users-roles/view#settings", status_code=307)
 
 
 @router.get("/docs", response_class=HTMLResponse)
-async def admin_users_roles_docs_view(request: Request):
+async def admin_users_roles_docs_view(request: Request, user: CurrentUser):
+    require_user_role_admin(user)
     return templates.TemplateResponse(
         request,
         "admin_users_roles_docs.html",
@@ -163,19 +166,21 @@ async def admin_users_roles_docs_view(request: Request):
 
 
 @router.get("/users/{user_id}", response_class=HTMLResponse)
-async def admin_user_card_view(user_id: UUID, request: Request, db: DBSession):
-    return await _render_user_card(request, db, str(user_id))
+async def admin_user_card_view(user_id: UUID, request: Request, db: DBSession, user: CurrentUser):
+    return await _render_user_card(request, db, str(user_id), user)
 
 @router.post("/users/{user_id}/roles")
 async def admin_assign_user_role(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     role_code: str = Form(...),
     workspace_id: str | None = Form(None),
 ):
+    require_user_role_admin(user)
     await assign_role_to_user(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         role_code=role_code,
         workspace_id=_optional_uuid(workspace_id),
@@ -191,12 +196,14 @@ async def admin_assign_user_role(
 async def admin_assign_user_workspace(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     workspace_id: str = Form(...),
     role_code: str = Form(...),
 ):
+    require_user_role_admin(user)
     await assign_workspace_to_user(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
         role_code=role_code,
@@ -212,11 +219,13 @@ async def admin_assign_user_workspace(
 async def admin_assign_company_admin(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     workspace_id: str = Form(...),
 ):
+    require_user_role_admin(user)
     await assign_company_admin(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
     )
@@ -231,11 +240,13 @@ async def admin_assign_company_admin(
 async def admin_revoke_company_admin(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     workspace_id: str = Form(...),
 ):
+    require_user_role_admin(user)
     await revoke_company_admin(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
     )
@@ -250,11 +261,13 @@ async def admin_revoke_company_admin(
 async def admin_disable_user(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     confirmation: str = Form(...),
 ):
+    require_user_role_admin(user)
     await disable_user_account(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         confirmation=confirmation,
     )
@@ -269,14 +282,16 @@ async def admin_disable_user(
 async def admin_set_user_module_access(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     workspace_id: str = Form(...),
     module_code: str = Form(...),
     access_level: str = Form(...),
     access_scope: str = Form("OWN"),
 ):
+    require_user_role_admin(user)
     await set_company_employee_module_access(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
         module_code=module_code,
@@ -294,14 +309,16 @@ async def admin_set_user_module_access(
 async def admin_set_user_widget_access(
     user_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     workspace_id: str = Form(...),
     widget_code: str = Form(...),
     access_level: str = Form(...),
     access_scope: str = Form("OWN"),
 ):
+    require_user_role_admin(user)
     await set_company_employee_widget_access(
         db,
-        actor=_dev_actor(),
+        actor=user,
         user_id=user_id,
         workspace_id=_required_uuid(workspace_id, "workspace_id"),
         widget_code=widget_code,
@@ -319,11 +336,13 @@ async def admin_set_user_widget_access(
 async def admin_moderate_company_workspace(
     workspace_id: UUID,
     db: DBSession,
+    user: CurrentUser,
     decision: str = Form(...),
 ):
+    require_user_role_admin(user)
     await moderate_company_workspace(
         db,
-        actor=_dev_actor(),
+        actor=user,
         workspace_id=workspace_id,
         decision=decision,
     )
@@ -336,15 +355,17 @@ async def admin_moderate_company_workspace(
 @router.post("/access-matrix")
 async def admin_save_user_type_access_matrix(
     db: DBSession,
+    user: CurrentUser,
     matrix_payload: str = Form("{}"),
 ):
+    require_user_role_admin(user)
     try:
         payload = json.loads(matrix_payload or "{}")
     except json.JSONDecodeError as exc:
         raise ValidationError("Invalid access matrix payload.") from exc
     await save_user_type_access_matrix_changes(
         db,
-        actor=_dev_actor(),
+        actor=user,
         matrix_payload=payload,
     )
     await db.commit()
@@ -352,11 +373,6 @@ async def admin_save_user_type_access_matrix(
         "/api/v1/admin/users-roles/view#access-matrix",
         status_code=303,
     )
-
-
-def _dev_actor() -> dict[str, str]:
-    return DEV_USER
-
 
 def _optional_uuid(value: str | None) -> UUID | None:
     if not value:

@@ -4981,7 +4981,7 @@
         } else {
           body.set("widget_code", checkbox.dataset.widgetCode || "");
         }
-        const response = await fetch(actionUrl, {
+        const response = await window.atomCsrfFetch(actionUrl, {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
@@ -5109,5 +5109,6 @@
       initResizableColumns(document.querySelector(".access-matrix-table"), "module3-access-matrix-widths");
     })();
   </script>
+  {% include "_atom_csrf_forms.html" %}
 </body>
 </html>

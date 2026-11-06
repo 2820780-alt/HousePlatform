@@ -130,27 +130,33 @@ async def test_missing_browser_and_bearer_token_remains_unauthorized():
         )
 
 
-def test_module1_html_navigation_redirects_to_safe_login():
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/admin/material-hub/view?feature=prices",
+        "/api/v1/admin/users-roles/view?tab=access",
+        "/app/users-roles/users/user-1",
+        "/api/v1/admin/module-registry/view/MODULE_03_USERS_ROLES",
+    ],
+)
+def test_protected_html_navigation_redirects_to_safe_login(path: str):
     app = FastAPI()
     app.middleware("http")(browser_auth_redirect_middleware)
 
-    @app.get("/api/v1/admin/material-hub/view")
-    async def protected_view():
+    @app.get("/{path:path}")
+    async def protected_view(path: str):
         raise UnauthorizedError()
 
     client = TestClient(app)
     browser = client.get(
-        "/api/v1/admin/material-hub/view?feature=prices",
+        path,
         headers={"Accept": "text/html"},
         follow_redirects=False,
     )
-    api = client.get("/api/v1/admin/material-hub/view")
+    api = client.get(path)
 
     assert browser.status_code == 303
-    assert browser.headers["location"] == (
-        "/api/v1/auth/login/view?"
-        "next=%2Fapi%2Fv1%2Fadmin%2Fmaterial-hub%2Fview%3Ffeature%3Dprices"
-    )
+    assert browser.headers["location"].startswith("/api/v1/auth/login/view?next=")
     assert api.status_code == 401
 
 
@@ -174,3 +180,19 @@ def test_module1_fetch_hook_includes_csrf_header():
     )
     assert "X-CSRF-Token" in template
     assert "atom_csrf_token" in template
+
+
+def test_admin_form_adapter_reuses_cookie_csrf_header():
+    template = (
+        __import__("pathlib").Path("templates/_atom_csrf_forms.html")
+        .read_text(encoding="utf-8")
+    )
+    users_roles = __import__("pathlib").Path("templates/admin_users_roles.html").read_text(encoding="utf-8")
+    registry = __import__("pathlib").Path("templates/admin_module_registry.html").read_text(encoding="utf-8")
+
+    assert 'readCookie("atom_csrf_token")' in template
+    assert 'headers.set("X-CSRF-Token", token)' in template
+    assert 'credentials: init.credentials || "same-origin"' in template
+    assert '{% include "_atom_csrf_forms.html" %}' in users_roles
+    assert '{% include "_atom_csrf_forms.html" %}' in registry
+    assert "window.atomCsrfFetch(actionUrl" in users_roles

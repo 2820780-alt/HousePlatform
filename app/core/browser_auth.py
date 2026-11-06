@@ -14,7 +14,12 @@ CSRF_TOKEN_COOKIE = "atom_csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
 DEFAULT_BROWSER_DESTINATION = "/api/v1/admin/cabinet/view"
 LOGIN_VIEW_PATH = "/api/v1/auth/login/view"
-MODULE1_BROWSER_ROOT = "/api/v1/admin/material-hub/view"
+PROTECTED_BROWSER_ROOTS = (
+    "/api/v1/admin/material-hub/view",
+    "/api/v1/admin/users-roles/view",
+    "/api/v1/admin/module-registry/view",
+    "/app/users-roles",
+)
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
@@ -74,13 +79,14 @@ async def browser_auth_redirect_middleware(request: Request, call_next):
 
 def _requires_browser_login_redirect(request: Request, response: Response) -> bool:
     path = request.url.path
-    is_module1_view = path == MODULE1_BROWSER_ROOT or path.startswith(
-        f"{MODULE1_BROWSER_ROOT}/"
+    is_protected_browser_view = any(
+        path == root or path.startswith(f"{root}/")
+        for root in PROTECTED_BROWSER_ROOTS
     )
     return (
         response.status_code == 401
         and request.method == "GET"
-        and is_module1_view
+        and is_protected_browser_view
         and "text/html" in request.headers.get("accept", "").lower()
     )
 

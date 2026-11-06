@@ -75,13 +75,6 @@ OWNERSHIP_FIELDS: tuple[str, ...] = (
 )
 
 
-DEV_USER: dict[str, Any] = {
-    "userId": "dev-admin-mock",
-    "roleCode": "SUPER_ADMIN",
-    "authMode": "dev",
-}
-
-
 def can(
     user: Any | None,
     moduleCode: str,
