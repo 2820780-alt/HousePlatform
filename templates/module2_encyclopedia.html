@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Энциклопедия технологий · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module2_workbench_styles.html" %}
+  <style>
+    .enc-layout { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: 24px; }
+    .enc-nav { border-right: 1px solid var(--m2-line); padding-right: 20px; }
+    .enc-nav a { display: block; padding: 8px 0; color: var(--m2-cyan) !important; text-decoration: none; }
+    .enc-nav a:hover, .enc-list a:hover { text-decoration: underline; }
+    .enc-content { min-width: 0; }
+    .enc-content section { padding: 16px 0; border-top: 1px solid var(--m2-line); }
+    .enc-content h2 { font-size: 17px; margin: 0 0 12px; }
+    .enc-content h3 { font-size: 14px; margin: 0 0 5px; }
+    .enc-content p { line-height: 1.5; }
+    .enc-list { list-style: none; padding: 0; margin: 0; }
+    .enc-list li { padding: 9px 0; border-bottom: 1px solid var(--m2-line); }
+    .enc-list li:last-child { border-bottom: 0; }
+    .enc-list a { color: var(--m2-cyan) !important; text-decoration: none; font-weight: 700; }
+    .enc-meta { color: var(--m2-muted); font-size: 12px; margin-top: 4px; }
+    .enc-path { display: flex; flex-wrap: wrap; gap: 7px; color: var(--m2-muted); margin-bottom: 14px; }
+    .enc-path a { color: var(--m2-cyan) !important; }
+    .enc-search { display: flex; gap: 8px; max-width: 620px; margin: 0 0 18px; }
+    .enc-search input { flex: 1; }
+    .enc-empty { padding: 20px 0; color: var(--m2-muted); }
+    .enc-order { color: var(--m2-muted); display: inline-block; min-width: 28px; }
+    @media (max-width: 700px) { .enc-layout { grid-template-columns: 1fr; } .enc-nav { border-right: 0; border-bottom: 1px solid var(--m2-line); padding: 0 0 12px; } }
+  </style>
+</head>
+<body data-atom-page data-rbac-ready data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <main class="m2-shell">
+    <header class="m2-page-head">
+      <div><div class="m2-eyebrow">Module №2</div><h1>Энциклопедия технологий</h1></div>
+    </header>
+    <div class="enc-layout">
+      <nav class="enc-nav" aria-label="Навигация по энциклопедии">
+        <strong>Каталог</strong>
+        <a href="/api/v1/module2/encyclopedia">Все категории</a>
+        {% if view == 'technology' or view == 'material' or view == 'node' %}
+          <a href="/api/v1/module2/encyclopedia/categories/{{ article.category.code }}">{{ article.category.name }}</a>
+          <a href="/api/v1/module2/encyclopedia/technologies/{{ article.technology.technology_code }}">{{ article.technology.name }}</a>
+        {% elif view == 'category' %}
+          {% for item in breadcrumb %}<a href="/api/v1/module2/encyclopedia/categories/{{ item.code }}">{{ item.name }}</a>{% endfor %}
+        {% endif %}
+      </nav>
+      <div class="enc-content">
+        {% if view == 'index' %}
+          <form class="enc-search" method="get" action="/api/v1/module2/encyclopedia" role="search">
+            <input type="search" name="q" value="{{ query }}" maxlength="120" aria-label="Поиск по категориям и технологиям" placeholder="Название или код">
+            <button class="m2-button" type="submit">Найти</button>
+          </form>
+          <section><h2>Категории</h2>
+            {% if catalog.categories %}<ul class="enc-list">{% for row in catalog.categories %}
+              <li style="padding-left: {{ row.depth * 18 }}px"><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a><div class="enc-meta">{{ row.category.code }}</div></li>
+            {% endfor %}</ul>{% else %}<p class="enc-empty">{% if query %}Категории не найдены.{% else %}Утвержденных категорий пока нет.{% endif %}</p>{% endif %}
+          </section>
+          <section><h2>Технологии</h2>
+            {% if catalog.technologies %}<ul class="enc-list">{% for row in catalog.technologies %}
+              <li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a><div class="enc-meta">{{ row.category.name }} · {{ row.technology.technology_code }}</div></li>
+            {% endfor %}</ul>{% else %}<p class="enc-empty">{% if query %}Технологии не найдены.{% else %}Опубликованных технологий пока нет.{% endif %}</p>{% endif %}
+          </section>
+        {% elif view == 'category' %}
+          <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Каталог</a>{% for item in breadcrumb %}<span>›</span><span>{{ item.name }}</span>{% endfor %}</div>
+          <h1>{{ category.name }}</h1>
+          {% if category.description %}<p>{{ category.description }}</p>{% endif %}
+          <section><h2>Подкатегории</h2>{% if children %}<ul class="enc-list">{% for row in children %}<li><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Подкатегорий нет.</p>{% endif %}</section>
+          <section><h2>Технологии</h2>{% if technologies %}<ul class="enc-list">{% for row in technologies %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a><div class="enc-meta">{{ row.technology.technology_code }}</div></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Опубликованных технологий пока нет.</p>{% endif %}</section>
+        {% elif view == 'technology' %}
+          <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Каталог</a><span>›</span><a href="/api/v1/module2/encyclopedia/categories/{{ article.category.code }}">{{ article.category.name }}</a></div>
+          <h1>{{ article.technology.name }}</h1><div class="enc-meta">{{ article.technology.technology_code }} · редакция {{ article.technology.revision }}</div>
+          {% if article.technology.description %}<p>{{ article.technology.description }}</p>{% endif %}
+          <section><h2>Материалы</h2>{% if article.requirements %}<ul class="enc-list">{% for item in article.requirements %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ article.technology.technology_code }}/materials/{{ item.model.code }}">{{ item.label }}</a><div class="enc-meta">{{ item.model.code }} · {{ item.model.selector_kind }}</div></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Материалы не указаны.</p>{% endif %}</section>
+          <section><h2>Слои и узлы</h2>{% if article.layers or article.nodes %}<ul class="enc-list">{% for item in article.layers %}<li><span class="enc-order">{{ item.position }}.</span>{{ item.functional_role }}{% if item.thickness_expression %}<div class="enc-meta">{{ item.thickness_expression }}</div>{% endif %}</li>{% endfor %}{% for item in article.nodes %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ article.technology.technology_code }}/nodes/{{ item.code }}">{{ item.name }}</a></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Состав пока не указан.</p>{% endif %}</section>
+          <section><h2>Работы</h2>{% if article.steps %}<ul class="enc-list">{% for step in article.steps %}<li><span class="enc-order">{{ step.model.position }}.</span>{% if step.work %}<a href="/api/v1/module2/encyclopedia/works/{{ step.work.work_code }}">{{ step.work.work_name }}</a>{% else %}{{ step.model.work_code }}{% endif %}{% if step.model.instructions %}<div class="enc-meta">{{ step.model.instructions }}</div>{% endif %}</li>{% endfor %}</ul>{% else %}<p class="enc-empty">Работы не указаны.</p>{% endif %}</section>
+          <section><h2>Нормы и ограничения</h2>{% if article.norms or article.compatibility or article.warnings or article.controls %}<ul class="enc-list">{% for item in article.norms %}<li>{{ item }}</li>{% endfor %}{% for item in article.compatibility %}<li>{{ item }}</li>{% endfor %}{% for item in article.warnings %}<li>{{ item }}</li>{% endfor %}{% for item in article.controls %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="enc-empty">Утвержденных норм и ограничений пока нет.</p>{% endif %}</section>
+          <section><h2>Источники</h2>{% if article.evidence %}<ul class="enc-list">{% for item in article.evidence %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}<div class="enc-meta">{{ item.type }}</div></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Публичных источников пока нет.</p>{% endif %}</section>
+        {% elif view == 'material' %}
+          <div class="enc-path"><a href="/api/v1/module2/encyclopedia/technologies/{{ article.technology.technology_code }}">{{ article.technology.name }}</a><span>›</span><span>Материал</span></div>
+          <h1>{{ requirement.label }}</h1><div class="enc-meta">{{ requirement.model.code }} · {{ requirement.model.selector_kind }}</div>
+          {% if requirement.model.notes %}<p>{{ requirement.model.notes }}</p>{% endif %}
+          {% if requirement.material %}<section><h2>Материал M1</h2><p>{{ requirement.material.canonical_name }}</p></section>{% endif %}
+        {% elif view == 'node' %}
+          <div class="enc-path"><a href="/api/v1/module2/encyclopedia/technologies/{{ article.technology.technology_code }}">{{ article.technology.name }}</a><span>›</span><span>Узел</span></div>
+          <h1>{{ node.name }}</h1><div class="enc-meta">{{ node.code }} · {{ node.node_type }}</div>
+          {% if node.description %}<p>{{ node.description }}</p>{% endif %}
+        {% elif view == 'work' %}
+          <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Каталог</a><span>›</span><span>Работа M1</span></div>
+          <h1>{{ work.work_name }}</h1><div class="enc-meta">{{ work.work_code }} · {{ work.work_group }} / {{ work.work_category }} · {{ work.default_unit }}</div>
+          {% if work.description %}<p>{{ work.description }}</p>{% endif %}
+          <section><h2>Используется в технологиях</h2><ul class="enc-list">{% for row in technologies %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a></li>{% endfor %}</ul></section>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</body>
+</html>

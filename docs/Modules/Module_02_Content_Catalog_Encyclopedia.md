@@ -1,8 +1,8 @@
 # Module 2 / Technology Catalog and Construction Encyclopedia
 
-Status: architecture candidate for product approval. M2 Core remains COMPLETED;
-catalog content and encyclopedia content are EMPTY. No taxonomy or technology
-content is approved or seeded by this document.
+Status: architecture implemented; taxonomy candidate still awaits product approval.
+M2 Core remains COMPLETED; catalog content and encyclopedia content are EMPTY.
+No taxonomy or technology content is approved or seeded by this document.
 
 ## Purpose and ownership
 
@@ -145,3 +145,21 @@ M1 reference resolution, evidence and publication checks, and Encyclopedia
 rendering for the touched category. Re-run platform-wide regression only when
 shared runtime contracts or production code change; content-only, reviewed
 packages can use the focused gate plus read-only audits.
+
+## Implemented contour (M2-CONTENT-ENC-1)
+
+- The additive migration `20261106_module02_content_catalog.sql` creates the
+  M2-owned category tree and nullable `Technology.category_id`; it seeds no data.
+- The Workbench manages category DRAFT creation/editing, approval, archive and
+  starting a content package. It assigns categories to technology drafts and
+  preserves the reference in new revisions.
+- The authenticated, read-only Encyclopedia exposes category, latest ACTIVE
+  technology, material-in-application, node and M1 work pages by stable codes.
+  Its source is the existing M2 Technology aggregate plus read-only M1 links.
+- Reader search is limited to ACTIVE category/technology names and codes.
+  DRAFT and ARCHIVED categories and technologies are not published. M1 document
+  and knowledge-resource links are shown only for approved sources and safe
+  HTTP(S) URLs.
+- `CONTENT_COMPLETE` has no automatic transition. A separate product-approved
+  inventory and evidence review is required before a completeness action is
+  introduced. Unapproved taxonomy candidates remain documentation only.
