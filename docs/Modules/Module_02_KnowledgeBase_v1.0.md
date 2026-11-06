@@ -1,4 +1,4 @@
-# Module №2 / Technology Knowledge Base v1.6
+# Module №2 / Technology Knowledge Base v1.7
 
 ## Purpose
 
@@ -37,14 +37,14 @@ merged or deprecated by Sprint 2.1-2.2.
 
 ## Current module status
 
-The implemented Technology domain, internal Technology Workbench and read-only
-M2-to-M5 estimation input contract are `FOUNDATION / BETA`. The server-rendered contour is available at
-`/api/v1/admin/module2/workbench` when the M2 schema is present. The passport and
-module route now open that contour. One real module-owned readiness payload and
-safe user-owned Quick Action candidates are implemented. The widget remains
-`DISABLED` and hidden because the common registry has no `BETA` lifecycle. The
-historical module-registry `ACTIVE` value remains a metadata limitation to resolve
-in a separate Module №3 decision.
+The Technology domain, internal Technology Workbench and read-only M2-to-M5
+estimation input contract are `COMPLETED` for the agreed Module №2 scope. The
+server-rendered contour is live inside HousePlatform at
+`/api/v1/admin/module2/workbench`; its passport and module route open the same
+contour. The readiness widget is `ACTIVE` in the formal registry and available
+for user placement, but is not enabled or placed by default. Safe user-owned
+Quick Action candidates remain opt-in. M2-to-M5 is an input contract only; it
+does not run an M5 calculation or create an estimate.
 
 ## Sprint 2.7 action and widget review
 
@@ -62,13 +62,14 @@ or M5 action is exposed.
 | Knowledge records | Submit review, return to DRAFT, activate, archive | EDIT / APPROVE / ADMIN; blockers disable activation | Keep; clarify labels and confirm archive |
 | Readiness panels | M1 input blockers and Technology activation blockers | Read-only | Clarify scope; not M5 calculation readiness |
 
-The generic Module №2 passport reports `Foundation / Beta` and opens the existing
+The generic Module №2 passport reports `Активен` and opens the existing
 Workbench. The common module registry resolves the same route.
 
 The single readiness widget is backed by real Technology records and module RBAC.
-Its registry definition is deliberately disabled, has no mock provider, no default
-settings and no automatic placement. The Workbench exposes safe candidates for
-opening the registry, opening a concrete Technology and creating a DRAFT. Saving,
+Its registry definition is available but disabled by default, has no mock
+provider, no default settings and no automatic placement. The Workbench exposes
+safe candidates for opening the registry, opening a concrete Technology and
+creating a DRAFT. Saving,
 pinning and running those shortcuts uses the existing user-owned platform service;
 no default or seeded Quick Action is created. Lifecycle transitions, delete,
 archive and M5-like actions are not Quick Action candidates.
@@ -306,13 +307,28 @@ Sprint 2.6 also adds no migration and no new infrastructure. The estimation
 input package is assembled from existing M2 and referenced M1 records without
 persisting an export, estimate or calculation result.
 
-### FUTURE_DEPLOYMENT_BLOCKER
+### Controlled live deployment (Sprint 2.8)
 
-The live HousePlatform database must not receive these M2 migrations during this
-sprint. Application startup still calls `Base.metadata.create_all()`; therefore
-a web image containing the new models must not replace or restart the live web
-container before controlled schema-lifecycle approval. Otherwise ORM startup
-could create M2 tables outside the reviewed migration flow.
+Normal application startup validates that mapped tables exist and never calls
+`Base.metadata.create_all()`. Explicit schema creation is restricted to
+development/test environments and must use an isolated database; missing tables
+fail normal startup with a migration error.
+
+Before live migration, a HousePlatform-only PostgreSQL backup was created at
+`backup/m2-sprint-2.8/houseplatform-20261106-200935.dump`. It was restored into
+an isolated temporary database. The three M2 SQL migrations below passed a
+dry-run and repeat run there, then were applied to live `buildplatform` in order:
+
+1. `20260911_module02_technology_foundation.sql`;
+2. `20260913_module02_knowledge_foundation.sql`;
+3. `20261106_module02_reconcile_schema.sql`.
+
+The reconciliation migration aligns the legacy auto-created M2 schema with the
+reviewed SQL schema. It requires all nine M2 tables to be empty before changing
+JSON columns to `jsonb` and adding server defaults. Live verification found nine
+M2 tables, 16 `jsonb` columns, zero M2 rows and the expected migration marker.
+M1 material/document/category counts remained 394/31/71. Only the HousePlatform
+web service was rebuilt and recreated; db and redis containers were unchanged.
 
 ## Implemented in Sprint 2.1-2.2
 
@@ -419,13 +435,23 @@ remain outside Module №2.
 - aligned the passport and canonical module route with Technology Workbench;
 - retained `Foundation / Beta` product semantics and added no database migration.
 
-## Deferred after Sprint 2.7
+## Sprint 2.8 FINAL closure
+
+- replaced automatic runtime table creation with controlled schema validation;
+- backed up, restored and rehearsed all three M2 migrations before applying them
+  to the live HousePlatform database;
+- activated the real readiness widget as opt-in, without a default placement;
+- aligned the passport and Workbench UI with the deployed module status;
+- preserved browser login redirect and API authentication for the Workbench;
+- verified the new image with 173 targeted tests and the deployed web with
+  1530 passing regression tests (two existing security-gate deselections);
+- confirmed live health, protected Workbench routes and unchanged M1 data.
+
+## Deferred after Sprint 2.8
 
 - M5 quantity application, conversions, waste, rounding and calculation trace;
 - M5 estimate persistence, line items, pricing and totals;
 - project/object geometry input and selected-material recalculation;
-- formal `BETA` lifecycle support in the common module/widget registry;
-- activation and dashboard placement of the readiness widget after that lifecycle decision;
 - explicit Work Catalog ordering, lifecycle and deeper hierarchy, pending an M1 domain decision.
 
 ## Non-goals and guards
@@ -436,8 +462,8 @@ ProviderWorkCostOffer, Supplier, Manufacturer, MaterialDocument or Work Catalog
 records. Runtime AI/LLM generation is forbidden.
 
 The Workbench is an internal HousePlatform contour, not a separate application,
-Compose project, database service or Module №2 container. Live availability is
-still subject to the controlled M2 schema deployment described above.
+Compose project, database service or Module №2 container. It is live in the
+HousePlatform web service with the controlled M2 schema described above.
 
 ## History
 
@@ -448,3 +474,4 @@ still subject to the controlled M2 schema deployment described above.
 - 13.09.2026: v1.4 Sprint 2.6 typed read-only M2-to-M5 estimation input contract.
 - 14.09.2026: v1.5 Sprint 2.7 action/widget review and M1 Work Catalog composition audit.
 - 14.09.2026: v1.6 Corrective 2.7.C hierarchy preservation, readiness widget, Quick Actions and navigation closure.
+- 06.11.2026: v1.7 Sprint 2.8 controlled migration, web deployment and final M2 closure.
