@@ -38,6 +38,9 @@ class Technology(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     system_code: Mapped[str | None] = mapped_column(String(120), index=True)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("module2_technology_categories.id", ondelete="RESTRICT"), index=True
+    )
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="DRAFT", index=True)
     owner_module_code: Mapped[str] = mapped_column(
         String(120),
@@ -70,6 +73,7 @@ class Technology(Base):
         remote_side=[id],
         foreign_keys=[supersedes_id],
     )
+    category = relationship("TechnologyCategory")
     requirements = relationship(
         "TechnologyMaterialRequirement",
         back_populates="technology",

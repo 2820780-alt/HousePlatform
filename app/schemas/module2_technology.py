@@ -113,6 +113,7 @@ class TechnologyDraftInput(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     description: str | None = None
     system_code: str | None = Field(default=None, max_length=120)
+    category_id: UUID | None = None
     source_kind: str = Field(default="HUMAN_CURATED", max_length=40)
     requirements: list[TechnologyMaterialRequirementInput] = Field(default_factory=list)
     layers: list[TechnologyLayerInput] = Field(default_factory=list)
@@ -142,6 +143,7 @@ class TechnologyDraftUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
     system_code: str | None = Field(default=None, max_length=120)
+    category_id: UUID | None = None
 
 
 class Module2InputAcceptance(BaseModel):

@@ -419,6 +419,7 @@ async def build_technology_list_view(db: AsyncSession) -> tuple[dict[str, Any], 
             "status": item.status,
             "status_label": status_label(item.status),
             "system_code": item.system_code or "Не задана",
+            "category_id": item.category_id,
             "blocker_count": len(item.input_blockers or ()) + len(item.input_missing_fields or ()),
             "updated_at": item.updated_at,
         }

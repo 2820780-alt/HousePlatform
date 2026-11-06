@@ -18,6 +18,8 @@
         <p>Редакции, инженерные правила и подтверждения.</p>
       </div>
       <div class="m2-actions">
+        <a class="m2-button ghost" href="/api/v1/module2/encyclopedia">Энциклопедия</a>
+        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench/categories">Категории</a>
         <a class="m2-button ghost" href="/api/v1/admin/cabinet/view/modules/2">Паспорт модуля</a>
         {% if permissions.edit %}
         <div class="atom-action-with-menu">
@@ -82,6 +84,7 @@
                 <th>Редакция</th>
                 <th>Статус</th>
                 <th>Система</th>
+                <th>Категория</th>
                 <th>Входные данные M1</th>
                 <th>Обновлена</th>
               </tr>
@@ -109,6 +112,7 @@
                 <td>№ {{ item.revision }}</td>
                 <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
                 <td>{{ item.system_code }}</td>
+                <td>{{ item.category_name }}</td>
                 <td>
                   {% if item.blocker_count %}
                   <span class="m2-status" data-status="REVIEW">{{ item.blocker_count }} блок.</span>
@@ -140,6 +144,7 @@
         <label><span>Код</span><input name="technology_code" required pattern="[A-Z][A-Z0-9_]+" placeholder="WALL_SYSTEM"></label>
         <label class="wide"><span>Название</span><input name="name" required maxlength="255"></label>
         <label><span>Система</span><input name="system_code" maxlength="120" placeholder="EXTERNAL_WALL"></label>
+        <label><span>Категория</span><select name="category_code"><option value="">Без категории</option>{% for category in categories %}<option value="{{ category.code }}">{{ category.name }}</option>{% endfor %}</select></label>
         <label class="full"><span>Описание</span><textarea name="description"></textarea></label>
       </div>
       <div class="m2-form-actions">

@@ -8,11 +8,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.permission_guard import require_permission
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
+from app.models.module2_content_catalog import TechnologyCategory
 from app.schemas.module2_knowledge import (
     CompatibilityRuleDraftInput,
     ConsumptionNormDraftInput,
@@ -34,6 +36,16 @@ from app.services.module2_knowledge_foundation import (
     verify_evidence_references,
 )
 from app.services.module2_operational_widgets import build_technology_readiness_widget
+from app.services.module2_content_catalog import (
+    ContentCatalogError,
+    category_tree,
+    create_category,
+    list_categories,
+    resolve_category_id,
+    start_content_package,
+    transition_category,
+    update_draft_category,
+)
 from app.services.module2_technology_foundation import (
     build_draft_technology,
     create_next_revision,
@@ -68,6 +80,10 @@ templates = Jinja2Templates(directory="templates")
 async def technology_workbench_list(request: Request, db: DBSession, user: CurrentUser):
     require_permission(user, MODULE2_OWNER_CODE, "VIEW")
     rows = list(await build_technology_list_view(db))
+    categories = await list_categories(db)
+    category_names = {item.id: item.name for item in categories}
+    for row in rows:
+        row["category_name"] = category_names.get(row["category_id"], "Без категории")
     status_filter = str(request.query_params.get("status") or "").upper()
     query = str(request.query_params.get("q") or "").strip().lower()
     if status_filter in {item.value for item in TechnologyLifecycle}:
@@ -79,6 +95,7 @@ async def technology_workbench_list(request: Request, db: DBSession, user: Curre
         "module2_technology_workbench.html",
         {
             "technologies": rows,
+            "categories": tuple(item for item in categories if item.status != "ARCHIVED"),
             "permissions": workbench_permissions(user),
             "status_filter": status_filter,
             "query": request.query_params.get("q", ""),
@@ -100,6 +117,7 @@ async def technology_workbench_create(request: Request, db: DBSession, user: Cur
                 name=_required(form, "name"),
                 description=_optional(form, "description"),
                 system_code=_optional(form, "system_code"),
+                category_id=await resolve_category_id(db, _optional(form, "category_code")),
             ),
             actor_role_code=actor_role_code(user),
             created_by_user_id=_user_id(user),
@@ -109,6 +127,107 @@ async def technology_workbench_create(request: Request, db: DBSession, user: Cur
         await db.rollback()
         return _redirect_list(error=_human_error(exc))
     return _redirect_detail(technology.id, notice="Черновик технологии создан.")
+
+
+@router.get("/categories", response_class=HTMLResponse)
+async def technology_categories(request: Request, db: DBSession, user: CurrentUser):
+    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    categories = await list_categories(db)
+    return templates.TemplateResponse(
+        request, "module2_technology_categories.html",
+        {
+            "category_rows": category_tree(categories),
+            "parent_options": tuple(item for item in categories if item.status != "ARCHIVED"),
+            "permissions": workbench_permissions(user),
+            "notice": request.query_params.get("notice"),
+            "error": request.query_params.get("error"),
+            "atom_topbar_current_block": "Модуль №2: Категории технологий",
+        },
+    )
+
+
+@router.post("/categories/create")
+async def technology_category_create(request: Request, db: DBSession, user: CurrentUser):
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
+    form = await request.form()
+    try:
+        await create_category(
+            db,
+            code=_required(form, "code"),
+            name=_required(form, "name"),
+            parent_code=_optional(form, "parent_code"),
+            scope_code=_optional(form, "scope_code") or "RESIDENTIAL",
+            sort_order=int(form.get("sort_order") or 0),
+            description=_optional(form, "description"),
+        )
+    except (ValueError, IntegrityError) as exc:
+        await db.rollback()
+        return _redirect_categories(error=str(exc))
+    return _redirect_categories(notice="Черновик категории создан.")
+
+
+@router.post("/categories/{category_code}/update")
+async def technology_category_update(
+    category_code: str, request: Request, db: DBSession, user: CurrentUser
+):
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
+    category = await db.scalar(
+        select(TechnologyCategory).where(TechnologyCategory.code == category_code)
+    )
+    if not category:
+        return _redirect_categories(error="Категория не найдена.")
+    form = await request.form()
+    try:
+        await update_draft_category(
+            db, category,
+            name=_required(form, "name"),
+            parent_code=_optional(form, "parent_code"),
+            scope_code=_required(form, "scope_code"),
+            sort_order=int(form.get("sort_order") or 0),
+            description=_optional(form, "description"),
+        )
+    except (ValueError, IntegrityError) as exc:
+        await db.rollback()
+        return _redirect_categories(error=str(exc))
+    return _redirect_categories(notice="Категория обновлена.")
+
+
+@router.post("/categories/{category_code}/transition")
+async def technology_category_transition(
+    category_code: str, request: Request, db: DBSession, user: CurrentUser
+):
+    form = await request.form()
+    target = _required(form, "target")
+    require_permission(user, MODULE2_OWNER_CODE, "APPROVE" if target == "ACTIVE" else "ADMIN")
+    category = await db.scalar(
+        select(TechnologyCategory).where(TechnologyCategory.code == category_code)
+    )
+    if not category:
+        return _redirect_categories(error="Категория не найдена.")
+    try:
+        await transition_category(db, category, target)
+    except (ValueError, IntegrityError) as exc:
+        await db.rollback()
+        return _redirect_categories(error=str(exc))
+    return _redirect_categories(notice="Статус категории обновлён.")
+
+
+@router.post("/categories/{category_code}/start-content")
+async def technology_category_start_content(
+    category_code: str, db: DBSession, user: CurrentUser
+):
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
+    category = await db.scalar(
+        select(TechnologyCategory).where(TechnologyCategory.code == category_code)
+    )
+    if not category:
+        return _redirect_categories(error="Категория не найдена.")
+    try:
+        await start_content_package(db, category)
+    except ContentCatalogError as exc:
+        await db.rollback()
+        return _redirect_categories(error=str(exc))
+    return _redirect_categories(notice="Контентный пакет начат.")
 
 
 @router.get("/widgets/technology-readiness")
@@ -128,6 +247,11 @@ async def technology_workbench_detail(
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
+    categories = await list_categories(db)
+    context["category_options"] = tuple(item for item in categories if item.status != "ARCHIVED")
+    context["category_code"] = next(
+        (item.code for item in categories if item.id == technology.category_id), None
+    )
     context.update(
         {
             "permissions": workbench_permissions(user),
@@ -194,6 +318,7 @@ async def _perform_action(
                 name=_required(form, "name"),
                 description=_optional(form, "description"),
                 system_code=_optional(form, "system_code"),
+                category_id=await resolve_category_id(db, _optional(form, "category_code")),
             ),
             actor_role_code=role_code,
         )
@@ -561,6 +686,14 @@ def _human_error(exc: Exception) -> str:
 def _redirect_list(*, notice: str | None = None, error: str | None = None):
     query = urlencode({key: value for key, value in {"notice": notice, "error": error}.items() if value})
     return RedirectResponse(f"/api/v1/admin/module2/workbench{'?' + query if query else ''}", status_code=303)
+
+
+def _redirect_categories(*, notice: str | None = None, error: str | None = None):
+    query = urlencode({key: value for key, value in {"notice": notice, "error": error}.items() if value})
+    return RedirectResponse(
+        f"/api/v1/admin/module2/workbench/categories{'?' + query if query else ''}",
+        status_code=303,
+    )
 
 
 def _redirect_detail(

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Категории технологий · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module2_workbench_styles.html" %}
+</head>
+<body data-atom-page data-rbac-ready data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <main class="m2-shell">
+    <header class="m2-page-head">
+      <div><div class="m2-eyebrow">Module №2 · Technology Catalog</div><h1>Категории технологий</h1></div>
+      <div class="m2-actions">
+        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench">Технологии</a>
+        <a class="m2-button ghost" href="/api/v1/module2/encyclopedia">Энциклопедия</a>
+      </div>
+    </header>
+
+    {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
+    {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
+
+    <section class="m2-panel" aria-labelledby="category-title">
+      <div class="m2-panel-head"><h2 id="category-title">Дерево категорий</h2><span class="m2-count">{{ category_rows|length }}</span></div>
+      {% if category_rows %}
+      <div class="m2-table-wrap"><table class="m2-table">
+        <thead><tr><th>Категория</th><th>Код / scope</th><th>Статус</th><th>Контент</th><th>Действия</th></tr></thead>
+        <tbody>{% for row in category_rows %}{% set item = row.category %}
+          <tr>
+            <td><div style="padding-left: {{ row.depth * 18 }}px"><strong>{{ item.name }}</strong></div>{% if item.description %}<div class="m2-code">{{ item.description }}</div>{% endif %}</td>
+            <td><span class="m2-code">{{ item.code }}</span><br><span class="m2-code">{{ item.scope_code }}</span></td>
+            <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status }}</span></td>
+            <td>{{ item.content_status }}</td>
+            <td>
+              <div class="m2-actions">
+                {% if item.status == 'DRAFT' and permissions.edit %}
+                <details><summary>Изменить</summary>
+                  <form method="post" action="/api/v1/admin/module2/workbench/categories/{{ item.code }}/update" data-m2-form>
+                    <label><span>Название</span><input name="name" value="{{ item.name }}" required maxlength="255"></label>
+                    <label><span>Родитель</span><select name="parent_code"><option value="">Корневая категория</option>{% for parent in parent_options if parent.id != item.id %}<option value="{{ parent.code }}" {% if item.parent_id == parent.id %}selected{% endif %}>{{ parent.name }}</option>{% endfor %}</select></label>
+                    <label><span>Порядок</span><input type="number" name="sort_order" value="{{ item.sort_order }}" min="0" required></label>
+                    <label><span>Scope</span><input name="scope_code" value="{{ item.scope_code }}" required pattern="[A-Z][A-Z0-9_]*"></label>
+                    <label><span>Описание</span><textarea name="description">{{ item.description or '' }}</textarea></label>
+                    <button class="m2-button primary" type="submit">Сохранить</button>
+                  </form>
+                </details>
+                {% endif %}
+                {% if item.status == 'DRAFT' and permissions.approve %}
+                <form method="post" action="/api/v1/admin/module2/workbench/categories/{{ item.code }}/transition" data-m2-form data-m2-confirm="Активировать утверждённую категорию?"><input type="hidden" name="target" value="ACTIVE"><button class="m2-button primary" type="submit">Активировать</button></form>
+                {% endif %}
+                {% if item.status == 'ACTIVE' and item.content_status == 'EMPTY' and permissions.edit %}
+                <form method="post" action="/api/v1/admin/module2/workbench/categories/{{ item.code }}/start-content" data-m2-form><button class="m2-button" type="submit">Начать контент</button></form>
+                {% endif %}
+                {% if item.status != 'ARCHIVED' and permissions.admin %}
+                <form method="post" action="/api/v1/admin/module2/workbench/categories/{{ item.code }}/transition" data-m2-form data-m2-confirm="Архивировать категорию?"><input type="hidden" name="target" value="ARCHIVED"><button class="m2-button danger" type="submit">В архив</button></form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="m2-empty">Категории пока не созданы.</div>{% endif %}
+    </section>
+
+    {% if permissions.edit %}
+    <section class="m2-panel" style="margin-top: 18px" aria-labelledby="new-category-title">
+      <div class="m2-panel-head"><h2 id="new-category-title">Новая категория</h2></div>
+      <form class="m2-panel-body" method="post" action="/api/v1/admin/module2/workbench/categories/create" data-m2-form>
+        <div class="m2-form-grid">
+          <label><span>Стабильный код</span><input name="code" required pattern="[A-Z][A-Z0-9_]*" maxlength="120"></label>
+          <label class="wide"><span>Название</span><input name="name" required maxlength="255"></label>
+          <label><span>Родитель</span><select name="parent_code"><option value="">Корневая категория</option>{% for item in parent_options %}<option value="{{ item.code }}">{{ item.name }}</option>{% endfor %}</select></label>
+          <label><span>Порядок</span><input type="number" name="sort_order" value="0" min="0" required></label>
+          <label><span>Scope</span><input name="scope_code" value="RESIDENTIAL" required pattern="[A-Z][A-Z0-9_]*"></label>
+          <label class="full"><span>Описание</span><textarea name="description"></textarea></label>
+        </div>
+        <div class="m2-form-actions"><button class="m2-button primary" type="submit">Создать черновик</button></div>
+      </form>
+    </section>
+    {% endif %}
+  </main>
+  {% include "_module2_workbench_scripts.html" %}
+</body>
+</html>

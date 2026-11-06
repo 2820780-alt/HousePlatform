@@ -116,6 +116,7 @@
         </div>
       </div>
       <div class="m2-actions">
+        {% if technology.status == 'ACTIVE' and category_code %}<a class="m2-button ghost" href="/api/v1/module2/encyclopedia/technologies/{{ technology.technology_code }}">Страница энциклопедии</a>{% endif %}
         <a
           class="m2-button ghost"
           href="/api/v1/admin/module2/workbench"
@@ -178,6 +179,7 @@
           <label class="wide"><span>Название</span><input name="name" value="{{ technology.name }}" required></label>
           <label><span>Код</span><input value="{{ technology.technology_code }}" disabled></label>
           <label><span>Система</span><input name="system_code" value="{{ technology.system_code or '' }}"></label>
+          <label><span>Категория</span><select name="category_code"><option value="">Без категории</option>{% for category in category_options %}<option value="{{ category.code }}" {% if category.code == category_code %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
           <label class="full"><span>Описание</span><textarea name="description">{{ technology.description or '' }}</textarea></label>
         </div>
         <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить</button></div>
@@ -186,6 +188,7 @@
       <div class="m2-definition-grid">
         <div class="m2-definition"><span>Код</span>{{ technology.technology_code }}</div>
         <div class="m2-definition"><span>Система</span>{{ technology.system_code or 'Не задана' }}</div>
+        <div class="m2-definition"><span>Категория</span>{{ category_code or 'Не назначена' }}</div>
         <div class="m2-definition"><span>Редакция</span>№ {{ technology.revision }}</div>
         <div class="m2-definition"><span>Статус</span>{{ status_label }}</div>
       </div>
