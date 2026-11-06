@@ -90,6 +90,7 @@ def _widget_item(
     route_to_source_module: str | None = None,
     required_module_status: str | None = None,
     planned_reason: str | None = None,
+    enabled_by_default: bool | None = None,
     allows_multiple_instances: bool = False,
     supported_placements: list[str] | None = None,
 ) -> DashboardWidgetRegistryItem:
@@ -120,7 +121,10 @@ def _widget_item(
         allowedSizes=allowed_sizes or ["small", "medium", "large"],
         defaultSettings=default_settings or {},
         availableSettings=available_settings or {},
-        isEnabledByDefault=normalized_status in {"available", "mock_only"},
+        isEnabledByDefault=(
+            normalized_status in {"available", "mock_only"}
+            if enabled_by_default is None else enabled_by_default
+        ),
         componentKey=component_key,
         mockDataProvider=mock_data_provider,
         routeToSourceModule=route,
@@ -157,11 +161,11 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
         widget_type="STATUS",
         source_module_code="MODULE_02_KNOWLEDGE_BASE",
         component_key="Module02TechnologyReadinessWidget",
-        status="disabled",
+        status="available",
+        enabled_by_default=False,
         feature_code="TECHNOLOGY_CONSTRUCTION_GROUPS",
         required_permissions=["VIEW"],
         route_to_source_module="/api/v1/admin/module2/workbench",
-        planned_reason="Foundation / Beta: activation requires a formal widget lifecycle decision.",
         supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
     ),
     _widget_item(

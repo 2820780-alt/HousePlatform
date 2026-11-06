@@ -134,6 +134,7 @@ async def test_missing_browser_and_bearer_token_remains_unauthorized():
     "path",
     [
         "/api/v1/admin/material-hub/view?feature=prices",
+        "/api/v1/admin/module2/workbench",
         "/api/v1/admin/users-roles/view?tab=access",
         "/app/users-roles/users/user-1",
         "/api/v1/admin/module-registry/view/MODULE_03_USERS_ROLES",

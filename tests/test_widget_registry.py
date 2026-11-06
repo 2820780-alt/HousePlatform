@@ -44,6 +44,15 @@ def test_module10_widget_registry_exposes_project_catalog_planned_context():
     assert widget.status == "PLANNED"
 
 
+def test_module2_readiness_widget_is_active_in_formal_registry():
+    widget = get_widget_registry_item("MODULE_02_TECHNOLOGY_READINESS_WIDGET")
+
+    assert widget is not None
+    assert widget.status == "ACTIVE"
+    assert widget.sourceModuleCode == "MODULE_02_KNOWLEDGE_BASE"
+    assert widget.isMock is False
+
+
 def test_widget_registry_filters_available_widgets_by_module_widget_and_feature_access():
     profile = {
         "roleCode": "ANALYST",

@@ -16,6 +16,7 @@ DEFAULT_BROWSER_DESTINATION = "/api/v1/admin/cabinet/view"
 LOGIN_VIEW_PATH = "/api/v1/auth/login/view"
 PROTECTED_BROWSER_ROOTS = (
     "/api/v1/admin/material-hub/view",
+    "/api/v1/admin/module2/workbench",
     "/api/v1/admin/users-roles/view",
     "/api/v1/admin/module-registry/view",
     "/app/users-roles",

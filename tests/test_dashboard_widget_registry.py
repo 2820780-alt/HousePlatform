@@ -78,14 +78,14 @@ def test_widget_registry_is_marked_as_aggregator_not_business_owner():
     assert all("temporary aggregator" in widget["compatibilityNote"] for widget in registry)
 
 
-def test_module2_readiness_widget_is_real_but_hidden_during_beta():
+def test_module2_readiness_widget_is_available_without_default_placement():
     widget = get_dashboard_widget_registry_item("MODULE_02_TECHNOLOGY_READINESS_WIDGET")
 
     assert widget is not None
     assert widget.sourceModuleCode == "MODULE_02_KNOWLEDGE_BASE"
     assert widget.payloadOwnerModuleCode == "MODULE_02_KNOWLEDGE_BASE"
     assert widget.payloadSource == PAYLOAD_SOURCE_MODULE_OWNED
-    assert widget.status == "disabled"
+    assert widget.status == "available"
     assert widget.isEnabledByDefault is False
     assert widget.mockDataProvider is None
     assert widget.type == "STATUS"
@@ -101,6 +101,10 @@ def test_module2_readiness_widget_is_real_but_hidden_during_beta():
         "allowedModuleCodes": ["MODULE_02_KNOWLEDGE_BASE"],
         "allowedWidgetCodes": [widget.widgetCode],
     }
+    assert widget.widgetCode in {
+        item["widgetCode"] for item in get_available_dashboard_widgets(profile)
+    }
+    profile["allowedModuleCodes"] = []
     assert widget.widgetCode not in {
         item["widgetCode"] for item in get_available_dashboard_widgets(profile)
     }

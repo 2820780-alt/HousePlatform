@@ -874,7 +874,7 @@ def _module_passports(
             "Knowledge Base",
             "Технологии, нормы и правила применения",
             "База знаний технологий строится поверх реальных материалов и документов.",
-            "Foundation / Beta",
+            "Активен",
             "#39d98a",
             "/api/v1/admin/module2/workbench",
             "Открыть Technology Workbench",
