@@ -1,8 +1,9 @@
 # Module 2 / Technology Catalog and Construction Encyclopedia
 
 Status: M2 Core and Encyclopedia infrastructure COMPLETED. Residential top-level
-taxonomy v1 is product-approved. FOUNDATIONS inventory is prepared for research,
-not engineering publication. No Technology content is approved or seeded here.
+taxonomy v1 is product-approved. FOUNDATIONS is IN_PROGRESS. M2-FOUNDATIONS-1
+adds three source-scoped ACTIVE technologies and one blocked DRAFT candidate;
+neither STRIP nor SLAB is marked CONTENT_COMPLETE yet.
 
 ## Purpose and ownership
 
@@ -270,7 +271,7 @@ Also available: `foundations_concrete_ustroystvo_podbetonki`,
 `landscaping_ustroystvo_otmostki` belong to `SITE_WORKS` despite older
 foundation-named work items for blind areas. Gaps: dedicated FBS/FL assembly,
 driven piles, column foundations, basement walls and integrated UFF/USHP work.
-Do not invent M2 work codes or mutate M1 in this sprint.
+The taxonomy-only sprint did not invent M2 work codes or mutate M1.
 
 ### Read-only evidence audit and research leads
 
@@ -289,6 +290,97 @@ Official standards are research leads, not ingested/verified M1 evidence:
 [GOST 13579-2018](https://protect.gost.ru/gost/details/590002ea-b5b0-4bf5-9e47-a772c8c16f06).
 Their current text, amendments, applicability and engineering interpretation
 must be reviewed during content filling before any claims enter Technology.
+
+### M2-FOUNDATIONS-1 content package
+
+`database/migrations/20261107_module02_foundations_content.sql` is an
+idempotent, transactional content seed, not schema DDL. It adds 11 scoped M1
+knowledge resources, eight M1 material classes and eight class-source links, and
+four M2 Technology revisions. The approved M1 Work Catalog and REF6 artifact
+remain unchanged at 209 work codes. The precast sequence uses the existing
+`foundations_concrete_ustroystvo_lentochnogo_fundamenta` code for assembly;
+dedicated FL/FBS montage codes remain a documented M1 gap. No M1 material
+product, price, supplier, calculated quantity or object geometry is
+created. M2 requirements refer to M1 classes, not cloned products.
+
+| Inventory key | Published code / boundary | Lifecycle | Family |
+| --- | --- | --- | --- |
+| `FND_STRIP_MONOLITHIC_RC` | Same; one monolithic RC strip system | ACTIVE | STRIP |
+| `FND_STRIP_PRECAST_FBS_FL` | Same; FBS system, FL conditional by project | ACTIVE | STRIP |
+| `FND_STRIP_GEOMETRY_VARIANTS` | Depth, width and footing geometry are calculated parameters, not Technology | No record | STRIP |
+| `FND_SLAB_MONOLITHIC_RC` | Same; one monolithic RC slab system | ACTIVE | SLAB |
+| `FND_SLAB_RIBBED_RC` | Distinct-system candidate, not an approved Russian residential recipe | DRAFT/BLOCKED | SLAB |
+| `FND_SLAB_RIB_ORIENTATION` | Orientation is a design parameter of the ribbed candidate, not Technology | No record | SLAB |
+
+The precast boundary follows the official [GOST 13579-2018](https://protect.gost.ru/gost/details/590002ea-b5b0-4bf5-9e47-a772c8c16f06)
+scope: solid basement-wall blocks may be used in foundations. The official
+[GOST 13580-2021](https://protect.gost.ru/gost/details/ae76fad3-1e46-4c89-af7a-1a4c6e9617c3)
+covers precast strip-footing slabs, but does not make FL a universal necessity.
+Project design determines the assembly and its joints. The [ribbed-raft
+research](https://eijest.journals.ekb.eg/article_153965_5030d71d83e7b78838464cc5c4a4efd3.pdf)
+demonstrates a structurally distinct waffle/rib system under particular
+expansive-soil assumptions; its Egyptian design parameters cannot be copied
+into Russian private-house practice. The ribbed candidate remains DRAFT with
+explicit applicability and work-sequence blockers. Rib orientation remains a
+variant of that candidate.
+
+Evidence in M1 is scoped rather than generically marked as a verified design
+recipe. Current registry cards establish status and scope of
+[SP 22.13330.2016](https://protect.gost.ru/sp/details/71e96332-a446-4a15-87a0-2db895479f61),
+[SP 63.13330.2018](https://protect.gost.ru/sp/details/8b67e228-0c9f-4a62-b562-964b3a58c667),
+[SP 70.13330.2012](https://protect.gost.ru/sp/details/2239acf1-711f-4f1f-aaa7-902fa06a8a60),
+[SP 28.13330.2017](https://protect.gost.ru/sp/details/bd3c594c-26c7-41a9-9c76-510d0fa1ca92),
+[SP 50.13330.2024](https://protect.gost.ru/sp/details/5081dae9-9ee9-455f-80e8-d093d495361c),
+[GOST 26633-2015](https://protect.gost.ru/gost/details/b9da3cd9-2fb4-4473-9553-3979ad6be453)
+and [GOST 34028-2016](https://protect.gost.ru/gost/details/50236208-68a9-443c-974d-4cc3dc04d15a).
+The [MCHS-hosted SP 70 text](https://mchs.gov.ru/uploads/document/2025-04-18/a4fdaa23dd52e900a59f40c57124e039.pdf)
+is the 30.12.2020 edition (not the 2026 consolidated text). It supports only
+high-level work order, formwork, reinforcement, concrete care and precast
+installation statements in this package; current amendments must be reviewed
+before introducing numeric tolerances or prescriptive methods. Requirements,
+layers, WorkSteps, nodes and informational rules have targeted M1 evidence
+references. No consumption norm or numeric design value is asserted.
+
+The public Encyclopedia projects applicability, exclusions, M1 material-class
+requirements, ordered M1 work links, nodes, quality checkpoints, common
+errors, project-dependent parameters and source links from the M2 aggregate.
+Other published technologies in the same family are navigational alternatives,
+not an inferred compatibility assertion. DRAFT remains hidden. No new M2
+application or domain schema is introduced; M2-to-M5 contract shape is unchanged.
+
+Both family categories remain IN_PROGRESS, and FOUNDATIONS remains IN_PROGRESS.
+STRIP still needs a current-edition detailed review of assembly-joint and
+waterproofing instructions before its family completion gate. SLAB additionally
+needs Russian residential evidence and validated work/layer sequence for the
+ribbed system; only then decide ACTIVE versus formal merge/out-of-scope.
+Remaining piles, UShP/UFF, columns and basement/substructure inventory belongs
+to M2-FOUNDATIONS-2 or later. Do not elevate status from the number of rows.
+
+### M2-FOUNDATIONS-1 live closure (2026-11-07)
+
+The transactional content package was applied to the HousePlatform live DB
+after a verified backup, isolated restore, idempotency check and a clean
+118-table live-versus-backup fingerprint. The deployed web image exposes the
+three ACTIVE technologies listed above. `FND_SLAB_RIBBED_RC` remains DRAFT with
+explicit blockers and is not published in the viewer Encyclopedia. The live
+package contains 18 material requirements, 18 layers, 18 ordered M1 work steps,
+8 nodes, 21 informational rules and 97 targeted evidence references. Eleven
+scoped M1 knowledge resources and eight M1 material classes were added; no
+existing M1/M3 business rows were changed. The approved 209-code M1 Work
+Catalog/REF6 package remains untouched. Dedicated FL and FBS montage codes
+remain a documented gap rather than fabricated links.
+
+`STRIP_FOUNDATIONS`, `SLAB_FOUNDATIONS` and parent `FOUNDATIONS` all remain
+`IN_PROGRESS`. A2 must resolve the remaining foundation inventory and evidence
+gaps, including the ribbed-slab decision; the A1 row counts do not constitute
+family or overall content completion. Live route smoke confirmed the category,
+Technology, material, node and M1 work pages; DRAFT and absent work-code routes
+return 404. The pre-live targeted gate passed 37 tests, and the expanded gate
+passed 1529 tests with four skips. The pre-existing security test file that
+reads `.env.docker` is explicitly excluded by product/security policy from
+ordinary content/module regression gates. An earlier pre-live attempt ran it
+inadvertently and exposed a connection string in tool diagnostics; no value is
+recorded here or in the repository.
 
 ### OUT_OF_SCOPE v1 and closure gate
 

@@ -99,29 +99,9 @@ async def public_technology(db: AsyncSession, code: str) -> Technology | None:
 
 async def technology_article(db: AsyncSession, technology: Technology) -> dict:
     category = await db.get(TechnologyCategory, technology.category_id)
-    requirements = []
-    for item in technology.requirements:
-        label = item.material_role_code or "Требование к материалу"
-        material = None
-        if item.canonical_material_id:
-            material = await db.get(Material, item.canonical_material_id)
-            if material and material.status == MaterialStatus.VERIFIED:
-                label = material.canonical_name
-            else:
-                material = None
-                label = "Материал M1 недоступен для публикации"
-        elif item.material_category_id:
-            material_category = await db.get(MaterialCategory, item.material_category_id)
-            if material_category and material_category.status == "ACTIVE":
-                label = material_category.name
-        requirements.append({"model": item, "label": label, "material": material})
-
-    steps = []
-    for item in sorted(technology.work_steps, key=lambda step: step.position):
-        work = get_work_item(item.work_code)
-        steps.append({"model": item, "work": work})
-
     evidence = []
+    evidence_by_target = {}
+    seen_sources = set()
     for item in technology.evidence_references:
         source = None
         if item.document_id:
@@ -141,7 +121,39 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
                     "url": _safe_source_url(resource.source_url or resource.resource_url),
                 }
         if source:
-            evidence.append(source)
+            key = (source["type"], source["title"], source["url"])
+            if key not in seen_sources:
+                evidence.append(source)
+                seen_sources.add(key)
+            evidence_by_target.setdefault((item.target_kind, item.target_reference), []).append(source)
+
+    requirements = []
+    for item in technology.requirements:
+        label = item.material_role_code or "Требование к материалу"
+        material = None
+        if item.canonical_material_id:
+            material = await db.get(Material, item.canonical_material_id)
+            if material and material.status == MaterialStatus.VERIFIED:
+                label = material.canonical_name
+            else:
+                material = None
+                label = "Материал M1 недоступен для публикации"
+        elif item.material_category_id:
+            material_category = await db.get(MaterialCategory, item.material_category_id)
+            if material_category and material_category.status == "ACTIVE":
+                label = material_category.name
+        requirements.append({
+            "model": item, "label": label, "material": material,
+            "sources": tuple(evidence_by_target.get(("MATERIAL_REQUIREMENT", str(item.id)), ())),
+        })
+
+    steps = []
+    for item in sorted(technology.work_steps, key=lambda step: step.position):
+        work = get_work_item(item.work_code)
+        steps.append({
+            "model": item, "work": work,
+            "sources": tuple(evidence_by_target.get(("WORK_STEP", str(item.id)), ())),
+        })
 
     def rule_text(rule) -> str | None:
         payload = rule.outcome_payload or {}
@@ -161,6 +173,24 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         if rule.status == "ACTIVE" and rule.outcome_type in {"REQUIREMENT", "CONSTRAINT"}
         if (text := rule_text(rule))
     )
+    editorial = {}
+    for rule in technology.knowledge_rules:
+        if rule.status != "ACTIVE" or rule.outcome_type != "INFORMATION":
+            continue
+        section = (rule.outcome_payload or {}).get("section")
+        message = rule_text(rule)
+        if section and message:
+            editorial.setdefault(section, []).append({
+                "text": message,
+                "sources": tuple(evidence_by_target.get(("KNOWLEDGE_RULE", str(rule.id)), ())),
+            })
+
+    catalog = await public_catalog(db)
+    family_alternatives = tuple(
+        row["technology"] for row in catalog["technologies"]
+        if row["technology"].category_id == technology.category_id
+        and row["technology"].technology_code != technology.technology_code
+    )
     return {
         "technology": technology,
         "category": category,
@@ -178,5 +208,7 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         ),
         "warnings": warnings,
         "controls": controls,
+        "editorial": {key: tuple(value) for key, value in editorial.items()},
+        "family_alternatives": family_alternatives,
         "evidence": tuple(evidence),
     }
