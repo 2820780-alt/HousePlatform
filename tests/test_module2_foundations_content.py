@@ -30,7 +30,7 @@ from app.services.module2_technology_foundation import read_technology
 ACTIVE_CODES = (
     "FND_STRIP_MONOLITHIC_RC", "FND_STRIP_PRECAST_FBS_FL", "FND_SLAB_MONOLITHIC_RC",
 )
-DRAFT_CODE = "FND_SLAB_RIBBED_RC"
+RIBBED_CODE = "FND_SLAB_RIBBED_RC"
 
 
 def _isolated_engine():
@@ -47,8 +47,8 @@ def test_foundation_work_codes_are_m1_owned():
         work = get_work_item(code)
         assert work is not None
         assert work.work_group == "foundations_concrete"
-    assert get_work_item("foundations_concrete_montazh_podushki_fl") is None
-    assert get_work_item("foundations_concrete_montazh_blokov_fbs") is None
+    assert get_work_item("foundations_concrete_montazh_fundamentnyh_plit_fl") is not None
+    assert get_work_item("foundations_concrete_montazh_blokov_fbs") is not None
 
 
 @pytest.mark.asyncio
@@ -59,19 +59,24 @@ async def test_foundation_content_integrity_and_lifecycle():
             categories = {
                 row.code: row for row in (await db.scalars(select(TechnologyCategory))).all()
             }
-            assert categories["FOUNDATIONS"].content_status == "IN_PROGRESS"
-            assert categories["STRIP_FOUNDATIONS"].content_status == "IN_PROGRESS"
-            assert categories["SLAB_FOUNDATIONS"].content_status == "IN_PROGRESS"
+            assert categories["FOUNDATIONS"].content_status == "CONTENT_COMPLETE"
+            assert categories["STRIP_FOUNDATIONS"].content_status == "CONTENT_COMPLETE"
+            assert categories["SLAB_FOUNDATIONS"].content_status == "CONTENT_COMPLETE"
 
             rows = (await db.scalars(select(Technology).where(
-                Technology.technology_code.in_((*ACTIVE_CODES, DRAFT_CODE))
+                Technology.technology_code.in_((*ACTIVE_CODES, RIBBED_CODE))
             ))).all()
-            assert len(rows) == 4
-            assert {row.technology_code for row in rows if row.status == "ACTIVE"} == set(ACTIVE_CODES)
-            draft = next(row for row in rows if row.technology_code == DRAFT_CODE)
-            assert draft.status == "DRAFT"
-            assert draft.input_blockers
-            assert await public_technology(db, DRAFT_CODE) is None
+            assert len(rows) == 6
+            assert {row.technology_code for row in rows if row.status == "ACTIVE"} == {
+                *ACTIVE_CODES, RIBBED_CODE,
+            }
+            historical = next(row for row in rows if row.technology_code == RIBBED_CODE
+                              and row.revision == 1)
+            assert historical.status == "ARCHIVED"
+            assert historical.input_blockers
+            assert next(row for row in rows if row.technology_code ==
+                        "FND_STRIP_PRECAST_FBS_FL" and row.revision == 1).status == "ARCHIVED"
+            assert (await public_technology(db, RIBBED_CODE)).revision == 2
 
             for row in rows:
                 technology = await read_technology(db, row.id)
@@ -166,8 +171,8 @@ async def test_foundation_encyclopedia_routes_and_links():
                     ):
                         assert (await client.get(f"/api/v1/module2/encyclopedia/{suffix}")).status_code == 200
                 assert (await client.get(
-                    f"/api/v1/module2/encyclopedia/technologies/{DRAFT_CODE}"
-                )).status_code == 404
+                    f"/api/v1/module2/encyclopedia/technologies/{RIBBED_CODE}"
+                )).status_code == 200
     finally:
         await engine.dispose()
 

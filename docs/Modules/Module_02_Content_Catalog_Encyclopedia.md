@@ -1,10 +1,10 @@
 # Module 2 / Technology Catalog and Construction Encyclopedia
 
-Status: M2 Core and Encyclopedia infrastructure COMPLETED. Residential top-level
-taxonomy v1 is product-approved. FOUNDATIONS is IN_PROGRESS. M2-FOUNDATIONS-1
-adds three source-scoped ACTIVE technologies and one blocked DRAFT candidate.
-M2-FOUNDATIONS-2 adds seven more ACTIVE technologies, but mandatory inventory
-and M1 Work Catalog gaps still prevent a truthful CONTENT_COMPLETE status.
+Status (2026-11-08): M2 Core and Encyclopedia infrastructure COMPLETED.
+Residential top-level taxonomy v1 is product-approved. FOUNDATIONS and all six
+child families are CONTENT_COMPLETE for the approved residential v1 editorial
+inventory. The A1/A2 checkpoints below preserve the earlier IN_PROGRESS state;
+the current outcome is in the M2-FOUNDATIONS-2 continuation section.
 
 ## Purpose and ownership
 
@@ -476,7 +476,94 @@ file was not run. No full regression was needed because no shared runtime code
 or schema changed. No web image was rebuilt: live content is served by the
 existing web, and web/db/redis remained healthy; `/api/v1/health` returned 200.
 
-### OUT_OF_SCOPE v1 and closure gate
+### M2-FOUNDATIONS-2 continuation: approved closure package (2026-11-08)
+
+This section supersedes the *current-state* conclusions in the historical A1/A2
+checkpoints above; those records remain as evidence of the earlier state. The
+approved REF6 seed remains byte-for-byte unchanged at 209 works. The separate
+`foundations-a2-v1` M1 extension (`version=1.1`) adds exactly three governed
+codes: FL assembly, FBS assembly, and driven factory-made RC piles. The
+effective Work Catalog has 212 works. M2 stores the stable M1 codes and ordered
+steps, not a duplicate Work Catalog. REF6 material hints for these new works
+remain `review_required`; neither prices nor quantities are inferred.
+
+The transactional package
+`database/migrations/20261107_module02_foundations_a2_closure.sql` is additive
+and idempotent. It creates six M2 Technology revisions (including revision 2
+for FBS and ribbed slab), 17 material requirements, 17 layers, 16 ordered M1
+work steps, 24 nodes, 42 informational rules, and 128 target-specific evidence
+references. It adds eight scoped M1 knowledge resources, two M1 material
+classes, and four resource links. Superseded FBS revision 1 (formerly ACTIVE)
+and ribbed revision 1 (formerly DRAFT) become ARCHIVED; revision history is
+retained. No schema, prices, quantities, universal dimensions, or fabricated
+product records are introduced. The current public catalog has 15 distinct
+ACTIVE FOUNDATIONS technologies; rows including history total 17.
+
+| Approved inventory key | Final treatment | Current public source |
+| --- | --- | --- |
+| `FND_STRIP_MONOLITHIC_RC` | ACTIVE | Same code, A1 |
+| `FND_STRIP_PRECAST_FBS_FL` | ACTIVE revision 2 | Separate FL and FBS work steps; FL conditional |
+| `FND_STRIP_GEOMETRY_VARIANTS` | PARAMETER | Strip design, not a Technology |
+| `FND_SLAB_MONOLITHIC_RC` | ACTIVE | Same code, A1 |
+| `FND_SLAB_RIBBED_RC` | ACTIVE revision 2 | Distinct ribbed slab; orientation is a parameter |
+| `FND_SLAB_RIB_ORIENTATION` | PARAMETER | Ribbed-slab design |
+| `FND_SLAB_USHP` | ACTIVE | Composite slab foundation; floor/heating/networks linked |
+| `FND_UFF` | ACTIVE | Composite strip foundation; floor/heating/networks/site linked |
+| `FND_PILE_DRIVEN_RC` | ACTIVE | Factory-made RC pile and dedicated M1 work |
+| `FND_PILE_BORED_RC` | ACTIVE | Same code, A2 |
+| `FND_PILE_SCREW` | ACTIVE | Same code, A2 |
+| `FND_PILE_GRILLAGE` | ACTIVE | Same code, A2 |
+| `FND_COLUMN_CONCRETE_RC` | ACTIVE | Same code, A2 |
+| `FND_BASEMENT_WALL_MONOLITHIC` | ACTIVE | Same code, A2 |
+| `FND_BASEMENT_WALL_PRECAST` | REUSED | FBS revision 2, with a basement-wall application link |
+| `FND_PLINTH_WALL` | COMPONENT | FBS or relevant wall/foundation detail, no standalone card |
+| `FND_FOUNDATION_BEAM` | OUT_OF_SCOPE | Residential v1 |
+| `FND_SUBSTRUCTURE_WATERPROOFING` | ACTIVE | Separate coating (A2) and membrane (A2 closure) systems |
+| `FND_SUBSTRUCTURE_INSULATION` | ACTIVE | XPS method, A2 |
+| `FND_WATERPROOFING_PROTECTION` | NODE | Membrane/coating protection detail |
+| `FND_UTILITY_PENETRATION` | NODE | Wall and waterproofing interface |
+
+USHP and UFF link to the existing `FLOORS_AND_STAIRS`, `HEATING_AND_DHW`, and
+`WATER_AND_SEWER` categories. FBS appears as a related Technology on the
+`BASEMENT_AND_SUBSTRUCTURE` page without manufacturing a second wall card.
+Related links are projections of structured Technology nodes and only resolve
+public ACTIVE targets. The membrane system is separate from coating mastics.
+Manufacturer technical systems are evidence of possible composition, not
+universal engineering prescriptions; project-specific geology, loading,
+waterproofing, thermal and interface design remain mandatory.
+
+The isolated backup restore passed two SQL runs (second run inserted zero
+rows), startup without implicit `create_all`, focused M1/M2/API checks, and a
+full 118-table row-hash comparison: all 4,135 original rows persisted; 264
+new row hashes appeared only in the ten allowlisted M1/M2 tables. Full platform
+regression with explicit test-only legacy REF modes passed 1,536 tests with
+five skips. The security test reading `.env.docker` was excluded. Numeric
+consumption norms remain absent because a universal value would be unsafe;
+M2-to-M5 packages preserve work codes but correctly report not ready for
+calculation. `CONTENT_COMPLETE` denotes this approved editorial inventory and
+evidence coverage, not a ready-to-price estimate or an approved project design.
+
+Live closure: backup `backup/m2-foundations-2-continuation/houseplatform-20261107-215930.dump`
+is a 998,504-byte PostgreSQL custom archive with SHA-256
+`25f9768b558c70635c6607ba401681d2cab882eebf40bcb61e0b45ff01069b4f`.
+It restored into `houseplatform_m2_foundations_dryrun_20261107_215930`; the
+live fingerprint still matched the backup before migration. The reviewed SQL
+SHA-256 was `ff7b4fc79b2695ddd04aa8db735aeded12a9f9a91bd6b1722eee2697e4ce1a12`.
+One live transaction committed successfully. The post-migration audit found
+zero missing original row hashes and exactly 264 new row hashes in the expected
+ten M1/M2 tables. A controlled build and recreate changed only
+`houseplatform-web-1`; db and redis retained their container IDs and remained
+healthy. `/api/v1/health` returned 200, and both read-only live Encyclopedia
+smoke tests passed. No volume, network, unrelated project, backup, or secret
+file was removed or read manually.
+
+Remaining product decisions before quantitative content fill are project- and
+system-specific consumption norms with verifiable scope, the separately
+reviewed REF6 material hints for the three new work codes, and any future
+residential inventory extension. These are not hidden A2 omissions and do not
+authorize M5 calculation, provider costs, or a universal design recipe.
+
+### OUT_OF_SCOPE v1 and pre-continuation gate (historical)
 
 Barrettes, caissons, sinking wells, diaphragm walls, special deep foundations,
 industrial injection systems, and bridge/industrial foundation systems are out
@@ -490,10 +577,11 @@ or formally merged with another Technology; (4) sufficient evidence per ACTIVE
 Technology; (5) ordered WorkSteps linked to M1 codes; (6) requirements linked to
 M1 materials/classes; (7) required norms/rules backed by evidence; (8) critical
 nodes and limits represented; (9) Encyclopedia coverage matches inventory; and
-(10) an audit finds no hidden omissions. This sprint meets only the scope and
-inventory preparation gates. FOUNDATIONS stays IN_PROGRESS.
+(10) an audit finds no hidden omissions. At this earlier A2 checkpoint, only
+the scope and inventory preparation gates were met; FOUNDATIONS was IN_PROGRESS.
 
-For the next FOUNDATIONS content-fill sprint, read this document, the M2
+The pre-continuation handoff advised the next FOUNDATIONS content-fill sprint
+to read this document, the M2
 Technology/Knowledge models and services, the M1 Work Catalog seed, and the
 specific M1 material/document/resource records collected for the chosen family.
 The minimum focused gate is: approved category and code resolution, M1 material

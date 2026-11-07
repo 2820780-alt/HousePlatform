@@ -50,10 +50,10 @@ async def test_a2_references_lifecycle_and_enrichment():
     try:
         async with async_sessionmaker(engine, expire_on_commit=False)() as db:
             categories = {item.code: item for item in (await db.scalars(select(TechnologyCategory))).all()}
-            assert categories["FOUNDATIONS"].content_status == "IN_PROGRESS"
+            assert categories["FOUNDATIONS"].content_status == "CONTENT_COMPLETE"
             for code in ("PILE_FOUNDATIONS", "PILE_GRILLAGE_FOUNDATIONS", "COLUMN_FOUNDATIONS",
                          "BASEMENT_AND_SUBSTRUCTURE"):
-                assert categories[code].content_status == "IN_PROGRESS"
+                assert categories[code].content_status == "CONTENT_COMPLETE"
 
             rows = (await db.scalars(select(Technology).where(
                 Technology.technology_code.in_(A2_CODES)
@@ -87,9 +87,9 @@ async def test_a2_references_lifecycle_and_enrichment():
                 assert article["editorial"]["project_dependent"]
                 assert article["evidence"]
 
-            assert await public_technology(db, "FND_PILE_DRIVEN_RC") is None
+            assert await public_technology(db, "FND_PILE_DRIVEN_RC") is not None
             assert await public_technology(db, "FND_BASEMENT_WALL_PRECAST") is None
-            assert await public_technology(db, "FND_SLAB_RIBBED_RC") is None
+            assert await public_technology(db, "FND_SLAB_RIBBED_RC") is not None
     finally:
         await engine.dispose()
 
@@ -126,8 +126,11 @@ async def test_a2_encyclopedia_pages_and_nodes():
                     )
                     assert response.status_code == 200
                     assert node.name in response.text
-                for code in ("FND_PILE_DRIVEN_RC", "FND_BASEMENT_WALL_PRECAST",
-                             "FND_SLAB_RIBBED_RC"):
+                for code in ("FND_PILE_DRIVEN_RC", "FND_SLAB_RIBBED_RC"):
+                    assert (await client.get(
+                        f"/api/v1/module2/encyclopedia/technologies/{code}"
+                    )).status_code == 200
+                for code in ("FND_BASEMENT_WALL_PRECAST",):
                     assert (await client.get(
                         f"/api/v1/module2/encyclopedia/technologies/{code}"
                     )).status_code == 404

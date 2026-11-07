@@ -11,7 +11,7 @@ from app.models.material import Material
 from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.module2_content_catalog import TechnologyCategory
-from app.models.module2_technology import Technology
+from app.models.module2_technology import Technology, TechnologyNode
 from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
 from app.services.module2_technology_foundation import read_technology
@@ -76,6 +76,19 @@ async def public_category(db: AsyncSession, code: str) -> dict | None:
         row for row in catalog["technologies"]
         if row["technology"].category_id == category.id
     )
+    public_by_id = {row["technology"].id: row for row in catalog["technologies"]}
+    related = []
+    if public_by_id:
+        nodes = (await db.scalars(select(TechnologyNode).where(
+            TechnologyNode.technology_id.in_(public_by_id),
+            TechnologyNode.node_type == "RELATED_CATEGORY",
+        ))).all()
+        related = [
+            public_by_id[node.technology_id]
+            for node in nodes
+            if (node.conditions or {}).get("category_code") == code
+        ]
+    related_technologies = tuple({row["technology"].id: row for row in related}.values())
     by_id = {row["category"].id: row["category"] for row in catalog["all_categories"]}
     breadcrumb = []
     current = category
@@ -84,7 +97,8 @@ async def public_category(db: AsyncSession, code: str) -> dict | None:
         current = by_id.get(current.parent_id)
     return {
         "category": category, "children": children,
-        "technologies": technologies, "breadcrumb": tuple(reversed(breadcrumb)),
+        "technologies": technologies, "related_technologies": related_technologies,
+        "breadcrumb": tuple(reversed(breadcrumb)),
     }
 
 
@@ -186,6 +200,21 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
             })
 
     catalog = await public_catalog(db)
+    categories_by_code = {
+        row["category"].code: row["category"] for row in catalog["all_categories"]
+    }
+    technologies_by_code = {
+        row["technology"].technology_code: row["technology"]
+        for row in catalog["technologies"]
+    }
+    related_categories = tuple({category.id: category for node in technology.nodes
+        if node.node_type == "RELATED_CATEGORY"
+        if (code := (node.conditions or {}).get("category_code")) in categories_by_code
+        if (category := categories_by_code[code])}.values())
+    related_technologies = tuple({related.id: related for node in technology.nodes
+        if node.node_type == "RELATED_TECHNOLOGY"
+        if (code := (node.conditions or {}).get("technology_code")) in technologies_by_code
+        if (related := technologies_by_code[code])}.values())
     family_alternatives = tuple(
         row["technology"] for row in catalog["technologies"]
         if row["technology"].category_id == technology.category_id
@@ -210,5 +239,7 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         "controls": controls,
         "editorial": {key: tuple(value) for key, value in editorial.items()},
         "family_alternatives": family_alternatives,
+        "related_categories": related_categories,
+        "related_technologies": related_technologies,
         "evidence": tuple(evidence),
     }
