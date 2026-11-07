@@ -118,7 +118,7 @@ async def test_foundation_content_integrity_and_lifecycle():
             assert await db.scalar(select(func.count()).select_from(ConsumptionNorm)) == 0
             assert await db.scalar(select(func.count()).select_from(KnowledgeResource).where(
                 KnowledgeResource.resource_type == "STANDARD_REFERENCE"
-            )) == 11
+            )) >= 11
             assert await db.scalar(select(func.count()).select_from(KnowledgeResourceLink).where(
                 KnowledgeResourceLink.link_type == "APPLIES_TO"
             )) >= 8

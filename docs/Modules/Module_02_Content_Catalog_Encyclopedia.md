@@ -2,8 +2,9 @@
 
 Status: M2 Core and Encyclopedia infrastructure COMPLETED. Residential top-level
 taxonomy v1 is product-approved. FOUNDATIONS is IN_PROGRESS. M2-FOUNDATIONS-1
-adds three source-scoped ACTIVE technologies and one blocked DRAFT candidate;
-neither STRIP nor SLAB is marked CONTENT_COMPLETE yet.
+adds three source-scoped ACTIVE technologies and one blocked DRAFT candidate.
+M2-FOUNDATIONS-2 adds seven more ACTIVE technologies, but mandatory inventory
+and M1 Work Catalog gaps still prevent a truthful CONTENT_COMPLETE status.
 
 ## Purpose and ownership
 
@@ -381,6 +382,99 @@ reads `.env.docker` is explicitly excluded by product/security policy from
 ordinary content/module regression gates. An earlier pre-live attempt ran it
 inadvertently and exposed a connection string in tool diagnostics; no value is
 recorded here or in the repository.
+
+### M2-FOUNDATIONS-2: scoped A2 content, not closure
+
+`database/migrations/20261107_module02_foundations_a2_content.sql` is a
+transactional, idempotent data package. It adds seven ACTIVE revisions: bored
+RC piles, steel screw piles, a monolithic RC pile grillage, concrete/RC column
+footings, a monolithic RC basement wall, coating waterproofing and XPS
+below-grade insulation. These are M2 technologies, not a second app. Each has
+M1 material-class requirements, ordered existing M1 work codes, layers, nodes,
+seven editorial/quality rules and target-specific evidence. The package adds
+six scoped official M1 resource records and four M1 material classes; it does
+not create a product, price, quantity or universal design value. The categories
+`PILE_FOUNDATIONS`, `PILE_GRILLAGE_FOUNDATIONS`, `COLUMN_FOUNDATIONS` and
+`BASEMENT_AND_SUBSTRUCTURE` move only from EMPTY to IN_PROGRESS.
+
+The following is the *reviewed inventory*, not a fabricated completion claim.
+"Blocked" identifies a mandatory item that is **not** a public ACTIVE card.
+
+| Inventory key | A2 decision | Public record / remaining gap |
+| --- | --- | --- |
+| `FND_STRIP_MONOLITHIC_RC` | ACTIVE system (A1) | Same code; current-edition detail review remains |
+| `FND_STRIP_PRECAST_FBS_FL` | ACTIVE system (A1) | Same code; dedicated FL/FBS work semantics remain unresolved |
+| `FND_STRIP_GEOMETRY_VARIANTS` | Design parameters | No separate Technology |
+| `FND_SLAB_MONOLITHIC_RC` | ACTIVE system (A1) | Same code |
+| `FND_SLAB_RIBBED_RC` | **Blocked** distinct-system/variant decision | A1 DRAFT remains hidden; no verified Russian residential sequence |
+| `FND_SLAB_RIB_ORIENTATION` | Geometry parameter | Not a Technology |
+| `FND_SLAB_USHP` | **Blocked** integrated-system boundary | No approved non-marketing technical system source and no M2-to-floor/heating interface |
+| `FND_UFF` | **Blocked** cross-system composition | Strip and floor-on-ground boundary needs reviewed technical package |
+| `FND_PILE_DRIVEN_RC` | **Blocked** mandatory pile method | ГОСТ 19804 confirms product class; approved M1 catalog has no driven-pile work code |
+| `FND_PILE_BORED_RC` | ACTIVE pile method | Same code; casing is conditional, not a universal layer |
+| `FND_PILE_SCREW` | ACTIVE pile method | Same code; steel and corrosion specification are project-dependent |
+| `FND_PILE_GRILLAGE` | ACTIVE monolithic RC system | Same code; pile type is separate, combinations are not duplicated |
+| `FND_COLUMN_CONCRETE_RC` | ACTIVE scoped system | Same code; reinforcement conditional for RC variant |
+| `FND_BASEMENT_WALL_MONOLITHIC` | ACTIVE wall system | Same code; separate from foundation and water-protection systems |
+| `FND_BASEMENT_WALL_PRECAST` | **Blocked** wall system | FBS block standard exists; dedicated assembly work and wall/strip reuse need review |
+| `FND_PLINTH_WALL` | Construction element | Reuse wall/foundation system, no term-only Technology |
+| `FND_FOUNDATION_BEAM` | OUT_OF_SCOPE residential v1 | No generally applicable house-foundation system established |
+| `FND_SUBSTRUCTURE_WATERPROOFING` | Partly covered | ACTIVE coating system; membrane/roll system still needs technical review |
+| `FND_SUBSTRUCTURE_INSULATION` | ACTIVE XPS method | XPS system; project must verify properties and below-grade use |
+| `FND_WATERPROOFING_PROTECTION` | Node of coating system | `PROTECTIVE_LAYER`, not a Technology |
+| `FND_UTILITY_PENETRATION` | Linkable node | Wall and coating nodes; engineering network design stays outside M2 |
+
+The official [SP 24 pile design record](https://protect.gost.ru/sp/details/1e90a34c-6379-4236-8256-38be93e29766),
+[SP 45 foundation execution record](https://protect.gost.ru/sp/details/6b8a4ce8-2c63-46f8-8c16-6efec70cede8),
+[GOST R 59106 steel screw-pile record](https://protect.gost.ru/gost/details/a9b16798-7882-4820-b838-c23c3d680e2e),
+[SP 250 underground-water protection record](https://protect.gost.ru/sp/details/990885bc-664d-4329-b54c-5aa3d581c20d),
+[GOST 30693 mastic record](https://protect.gost.ru/gost/details/8bea94a2-17da-452d-8965-915ba60168a4),
+and [GOST 32310 XPS record](https://protect.gost.ru/gost/details/e81b18f6-742d-417b-83c7-c361be521951)
+support source scope, not a universally approved construction recipe. The
+[GOST 19804 factory-made RC pile record](https://protect.gost.ru/gost/details/1dd4f62d-2f16-4ee8-bdff-41dc947d9167)
+supports the driven-pile product class only; no driven-pile card is published.
+Current amendments must be checked for an actual project. No fixed pile count,
+spacing, length, capacity, footing size, reinforcement, concrete grade,
+water pressure or insulation thickness is stored.
+
+The M1 Work Catalog remains the approved immutable 24-group/209-work baseline:
+see `docs/Modules/module1/reference_data/ATOM_REF6_Approval_Record_v1.md`.
+The seven new Technologies use only existing semantically applicable codes.
+There is no new M1 work code. Missing dedicated driven-pile, FL/FBS assembly,
+and precast-wall work items require a separately governed M1 catalog version;
+silently changing the approved seed would invalidate REF6 provenance. This is
+the smallest cross-module blocker for A2 closure, alongside the USHP/UFF and
+ribbed-slab evidence decisions. The coating card does not claim to cover a
+membrane system. Earthworks, drainage, blind area and floors on ground remain
+owned by PREPARATION, SITE_WORKS and FLOORS_AND_STAIRS respectively; linked
+cross-category navigation is still a gap in the current M2 aggregate/UI.
+
+All six FOUNDATIONS families and the parent remain IN_PROGRESS. A3 must not
+be presented as the next content-fill sprint until the remaining A2 blockers
+are explicitly resolved. For a resumed A2, provide this inventory, the M1 REF6
+approval record, the two foundation content SQL packages, M2 Technology and
+Knowledge models, the Encyclopedia service/template, and current official
+source links. Review new M1 work-catalog versioning and cross-category links
+before any attempt to mark the category CONTENT_COMPLETE.
+
+A2 live checkpoint (2026-11-07): a new 979,723-byte custom PostgreSQL dump was
+stored at `backup/m2-foundations-2/houseplatform-20261107-201843.dump` and
+SHA-256 checked against the container copy. `pg_restore -l` listed 1,462 TOC
+entries. The archive restored successfully into the isolated
+`houseplatform_m2_foundations_dryrun_20261107_201843` database. SQL applied
+twice there; the second run inserted zero rows. A1 Technologies and M1/M3
+materials, specifications, documents, users, roles and workspaces had equal
+counts and row hashes between live and the restored copy. The SQL then applied
+once to live; afterwards those pre-existing row hashes still matched.
+The live counts equal the dry-run counts: 11 M2 technologies, 31 requirements,
+31 layers, 31 work steps, 19 nodes, 70 knowledge rules and 203 evidence refs.
+Focused A1+A2 content gate: 6 passed. M1/REF6/M2/M2-to-M5 contract gate:
+115 passed, 3 skipped with the test's expected legacy REF6 mode (the first
+unadjusted invocation had one environment-mode assertion failure). Read-only
+live Encyclopedia route/template smoke: 1 passed. The excluded security-gate
+file was not run. No full regression was needed because no shared runtime code
+or schema changed. No web image was rebuilt: live content is served by the
+existing web, and web/db/redis remained healthy; `/api/v1/health` returned 200.
 
 ### OUT_OF_SCOPE v1 and closure gate
 
