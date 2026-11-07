@@ -67,6 +67,7 @@
           <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Каталог</a>{% for item in breadcrumb %}<span>›</span><span>{{ item.name }}</span>{% endfor %}</div>
           <h1>{{ category.name }}</h1>
           {% if category.description %}<p>{{ category.description }}</p>{% endif %}
+          <div class="enc-meta">Наполнение: {% if category.content_status == 'IN_PROGRESS' %}в работе{% elif category.content_status == 'CONTENT_COMPLETE' %}завершено{% else %}не начато{% endif %}</div>
           <section><h2>Подкатегории</h2>{% if children %}<ul class="enc-list">{% for row in children %}<li><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Подкатегорий нет.</p>{% endif %}</section>
           <section><h2>Технологии</h2>{% if technologies %}<ul class="enc-list">{% for row in technologies %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a><div class="enc-meta">{{ row.technology.technology_code }}</div></li>{% endfor %}</ul>{% else %}<p class="enc-empty">Опубликованных технологий пока нет.</p>{% endif %}</section>
         {% elif view == 'technology' %}

@@ -33,16 +33,18 @@ from app.services.module2_content_catalog import (
 
 @asynccontextmanager
 async def _session():
-    async with engine.connect() as connection:
-        transaction = await connection.begin()
-        session = AsyncSession(bind=connection, expire_on_commit=False)
-        try:
-            yield session
-        finally:
-            await session.close()
-            if transaction.is_active:
-                await transaction.rollback()
-    await engine.dispose()
+    try:
+        async with engine.connect() as connection:
+            transaction = await connection.begin()
+            session = AsyncSession(bind=connection, expire_on_commit=False)
+            try:
+                yield session
+            finally:
+                await session.close()
+                if transaction.is_active:
+                    await transaction.rollback()
+    finally:
+        await engine.dispose()
 
 
 def _app(session: AsyncSession, role=UserRole.ADMIN) -> FastAPI:
@@ -74,7 +76,11 @@ async def test_category_hierarchy_and_lifecycle_are_controlled():
             session, code=f"CHILD_{suffix}", name="Child", parent_code=parent.code,
             sort_order=2,
         )
-        assert not category_tree(await list_categories(session), public=True)
+        fixture_ids = {parent.id, child.id}
+        assert not any(
+            row["category"].id in fixture_ids
+            for row in category_tree(await list_categories(session), public=True)
+        )
         with pytest.raises(ContentCatalogError, match="parent category"):
             await transition_category(session, child, "ACTIVE")
         with pytest.raises(ContentCatalogError, match="cycle"):
@@ -86,7 +92,10 @@ async def test_category_hierarchy_and_lifecycle_are_controlled():
         await transition_category(session, child, "ACTIVE")
         await start_content_package(session, child)
         assert child.content_status == "IN_PROGRESS"
-        assert [row["depth"] for row in category_tree(await list_categories(session), public=True)] == [0, 1]
+        assert [
+            row["depth"] for row in category_tree(await list_categories(session), public=True)
+            if row["category"].id in fixture_ids
+        ] == [0, 1]
         with pytest.raises(ContentCatalogError, match="children"):
             await transition_category(session, parent, "ARCHIVED")
 
@@ -119,7 +128,7 @@ async def test_encyclopedia_is_empty_until_content_is_approved():
 
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_category_workbench_renders_without_seed_data():
+async def test_category_workbench_renders_with_existing_taxonomy():
     async with _session() as session:
         transport = httpx.ASGITransport(app=_app(session))
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:

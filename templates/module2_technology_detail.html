@@ -179,7 +179,7 @@
           <label class="wide"><span>Название</span><input name="name" value="{{ technology.name }}" required></label>
           <label><span>Код</span><input value="{{ technology.technology_code }}" disabled></label>
           <label><span>Система</span><input name="system_code" value="{{ technology.system_code or '' }}"></label>
-          <label><span>Категория</span><select name="category_code"><option value="">Без категории</option>{% for category in category_options %}<option value="{{ category.code }}" {% if category.code == category_code %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
+          <label><span>Категория</span><select name="category_code"><option value="">Без категории</option>{% for category in technology_category_options %}<option value="{{ category.code }}" {% if category.code == category_code %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
           <label class="full"><span>Описание</span><textarea name="description">{{ technology.description or '' }}</textarea></label>
         </div>
         <div class="m2-form-actions"><button class="m2-button primary" type="submit">Сохранить</button></div>

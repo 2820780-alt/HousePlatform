@@ -248,7 +248,9 @@ async def technology_workbench_detail(
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
     categories = await list_categories(db)
-    context["category_options"] = tuple(item for item in categories if item.status != "ARCHIVED")
+    context["technology_category_options"] = tuple(
+        item for item in categories if item.status != "ARCHIVED"
+    )
     context["category_code"] = next(
         (item.code for item in categories if item.id == technology.category_id), None
     )
