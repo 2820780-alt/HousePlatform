@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -11,6 +12,11 @@ from typing import Any, Mapping
 DEFAULT_WORK_CATALOG_SEED_PATH = (
     Path(__file__).resolve().parents[2] / "src/modules/module1/seeds/work_catalog_seed.json"
 )
+DEFAULT_WORK_CATALOG_EXTENSION_PATHS = (
+    Path(__file__).resolve().parents[2]
+    / "src/modules/module1/seeds/work_catalog_extensions/foundations_a2_v1.json",
+)
+FOUNDATIONS_A2_APPROVAL_RECORD_NAME = "ATOM_Work_Catalog_Foundations_A2_Approval_v1.md"
 
 REQUIRED_WORK_CATALOG_SECTIONS = (
     "version",
@@ -152,7 +158,71 @@ def load_work_catalog_seed(path: Path | str = DEFAULT_WORK_CATALOG_SEED_PATH) ->
 
 @lru_cache(maxsize=1)
 def get_work_catalog_registry() -> WorkCatalogRegistry:
-    return load_work_catalog_seed(DEFAULT_WORK_CATALOG_SEED_PATH)
+    return load_effective_work_catalog()
+
+
+def load_effective_work_catalog(
+    baseline_path: Path | str = DEFAULT_WORK_CATALOG_SEED_PATH,
+    extension_paths: tuple[Path | str, ...] = DEFAULT_WORK_CATALOG_EXTENSION_PATHS,
+) -> WorkCatalogRegistry:
+    baseline_file = Path(baseline_path)
+    baseline = load_work_catalog_seed(baseline_file)
+    baseline_hash = hashlib.sha256(
+        baseline_file.read_bytes().replace(b"\r\n", b"\n")
+    ).hexdigest()
+    works = list(baseline.works)
+    known_codes = {item.work_code for item in works}
+    groups = {item.work_group: item.work_category for item in baseline.groups}
+    version = baseline.version
+    for path in extension_paths:
+        extension_file = Path(path)
+        try:
+            extension = json.loads(extension_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise WorkCatalogError(f"approved extension unavailable or invalid: {extension_file}") from exc
+        if not isinstance(extension, dict) or any(
+            extension.get(key) != value for key, value in (
+                ("extension_id", "foundations-a2-v1"),
+                ("baseline_version", baseline.version),
+                ("baseline_sha256_lf", baseline_hash),
+            )
+        ):
+            raise WorkCatalogError("approved extension provenance does not match REF6 baseline")
+        approval_record = extension.get("approval_record")
+        if not isinstance(approval_record, str) or Path(approval_record).name != (
+            FOUNDATIONS_A2_APPROVAL_RECORD_NAME
+        ):
+            raise WorkCatalogError("approved extension approval record is invalid")
+        if extension.get("version") != "1.1" or extension.get("approved_on") != "2026-11-07":
+            raise WorkCatalogError("approved extension version or date is invalid")
+        rows = extension.get("works")
+        if not isinstance(rows, list) or not rows:
+            raise WorkCatalogError("approved extension has no WorkItems")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise WorkCatalogError("approved extension WorkItem must be an object")
+            errors = _validate_work_item_shape(
+                row, set(baseline.units), set(groups), prefix="extension_work_item"
+            )
+            if errors:
+                raise WorkCatalogError("; ".join(errors))
+            item = validate_work_item(row)
+            if item.work_code in known_codes:
+                raise WorkCatalogError(f"approved extension duplicates work code: {item.work_code}")
+            if item.work_category != groups[item.work_group]:
+                raise WorkCatalogError(f"approved extension work group/category conflict: {item.work_code}")
+            known_codes.add(item.work_code)
+            works.append(item)
+        version = str(extension["version"])
+    return WorkCatalogRegistry(
+        version=version,
+        module=baseline.module,
+        domain=baseline.domain,
+        rules=baseline.rules,
+        units=baseline.units,
+        groups=baseline.groups,
+        works=tuple(works),
+    )
 
 
 def build_work_catalog_registry(raw: Mapping[str, Any]) -> WorkCatalogRegistry:

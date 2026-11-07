@@ -39,7 +39,8 @@ def test_work_catalog_top_level_api_returns_expected_data():
     groups = list_work_groups()
     summary = build_work_catalog_summary()
 
-    assert len(items) == 209
+    assert len(items) == 212
+    assert summary.version == "1.1"
     assert len(groups) == 24
     assert summary.work_count == len(items)
     assert summary.group_count == len(groups)

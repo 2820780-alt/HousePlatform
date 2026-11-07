@@ -308,6 +308,15 @@ def resolve_work_material_hints(
         None,
     )
     if profile is None:
+        if get_work_item(normalized_code) is not None:
+            return _resolution(
+                mode=selected,
+                state="review_required",
+                work_code=normalized_code,
+                known_work=True,
+                context=context,
+                warnings=("Approved Work Catalog extension has no REF-6 material profile; expert review required.",),
+            )
         return _resolution(
             mode=selected,
             state="unknown_work",

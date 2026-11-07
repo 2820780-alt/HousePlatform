@@ -1,0 +1,49 @@
+{
+  "extension_id": "foundations-a2-v1",
+  "version": "1.1",
+  "approved_on": "2026-11-07",
+  "approval_record": "docs/Modules/module1/reference_data/ATOM_Work_Catalog_Foundations_A2_Approval_v1.md",
+  "baseline_version": "1.0",
+  "baseline_sha256_lf": "2129670ddc418b2ce91a15c5d8a7b82130c352a5405f5a423e4121b57d45d78b",
+  "works": [
+    {
+      "work_code": "foundations_concrete_montazh_fundamentnyh_plit_fl",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Монтаж фундаментных плит ФЛ",
+      "default_unit": "piece",
+      "allowed_units": ["piece"],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "precast_strip_footing_fl",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Монтаж проектно предусмотренных сборных плит ленточного фундамента ФЛ."
+    },
+    {
+      "work_code": "foundations_concrete_montazh_blokov_fbs",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Монтаж блоков ФБС",
+      "default_unit": "piece",
+      "allowed_units": ["piece"],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "precast_fbs_assembly",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Монтаж блоков ФБС по проектной схеме фундамента или стены подвала."
+    },
+    {
+      "work_code": "foundations_concrete_pogruzhenie_zhelezobetonnyh_svay",
+      "work_group": "foundations_concrete",
+      "work_category": "Фундаменты и бетонные работы",
+      "work_name": "Погружение заводских железобетонных свай",
+      "default_unit": "piece",
+      "allowed_units": ["piece"],
+      "is_range_allowed": true,
+      "applies_to": "private_house",
+      "module2_usage_hint": "driven_rc_pile_installation",
+      "module5_usage_hint": "labor_cost_line",
+      "description": "Погружение проектно выбранных заводских ЖБ свай с контролем положения."
+    }
+  ]
+}
