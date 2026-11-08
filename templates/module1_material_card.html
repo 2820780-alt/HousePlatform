@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ material.canonical_name }} · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module2_workbench_styles.html" %}
+  <style>
+    .m1-card { max-width: 1000px; margin: 0 auto; padding: 24px 20px 60px; }
+    .m1-card section { border-top: 1px solid var(--m2-line); padding: 18px 0; }
+    .m1-card h1 { overflow-wrap: anywhere; }
+    .m1-card h2 { font-size: 17px; }
+    .m1-card dl { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 8px 16px; }
+    .m1-card dd { margin: 0; overflow-wrap: anywhere; }
+    .m1-card dt { color: var(--m2-muted); }
+    .m1-card ul { padding-left: 20px; }
+    .m1-card li { padding: 5px 0; }
+    @media (max-width: 600px) { .m1-card dl { grid-template-columns: 1fr; gap: 2px; } .m1-card dd { margin-bottom: 9px; } }
+  </style>
+</head>
+<body data-atom-page data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <main class="m1-card">
+    <p>Модуль №1 · Карточка материала</p>
+    <h1>{{ material.canonical_name }}</h1>
+    {% if material.description %}<p>{{ material.description }}</p>{% endif %}
+    <section><h2>Характеристики</h2>
+      <dl>
+        <dt>Категория</dt><dd>{{ material.category.name if material.category else 'Не указана' }}</dd>
+        <dt>Тип</dt><dd>{{ material.material_type.name if material.material_type else 'Не указан' }}</dd>
+        {% for item in material.attributes %}<dt>{{ item.attribute_name }}</dt><dd>{{ item.attribute_value }}</dd>{% endfor %}
+        {% for item in material.specifications %}<dt>{{ item.template.name if item.template else 'Характеристика' }}</dt><dd>{{ item.value }} {{ item.unit or '' }}</dd>{% endfor %}
+      </dl>
+    </section>
+    <section><h2>Документы</h2>
+      {% if documents %}<ul>{% for item in documents %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</li>{% endfor %}</ul>{% else %}<p>Подтвержденных документов пока нет.</p>{% endif %}
+    </section>
+    <section><h2>Цены и поставщики</h2>
+      {% if prices %}<ul>{% for item in prices %}<li>{{ item.row.price }} {{ item.row.currency }}{% if item.row.unit %} / {{ item.row.unit }}{% endif %} · {% if item.supplier_url %}<a href="{{ item.supplier_url }}" target="_blank" rel="noopener noreferrer">{{ item.supplier.name }}</a>{% else %}{{ item.supplier.name if item.supplier else 'Поставщик не указан' }}{% endif %}{% if item.row.region %} · {{ item.row.region }}{% endif %} · {{ item.row.collected_at.strftime('%d.%m.%Y') }}</li>{% endfor %}</ul>{% else %}<p>Подтвержденных цен пока нет.</p>{% endif %}
+    </section>
+    {% if offers %}<section><h2>Где купить</h2><ul>{% for item in offers %}<li><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }}</a></li>{% endfor %}</ul></section>{% endif %}
+  </main>
+</body>
+</html>

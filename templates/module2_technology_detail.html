@@ -285,6 +285,18 @@
             <div>{{ item.reference }}</div><div>{{ item.model.material_role_code or 'Роль не задана' }}</div><div>{{ item.constraints or item.model.notes or 'Без дополнительных условий' }}</div>
             {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
           </div>
+          {% if item.candidates %}
+          <div class="m2-record-note">Подходящие материалы M1: <a href="{{ item.material_card_url(item.candidates[0].id) }}">{{ item.candidates[0].canonical_name }}</a>{% if item.candidates|length > 1 %}<details><summary>Еще {{ item.candidates|length - 1 }} подходящих</summary>{% for material in item.candidates[1:] %}<div><a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a></div>{% endfor %}</details>{% endif %}</div>
+          {% endif %}
+          {% if item.gap %}
+          <div class="m2-record-note"><strong>Материал не найден в M1</strong> · {{ item.gap.status }}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
+          {% if permissions.admin and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}
+          <details class="m2-editor"><summary>Изменить запрос</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/query" data-m2-form><label><span>Поисковая фраза</span><input name="search_phrase" value="{{ item.gap.search_phrase }}" maxlength="500" required></label><button class="m2-button" type="submit">Сохранить запрос</button></form></details>
+          <details class="m2-editor"><summary>Выбрать из M1</summary>{% if item.candidates %}<form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/resolve" data-m2-form><label><span>Подходящий материал</span><select name="material_id" required>{% for material in item.candidates %}<option value="{{ material.id }}">{{ material.canonical_name }}</option>{% endfor %}</select></label><button class="m2-button" type="submit">Выбрать из M1</button></form>{% else %}<p>Подтвержденных подходящих карточек пока нет.</p>{% endif %}</details>
+          <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/search" data-m2-form><button class="m2-button" type="submit">Отправить в поиск M1</button></form>
+          <details class="m2-editor"><summary>Не требуется</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/dismiss" data-m2-form><label><span>Обоснование</span><textarea name="rationale" minlength="10" maxlength="1000" required></textarea></label><button class="m2-button" type="submit">Отклонить пробел</button></form></details>
+          {% endif %}
+          {% endif %}
           {% if technology.status == 'DRAFT' and permissions.edit %}
           <details class="m2-editor"><summary>Изменить требование</summary>
             <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-requirement" data-m2-form>

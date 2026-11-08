@@ -1368,7 +1368,7 @@ async def _load_tasks(db: DBSession) -> list[SourceTask]:
         select(SourceTask)
         .options(selectinload(SourceTask.source))
         .order_by(SourceTask.created_at.desc())
-        .limit(30)
+        .limit(100)
     )
     return list(result.scalars().all())
 

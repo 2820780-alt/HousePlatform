@@ -810,10 +810,10 @@
         {% for task in tasks %}
           <tr data-status="{{ task.status.value }}">
             <td>{{ dt(task.created_at) }}</td>
-            <td>{{ source_display_name(task.source) }}</td>
-            <td>{{ action_labels.get(task.action_type.value, task.action_type.value) }}</td>
+            <td>{% if task.parameters and task.parameters.get('origin') == 'M2_MATERIAL_GAP' %}Технология M2{% else %}{{ source_display_name(task.source) }}{% endif %}</td>
+            <td>{% if task.parameters and task.parameters.get('origin') == 'M2_MATERIAL_GAP' %}Подбор материала для технологии{% else %}{{ action_labels.get(task.action_type.value, task.action_type.value) }}{% endif %}</td>
             <td>{{ enum_label(task.status) }}</td>
-            <td><code>{{ task.parameters or "" }}</code></td>
+            <td>{% if task.parameters and task.parameters.get('origin') == 'M2_MATERIAL_GAP' %}<strong>{{ task.parameters.get('search_phrase') or 'Запрос не указан' }}</strong><div class="material-secondary">{{ task.parameters.get('technology_code') or '' }} · {{ task.parameters.get('requirement_code') or '' }}{% if task.parameters.get('search_requested') %} · Отправлено в поиск M1{% else %} · Требует рассмотрения{% endif %}</div>{% else %}<code>{{ task.parameters or "" }}</code>{% endif %}</td>
             <td><code>{{ task.result_summary or "" }}</code></td>
             <td class="bad">{{ task.error_message or "" }}</td>
           </tr>

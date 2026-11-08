@@ -64,6 +64,7 @@ from app.models.module2_technology import (
     TechnologyWorkStep,
 )
 from app.models.module2_content_catalog import TechnologyCategory
+from app.models.module2_material_gap import Module2MaterialGap
 from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.material_analog import MaterialAnalog
 from app.models.module_access import ModuleAccess

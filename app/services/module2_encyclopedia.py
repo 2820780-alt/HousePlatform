@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from urllib.parse import urlsplit
 
 from sqlalchemy import select
@@ -14,8 +15,12 @@ from app.models.module2_content_catalog import TechnologyCategory
 from app.models.module2_technology import Technology, TechnologyNode
 from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
+from app.services.module2_default_assumptions import active_defaults
+from app.services.module2_material_resolution import (
+    compatible_materials, gap_for_requirement, material_card_url,
+)
 from app.services.module2_technology_foundation import read_technology
-from app.services.module2_workbench import format_consumption_norm
+from app.services.module2_workbench import LAYER_NAMES, REQUIREMENT_NAMES, format_consumption_norm
 
 
 def _safe_source_url(value: str | None) -> str | None:
@@ -143,21 +148,22 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
 
     requirements = []
     for item in technology.requirements:
-        label = item.material_role_code or "Требование к материалу"
-        material = None
-        if item.canonical_material_id:
-            material = await db.get(Material, item.canonical_material_id)
-            if material and material.status == MaterialStatus.VERIFIED:
-                label = material.canonical_name
-            else:
-                material = None
-                label = "Материал M1 недоступен для публикации"
-        elif item.material_category_id:
-            material_category = await db.get(MaterialCategory, item.material_category_id)
-            if material_category and material_category.status == "ACTIVE":
-                label = material_category.name
+        label = REQUIREMENT_NAMES.get(item.code, item.code)
+        candidates = await compatible_materials(db, item)
+        material = candidates[0] if candidates else None
+        gap = await gap_for_requirement(db, item.id) if not candidates else None
+        default = next((assumption for assumption in active_defaults(technology)
+                        if assumption.material_requirement_id == item.id), None)
+        default_label = None
+        if default and default.value_type == "MATERIAL_CLASS":
+            material_category = await db.get(MaterialCategory, uuid.UUID(str(default.default_value.get("value"))))
+            default_label = material_category.name if material_category else None
+        elif default and default.value_type == "MATERIAL":
+            chosen = await db.get(Material, uuid.UUID(str(default.default_value.get("value"))))
+            default_label = chosen.canonical_name if chosen and chosen.status == MaterialStatus.VERIFIED else None
         requirements.append({
             "model": item, "label": label, "material": material,
+            "candidates": candidates, "gap": gap, "default_label": default_label,
             "sources": tuple(evidence_by_target.get(("MATERIAL_REQUIREMENT", str(item.id)), ())),
         })
 
@@ -220,12 +226,18 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         if row["technology"].category_id == technology.category_id
         and row["technology"].technology_code != technology.technology_code
     )
+    defaults = []
+    for item in active_defaults(technology):
+        defaults.append({"name": item.name_ru, "value": await _default_label(db, item),
+                         "unit": item.unit, "warning": item.warning_text})
     return {
         "technology": technology,
         "category": category,
         "requirements": tuple(requirements),
-        "layers": tuple(sorted(technology.layers, key=lambda layer: layer.position)),
+        "layers": tuple({"model": layer, "label": LAYER_NAMES.get(layer.functional_role, layer.functional_role)}
+                        for layer in sorted(technology.layers, key=lambda layer: layer.position)),
         "steps": tuple(steps),
+        "defaults": tuple(defaults),
         "nodes": tuple(sorted(technology.nodes, key=lambda node: node.code)),
         "norms": tuple(
             format_consumption_norm(item) for item in technology.consumption_norms
@@ -242,4 +254,18 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         "related_categories": related_categories,
         "related_technologies": related_technologies,
         "evidence": tuple(evidence),
+        "material_card_url": material_card_url,
     }
+
+
+async def _default_label(db: AsyncSession, assumption) -> str:
+    value = assumption.default_value.get("value")
+    if assumption.value_type == "MATERIAL_CLASS":
+        category = await db.get(MaterialCategory, uuid.UUID(str(value)))
+        return category.name if category else "Класс M1 недоступен"
+    if assumption.value_type == "MATERIAL":
+        material = await db.get(Material, uuid.UUID(str(value)))
+        return material.canonical_name if material else "Материал M1 недоступен"
+    if assumption.value_type == "BOOLEAN":
+        return "Да" if value else "Нет"
+    return str(value)

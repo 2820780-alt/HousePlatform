@@ -37,6 +37,10 @@ from app.services.module2_knowledge_foundation import (
 )
 from app.services.module2_operational_widgets import build_technology_readiness_widget
 from app.services.module2_default_assumptions import revise_default_assumption
+from app.services.module2_material_resolution import (
+    MaterialResolutionError, change_gap_query, compatible_materials, dismiss_gap, ensure_gap,
+    gap_for_requirement, material_card_url, request_m1_search, resolve_existing,
+)
 from app.services.module2_content_catalog import (
     ContentCatalogError,
     category_tree,
@@ -56,6 +60,7 @@ from app.services.module2_technology_foundation import (
     update_draft_technology,
 )
 from app.services.module2_workbench import (
+    REQUIREMENT_NAMES,
     actor_role_code,
     add_evidence,
     build_technology_detail_view,
@@ -236,6 +241,19 @@ async def technology_readiness_widget(db: DBSession, user: CurrentUser):
     return await build_technology_readiness_widget(db, user)
 
 
+@router.get("/by-code/{technology_code}")
+async def technology_workbench_by_code(technology_code: str, db: DBSession, user: CurrentUser):
+    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    technology = await db.scalar(
+        select(Technology)
+        .where(Technology.technology_code == technology_code, Technology.status == "ACTIVE")
+        .order_by(Technology.revision.desc())
+    )
+    if technology is None:
+        return _redirect_list(error="Технология не найдена.")
+    return _redirect_detail(technology.id)
+
+
 @router.get("/{technology_id}", response_class=HTMLResponse)
 async def technology_workbench_detail(
     technology_id: uuid.UUID,
@@ -248,6 +266,11 @@ async def technology_workbench_detail(
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
+    for item in context["requirements"]:
+        requirement = item["model"]
+        item["candidates"] = await compatible_materials(db, requirement)
+        item["gap"] = await gap_for_requirement(db, requirement.id)
+        item["material_card_url"] = material_card_url
     categories = await list_categories(db)
     context["technology_category_options"] = tuple(
         item for item in categories if item.status != "ARCHIVED"
@@ -265,6 +288,42 @@ async def technology_workbench_detail(
         }
     )
     return templates.TemplateResponse(request, "module2_technology_detail.html", context)
+
+
+@router.post("/{technology_id}/material-gaps/{requirement_id}/{action}")
+async def technology_material_gap_action(
+    technology_id: uuid.UUID, requirement_id: uuid.UUID, action: str,
+    request: Request, db: DBSession, user: CurrentUser,
+):
+    require_permission(user, MODULE2_OWNER_CODE, "ADMIN")
+    technology = await read_technology(db, technology_id)
+    if technology is None:
+        return _redirect_list(error="Технология не найдена.")
+    requirement = next((item for item in technology.requirements if item.id == requirement_id), None)
+    gap = await gap_for_requirement(db, requirement_id) if requirement else None
+    if requirement is None or gap is None or gap.technology_id != technology.id:
+        return _redirect_detail(technology_id, error="Пробел материала не найден.", section="materials")
+    form = await request.form()
+    try:
+        if action == "query":
+            await change_gap_query(db, gap, str(form.get("search_phrase") or ""), _user_id(user))
+            notice = "Поисковый запрос обновлен."
+        elif action == "resolve":
+            await resolve_existing(db, gap, requirement, _required_uuid(form, "material_id"), _user_id(user))
+            notice = "Привязана каноническая карточка M1."
+        elif action == "search":
+            await request_m1_search(db, gap, _user_id(user))
+            notice = "Запрос передан в очередь M1."
+        elif action == "dismiss":
+            await dismiss_gap(db, gap, str(form.get("rationale") or ""), _user_id(user))
+            notice = "Пробел отклонен с обоснованием."
+        else:
+            raise MaterialResolutionError("Неизвестное действие с материалом.")
+        await db.flush()
+    except (ValueError, IntegrityError) as exc:
+        await db.rollback()
+        return _redirect_detail(technology_id, error=_human_error(exc), section="materials")
+    return _redirect_detail(technology_id, notice=notice, section="materials")
 
 
 @router.post("/{technology_id}/actions/{action}")
@@ -343,6 +402,14 @@ async def _perform_action(
     if action == "transition":
         target = TechnologyLifecycle(_required(form, "target"))
         transition_technology(technology, target, actor_role_code=role_code)
+        if target == TechnologyLifecycle.ACTIVE:
+            await db.flush()
+            for requirement in technology.requirements:
+                await ensure_gap(
+                    db, technology, requirement,
+                    search_phrase=REQUIREMENT_NAMES.get(requirement.code, requirement.code),
+                    actor_id=user_id,
+                )
         return f"Статус изменен: {target.value}."
     if action == "save-requirement":
         upsert_draft_requirement(

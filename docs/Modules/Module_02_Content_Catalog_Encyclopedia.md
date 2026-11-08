@@ -675,3 +675,58 @@ labels, typed parameters, bounded/scoped defaults or explicit unresolved state,
 appropriate evidence and warnings, and a checked read-only resolver projection
 before being marked content-complete. This is a content gate, not automatic
 approval of new universal engineering values.
+
+## A2.2: reader-first encyclopedia and canonical M1 material resolution
+
+The Encyclopedia is a standalone explanation for a reader without an object or
+project. Each Technology first explains what it does, where it is used, when it
+does not fit, the typical composition, materials, ordered M1 Work Catalog steps,
+preliminary platform assumptions, checks and common errors. Project-specific
+design decisions come later in a separate section. The 15 public FOUNDATIONS
+descriptions are revised by `20261108_module02_foundations_a22_editorial.sql`;
+it introduces no universal dimensions or unreviewed construction norms. The
+existing 90 A2.1 defaults remain `PLATFORM_ASSUMPTION`, explicitly labelled
+"preliminary assumption" in the reader UI. Workbench and Encyclopedia link in
+both directions using a stable Technology code on the public side. The module
+passport is a service-menu item, not primary navigation.
+
+M2 owns a Material Requirement, never a Material Card. Candidate resolution
+reads VERIFIED canonical M1 `materials` by the requirement's exact category or
+subcategory and optional material type, then checks declared characteristics
+and active M2 compatibility rules. A requirement without a scoped M1 selector
+does not search the whole catalog. A rejected or unverified product is never a
+candidate. The default material class is shown as an assumption, not as a
+fictitious product. Every candidate links to the read-only, addressable M1
+Material Card (`/api/v1/module1/materials/{material_id}`), which reads M1
+characteristics, documents, prices, suppliers and active source offers. No M2
+material copy is stored or rendered.
+
+`module2_material_gaps` records an unresolved Technology requirement and
+revision, corrected search phrase, category, constraints, evidence context,
+status, optional canonical resolution ID and M1 SourceTask ID. The additive
+`20261108_module02_material_gaps.sql` seeds gaps only for the current active
+FOUNDATIONS requirements without a VERIFIED matching M1 card; publication of
+later Technologies creates the same gap when needed. OPEN creates an actual M1
+`FIND_NEW_PRODUCTS` task in `NEEDS_REVIEW`, so M1 can choose an appropriate
+source; it does not launch an unscoped crawler. M2 admin can auditably edit the
+query, choose a compatible VERIFIED M1 card, request M1 search, or dismiss
+with a rationale. Statuses are OPEN, REVIEWING, SEARCH_REQUESTED,
+RESOLVED_EXISTING, RESOLVED_NEW_MATERIAL and DISMISSED. The material resolver
+passes linked M2 evidence reference IDs into the M1 task; the additive
+`20261108_module02_material_gap_evidence.sql` backfills the initial 40 gaps.
+The existing M1 task table displays these requests in readable form and keeps
+the current 100 most recent tasks visible instead of truncating this batch.
+The material resolver
+and gap state are separate from the A2.1 value priority
+`USER_OVERRIDE > PROJECT_VALUE > M2_DEFAULT`; this sprint creates no M5
+estimate or M7 object override.
+
+For A3-A11, publication is incomplete unless each new Technology has a Russian
+reader-first article; ordered, readable M1-linked work steps; scoped M1
+material requirements with compatible candidate cards or an explicit Material
+Gap; typed preliminary defaults and alternatives; understandable nodes,
+quality checks, common errors, project-dependent boundaries, visible evidence
+and cross-links. Technical codes stay stable and secondary in the UI. A
+content-complete claim additionally requires targeted reader, material
+identity/filtering, gap lifecycle, RBAC and navigation tests. This gate applies
+to each new section on its first content pass, not a later corrective pass.
