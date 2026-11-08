@@ -116,6 +116,57 @@ class Technology(Base):
         back_populates="technology",
         cascade="all, delete-orphan",
     )
+    default_assumptions = relationship(
+        "TechnologyDefaultAssumption",
+        back_populates="technology",
+        cascade="all, delete-orphan",
+    )
+
+
+class TechnologyDefaultAssumption(Base):
+    __tablename__ = "module2_technology_default_assumptions"
+    __table_args__ = (
+        UniqueConstraint("technology_id", "assumption_code", "revision", name="uq_module2_default_revision"),
+        CheckConstraint("revision >= 1", name="ck_module2_default_revision_positive"),
+        CheckConstraint("value_type IN ('NUMBER', 'MATERIAL', 'MATERIAL_CLASS', 'ENUM', 'BOOLEAN', 'TEXT')", name="ck_module2_default_value_type"),
+        CheckConstraint("source_kind IN ('EVIDENCE_BACKED_TYPICAL', 'PLATFORM_ASSUMPTION')", name="ck_module2_default_source_kind"),
+        CheckConstraint("status IN ('ACTIVE', 'SUPERSEDED')", name="ck_module2_default_status"),
+        CheckConstraint("warning_level IN ('INFO', 'WARNING', 'CRITICAL')", name="ck_module2_default_warning_level"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    technology_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("module2_technologies.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    assumption_code: Mapped[str] = mapped_column(String(120), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    parameter_code: Mapped[str] = mapped_column(String(120), nullable=False)
+    name_ru: Mapped[str] = mapped_column(String(255), nullable=False)
+    value_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(40))
+    default_value: Mapped[dict] = mapped_column(JSON, nullable=False)
+    source_kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    applicability: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    auto_fallback: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    warning_level: Mapped[str] = mapped_column(String(20), nullable=False, default="WARNING")
+    warning_text: Mapped[str | None] = mapped_column(Text)
+    allowed_values_strategy: Mapped[str] = mapped_column(String(40), nullable=False)
+    allowed_values: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    material_requirement_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("module2_technology_material_requirements.id", ondelete="RESTRICT"), index=True
+    )
+    evidence_reference_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("module2_technology_evidence_references.id", ondelete="RESTRICT"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="ACTIVE")
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.utcnow())
+
+    technology = relationship("Technology", back_populates="default_assumptions")
+    material_requirement = relationship("TechnologyMaterialRequirement")
+    evidence_reference = relationship("TechnologyEvidenceReference")
 
 
 class TechnologyMaterialRequirement(Base):

@@ -624,3 +624,54 @@ packages can use the focused gate plus read-only audits.
 - `CONTENT_COMPLETE` has no automatic transition. A separate product-approved
   inventory and evidence review is required before a completeness action is
   introduced. Inventory candidates are not Technology or engineering content.
+
+## A2.1: versioned default assumptions and Russian Workbench
+
+`module2_technology_default_assumptions` is M2-owned. Its stable key is
+`(technology_id, assumption_code)`, with an immutable integer revision and one
+ACTIVE revision per key and parameter. It records parameter code, Russian name,
+typed value (`NUMBER`, `MATERIAL`, `MATERIAL_CLASS`, `ENUM`, `BOOLEAN`, `TEXT`),
+unit, source kind, applicability, auto-fallback flag, warning, bounded allowed
+values, optional M1-backed material requirement/evidence reference, and actor/time.
+Admin edits supersede the prior default, create a new revision, and write an
+`AuditEvent` with old/new values. Editing a Technology revision does not rewrite
+any earlier assumption or a previously produced estimate snapshot.
+
+The read-only M2 resolver accepts optional project values and user overrides.
+For each parameter it selects `USER_OVERRIDE > PROJECT_VALUE > M2_DEFAULT`;
+when auto-fallback is disabled it returns `UNRESOLVED`. Every result includes
+assumption code/revision, Technology code/revision, resolved value, source,
+warning and allowed alternatives. Future M5 persistence must snapshot those
+fields at calculation time; this sprint does not create M5/M7 project data or
+retroactively change calculations.
+
+The first A2.1 package provides 90 ACTIVE defaults across all 15 public
+FOUNDATIONS technologies: 40 M1 requirement-scoped material classes, 18
+preliminary concrete/reinforcement classes, 9 reinforcement diameters, and 23
+geometry/insulation/protection dimensions. All 90 are explicitly
+`PLATFORM_ASSUMPTION`; **none is an evidence-backed typical value, consumption
+norm, structural design, or building instruction**. Numeric fallback carries a
+critical preliminary warning and requires project/design review. The input
+range rejects obvious invalid values; it is not an engineering approval range.
+The linked SP/GOST evidence defines product classes and design scope, not a
+universal default size. No fabricated evidence link was attached to a number.
+
+Material-class values point to the category already selected by the M2
+requirement from M1. A different category fails validation. Concrete and
+reinforcement class alternatives are bounded within their corresponding
+requirement; a change to the structural Technology itself requires explicit
+Technology selection. There are currently no VERIFIED M1 product records in
+the foundation-specific classes, so the Workbench does not offer a fake product
+alternative list. Compatibility and project-specific suitability remain design
+decisions. The three recent REF6 work hints retain their pre-existing
+`review_required` status; A2.1 does not approve them without source review.
+
+The Workbench shows Russian primary labels and secondary codes for the existing
+layer/material records, plus a table of defaults with headings, unit,
+obligation, warnings, and a pencil editor for admin-editable values. It does
+not show or store project values. Editors use existing RBAC and CSRF handling.
+New production Technology content in A3-A11 must provide Russian human-readable
+labels, typed parameters, bounded/scoped defaults or explicit unresolved state,
+appropriate evidence and warnings, and a checked read-only resolver projection
+before being marked content-complete. This is a content gate, not automatic
+approval of new universal engineering values.

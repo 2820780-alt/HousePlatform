@@ -30,6 +30,12 @@
   });
 
   const createTechnologyDialog = document.getElementById("create-technology");
+  document.querySelectorAll("[data-m2-open-default]").forEach((button) => {
+    button.addEventListener("click", () => document.getElementById(button.dataset.m2OpenDefault)?.showModal());
+  });
+  document.querySelectorAll("[data-m2-close-default]").forEach((button) => {
+    button.addEventListener("click", () => button.closest("dialog")?.close());
+  });
   if (
     createTechnologyDialog
     && new URLSearchParams(window.location.search).get("create") === "1"

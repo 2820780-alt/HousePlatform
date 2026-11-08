@@ -56,6 +56,7 @@ from app.models.knowledge_resource import KnowledgeResource
 from app.models.knowledge_resource_link import KnowledgeResourceLink
 from app.models.module2_technology import (
     Technology,
+    TechnologyDefaultAssumption,
     TechnologyEvidenceReference,
     TechnologyLayer,
     TechnologyMaterialRequirement,

@@ -38,6 +38,7 @@ from app.schemas.module2_technology import (
     TechnologyWorkStepInput,
 )
 from app.services.module1_work_catalog import get_work_item, list_work_items
+from app.services.module2_default_assumptions import active_defaults
 from app.services.module2_knowledge_foundation import (
     attach_evidence_reference,
     create_compatibility_rule_draft,
@@ -121,6 +122,33 @@ OPERATOR_LABELS = {
     "LTE": "не выше",
     "BETWEEN": "в диапазоне",
     "EXISTS": "задано",
+}
+REQUIREMENT_NAMES = {
+    "CONCRETE": "Конструкционный бетон", "REBAR": "Арматура",
+    "WATERPROOFING": "Гидроизоляция", "FORMWORK": "Опалубка",
+    "INSULATION": "Теплоизоляция", "XPS": "Плиты XPS",
+    "PILE": "Сваи", "FBS": "Блоки ФБС", "FL": "Плиты ФЛ",
+    "MORTAR": "Кладочный раствор", "MASTIC": "Мастика",
+    "MEMBRANE": "Мембрана", "CASING": "Обсадная труба",
+}
+LAYER_NAMES = {
+    "ASSEMBLY_JOINTS": "Монтажные швы", "BORED_PILE_CONCRETE": "Бетон буронабивной сваи",
+    "BORE_CASING": "Обсадная труба", "COATING_SYSTEM": "Мастичное покрытие",
+    "COLUMN_CONCRETE": "Бетон столба", "COLUMN_REINFORCEMENT": "Армирование столба",
+    "CONSTRUCTION_FORM": "Опалубка", "EDGE_FORM": "Краевая опалубка",
+    "FACTORY_RC_PILE": "Заводская ЖБ свая", "GRILLAGE_CONCRETE": "Бетон ростверка",
+    "GRILLAGE_REINFORCEMENT": "Армирование ростверка", "INSULATED_BASE": "Утепленное основание",
+    "LOAD_BEARING_BLOCKS": "Несущие блоки", "LOAD_BEARING_SLAB": "Несущая плита",
+    "LOAD_BEARING_STRIP": "Несущая лента", "MEMBRANE_SYSTEM": "Мембранная система",
+    "PILE_REINFORCEMENT": "Армирование сваи", "PREFABRICATED_FOOTING": "Сборная подошва",
+    "RIBBED_RC_FOUNDATION": "Ребристый ЖБ фундамент", "RIB_AND_SLAB_REINFORCEMENT": "Армирование ребер и плиты",
+    "RIB_FORM": "Опалубка ребер", "SLAB_AND_RIBS": "Плита и ребра",
+    "STEEL_SCREW_PILE": "Стальная винтовая свая", "STRIP_REINFORCEMENT": "Армирование ленты",
+    "STRUCTURAL_REINFORCEMENT": "Конструкционное армирование", "SUBSTRUCTURE_PROTECTION": "Защита подземной части",
+    "THERMAL_INTERFACE": "Тепловой контур", "THERMAL_PROTECTION": "Теплозащита",
+    "WALL_CONCRETE": "Бетон стены", "WALL_REINFORCEMENT": "Армирование стены",
+    "WALL_WATERPROOFING": "Гидроизоляция стены", "WATER_PROTECTION": "Защита от воды",
+    "XPS_LAYER": "Слой XPS",
 }
 
 
@@ -449,6 +477,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
     requirements = [
         {
             "model": item,
+            "display_name": REQUIREMENT_NAMES.get(item.code, item.code),
             "selector_label": SELECTOR_LABELS.get(item.selector_kind, _words(item.selector_kind)),
             "reference": _requirement_reference(item, names),
             "constraints": _human_mapping(item.technical_constraints),
@@ -462,6 +491,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
     layers = [
         {
             "model": item,
+            "display_name": LAYER_NAMES.get(item.functional_role, item.functional_role),
             "requirement": requirement_codes.get(item.material_requirement_id, "Без привязки"),
             "restrictions": _human_mapping(item.restrictions),
             "restriction_pair": _first_pair(item.restrictions),
@@ -555,6 +585,18 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         "status_label": status_label(technology.status),
         "requirements": requirements,
         "layers": layers,
+        "defaults": [
+            {
+                "model": item,
+                "requirement_name": REQUIREMENT_NAMES.get(item.material_requirement.code, item.material_requirement.code)
+                if item.material_requirement else None,
+                "display_value": names["categories"].get(uuid.UUID(str(item.default_value["value"])), str(item.default_value["value"]))
+                if item.value_type == "MATERIAL_CLASS" else str(item.default_value["value"]),
+                "alternatives": tuple(item.allowed_values.get("values", ()))
+                if item.value_type == "ENUM" else (),
+            }
+            for item in active_defaults(technology)
+        ],
         "nodes": [
             {
                 "model": item,

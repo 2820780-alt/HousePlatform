@@ -14,6 +14,7 @@ from app.core.role_access_matrix import STARTER_ROLE_MODULE_ACCESS
 from app.models.module2_technology import (
     MODULE2_OWNER_CODE,
     Technology,
+    TechnologyDefaultAssumption,
     TechnologyEvidenceReference,
     TechnologyLayer,
     TechnologyMaterialRequirement,
@@ -345,15 +346,34 @@ def create_next_revision(
             )
         )
 
+    evidence: dict[uuid.UUID, TechnologyEvidenceReference] = {}
     for item in technology.evidence_references:
-        revised.evidence_references.append(
-            TechnologyEvidenceReference(
+        copied = TechnologyEvidenceReference(
                 id=uuid.uuid4(),
                 document_id=item.document_id,
                 knowledge_resource_id=item.knowledge_resource_id,
                 target_kind=item.target_kind,
                 target_reference=item.target_reference,
                 interpretation=item.interpretation,
+        )
+        revised.evidence_references.append(copied)
+        evidence[item.id] = copied
+    for item in technology.default_assumptions:
+        if item.status != "ACTIVE":
+            continue
+        revised.default_assumptions.append(
+            TechnologyDefaultAssumption(
+                id=uuid.uuid4(), assumption_code=item.assumption_code, revision=1,
+                parameter_code=item.parameter_code, name_ru=item.name_ru,
+                value_type=item.value_type, unit=item.unit,
+                default_value=deepcopy(item.default_value), source_kind=item.source_kind,
+                applicability=deepcopy(item.applicability), auto_fallback=item.auto_fallback,
+                warning_level=item.warning_level, warning_text=item.warning_text,
+                allowed_values_strategy=item.allowed_values_strategy,
+                allowed_values=deepcopy(item.allowed_values),
+                material_requirement=requirements.get(item.material_requirement_id),
+                evidence_reference=evidence.get(item.evidence_reference_id),
+                status="ACTIVE", created_by_user_id=created_by_user_id,
             )
         )
     return revised
@@ -386,6 +406,9 @@ async def read_technology(
             selectinload(Technology.consumption_norms),
             selectinload(Technology.compatibility_rules),
             selectinload(Technology.knowledge_rules),
+            selectinload(Technology.default_assumptions).selectinload(
+                TechnologyDefaultAssumption.material_requirement
+            ),
         )
     )
     return result.scalar_one_or_none()

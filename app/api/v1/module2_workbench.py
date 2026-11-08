@@ -36,6 +36,7 @@ from app.services.module2_knowledge_foundation import (
     verify_evidence_references,
 )
 from app.services.module2_operational_widgets import build_technology_readiness_widget
+from app.services.module2_default_assumptions import revise_default_assumption
 from app.services.module2_content_catalog import (
     ContentCatalogError,
     category_tree,
@@ -260,7 +261,7 @@ async def technology_workbench_detail(
             "notice": request.query_params.get("notice"),
             "error": request.query_params.get("error"),
             "active_section": request.query_params.get("section", "general"),
-            "atom_topbar_current_block": "Модуль №2: Technology Workbench",
+            "atom_topbar_current_block": "Модуль №2: рабочая область технологий",
         }
     )
     return templates.TemplateResponse(request, "module2_technology_detail.html", context)
@@ -313,6 +314,12 @@ async def _perform_action(
     user_id: uuid.UUID | None,
 ) -> str | tuple[str, uuid.UUID]:
     item_id = _optional_uuid(form, "item_id")
+    if action == "save-default":
+        await revise_default_assumption(
+            db, technology, assumption_code=_required(form, "assumption_code"),
+            value=_required(form, "value"), actor_user_id=user_id,
+        )
+        return "Значение по умолчанию сохранено в новой редакции."
     if action == "update-general":
         update_draft_technology(
             technology,
@@ -501,6 +508,8 @@ async def _perform_action(
 
 
 def _required_permission(action: str, form) -> str:
+    if action == "save-default":
+        return "ADMIN"
     if action in {"transition", "transition-knowledge"}:
         target = str(form.get("target") or "").upper()
         if target in {"ACTIVE", "DRAFT"}:

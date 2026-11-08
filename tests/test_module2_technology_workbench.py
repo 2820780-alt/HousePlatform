@@ -156,7 +156,7 @@ async def test_technology_list_and_detail_open_without_http_500() -> None:
         assert listing.status_code == 200
         assert "Тестовая технология" in listing.text
         assert detail.status_code == 200
-        assert "Technology Workbench" in detail.text
+        assert "Рабочая область технологий" in detail.text
         assert "Материалы и требования" in detail.text
         assert "Работы" in detail.text
         assert list_work_items()[0].work_name in detail.text
