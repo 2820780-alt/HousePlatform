@@ -36,7 +36,10 @@ from app.services.module2_knowledge_foundation import (
     verify_evidence_references,
 )
 from app.services.module2_operational_widgets import build_technology_readiness_widget
-from app.services.module2_default_assumptions import revise_default_assumption
+from app.services.module2_default_assumptions import active_defaults, revise_default_assumption
+from app.services.module2_encyclopedia_editorial import (
+    MATERIAL_NAMES, effective_material_name, material_default_label,
+)
 from app.services.module2_material_resolution import (
     MaterialResolutionError, change_gap_query, compatible_materials, dismiss_gap, ensure_gap,
     gap_for_requirement, material_card_url, request_m1_search, resolve_existing,
@@ -266,17 +269,41 @@ async def technology_workbench_detail(
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
+    assumptions = active_defaults(technology)
     for item in context["requirements"]:
         requirement = item["model"]
+        linked_defaults = tuple(
+            assumption for assumption in assumptions
+            if assumption.material_requirement_id == requirement.id
+        )
+        item["effective_name"] = effective_material_name(
+            requirement.code, item["display_name"], linked_defaults
+        )
+        item["default_label"] = material_default_label(linked_defaults)
+        item["class_label"] = MATERIAL_NAMES.get(requirement.code, item["display_name"])
         item["candidates"] = await compatible_materials(db, requirement)
         item["gap"] = await gap_for_requirement(db, requirement.id)
         item["material_card_url"] = material_card_url
+    for item in context["defaults"]:
+        requirement = item["model"].material_requirement
+        item["human_name"] = (
+            MATERIAL_NAMES.get(requirement.code, item["model"].name_ru)
+            if item["model"].value_type == "MATERIAL_CLASS" and requirement
+            else item["model"].name_ru
+        )
+        item["human_requirement_name"] = (
+            MATERIAL_NAMES.get(requirement.code, item["requirement_name"])
+            if requirement else None
+        )
     categories = await list_categories(db)
     context["technology_category_options"] = tuple(
         item for item in categories if item.status != "ARCHIVED"
     )
     context["category_code"] = next(
         (item.code for item in categories if item.id == technology.category_id), None
+    )
+    context["category_name"] = next(
+        (item.name for item in categories if item.id == technology.category_id), "Без категории"
     )
     context.update(
         {

@@ -10,16 +10,16 @@
 </head>
 <body data-atom-page data-rbac-ready data-module2-workbench>
   {% include "_atom_platform_topbar.html" %}
+  {% set m2_nav_active = 'workbench' %}
+  <div class="m2-layout">
+  {% include "_module2_sidebar.html" %}
   <main class="m2-shell">
     <header class="m2-page-head">
       <div>
         <div class="m2-eyebrow">Модуль №2 · Рабочая область технологий</div>
         <h1>Технологии</h1>
-        <p>Редакции, инженерные правила и подтверждения.</p>
       </div>
       <div class="m2-actions">
-        <a class="m2-button ghost" href="/api/v1/module2/encyclopedia">Энциклопедия</a>
-        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench/categories">Категории</a>
         <details class="m2-service-menu"><summary title="Служебное меню" aria-label="Служебное меню">⋯</summary><a href="/api/v1/admin/cabinet/view/modules/2">О модуле</a></details>
         {% if permissions.edit %}
         <div class="atom-action-with-menu">
@@ -83,7 +83,6 @@
                 <th>Технология</th>
                 <th>Редакция</th>
                 <th>Статус</th>
-                <th>Система</th>
                 <th>Категория</th>
                 <th>Входные данные M1</th>
                 <th>Обновлена</th>
@@ -107,11 +106,10 @@
                     data-quick-action-icon="workflow"
                     data-quick-action-atom-card-accent="green"
                   >{{ item.name }}</a>
-                  <div class="m2-code">{{ item.code }}</div>
+                  <details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ item.code }} · {{ item.system_code }}</span></details>
                 </td>
                 <td>№ {{ item.revision }}</td>
                 <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
-                <td>{{ item.system_code }}</td>
                 <td>{{ item.category_name }}</td>
                 <td>
                   {% if item.blocker_count %}
@@ -132,6 +130,7 @@
       </div>
     </section>
   </main>
+  </div>
 
   {% if permissions.edit %}
   <dialog id="create-technology">

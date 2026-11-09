@@ -104,16 +104,20 @@
 </head>
 <body data-atom-page data-rbac-ready data-module2-workbench>
   {% include "_atom_platform_topbar.html" %}
+  {% set m2_nav_active = 'workbench' %}
+  <div class="m2-layout">
+  {% include "_module2_sidebar.html" %}
   <main class="m2-shell">
     <header class="m2-page-head">
       <div>
         <div class="m2-eyebrow">Рабочая область технологий</div>
         <h1>{{ technology.name }}</h1>
         <div class="m2-status-line">
-          <span class="m2-code">{{ technology.technology_code }}</span>
+          <span>{{ category_name }}</span>
           <span>Редакция № {{ technology.revision }}</span>
           <span class="m2-status" data-status="{{ technology.status }}">{{ status_label }}</span>
         </div>
+        <details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ technology.technology_code }} · {{ technology.system_code or 'Система не задана' }} · {{ technology.source_kind }}</span></details>
       </div>
       <div class="m2-actions">
         {% if technology.status == 'ACTIVE' and category_code %}<a class="m2-button ghost" href="/api/v1/module2/encyclopedia/technologies/{{ technology.technology_code }}">Страница энциклопедии</a>{% endif %}
@@ -171,7 +175,7 @@
     </nav>
 
     <section class="m2-panel m2-section" id="general">
-      <div class="m2-panel-head"><h2>Общее</h2><span class="m2-badge">{{ 'Создано редактором' if technology.source_kind == 'HUMAN_CURATED' else technology.source_kind }}</span></div>
+      <div class="m2-panel-head"><h2>Общее</h2><span class="m2-badge">{{ status_label }}</span></div>
       {% if technology.status == 'DRAFT' and permissions.edit %}
       <form class="m2-panel-body" method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/update-general" data-m2-form>
         {{ hidden_context('general') }}
@@ -186,9 +190,7 @@
       </form>
       {% else %}
       <div class="m2-definition-grid">
-        <div class="m2-definition"><span>Код</span>{{ technology.technology_code }}</div>
-        <div class="m2-definition"><span>Система</span>{{ technology.system_code or 'Не задана' }}</div>
-        <div class="m2-definition"><span>Категория</span>{{ category_code or 'Не назначена' }}</div>
+        <div class="m2-definition"><span>Категория</span>{{ category_name }}</div>
         <div class="m2-definition"><span>Редакция</span>№ {{ technology.revision }}</div>
         <div class="m2-definition"><span>Статус</span>{{ status_label }}</div>
       </div>
@@ -277,19 +279,22 @@
     <section class="m2-panel m2-section" id="materials">
       <div class="m2-panel-head"><h2>Материалы и требования</h2><span class="m2-count">{{ requirements|length }}</span></div>
       <div class="m2-panel-body m2-records">
-        {% if requirements %}<div class="m2-record-head"><span>Элемент / параметр</span><span>Требование технологии</span><span>Класс M1</span><span>Ограничения / условия</span><span>Действия</span></div>{% endif %}
+        {% if requirements %}<div class="m2-material-head"><span>Материал / требование</span><span>Значение по умолчанию</span><span>Найдено в M1</span><span>Допустимые варианты</span><span>Статус</span><span>Действия</span></div>{% endif %}
         {% for item in requirements %}
         <article class="m2-record">
-          <div class="m2-record-main">
-            <div><strong>{{ item.display_name }}</strong><small>{{ item.model.code }} · {{ item.selector_label }}</small></div>
-            <div>{{ item.reference }}</div><div>{{ item.model.material_role_code or 'Роль не задана' }}</div><div>{{ item.constraints or item.model.notes or 'Без дополнительных условий' }}</div>
-            {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
+          <div class="m2-material-row">
+            <div><strong>{{ item.effective_name }}</strong><details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ item.model.code }} · {{ item.selector_label }} · {{ item.reference }} · {{ item.model.material_role_code or 'Без роли' }}</span></details></div>
+            <div>{{ item.default_label or 'Не задано' }}</div>
+            <div>{% if item.candidates %}{{ item.candidates|length }} карточок{% else %}Пока нет{% endif %}</div>
+            <div>{% if item.candidates|length > 1 %}{{ item.candidates|length - 1 }} других{% elif item.candidates %}Один вариант{% else %}Не найдены{% endif %}</div>
+            <div>{% if item.candidates %}<span class="m2-status" data-status="ACTIVE">Найдено</span>{% elif item.gap %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% else %}<span class="m2-status">Не указано</span>{% endif %}</div>
+            <div>{% if technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('requirement', item.model.id, 'materials') }}{% endif %}</div>
           </div>
           {% if item.candidates %}
-          <div class="m2-record-note">Подходящие материалы M1: <a href="{{ item.material_card_url(item.candidates[0].id) }}">{{ item.candidates[0].canonical_name }}</a>{% if item.candidates|length > 1 %}<details><summary>Еще {{ item.candidates|length - 1 }} подходящих</summary>{% for material in item.candidates[1:] %}<div><a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a></div>{% endfor %}</details>{% endif %}</div>
+          <div class="m2-record-note">Подходящие материалы M1: <a href="{{ item.material_card_url(item.candidates[0].id) }}">{{ item.candidates[0].canonical_name }}</a>{% if item.candidates|length > 1 %}{% set extra = item.candidates|length - 1 %}<details><summary>Ещё {{ extra }} {% if extra == 1 %}подходящий вариант{% elif extra in [2, 3, 4] %}подходящих варианта{% else %}подходящих вариантов{% endif %}</summary>{% for material in item.candidates[1:] %}<div><a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a></div>{% endfor %}</details>{% endif %}</div>
           {% endif %}
           {% if item.gap %}
-          <div class="m2-record-note"><strong>Материал не найден в M1</strong> · {{ item.gap.status }}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
+          <div class="m2-record-note"><strong>Материал не найден в M1</strong> · {% if item.gap.status == 'SEARCH_REQUESTED' %}Поиск запрошен{% elif item.gap.status == 'REVIEWING' %}На проверке{% elif item.gap.status == 'DISMISSED' %}Не требуется{% elif item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}Разрешено{% else %}Открыто{% endif %}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
           {% if permissions.admin and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}
           <details class="m2-editor"><summary>Изменить запрос</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/query" data-m2-form><label><span>Поисковая фраза</span><input name="search_phrase" value="{{ item.gap.search_phrase }}" maxlength="500" required></label><button class="m2-button" type="submit">Сохранить запрос</button></form></details>
           <details class="m2-editor"><summary>Выбрать из M1</summary>{% if item.candidates %}<form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/resolve" data-m2-form><label><span>Подходящий материал</span><select name="material_id" required>{% for material in item.candidates %}<option value="{{ material.id }}">{{ material.canonical_name }}</option>{% endfor %}</select></label><button class="m2-button" type="submit">Выбрать из M1</button></form>{% else %}<p>Подтвержденных подходящих карточек пока нет.</p>{% endif %}</details>
@@ -345,8 +350,8 @@
           {% for item in defaults %}
           <tr>
             <td>{{ loop.index }}</td>
-            <td><strong>{{ item.model.name_ru }}</strong><small class="m2-code-detail">{{ item.model.parameter_code }} · ред. {{ item.model.revision }}</small></td>
-            <td>{% if item.requirement_name %}{{ item.requirement_name }}<small class="m2-code-detail">{{ item.model.material_requirement.code }}</small>{% else %}Параметр технологии{% endif %}</td>
+            <td><strong>{{ item.human_name }}</strong><details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ item.model.parameter_code }} · ред. {{ item.model.revision }}</span></details></td>
+            <td>{% if item.human_requirement_name %}{{ item.human_requirement_name }}{% else %}Параметр технологии{% endif %}</td>
             <td>{{ item.display_value }}<small class="m2-code-detail">Предположение платформы</small></td>
             <td>{{ item.model.unit or '—' }}</td>
             <td>{{ 'Автоподстановка для предварительной оценки' if item.model.auto_fallback else 'Требуется проектное значение' }}</td>
@@ -562,9 +567,10 @@
 
     <section class="m2-panel m2-section" id="revisions">
       <div class="m2-panel-head"><h2>Редакции</h2><span class="m2-count">{{ revisions|length }}</span></div>
-      <div class="m2-table-wrap"><table class="m2-table"><thead><tr><th>Редакция</th><th>Статус</th><th>Создана</th><th>Обновлена</th></tr></thead><tbody>{% for item in revisions %}<tr><td><a class="m2-name-link" href="/api/v1/admin/module2/workbench/{{ item.id }}">№ {{ item.revision }}</a></td><td><span class="m2-status" data-status="{{ item.status }}">{{ item.status|replace('_',' ')|lower }}</span></td><td>{{ item.created_at.strftime('%d.%m.%Y %H:%M') if item.created_at else '—' }}</td><td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td></tr>{% endfor %}</tbody></table></div>
+      <div class="m2-table-wrap"><table class="m2-table"><thead><tr><th>Редакция</th><th>Статус</th><th>Создана</th><th>Обновлена</th></tr></thead><tbody>{% for item in revisions %}<tr><td><a class="m2-name-link" href="/api/v1/admin/module2/workbench/{{ item.id }}">№ {{ item.revision }}</a></td><td><span class="m2-status" data-status="{{ item.status }}">{{ {'ACTIVE':'Действует','DRAFT':'Черновик','REVIEW':'На проверке','ARCHIVED':'Архив'}.get(item.status, 'Неизвестно') }}</span></td><td>{{ item.created_at.strftime('%d.%m.%Y %H:%M') if item.created_at else '—' }}</td><td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td></tr>{% endfor %}</tbody></table></div>
     </section>
   </main>
+  </div>
   {% include "_module2_workbench_scripts.html" %}
 </body>
 </html>

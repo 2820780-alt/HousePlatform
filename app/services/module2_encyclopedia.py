@@ -12,10 +12,14 @@ from app.models.material import Material
 from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.module2_content_catalog import TechnologyCategory
-from app.models.module2_technology import Technology, TechnologyNode
+from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyNode
 from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
 from app.services.module2_default_assumptions import active_defaults
+from app.services.module2_encyclopedia_editorial import (
+    MATERIAL_NAMES, MATERIAL_REQUIREMENT_TITLES, WORK_STEP_GUIDANCE, category_article,
+    effective_material_name, material_default_label,
+)
 from app.services.module2_material_resolution import (
     compatible_materials, gap_for_requirement, material_card_url,
 )
@@ -100,10 +104,32 @@ async def public_category(db: AsyncSession, code: str) -> dict | None:
     while current:
         breadcrumb.append(current)
         current = by_id.get(current.parent_id)
+    overview = category_article(code)
+    comparison = tuple(
+        {"category": row["category"], "article": category_article(row["category"].code)}
+        for row in children
+        if category_article(row["category"].code)
+    ) if code == "FOUNDATIONS" else tuple(
+        {"category": row["category"], "note": note}
+        for target_code, note in (overview or {}).get("comparison", ())
+        for row in catalog["all_categories"] if row["category"].code == target_code
+    )
+    materials = ()
+    if technologies:
+        requirements = (await db.scalars(select(TechnologyMaterialRequirement).where(
+            TechnologyMaterialRequirement.technology_id.in_(
+                row["technology"].id for row in technologies
+            ),
+        ))).all()
+        materials = tuple(dict.fromkeys(
+            MATERIAL_NAMES.get(item.code, REQUIREMENT_NAMES.get(item.code, item.code))
+            for item in requirements
+        ))
     return {
         "category": category, "children": children,
         "technologies": technologies, "related_technologies": related_technologies,
         "breadcrumb": tuple(reversed(breadcrumb)),
+        "overview": overview, "comparison": comparison, "materials": materials,
     }
 
 
@@ -121,6 +147,7 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
     evidence = []
     evidence_by_target = {}
     seen_sources = set()
+    sources_by_key = {}
     for item in technology.evidence_references:
         source = None
         if item.document_id:
@@ -141,28 +168,31 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
                 }
         if source:
             key = (source["type"], source["title"], source["url"])
+            source = sources_by_key.setdefault(key, source)
             if key not in seen_sources:
                 evidence.append(source)
                 seen_sources.add(key)
             evidence_by_target.setdefault((item.target_kind, item.target_reference), []).append(source)
 
+    for number, source in enumerate(evidence, start=1):
+        source["number"] = number
+
+    assumptions = active_defaults(technology)
     requirements = []
     for item in technology.requirements:
         label = REQUIREMENT_NAMES.get(item.code, item.code)
         candidates = await compatible_materials(db, item)
         material = candidates[0] if candidates else None
         gap = await gap_for_requirement(db, item.id) if not candidates else None
-        default = next((assumption for assumption in active_defaults(technology)
-                        if assumption.material_requirement_id == item.id), None)
-        default_label = None
-        if default and default.value_type == "MATERIAL_CLASS":
-            material_category = await db.get(MaterialCategory, uuid.UUID(str(default.default_value.get("value"))))
-            default_label = material_category.name if material_category else None
-        elif default and default.value_type == "MATERIAL":
-            chosen = await db.get(Material, uuid.UUID(str(default.default_value.get("value"))))
-            default_label = chosen.canonical_name if chosen and chosen.status == MaterialStatus.VERIFIED else None
+        linked_defaults = tuple(
+            assumption for assumption in assumptions if assumption.material_requirement_id == item.id
+        )
+        default_label = material_default_label(linked_defaults)
+        display_name = effective_material_name(item.code, label, linked_defaults)
         requirements.append({
-            "model": item, "label": label, "material": material,
+            "model": item, "label": label, "display_name": display_name,
+            "base_name": MATERIAL_NAMES.get(item.code, label), "material": material,
+            "requirement_title": MATERIAL_REQUIREMENT_TITLES.get(item.code, "Требование к материалу"),
             "candidates": candidates, "gap": gap, "default_label": default_label,
             "sources": tuple(evidence_by_target.get(("MATERIAL_REQUIREMENT", str(item.id)), ())),
         })
@@ -170,8 +200,15 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
     steps = []
     for item in sorted(technology.work_steps, key=lambda step: step.position):
         work = get_work_item(item.work_code)
+        guidance = WORK_STEP_GUIDANCE.get(item.work_code)
         steps.append({
             "model": item, "work": work,
+            "purpose": guidance[0] if guidance else None,
+            "check": guidance[1] if guidance else None,
+            "materials": tuple(
+                requirement for requirement in requirements
+                if guidance and requirement["model"].code in guidance[2]
+            ),
             "sources": tuple(evidence_by_target.get(("WORK_STEP", str(item.id)), ())),
         })
 
@@ -227,9 +264,14 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
         and row["technology"].technology_code != technology.technology_code
     )
     defaults = []
-    for item in active_defaults(technology):
-        defaults.append({"name": item.name_ru, "value": await _default_label(db, item),
-                         "unit": item.unit, "warning": item.warning_text})
+    for item in assumptions:
+        defaults.append({
+            "name": item.name_ru, "value": await _default_label(db, item),
+            "unit": item.unit, "warning": item.warning_text,
+            "action": _default_action(item.parameter_code),
+            "range": item.value_type == "NUMBER",
+            "alternatives": await _default_alternatives(db, item),
+        })
     return {
         "technology": technology,
         "category": category,
@@ -269,3 +311,38 @@ async def _default_label(db: AsyncSession, assumption) -> str:
     if assumption.value_type == "BOOLEAN":
         return "Да" if value else "Нет"
     return str(value)
+
+
+def _default_action(parameter_code: str) -> str:
+    if "CONCRETE" in parameter_code:
+        return "Выбрать другой бетон"
+    if "REBAR" in parameter_code:
+        return "Выбрать другую арматуру"
+    if "DEPTH" in parameter_code:
+        return "Изменить глубину"
+    if "WATERPROOF" in parameter_code or "MEMBRANE" in parameter_code:
+        return "Выбрать другую гидроизоляцию"
+    return "Посмотреть варианты"
+
+
+async def _default_alternatives(db: AsyncSession, assumption) -> tuple[str, ...]:
+    allowed = assumption.allowed_values or {}
+    if assumption.value_type == "ENUM":
+        return tuple(str(value) for value in allowed.get("values", ()))
+    if assumption.value_type == "MATERIAL_CLASS":
+        values = []
+        for value in allowed.get("category_ids", ()):
+            category = await db.get(MaterialCategory, uuid.UUID(str(value)))
+            if category:
+                values.append(category.name)
+        return tuple(values)
+    if assumption.value_type == "MATERIAL":
+        values = []
+        for value in allowed.get("material_ids", ()):
+            material = await db.get(Material, uuid.UUID(str(value)))
+            if material and material.status == MaterialStatus.VERIFIED:
+                values.append(material.canonical_name)
+        return tuple(values)
+    if assumption.value_type == "NUMBER" and "min" in allowed and "max" in allowed:
+        return (f"{allowed['min']}–{allowed['max']} {assumption.unit or ''}".strip(),)
+    return ()

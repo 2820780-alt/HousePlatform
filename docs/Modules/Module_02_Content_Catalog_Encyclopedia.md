@@ -730,3 +730,59 @@ and cross-links. Technical codes stay stable and secondary in the UI. A
 content-complete claim additionally requires targeted reader, material
 identity/filtering, gap lifecycle, RBAC and navigation tests. This gate applies
 to each new section on its first content pass, not a later corrective pass.
+
+## A2.3: final M2 encyclopedia and Workbench UX standard
+
+The reader hierarchy is category overview -> family overview -> Technology
+article. A category overview explains the principle of its systems, links to
+families, and compares them without choosing a design for an unexamined site.
+Each family article provides a short introduction, mechanism, use cases,
+advantages, limitations, comparison with neighboring families, typical material
+classes, an overall work sequence, project-dependent checks, and links to its
+published Technologies. The six FOUNDATIONS families use the lightweight,
+code-keyed editorial projection in `module2_encyclopedia_editorial.py`; their
+claims summarize existing approved Technology descriptions and evidence. This
+is presentation content, not a second taxonomy, material catalog, or CMS.
+Unpublished categories still use the normal empty state. New categories must
+add their own reviewed editorial projection before being declared complete.
+
+A Technology article is standalone for a reader without a project: explanation,
+applicability and exclusions, preliminary defaults, construction composition,
+materials, ordered M1-linked work steps, quality checks, common errors,
+project-dependent decisions, nodes, related articles, and numbered sources.
+"According to the project" belongs after an explanation or in the dedicated
+project-dependent section; it never substitutes for an explanation. The current
+FOUNDATIONS audit found such wording only in contexts with preceding technical
+explanation, quality instructions, or the project-dependent section. Evidence
+references remain addressable in M2; the article uses compact numbered links
+and a source list at the end.
+
+The 90 A2.1 defaults remain unchanged. Public pages label them preliminary
+platform assumptions, not norms or universal values. Requirement plus linked
+class/reinforcement defaults renders a human material name (for example,
+"Бетон B25" or "Арматура A500C Ø12"). Alternative values and bounded ranges
+are read-only previews without M7 object persistence. Only compatible,
+VERIFIED canonical M1 cards are linked; extra candidates are collapsed.
+Missing cards receive a calm reader message. The A2.2 gap task, search,
+resolution, and dismissal controls stay in the admin Workbench and retain
+their RBAC and audit behavior. A material requirement page identifies itself
+as a requirement, never a duplicate material card.
+
+The shared M2 sidebar has public Encyclopedia, Categories, and Technologies
+destinations and an admin-only Workbench destination. Breadcrumbs and local
+article navigation preserve the hierarchy. Stable codes, source markers and
+internal statuses remain in secondary technical details; Workbench primary
+labels, category, status, default values, and material columns are readable
+Russian. The module passport stays in the service menu. From Module 3, M2
+borrows only visual tokens and interaction quality (type, colors, spacing,
+borders, controls, active and responsive states), not business logic, table
+layout, widgets or information hierarchy.
+
+For A3-A11, `CONTENT_COMPLETE` requires the category and family overview
+articles, each published Technology article, scoped preliminary defaults or
+an explicit unresolved value, canonical M1 material references or a Material
+Gap, ordered M1 work steps, nodes, quality and project-dependent sections,
+evidence, cross-links, responsive presentation, and RBAC/link tests. Review
+the underlying engineering evidence before adding any new claim. Do not seed
+fake materials or a second Work Catalog. The final M2 UX format is applied
+during the first content pass of each new category, not as a later corrective.

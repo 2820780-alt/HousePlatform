@@ -1,27 +1,34 @@
 <style>
   :root {
-    --m2-bg: #070b14;
-    --m2-surface: #101722;
-    --m2-surface-raised: #17202d;
-    --m2-line: #2a3747;
-    --m2-text: #eef4f7;
-    --m2-muted: #9aa9b5;
+    --m2-bg: #050917;
+    --m2-surface: #0e1c35;
+    --m2-surface-raised: #172b43;
+    --m2-line: rgba(119, 172, 255, .22);
+    --m2-text: #eef7ff;
+    --m2-muted: #a4b7d0;
     --m2-green: #4ade80;
-    --m2-cyan: #22d3ee;
+    --m2-cyan: #18d7f2;
     --m2-amber: #fbbf24;
     --m2-red: #fb7185;
-    --m2-blue: #60a5fa;
+    --m2-blue: #78adff;
   }
   * { box-sizing: border-box; }
   body[data-module2-workbench] {
     margin: 0;
     min-height: 100vh;
     color: var(--m2-text);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
     background: var(--m2-bg);
   }
   body[data-module2-workbench] a { color: inherit; }
-  .m2-shell { width: min(1440px, 100%); margin: 0 auto; padding: 18px 24px 48px; }
+  .m2-layout { display: grid; grid-template-columns: clamp(248px, 16vw, 296px) minmax(0, 1fr); min-height: calc(100vh - 64px); }
+  .m2-sidebar { position: sticky; top: 64px; align-self: start; display: grid; align-content: start; gap: 8px; min-height: calc(100vh - 64px); padding: 24px 14px; border-right: 1px solid rgba(24, 215, 242, .14); background: linear-gradient(180deg, #081634, #040c1f); }
+  .m2-sidebar-title { display: grid; gap: 7px; padding: 0 10px 20px; }
+  .m2-sidebar-title small { color: var(--m2-muted); font-size: 12px; }
+  .m2-sidebar-title strong { color: var(--m2-text); font-size: 18px; }
+  .m2-nav-link { display: flex; align-items: center; min-height: 46px; padding: 10px 12px; border: 1px solid transparent; border-radius: 8px; color: var(--m2-muted) !important; text-decoration: none; font-weight: 700; }
+  .m2-nav-link:hover, .m2-nav-link:focus-visible, .m2-nav-link.active { border-color: rgba(24, 215, 242, .58); color: var(--m2-cyan) !important; background: rgba(24, 215, 242, .12); }
+  .m2-shell { width: min(1440px, 100%); min-width: 0; margin: 0 auto; padding: 24px 28px 48px; }
   .m2-page-head, .m2-toolbar, .m2-actions, .m2-status-line, .m2-item-actions {
     display: flex;
     align-items: center;
@@ -105,6 +112,12 @@
   .m2-default-dialog label { display: grid; gap: 6px; }
   .m2-name-link { color: var(--m2-cyan); font-weight: 800; text-decoration: none; }
   .m2-code { color: var(--m2-muted); font-family: Consolas, monospace; font-size: 12px; }
+  .m2-technical { margin-top: 5px; color: var(--m2-muted); font-size: 11px; }
+  .m2-technical summary { width: fit-content; color: var(--m2-muted); cursor: pointer; }
+  .m2-material-head, .m2-material-row { display: grid; grid-template-columns: minmax(160px, 1.4fr) repeat(4, minmax(105px, 1fr)) minmax(80px, .7fr); gap: 12px; align-items: center; }
+  .m2-material-head { padding: 0 12px; color: var(--m2-muted); font-size: 11px; }
+  .m2-material-row { padding: 12px; }
+  .m2-material-row > * { min-width: 0; overflow-wrap: anywhere; }
   .m2-alert { margin-bottom: 14px; border: 1px solid; border-radius: 7px; padding: 11px 13px; }
   .m2-alert.good { border-color: #247c4c; color: #b9f6ce; background: #10291d; }
   .m2-alert.warn { border-color: #85631c; color: #ffe3a3; background: #2b220f; }
@@ -150,16 +163,24 @@
   .m2-dialog-body { padding: 16px; }
   [hidden] { display: none !important; }
   @media (max-width: 980px) {
+    .m2-layout { grid-template-columns: 1fr; }
+    .m2-sidebar { position: static; display: flex; flex-wrap: wrap; align-items: center; min-height: 0; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--m2-line); }
+    .m2-sidebar-title { padding: 0 10px 0 0; }
+    .m2-nav-link { min-height: 36px; padding: 7px 10px; }
     .m2-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .m2-record-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .m2-record-head { display: none; }
+    .m2-material-head { display: none; }
+    .m2-material-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .m2-definition-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 680px) {
     .m2-shell { padding: 14px 12px 36px; }
+    .m2-sidebar-title { width: 100%; }
     .m2-filter, .m2-form-grid, .m2-blocker-grid, .m2-definition-grid { grid-template-columns: 1fr; }
     .m2-form-grid .wide, .m2-form-grid .full { grid-column: auto; }
     .m2-tabs { margin-inline: -12px; padding-inline: 12px; }
     .m2-record-main { grid-template-columns: 1fr; }
+    .m2-material-row { grid-template-columns: 1fr; }
   }
 </style>

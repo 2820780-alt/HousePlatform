@@ -1,0 +1,9 @@
+<nav class="m2-sidebar" aria-label="Разделы модуля технологий">
+  <div class="m2-sidebar-title"><small>Модуль №2</small><strong>Технологии</strong></div>
+  <a class="m2-nav-link {% if m2_nav_active == 'overview' %}active{% endif %}" {% if m2_nav_active == 'overview' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia">Энциклопедия</a>
+  <a class="m2-nav-link {% if m2_nav_active == 'categories' %}active{% endif %}" {% if m2_nav_active == 'categories' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia/categories">Категории</a>
+  <a class="m2-nav-link {% if m2_nav_active == 'technologies' %}active{% endif %}" {% if m2_nav_active == 'technologies' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia/technologies">Технологии</a>
+  {% if (can_workbench is defined and can_workbench) or (permissions is defined and permissions.view) %}
+  <a class="m2-nav-link {% if m2_nav_active == 'workbench' %}active{% endif %}" {% if m2_nav_active == 'workbench' %}aria-current="page"{% endif %} href="/api/v1/admin/module2/workbench">Рабочая область</a>
+  {% endif %}
+</nav>

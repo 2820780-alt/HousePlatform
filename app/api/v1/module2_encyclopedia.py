@@ -28,10 +28,14 @@ def _view(user: CurrentUser) -> None:
 
 
 def _render(request: Request, view: str, **context):
+    nav_active = "categories" if view in {"category", "category_list"} else (
+        "overview" if view == "index" else "technologies"
+    )
     return templates.TemplateResponse(
         request,
         "module2_encyclopedia.html",
-        {"view": view, "atom_topbar_current_block": "Модуль №2: Энциклопедия", **context},
+        {"view": view, "m2_nav_active": nav_active,
+         "atom_topbar_current_block": "Модуль №2: Энциклопедия", **context},
     )
 
 
@@ -40,6 +44,22 @@ async def encyclopedia_index(request: Request, db: DBSession, user: CurrentUser)
     _view(user)
     query = str(request.query_params.get("q") or "").strip()[:120]
     return _render(request, "index", catalog=await public_catalog(db, query), query=query,
+                   can_workbench=workbench_permissions(user)["view"])
+
+
+@router.get("/categories", response_class=HTMLResponse)
+async def encyclopedia_categories(request: Request, db: DBSession, user: CurrentUser):
+    _view(user)
+    query = str(request.query_params.get("q") or "").strip()[:120]
+    return _render(request, "category_list", catalog=await public_catalog(db, query), query=query,
+                   can_workbench=workbench_permissions(user)["view"])
+
+
+@router.get("/technologies", response_class=HTMLResponse)
+async def encyclopedia_technologies(request: Request, db: DBSession, user: CurrentUser):
+    _view(user)
+    query = str(request.query_params.get("q") or "").strip()[:120]
+    return _render(request, "technology_list", catalog=await public_catalog(db, query), query=query,
                    can_workbench=workbench_permissions(user)["view"])
 
 
