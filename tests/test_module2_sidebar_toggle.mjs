@@ -34,3 +34,31 @@ test('M2 sidebar menus start closed and toggle independently', () => {
   buttons[1].click();
   assert.equal(menus['m2-technologies-menu'].hidden, false);
 });
+
+test('encyclopedia menu loads public category names once and keeps text as text', async () => {
+  const template = readFileSync('templates/_module2_sidebar.html', 'utf8');
+  const script = [...template.matchAll(/<script>([\s\S]*?)<\/script>/g)][1]?.[1];
+  assert.ok(script);
+  let requests = 0;
+  const button = {
+    getAttribute: () => 'true',
+    addEventListener(_event, callback) { this.click = callback; },
+  };
+  const list = { replaceChildren(fragment) { this.nodes = fragment.childNodes; } };
+  const document = {
+    querySelector: () => button,
+    getElementById: () => list,
+    createDocumentFragment: () => ({ childNodes: [], appendChild(node) { this.childNodes.push(node); } }),
+    createElement: () => ({}),
+  };
+  const fetch = async () => {
+    requests++;
+    return { ok: true, json: async () => ({ categories: [{ code: 'FOUNDATIONS', name: '<Фундаменты>' }] }) };
+  };
+  runInNewContext(script, { document, fetch, encodeURIComponent });
+  await button.click();
+  await button.click();
+  assert.equal(requests, 1);
+  assert.equal(list.nodes[0].textContent, '<Фундаменты>');
+  assert.equal(list.nodes[0].href, '/api/v1/module2/encyclopedia/categories/FOUNDATIONS');
+});

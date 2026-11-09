@@ -9,8 +9,9 @@
       <button type="button" class="m2-nav-toggle" aria-expanded="false" aria-controls="m2-encyclopedia-menu" aria-label="Подменю энциклопедии" title="Подменю энциклопедии">▾</button>
     </div>
     <div class="m2-submenu" id="m2-encyclopedia-menu" hidden>
-      <a href="/api/v1/module2/encyclopedia/categories">Категории строительства</a>
+      <div class="m2-submenu-categories" id="m2-category-navigation"><a href="/api/v1/module2/encyclopedia/categories">Все категории</a></div>
       {% if view is defined and view == 'technology' %}
+      <div class="m2-submenu-label">В этой статье</div>
       {% if article.editorial.get('applicability') %}<a href="#applicability">Где применяется</a>{% endif %}
       {% if article.editorial.get('exclusions') %}<a href="#exclusions">Когда не подходит</a>{% endif %}
       {% if article.defaults %}<a href="#defaults">Предварительная оценка</a>{% endif %}
@@ -50,6 +51,39 @@
       menu.hidden = expanded;
     });
   });
+</script>
+<script>
+  (() => {
+    const button = document.querySelector('[aria-controls="m2-encyclopedia-menu"]');
+    const list = document.getElementById('m2-category-navigation');
+    if (!button || !list) return;
+    let loaded = false;
+    let loading = false;
+    button.addEventListener('click', async () => {
+      if (button.getAttribute('aria-expanded') !== 'true' || loaded || loading) return;
+      loading = true;
+      try {
+        const response = await fetch('/api/v1/module2/encyclopedia/navigation', {headers: {'Accept': 'application/json'}});
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!Array.isArray(data.categories)) return;
+        const fragment = document.createDocumentFragment();
+        for (const category of data.categories) {
+          if (typeof category.code !== 'string' || typeof category.name !== 'string') continue;
+          const link = document.createElement('a');
+          link.href = '/api/v1/module2/encyclopedia/categories/' + encodeURIComponent(category.code);
+          link.textContent = category.name;
+          fragment.appendChild(link);
+        }
+        if (fragment.childNodes.length) list.replaceChildren(fragment);
+        loaded = true;
+      } catch (_) {
+        // The existing categories link remains available if navigation cannot load.
+      } finally {
+        loading = false;
+      }
+    });
+  })();
 </script>
 <script>
   const m2MobileMenu = document.querySelector('.m2-mobile-menu');

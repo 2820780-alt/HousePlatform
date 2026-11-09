@@ -14,6 +14,30 @@ from app.services.module2_technology_foundation import validate_technology_activ
 TECHNOLOGY_READINESS_WIDGET_CODE = "MODULE_02_TECHNOLOGY_READINESS_WIDGET"
 
 
+def build_workbench_queue_widget(user, technologies: list[dict]) -> dict:
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
+    base = "/api/v1/admin/module2/workbench"
+    items = [
+        {"label": "На утверждении", "value": sum(row["status"] == "REVIEW" for row in technologies),
+         "route": f"{base}?status=REVIEW"},
+        {"label": "Материалы требуют подбора", "value": sum(row["open_gap_count"] for row in technologies),
+         "route": f"{base}?materials=open_gap"},
+        {"label": "Требует доработки", "value": sum(
+            row["status"] == "ACTIVE" and row["blocker_count"] > 0 for row in technologies
+        ), "route": f"{base}?status=ACTIVE&blockers=yes"},
+    ]
+    return build_atom_widget_payload(
+        widget_code=TECHNOLOGY_READINESS_WIDGET_CODE,
+        source_module_code=MODULE2_OWNER_CODE,
+        feature_code="TECHNOLOGY_CONSTRUCTION_GROUPS",
+        title="Рабочие очереди технологий",
+        status="attention" if any(item["value"] for item in items) else "ok",
+        style_variant="operational",
+        icon_key="workflow",
+        items=items,
+    ).to_dict()
+
+
 async def build_technology_readiness_widget(
     db: AsyncSession,
     user,

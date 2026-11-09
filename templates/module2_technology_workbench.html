@@ -50,10 +50,18 @@
       </div>
     </header>
 
-    <div class="atom-module-quick-actions" data-quick-action-module-bar="MODULE_02_KNOWLEDGE_BASE"></div>
+    <div class="atom-module-quick-actions" data-quick-action-module-bar="MODULE_02_KNOWLEDGE_BASE" data-quick-action-hide-empty="true" hidden></div>
 
     {% if notice %}<div class="m2-alert good" role="status">{{ notice }}</div>{% endif %}
     {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
+
+    {% if workbench_metrics is defined %}
+    <div class="m2-work-queues" aria-label="Рабочие очереди технологий">
+      {% for item in workbench_metrics['items'] %}
+      <a class="m2-work-queue" href="{{ item.route }}"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></a>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <section class="m2-panel" aria-labelledby="technology-list-title">
       <div class="m2-panel-head">
@@ -64,6 +72,12 @@
         <form class="m2-toolbar" method="get">
           <div class="m2-filter">
             <input type="search" name="q" value="{{ query }}" placeholder="Название или код" aria-label="Поиск технологий">
+            {% if category_filter is defined %}
+            <select name="category" aria-label="Категория технологии">
+              <option value="">Все категории</option>
+              {% for category in categories %}<option value="{{ category.id }}" {% if category_filter == category.id|string %}selected{% endif %}>{{ category.name }}</option>{% endfor %}
+            </select>
+            {% endif %}
             <select name="status" aria-label="Статус технологии">
               <option value="">Все статусы</option>
               <option value="DRAFT" {% if status_filter == 'DRAFT' %}selected{% endif %}>Черновик</option>
@@ -71,20 +85,32 @@
               <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Действует</option>
               <option value="ARCHIVED" {% if status_filter == 'ARCHIVED' %}selected{% endif %}>Архив</option>
             </select>
+            {% if material_filter is defined %}
+            <select name="materials" aria-label="Подбор материалов">
+              <option value="">Все материалы</option>
+              <option value="needs_selection" {% if material_filter == 'needs_selection' %}selected{% endif %}>Требуют подбора</option>
+              <option value="open_gap" {% if material_filter == 'open_gap' %}selected{% endif %}>Открытые задачи M1</option>
+              <option value="selected" {% if material_filter == 'selected' %}selected{% endif %}>Нет открытых подборов</option>
+            </select>
+            <select name="blockers" aria-label="Замечания к утверждению">
+              <option value="">Все замечания</option>
+              <option value="yes" {% if blocker_filter == 'yes' %}selected{% endif %}>Есть блокеры</option>
+              <option value="no" {% if blocker_filter == 'no' %}selected{% endif %}>Без блокеров</option>
+            </select>
+            {% endif %}
             <button class="m2-button" type="submit">Найти</button>
+            <a class="m2-button ghost" href="/api/v1/admin/module2/workbench">Сбросить</a>
           </div>
         </form>
 
         {% if technologies %}
         <div class="m2-table-wrap">
-          <table class="m2-table">
+          <table class="m2-table m2-registry-table">
             <thead>
               <tr>
                 <th>Технология</th>
-                <th>Редакция</th>
-                <th>Статус</th>
                 <th>Категория</th>
-                <th>Входные данные M1</th>
+                <th>Статус</th>
                 <th>Обновлена</th>
               </tr>
             </thead>
@@ -107,16 +133,8 @@
                     data-quick-action-atom-card-accent="green"
                   >{{ item.name }}</a>
                 </td>
-                <td>№ {{ item.revision }}</td>
-                <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
                 <td>{{ item.category_name }}</td>
-                <td>
-                  {% if item.blocker_count %}
-                  <span class="m2-status" data-status="REVIEW">{{ item.blocker_count }} блок.</span>
-                  {% else %}
-                  <span class="m2-status" data-status="ACTIVE">Без блокеров M1</span>
-                  {% endif %}
-                </td>
+                <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
                 <td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td>
               </tr>
               {% endfor %}

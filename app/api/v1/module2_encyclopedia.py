@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 
@@ -10,6 +12,7 @@ from app.core.access_scopes import AccessScope
 from app.core.permission_guard import require_permission
 from app.models.module2_technology import MODULE2_OWNER_CODE, TechnologyWorkStep
 from app.services.module1_work_catalog import get_work_item
+from app.services.module2_content_catalog import category_tree, list_categories
 from app.services.module2_encyclopedia import (
     public_catalog,
     public_category,
@@ -22,6 +25,7 @@ from app.services.module2_encyclopedia_editorial import MATERIAL_NAMES, WORK_STE
 
 router = APIRouter(prefix="/module2/encyclopedia", tags=["module2-encyclopedia"])
 templates = Jinja2Templates(directory="templates")
+ILLUSTRATION_DIR = Path(__file__).resolve().parents[2] / "assets" / "module2_encyclopedia"
 
 
 def _view(user: CurrentUser) -> None:
@@ -45,6 +49,23 @@ async def module2_entry(user: CurrentUser):
     _view(user)
     target = "/api/v1/admin/module2/workbench" if workbench_permissions(user)["edit"] else "/api/v1/module2/encyclopedia"
     return RedirectResponse(target, status_code=303)
+
+
+@router.get("/navigation", include_in_schema=False)
+async def encyclopedia_navigation(db: DBSession, user: CurrentUser):
+    _view(user)
+    rows = category_tree(await list_categories(db), public=True)
+    return {"categories": [
+        {"code": row["category"].code, "name": row["category"].name}
+        for row in rows if row["depth"] == 0
+    ]}
+
+
+@router.get("/assets/categories", include_in_schema=False)
+async def encyclopedia_category_illustrations(user: CurrentUser):
+    _view(user)
+    return FileResponse(ILLUSTRATION_DIR / "categories.svg", media_type="image/svg+xml",
+                        headers={"Cache-Control": "private, max-age=3600"})
 
 
 @router.get("", response_class=HTMLResponse)

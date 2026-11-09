@@ -35,7 +35,7 @@ from app.services.module2_knowledge_foundation import (
     transition_knowledge_rule,
     verify_evidence_references,
 )
-from app.services.module2_operational_widgets import build_technology_readiness_widget
+from app.services.module2_operational_widgets import build_technology_readiness_widget, build_workbench_queue_widget
 from app.services.module2_default_assumptions import active_defaults, revise_default_assumption
 from app.services.module2_encyclopedia_editorial import (
     MATERIAL_NAMES, effective_material_name, material_default_label,
@@ -106,14 +106,32 @@ LAYER_DEFAULT_PARAMETERS = {
 async def technology_workbench_list(request: Request, db: DBSession, user: CurrentUser):
     require_permission(user, MODULE2_OWNER_CODE, "EDIT")
     rows = list(await build_technology_list_view(db))
+    workbench_metrics = build_workbench_queue_widget(user, [row for row in rows if row["status"] != "ARCHIVED"])
     categories = await list_categories(db)
     category_names = {item.id: item.name for item in categories}
     for row in rows:
         row["category_name"] = category_names.get(row["category_id"], "Без категории")
     status_filter = str(request.query_params.get("status") or "").upper()
+    category_filter = str(request.query_params.get("category") or "")
+    material_filter = str(request.query_params.get("materials") or "")
+    blocker_filter = str(request.query_params.get("blockers") or "")
     query = str(request.query_params.get("q") or "").strip().lower()
     if status_filter in {item.value for item in TechnologyLifecycle}:
         rows = [item for item in rows if item["status"] == status_filter]
+    else:
+        rows = [item for item in rows if item["status"] != "ARCHIVED"]
+    if category_filter:
+        rows = [item for item in rows if str(item["category_id"]) == category_filter]
+    if material_filter == "needs_selection":
+        rows = [item for item in rows if item["unresolved_material_count"]]
+    elif material_filter == "open_gap":
+        rows = [item for item in rows if item["open_gap_count"]]
+    elif material_filter == "selected":
+        rows = [item for item in rows if not item["unresolved_material_count"]]
+    if blocker_filter == "yes":
+        rows = [item for item in rows if item["blocker_count"]]
+    elif blocker_filter == "no":
+        rows = [item for item in rows if not item["blocker_count"]]
     if query:
         rows = [item for item in rows if query in f"{item['name']} {item['code']} {item['system_code']}".lower()]
     return templates.TemplateResponse(
@@ -121,9 +139,13 @@ async def technology_workbench_list(request: Request, db: DBSession, user: Curre
         "module2_technology_workbench.html",
         {
             "technologies": rows,
+            "workbench_metrics": workbench_metrics,
             "categories": tuple(item for item in categories if item.status != "ARCHIVED"),
             "permissions": workbench_permissions(user),
             "status_filter": status_filter,
+            "category_filter": category_filter,
+            "material_filter": material_filter,
+            "blocker_filter": blocker_filter,
             "query": request.query_params.get("q", ""),
             "notice": request.query_params.get("notice"),
             "error": request.query_params.get("error"),
@@ -274,6 +296,13 @@ async def technology_workbench_by_code(technology_code: str, db: DBSession, user
     return _redirect_detail(technology.id)
 
 
+def _selected_material(requirement, gap, candidates):
+    selected_id = requirement.canonical_material_id
+    if not selected_id and gap and gap.status in {"RESOLVED_EXISTING", "RESOLVED_NEW_MATERIAL"}:
+        selected_id = gap.resolved_material_id
+    return next((candidate for candidate in candidates if candidate.id == selected_id), None)
+
+
 @router.get("/{technology_id}", response_class=HTMLResponse)
 async def technology_workbench_detail(
     technology_id: uuid.UUID,
@@ -319,6 +348,7 @@ async def technology_workbench_detail(
         item["candidates"] = await compatible_materials(db, requirement)
         item["gap"] = await gap_for_requirement(db, requirement.id)
         item["material_card_url"] = material_card_url
+        item["selected_material"] = _selected_material(requirement, item["gap"], item["candidates"])
     for item in context["defaults"]:
         requirement = item["model"].material_requirement
         item["human_name"] = (

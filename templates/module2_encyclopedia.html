@@ -1,3 +1,9 @@
+{% set category_tiles = {
+  'PREPARATION': (0, 0), 'FOUNDATIONS': (1, 0), 'WALLS': (2, 0), 'PARTITIONS': (3, 0),
+  'FLOORS_AND_STAIRS': (0, 1), 'ROOF': (1, 1), 'FACADE_AND_OPENINGS': (2, 1), 'SITE_WORKS': (3, 1),
+  'INTERIOR_ROUGH': (0, 2), 'INTERIOR_FINISH': (1, 2), 'WATER_AND_SEWER': (2, 2), 'HEATING_AND_DHW': (3, 2),
+  'VENTILATION_AND_AC': (0, 3), 'ELECTRICAL_AND_AUTOMATION': (1, 3), 'GAS_AND_COMBUSTION': (2, 3), 'FINAL_INSTALLATION': (3, 3)
+} %}
 {% macro source_refs(sources) -%}
   {% if sources %}<span class="enc-citations" aria-label="Источники">{% for source in sources %}<a href="#source-{{ source.number }}" title="{{ source.title }}">[{{ source.number }}]</a>{% endfor %}</span>{% endif %}
 {%- endmacro %}
@@ -26,6 +32,16 @@
     .enc-list { list-style: none; margin: 0; padding: 0; }
     .enc-list > li { padding: 11px 0; border-bottom: 1px solid var(--m2-line); }
     .enc-list > li:last-child { border-bottom: 0; }
+    .enc-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)); gap: 10px; }
+    .enc-category { display: flex; flex-direction: column; min-height: 82px; overflow: hidden; border: 1px solid var(--m2-line); border-radius: 6px; background: var(--m2-surface); text-decoration: none; }
+    .enc-category-image { display: block; width: 100%; aspect-ratio: 4 / 3; background-image: url('/api/v1/module2/encyclopedia/assets/categories'); background-size: 400% 400%; background-repeat: no-repeat; }
+    .enc-category-copy { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px 14px; }
+    .enc-content .enc-category { color: var(--m2-text) !important; }
+    .enc-content .enc-category:hover, .enc-content .enc-category:focus-visible { border-color: var(--m2-cyan); text-decoration: none; }
+    .enc-category strong { font-size: 15px; line-height: 1.35; }
+    .enc-category-figure { width: min(100%, 380px); margin: 18px 0 24px; }
+    .enc-category-figure .enc-category-image { border-radius: 6px; }
+    .enc-category-figure figcaption { margin-top: 6px; color: var(--m2-muted); font-size: 12px; }
     .enc-meta, .enc-note { color: var(--m2-muted); font-size: 13px; }
     .enc-path { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; color: var(--m2-muted); font-size: 13px; }
     .enc-search { display: flex; gap: 8px; max-width: 620px; margin: 0 0 18px; }
@@ -74,8 +90,10 @@
               <button class="m2-button" type="submit">Найти</button>
             </form>
             {% if view != 'technology_list' %}
-            <section><h2>Категории</h2>
-              {% if catalog.categories %}<ul class="enc-list">{% for row in catalog.categories if query or view == 'category_list' or row.depth == 0 %}
+            <section><h2>Разделы строительства</h2>
+              {% if catalog.categories and view == 'index' and not query %}<div class="enc-category-grid">{% for row in catalog.categories if row.depth == 0 %}
+                <a class="enc-category" href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{% if row.category.code in category_tiles %}{% set tile = category_tiles[row.category.code] %}<span class="enc-category-image" style="background-position: {{ tile[0] * 100 / 3 }}% {{ tile[1] * 100 / 3 }}%" aria-hidden="true"></span>{% endif %}<span class="enc-category-copy"><strong>{{ row.category.name }}</strong>{% if row.category.description %}<span class="enc-meta">{{ row.category.description }}</span>{% endif %}</span></a>
+              {% endfor %}</div>{% elif catalog.categories %}<ul class="enc-list">{% for row in catalog.categories if query or view == 'category_list' or row.depth == 0 %}
                 <li style="padding-left: {{ row.depth * 18 }}px"><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a>{% if row.category.description %}<div class="enc-meta">{{ row.category.description }}</div>{% endif %}</li>
               {% endfor %}</ul>{% else %}<p class="enc-empty">{% if query %}Категории не найдены.{% else %}Утвержденных категорий пока нет.{% endif %}</p>{% endif %}
             </section>{% endif %}
@@ -88,9 +106,10 @@
             <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Энциклопедия</a>{% for item in breadcrumb %}<span>›</span>{% if loop.last %}<span>{{ item.name }}</span>{% else %}<a href="/api/v1/module2/encyclopedia/categories/{{ item.code }}">{{ item.name }}</a>{% endif %}{% endfor %}</div>
             <h1>{{ category.name }}</h1>
             <p class="enc-lead">{{ overview.intro if overview else category.description or 'Описание раздела пока не опубликовано.' }}</p>
+            {% if category.code in category_tiles %}{% set tile = category_tiles[category.code] %}<figure class="enc-category-figure"><span class="enc-category-image" style="background-position: {{ tile[0] * 100 / 3 }}% {{ tile[1] * 100 / 3 }}%" role="img" aria-label="Иллюстрация раздела: {{ category.name }}"></span><figcaption>Иллюстрация раздела, не рабочая схема.</figcaption></figure>{% endif %}
             {% if overview %}
               <section><h2>Как это работает</h2><p>{{ overview.principle }}</p></section>
-              {% if children %}<section><h2>Какие варианты существуют</h2><ul class="enc-list">{% for row in children %}<li><h3><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></h3>{% if row.category.code in ['STRIP_FOUNDATIONS','SLAB_FOUNDATIONS','PILE_FOUNDATIONS','PILE_GRILLAGE_FOUNDATIONS','COLUMN_FOUNDATIONS','BASEMENT_AND_SUBSTRUCTURE'] %}<p>{{ comparison[loop.index0].article.intro }}</p>{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+              {% if children %}<section><h2>Какие варианты существуют</h2><ul class="enc-list">{% for row in children %}<li><h3><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></h3>{% for detail in comparison if detail.category.code == row.category.code and detail.article is defined %}<p>{{ detail.article.intro }}</p>{% endfor %}</li>{% endfor %}</ul></section>{% endif %}
               {% if category.code == 'FOUNDATIONS' and comparison %}
                 <section><h2>Сравнение видов</h2><p class="enc-note">Ориентир для понимания различий, не инженерный выбор для участка.</p><div class="enc-compare-wrap"><table class="enc-compare"><thead><tr><th>Вид</th><th>Подходит когда</th><th>Особенность</th><th>Ограничение</th></tr></thead><tbody>{% for row in comparison %}<tr><td><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></td><td>{{ row.article.uses[0] }}</td><td>{{ row.article.advantages[0] }}</td><td>{{ row.article.limitations[0] }}</td></tr>{% endfor %}</tbody></table></div></section>
               {% else %}

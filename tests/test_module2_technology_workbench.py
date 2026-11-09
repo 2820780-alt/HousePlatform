@@ -659,7 +659,11 @@ def test_templates_cover_workbench_sections_without_raw_json_editor() -> None:
     assert 'document.createElement(item.status === "ACTIVE" && (item.deepLink || item.route) ? "a" : "button")' in quick_action_menu
     assert "transition-knowledge" in detail
     assert "Готовность к активации" in detail
-    assert "Входные данные M1" in listing
+    assert '<select name="materials"' in listing
+    assert '<select name="blockers"' in listing
+    assert "<th>Материалы</th>" not in listing
+    assert "<th>Редакция</th>" not in listing
+    assert "<th>Действия</th>" not in listing
     assert detail.count("/actions/move") == 2
     assert 'name="component" value="work-step"' in detail
     assert 'data-m2-confirm="Удалить эту запись?"' in detail

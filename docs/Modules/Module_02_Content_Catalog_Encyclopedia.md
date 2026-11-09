@@ -843,3 +843,22 @@ screens the existing M2 sidebar is a collapsible menu, the house and card stack,
 and the list becomes touch-friendly rows. Future A3-A11 categories must retain
 stable mappings, public visibility checks, keyboard/touch navigation, honest
 empty states and the existing M1/M2 ownership boundaries.
+
+## M2-UX-FINAL implementation
+
+The technology registry provides combined category, status,
+material-selection and activation-blocker filters. Its three operational
+queues are projected through the existing M2 readiness widget payload and
+remain protected by EDIT access. An open Material Gap is not a selected M1
+material, and an activation blocker is not an estimation-readiness verdict.
+
+The encyclopedia sidebar loads published root categories on demand, while the
+category index and root category pages use illustrative category imagery.
+These illustrations are not construction drawings or evidence. The technology
+workspace retains its seven sections, actual M1 references, and lifecycle and
+permission boundaries. Empty activation warnings are not shown for an active
+technology; a missing M1 material is not represented as an established match.
+
+The read-only foundation snapshot and follow-up checklist are in
+`Module_02_Foundations_Full_Inventory.md`. Release remains conditional on the
+targeted, regression and live visual checks and the controlled web deployment.

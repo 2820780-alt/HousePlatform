@@ -7,6 +7,7 @@ from typing import Any, Iterable, Mapping, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.access_levels import AccessLevel
 from app.core.permission_guard import can
@@ -16,6 +17,7 @@ from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.material_type import MaterialType
 from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
+from app.models.module2_material_gap import Module2MaterialGap
 from app.models.module2_technology import (
     MODULE2_OWNER_CODE,
     Technology,
@@ -447,10 +449,27 @@ async def move_draft_ordered_item(
     await db.flush()
 
 
+def _needs_material_selection(requirement: Any, gaps: Mapping) -> bool:
+    if requirement.canonical_material_id is not None:
+        return False
+    status, resolved_material_id = gaps.get(requirement.id, (None, None))
+    if status == "DISMISSED":
+        return False
+    return not (status in {"RESOLVED_EXISTING", "RESOLVED_NEW_MATERIAL"} and resolved_material_id is not None)
+
+
 async def build_technology_list_view(db: AsyncSession) -> tuple[dict[str, Any], ...]:
     result = await db.execute(
-        select(Technology).order_by(Technology.updated_at.desc(), Technology.technology_code, Technology.revision.desc())
+        select(Technology)
+        .options(selectinload(Technology.layers), selectinload(Technology.requirements))
+        .order_by(Technology.updated_at.desc(), Technology.technology_code, Technology.revision.desc())
     )
+    gap_rows = await db.execute(select(
+        Module2MaterialGap.requirement_id,
+        Module2MaterialGap.status,
+        Module2MaterialGap.resolved_material_id,
+    ))
+    gaps = {requirement_id: (status, material_id) for requirement_id, status, material_id in gap_rows.all()}
     return tuple(
         {
             "id": item.id,
@@ -461,7 +480,14 @@ async def build_technology_list_view(db: AsyncSession) -> tuple[dict[str, Any], 
             "status_label": status_label(item.status),
             "system_code": item.system_code or "Не задана",
             "category_id": item.category_id,
-            "blocker_count": len(item.input_blockers or ()) + len(item.input_missing_fields or ()),
+            "blocker_count": len(validate_technology_activation(item)),
+            "unresolved_material_count": sum(
+                1 for requirement in item.requirements if _needs_material_selection(requirement, gaps)
+            ),
+            "open_gap_count": sum(
+                1 for requirement in item.requirements
+                if gaps.get(requirement.id, (None, None))[0] in {"OPEN", "REVIEWING", "SEARCH_REQUESTED"}
+            ),
             "updated_at": item.updated_at,
         }
         for item in result.scalars().all()
@@ -500,7 +526,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
     ]
     requirement_codes = {item.id: REQUIREMENT_NAMES.get(item.code, "Требование к материалу") for item in technology.requirements}
     work_items = tuple(list_work_items())
-    work_names = {item.work_code: item.work_name for item in work_items}
+    work_by_code = {item.work_code: item for item in work_items}
     layers = [
         {
             "model": item,
@@ -514,9 +540,17 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
     work_steps = [
         {
             "model": item,
-            "work_name": work_names.get(item.work_code, "Работа отсутствует в каталоге M1"),
-            "dependencies": ", ".join(item.dependency_step_codes or ()) or "Нет",
-            "catalog_missing": item.work_code not in work_names,
+            "work_name": work_by_code[item.work_code].work_name if item.work_code in work_by_code else "Работа отсутствует в каталоге M1",
+            "unit": work_by_code[item.work_code].default_unit if item.work_code in work_by_code else None,
+            "active_norm_count": sum(
+                1 for norm in technology.consumption_norms
+                if norm.scope_work_step_id == item.id and norm.status == "ACTIVE"
+            ),
+            "dependencies": ", ".join(
+                work_by_code[code].work_name if code in work_by_code else "Работа не найдена в M1"
+                for code in item.dependency_step_codes or ()
+            ) or "Нет",
+            "catalog_missing": item.work_code not in work_by_code,
         }
         for item in sorted(technology.work_steps, key=lambda value: value.position)
     ]
