@@ -1,0 +1,94 @@
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('home-zones-data').textContent);
+  const zones = new Map(data.map((item) => [item.part, item]));
+  const card = document.getElementById('home-card');
+  const image = document.getElementById('home-house-image');
+  const tooltip = document.getElementById('home-tooltip');
+  let part = card.dataset.selected;
+  let view = card.dataset.view;
+
+  function render() {
+    const zone = zones.get(part) || zones.get('foundations');
+    if (!zone) return;
+    part = zone.part;
+    document.getElementById('home-card-title').textContent = zone.name;
+    document.getElementById('home-card-description').textContent = zone.description;
+    const link = document.getElementById('home-card-link');
+    link.hidden = !zone.url;
+    if (zone.url) link.href = zone.url;
+    document.getElementById('home-card-unavailable').hidden = !!zone.url;
+    const asset = '/api/v1/module2/home-assets/' + view;
+    if (!image.src.endsWith(asset)) image.src = asset;
+    image.alt = view === 'cutaway' ? 'Частный дом в разрезе' : 'Внешний вид частного дома';
+    document.querySelectorAll('[data-house-view]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.houseView === view));
+    });
+    document.querySelectorAll('#home-house-zones > g[data-view]').forEach((group) => {
+      const visible = group.dataset.view === view;
+      group.toggleAttribute('hidden', !visible);
+      group.setAttribute('aria-hidden', String(!visible));
+    });
+    document.querySelectorAll('.home-zone').forEach((element) => {
+      const selected = element.dataset.part === part;
+      element.classList.toggle('selected', selected);
+      element.setAttribute('aria-pressed', String(selected));
+    });
+    document.querySelectorAll('[data-home-select]').forEach((element) => {
+      element.href = '?view=' + encodeURIComponent(view) + '&part=' + encodeURIComponent(element.dataset.homeSelect);
+      if (element.dataset.homeSelect === part) element.setAttribute('aria-current', 'true');
+      else element.removeAttribute('aria-current');
+    });
+    tooltip.hidden = true;
+  }
+
+  function update(nextPart, nextView, push = true) {
+    part = zones.has(nextPart) ? nextPart : 'foundations';
+    view = nextView === 'exterior' ? 'exterior' : 'cutaway';
+    if (push) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', view);
+      url.searchParams.set('part', part);
+      history.pushState(null, '', url);
+    }
+    render();
+  }
+
+  function showTooltip(element) {
+    const zone = zones.get(element.dataset.part);
+    if (!zone) return;
+    tooltip.querySelector('strong').textContent = zone.name;
+    tooltip.querySelector('span').textContent = zone.description + ' Выберите элемент, чтобы открыть раздел.';
+    tooltip.style.left = Math.max(18, Math.min(82, Number(element.dataset.x))) + '%';
+    tooltip.style.top = Math.max(20, Number(element.dataset.y)) + '%';
+    tooltip.hidden = false;
+  }
+
+  document.querySelectorAll('.home-zone').forEach((element) => {
+    element.addEventListener('click', () => update(element.dataset.part, view));
+    element.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); update(element.dataset.part, view); }
+      if (event.key === 'Escape') tooltip.hidden = true;
+    });
+    element.addEventListener('mouseenter', () => showTooltip(element));
+    element.addEventListener('mouseleave', () => { tooltip.hidden = true; });
+    element.addEventListener('focus', () => showTooltip(element));
+    element.addEventListener('blur', () => { tooltip.hidden = true; });
+  });
+  document.querySelectorAll('[data-home-select]').forEach((element) => {
+    element.addEventListener('click', (event) => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      update(element.dataset.homeSelect, view);
+    });
+  });
+  document.querySelectorAll('[data-house-view]').forEach((button) => {
+    button.addEventListener('click', () => update(part, button.dataset.houseView));
+  });
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    update(params.get('part') || 'foundations', params.get('view') || 'cutaway', false);
+  });
+  render();
+})();
+</script>

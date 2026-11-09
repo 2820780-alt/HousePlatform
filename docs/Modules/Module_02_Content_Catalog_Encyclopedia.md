@@ -790,9 +790,8 @@ M2 has a reader-facing Encyclopedia and an administrative Technologies
 registry. The common sidebar links to the Encyclopedia for readers and also
 to Technologies for editors. Both sections have closed-by-default submenus;
 article contents are contextual submenu links rather than a second navigation
-column. Category management is inside Technologies. The module entry route
-uses the existing permission guard to choose the registry for EDIT or higher
-and the Encyclopedia for VIEW-only access.
+column. Category management is inside Technologies. M2-HOME-1 below supersedes
+the former permission-dependent module entry destination.
 
 Encyclopedia GET routes require M2 VIEW at the existing LIMITED scope. The
 administrative registry, categories and Technology detail require M2 EDIT at
@@ -815,3 +814,32 @@ hierarchy and the common administrative registry. New categories do not add
 separate main navigation sections. Content completion still requires reviewed
 evidence, readable articles, canonical M1 references, ordered work, applicable
 defaults, access tests and responsive navigation.
+
+## M2-HOME-1: Interactive module home
+
+`GET /api/v1/module2` is the shared M2 entry page for readers and editors.
+M2 VIEW at LIMITED scope is required, and existing explicit deny takes
+precedence. The existing Encyclopedia and administrative Workbench routes are
+unchanged. The Dashboard and M2 widget source link open the common home;
+administrative Technologies still requires EDIT at GLOBAL scope.
+
+The home uses two coordinated architectural illustrations: a cutaway and an
+exterior view. SVG hit areas highlight the selected construction element; a
+separate card explains it and links to the corresponding existing Encyclopedia
+category. Keyboard, hover and touch interaction share the same state. A text
+list provides an alternative without requiring a hit on the illustration.
+`view` and `part` query parameters preserve selection, and unknown values fall
+back safely. The illustration is explanatory, not construction documentation.
+
+`HOUSE_ZONES` is a small navigation mapping from house parts to stable M2
+category codes. The page resolves links only against the public category tree;
+missing or unpublished categories have an unavailable state. The mapping does
+not create a second technology or material catalog. Search submits to the
+existing Encyclopedia search, and published content and evidence remain there.
+
+The standard UserModuleQuickAction bar shows only actions already saved by the
+user and hides when empty. The page adds no widgets or statistics. On narrow
+screens the existing M2 sidebar is a collapsible menu, the house and card stack,
+and the list becomes touch-friendly rows. Future A3-A11 categories must retain
+stable mappings, public visibility checks, keyboard/touch navigation, honest
+empty states and the existing M1/M2 ownership boundaries.

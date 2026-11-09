@@ -93,7 +93,7 @@ def test_module2_readiness_widget_is_available_without_default_placement():
     assert widget.defaultSettings == {}
     assert widget.availableSettings == {}
     assert widget.requiredPermissions == ["VIEW"]
-    assert widget.routeToSourceModule == "/api/v1/module2/encyclopedia/entry"
+    assert widget.routeToSourceModule == "/api/v1/module2"
 
     profile = {
         "roleCode": "ADMIN",

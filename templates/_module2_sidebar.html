@@ -1,8 +1,11 @@
 <nav class="m2-sidebar" aria-label="Раздел модуля №2">
   <div class="m2-sidebar-title"><small>Модуль №2</small></div>
+  <button class="m2-mobile-menu" type="button" aria-expanded="false" aria-controls="m2-sidebar-items">☰ <span>Меню модуля</span></button>
+  <div class="m2-sidebar-items" id="m2-sidebar-items">
+  <a class="m2-nav-link {% if m2_nav_active == 'home' %}active{% endif %}" {% if m2_nav_active == 'home' %}aria-current="page"{% endif %} href="/api/v1/module2">Главная</a>
   <div class="m2-nav-group">
     <div class="m2-nav-heading">
-      <a class="m2-nav-link {% if m2_nav_active != 'workbench' %}active{% endif %}" {% if m2_nav_active != 'workbench' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia">Энциклопедия</a>
+      <a class="m2-nav-link {% if m2_nav_active != 'workbench' and m2_nav_active != 'home' %}active{% endif %}" {% if m2_nav_active != 'workbench' and m2_nav_active != 'home' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia">Энциклопедия</a>
       <button type="button" class="m2-nav-toggle" aria-expanded="false" aria-controls="m2-encyclopedia-menu" aria-label="Подменю энциклопедии" title="Подменю энциклопедии">▾</button>
     </div>
     <div class="m2-submenu" id="m2-encyclopedia-menu" hidden>
@@ -35,6 +38,7 @@
     </div>
   </div>
   {% endif %}
+  </div>
 </nav>
 <script>
   document.querySelectorAll('.m2-nav-toggle').forEach((button) => {
@@ -45,5 +49,13 @@
       button.setAttribute('aria-expanded', String(!expanded));
       menu.hidden = expanded;
     });
+  });
+</script>
+<script>
+  const m2MobileMenu = document.querySelector('.m2-mobile-menu');
+  if (m2MobileMenu) m2MobileMenu.addEventListener('click', () => {
+    const expanded = m2MobileMenu.getAttribute('aria-expanded') === 'true';
+    m2MobileMenu.setAttribute('aria-expanded', String(!expanded));
+    document.getElementById('m2-sidebar-items').dataset.open = String(!expanded);
   });
 </script>

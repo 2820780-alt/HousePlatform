@@ -56,6 +56,6 @@ async def build_technology_readiness_widget(
         secondary_value=blocked,
         secondary_label="С блокирующими причинами",
         items=items,
-        cta={"label": "Открыть модуль", "route": "/api/v1/module2/encyclopedia/entry"},
+        cta={"label": "Открыть модуль", "route": "/api/v1/module2"},
         updated_at=latest_update,
     ).to_dict()

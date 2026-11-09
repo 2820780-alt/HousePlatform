@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Технологии строительства · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_atom_quick_action_menu.html" %}
+  {% include "_module2_workbench_styles.html" %}
+  {% include "_module2_home_styles.html" %}
+</head>
+<body data-atom-page data-rbac-ready data-module2-workbench>
+  {% include "_atom_platform_topbar.html" %}
+  <div class="m2-layout">
+    {% include "_module2_sidebar.html" %}
+    <main class="m2-shell">
+      <header class="home-head">
+        <div><h1>Технологии строительства</h1><p>Изучайте конструкции дома, материалы и порядок строительных работ</p></div>
+        <form class="home-search" action="/api/v1/module2/encyclopedia" method="get" role="search">
+          <input type="search" name="q" maxlength="120" placeholder="Поиск по энциклопедии..." aria-label="Поиск по энциклопедии">
+          <button class="m2-button" type="submit">Найти</button>
+        </form>
+      </header>
+      <div class="atom-module-quick-actions" data-quick-action-module-bar="MODULE_02_KNOWLEDGE_BASE" data-quick-action-hide-empty="true" hidden></div>
+      <div class="home-stage">
+        <div class="home-visual">
+          <div class="home-picture">
+            <img id="home-house-image" src="/api/v1/module2/home-assets/{{ house_view }}" alt="{% if house_view == 'cutaway' %}Частный дом в разрезе{% else %}Внешний вид частного дома{% endif %}" width="1448" height="1086">
+            <svg viewBox="0 0 1448 1086" aria-label="Части дома" id="home-house-zones">
+              <g data-view="cutaway">
+                <g class="home-zone" data-part="roof" data-x="68" data-y="16" role="button" tabindex="0" aria-label="Крыша и кровля"><title>Крыша и кровля</title><path class="home-outline" d="M145 313 L650 75 L1050 19 L1334 277 L1272 321 L1045 178 L788 225 L145 342 Z"/><circle class="home-hit" cx="1000" cy="145" r="92"/><circle class="home-marker" cx="1000" cy="145" r="21"/><circle class="home-marker-core" cx="1000" cy="145" r="8"/></g>
+                <g class="home-zone" data-part="foundations" data-x="61" data-y="84" role="button" tabindex="0" aria-label="Фундамент и подземная часть"><title>Фундамент и подземная часть</title><path class="home-outline" d="M510 920 L1271 891 L1271 945 L560 1001 L510 973 Z M510 727 L552 727 L552 954 L510 967 Z M1229 720 L1271 720 L1271 935 L1229 938 Z"/><circle class="home-hit" cx="840" cy="944" r="92"/><circle class="home-marker" cx="840" cy="944" r="21"/><circle class="home-marker-core" cx="840" cy="944" r="8"/></g>
+                <g class="home-zone" data-part="walls" data-x="26" data-y="45" role="button" tabindex="0" aria-label="Стены и каркас"><title>Стены и каркас</title><path class="home-outline" d="M187 330 L502 308 L520 729 L196 708 Z"/><circle class="home-hit" cx="310" cy="420" r="92"/><circle class="home-marker" cx="310" cy="420" r="21"/><circle class="home-marker-core" cx="310" cy="420" r="8"/></g>
+                <g class="home-zone" data-part="floors" data-x="55" data-y="43" role="button" tabindex="0" aria-label="Перекрытия, полы и лестницы"><title>Перекрытия, полы и лестницы</title><path class="home-outline" d="M523 449 L1260 455 L1260 486 L523 481 Z"/><circle class="home-hit" cx="813" cy="468" r="92"/><circle class="home-marker" cx="813" cy="468" r="21"/><circle class="home-marker-core" cx="813" cy="468" r="8"/></g>
+                <g class="home-zone" data-part="partitions" data-x="71" data-y="50" role="button" tabindex="0" aria-label="Внутренние перегородки"><title>Внутренние перегородки</title><path class="home-outline" d="M940 480 L990 480 L990 710 L940 710 Z"/><circle class="home-hit" cx="970" cy="553" r="92"/><circle class="home-marker" cx="970" cy="553" r="21"/><circle class="home-marker-core" cx="970" cy="553" r="8"/></g>
+                <g class="home-zone" data-part="heating" data-x="74" data-y="70" role="button" tabindex="0" aria-label="Отопление и горячая вода"><title>Отопление и горячая вода</title><path class="home-outline" d="M950 748 L1100 748 L1100 900 L950 900 Z"/><circle class="home-hit" cx="1055" cy="820" r="92"/><circle class="home-marker" cx="1055" cy="820" r="21"/><circle class="home-marker-core" cx="1055" cy="820" r="8"/></g>
+              </g>
+              <g data-view="exterior">
+                <g class="home-zone" data-part="roof" data-x="65" data-y="16" role="button" tabindex="0" aria-label="Крыша и кровля"><title>Крыша и кровля</title><path class="home-outline" d="M145 313 L650 75 L1050 19 L1334 277 L1272 321 L1045 178 L788 225 L145 342 Z"/><circle class="home-hit" cx="950" cy="145" r="92"/><circle class="home-marker" cx="950" cy="145" r="21"/><circle class="home-marker-core" cx="950" cy="145" r="8"/></g>
+                <g class="home-zone" data-part="foundations" data-x="57" data-y="67" role="button" tabindex="0" aria-label="Фундамент и подземная часть"><title>Фундамент и подземная часть</title><path class="home-outline" d="M186 702 L515 724 L900 761 L1270 705 L1270 783 L895 837 L510 799 L186 768 Z"/><circle class="home-hit" cx="805" cy="779" r="92"/><circle class="home-marker" cx="805" cy="779" r="21"/><circle class="home-marker-core" cx="805" cy="779" r="8"/></g>
+                <g class="home-zone" data-part="walls" data-x="29" data-y="42" role="button" tabindex="0" aria-label="Стены и каркас"><title>Стены и каркас</title><path class="home-outline" d="M190 325 L500 308 L510 715 L190 700 Z"/><circle class="home-hit" cx="300" cy="420" r="92"/><circle class="home-marker" cx="300" cy="420" r="21"/><circle class="home-marker-core" cx="300" cy="420" r="8"/></g>
+                <g class="home-zone" data-part="facade" data-x="61" data-y="47" role="button" tabindex="0" aria-label="Фасад, окна и двери"><title>Фасад, окна и двери</title><path class="home-outline" d="M555 280 L912 260 L912 716 L555 705 Z"/><circle class="home-hit" cx="752" cy="565" r="92"/><circle class="home-marker" cx="752" cy="565" r="21"/><circle class="home-marker-core" cx="752" cy="565" r="8"/></g>
+                <g class="home-zone" data-part="site" data-x="24" data-y="75" role="button" tabindex="0" aria-label="Работы вокруг дома"><title>Работы вокруг дома</title><path class="home-outline" d="M8 752 L476 759 L515 840 L8 830 Z"/><circle class="home-hit" cx="280" cy="800" r="92"/><circle class="home-marker" cx="280" cy="800" r="21"/><circle class="home-marker-core" cx="280" cy="800" r="8"/></g>
+              </g>
+            </svg>
+            <div class="home-tooltip" id="home-tooltip" role="tooltip" hidden><strong></strong><span></span></div>
+          </div>
+          <div class="home-mode" role="group" aria-label="Вид дома">
+            <button type="button" data-house-view="cutaway" aria-pressed="{{ 'true' if house_view == 'cutaway' else 'false' }}">Разрез дома</button>
+            <button type="button" data-house-view="exterior" aria-pressed="{{ 'true' if house_view == 'exterior' else 'false' }}">Внешний вид</button>
+          </div>
+        </div>
+        <aside class="home-card" id="home-card" data-selected="{{ selected.part }}" data-view="{{ house_view }}" aria-live="polite">
+          <small>Часть дома</small><h2 id="home-card-title">{{ selected.name }}</h2>
+          <p id="home-card-description">{{ selected.description }}</p>
+          <a id="home-card-link" href="{{ selected.url or '#' }}" {% if not selected.url %}hidden{% endif %}>Открыть раздел →</a>
+          <span class="home-unavailable" id="home-card-unavailable" {% if selected.url %}hidden{% endif %}>Раздел пока недоступен.</span>
+        </aside>
+      </div>
+      <section class="home-sections" aria-labelledby="home-sections-title">
+        <h2 id="home-sections-title">Разделы строительства</h2>
+        <div class="home-groups">
+          {% for label, parts in zone_groups %}
+            {% if parts|length == 1 %}
+            <div class="home-group"><a data-home-select="{{ parts[0] }}" href="?view={{ house_view }}&amp;part={{ parts[0] }}">{{ label }} →</a></div>
+            {% else %}
+            <details class="home-group"><summary>{{ label }}</summary><div class="home-group-list">{% for part in parts %}<a data-home-select="{{ part }}" href="?view={{ house_view }}&amp;part={{ part }}">{{ zones_by_part[part].name }}</a>{% endfor %}</div></details>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      <script type="application/json" id="home-zones-data">{{ zones|tojson }}</script>
+    </main>
+  </div>
+  {% include "_module2_home_scripts.html" %}
+</body>
+</html>

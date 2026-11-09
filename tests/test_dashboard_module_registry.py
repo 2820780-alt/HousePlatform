@@ -121,7 +121,7 @@ def test_module2_registry_and_passport_open_permission_aware_entry():
     passport = next(item for item in passports if item["number"] == 2)
 
     assert knowledge_base is not None
-    assert knowledge_base.route == "/api/v1/module2/encyclopedia/entry"
+    assert knowledge_base.route == "/api/v1/module2"
     assert knowledge_base.moduleOwnedWidgets == ["MODULE_02_TECHNOLOGY_READINESS_WIDGET"]
     assert passport["status"] == "Активен"
     assert passport["href"] == "/api/v1/admin/module2/workbench"
