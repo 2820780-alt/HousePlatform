@@ -150,7 +150,8 @@ async def test_live_a23_foundations_pages_read_only():
                 material = await client.get("/api/v1/module2/encyclopedia/technologies/FND_STRIP_MONOLITHIC_RC/materials/CONCRETE")
                 assert material.status_code == 200 and "Требования к бетону" in material.text
                 workbench = await client.get("/api/v1/admin/module2/workbench")
-                detail = await client.get("/api/v1/admin/module2/workbench/by-code/FND_STRIP_MONOLITHIC_RC", follow_redirects=True)
+                redirect = await client.get("/api/v1/admin/module2/workbench/by-code/FND_STRIP_MONOLITHIC_RC", follow_redirects=False)
+                detail = await client.get(f'{redirect.headers["location"]}?tab=materials')
                 assert workbench.status_code == 200 and detail.status_code == 200
                 assert "Отправить в поиск M1" in detail.text and "Бетон B25" in detail.text
                 parser = _Links()
@@ -160,5 +161,82 @@ async def test_live_a23_foundations_pages_read_only():
             app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=uuid4(), role=UserRole.SUPPLIER)
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
                 assert (await client.get("/api/v1/module2/encyclopedia")).status_code == 403
+    finally:
+        await engine.dispose()
+
+
+class _VisibleText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+        self.hidden = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"script", "style", "details"}:
+            self.hidden += 1
+
+    def handle_endtag(self, tag):
+        if tag in {"script", "style", "details"} and self.hidden:
+            self.hidden -= 1
+
+    def handle_data(self, data):
+        if not self.hidden:
+            self.parts.append(data)
+
+
+@pytest.mark.asyncio
+async def test_a23c_published_foundations_isolated_smoke():
+    if os.getenv("M2_A23C_SMOKE") != "1":
+        pytest.skip("explicit isolated M2 smoke only")
+    url = make_url(settings.DATABASE_URL)
+    assert url.database.startswith("houseplatform_m2_foundations_dryrun_")
+    engine = create_async_engine(url)
+    try:
+        async with async_sessionmaker(engine, expire_on_commit=False)() as db:
+            app = FastAPI()
+            app.include_router(encyclopedia_router, prefix="/api/v1")
+            app.include_router(workbench_router, prefix="/api/v1")
+
+            async def session_override():
+                yield db
+
+            app.dependency_overrides[get_db] = session_override
+            app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=uuid4(), role=UserRole.ADMIN)
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                technologies = (await db.scalars(select(Technology).where(
+                    Technology.status == "ACTIVE", Technology.technology_code.like("FND_%")
+                ))).all()
+                assert len(technologies) == 15
+                paths = ["/api/v1/module2/encyclopedia", "/api/v1/module2/encyclopedia/categories/FOUNDATIONS"]
+                paths += [f"/api/v1/module2/encyclopedia/categories/{code}" for code in FAMILIES]
+                paths += [f"/api/v1/module2/encyclopedia/technologies/{item.technology_code}" for item in technologies]
+                strip = next(item for item in technologies if item.technology_code == "FND_STRIP_MONOLITHIC_RC")
+                paths += [f"/api/v1/admin/module2/workbench/{strip.id}?tab={tab}" for tab in (
+                    "general", "construction", "materials", "works", "rules", "sources", "revisions",
+                )]
+                for path in paths:
+                    response = await client.get(path)
+                    assert response.status_code == 200, path
+                    visible = _VisibleText()
+                    visible.feed(response.text)
+                    text = " ".join(visible.parts)
+                    assert not re.search(r"\b(?:FND_|WALL_|MATERIAL_|APPLICABILITY|COMMON_ERROR|REVIEWED_CONTENT_SEED|message:|section:)", text, re.I), (path, text)
+                article = await client.get(f"/api/v1/module2/encyclopedia/technologies/{strip.technology_code}")
+                assert "Бетон B25" in article.text and "Арматура A500C Ø12" in article.text
+                assert "material-gaps/" not in article.text
+                assert "Фундаменты и подземная часть" in article.text
+                materials = await client.get(f"/api/v1/admin/module2/workbench/{strip.id}?tab=materials")
+                assert "Открыть подбор" in materials.text
+                slab = next(item for item in technologies if item.technology_code == "FND_SLAB_MONOLITHIC_RC")
+                construction = await client.get(f"/api/v1/admin/module2/workbench/{slab.id}?tab=construction")
+                assert "250" in construction.text and "Для предварительной оценки" in construction.text
+                from app.services.module2_technology_foundation import read_technology
+                from app.services.module2_workbench import build_technology_detail_view
+                loaded = await read_technology(db, strip.id)
+                detail = await build_technology_detail_view(db, loaded)
+                assert sum(len(group["links"]) for group in detail["source_groups"]) == len(detail["evidence"])
+                assert len({group["title"] for group in detail["source_groups"]}) == len(detail["source_groups"])
+                assert all("Project-specific design scope" not in (link["interpretation"] or "")
+                           for group in detail["source_groups"] for link in group["links"])
     finally:
         await engine.dispose()

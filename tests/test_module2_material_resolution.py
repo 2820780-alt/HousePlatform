@@ -253,10 +253,11 @@ async def test_live_houseplatform_a22_pages_read_only():
             workbench = await client.get("/api/v1/admin/module2/workbench")
             assert workbench.status_code == 200
             assert "Паспорт модуля" not in workbench.text
-            detail = await client.get(
+            redirect = await client.get(
                 "/api/v1/admin/module2/workbench/by-code/FND_STRIP_MONOLITHIC_RC",
-                follow_redirects=True,
+                follow_redirects=False,
             )
+            detail = await client.get(f'{redirect.headers["location"]}?tab=materials')
             assert detail.status_code == 200
             assert "Материал не найден в M1" in detail.text
             assert "Отправить в поиск M1" in detail.text

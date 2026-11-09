@@ -151,6 +151,19 @@ LAYER_NAMES = {
     "XPS_LAYER": "Слой XPS",
 }
 
+SOURCE_INTERPRETATION_TRANSLATIONS = {
+    "General sequence only; details, edition and PPR are project-dependent.": "Общая последовательность работ; детали, редакцию и ППР уточняют для объекта.",
+    "Official current status and amendment list; check the applicable edition": "Проверить действующий статус, изменения и применимую редакцию документа.",
+    "Official status and scope; project-specific foundation design, not construction dimensions": "Статус и область применения; размеры фундамента определяются расчётом для объекта.",
+    "Official status and scope; reinforced-concrete design, not a fixed grade": "Статус и область применения; характеристики железобетона определяются расчётом.",
+    "Primary published text for general work sequence in sections 5 and 6; later amendments not incorporated": "Основной текст о последовательности работ в разделах 5 и 6; последующие изменения не учтены.",
+    "Project-specific design scope; no numerical recipe.": "Область проектирования для конкретного объекта без универсальных численных значений.",
+    "Scope and project-dependent design, not a universal recipe.": "Область применения и проектирование для конкретного объекта, без универсального решения.",
+    "Statement reviewed against the named source scope; no universal numerical design value.": "Положение сверено с областью применения источника; универсальное расчётное значение не задано.",
+    "System or product-specific technical context; project selection remains required.": "Технический контекст системы или изделия; выбор выполняют для конкретного объекта.",
+    "This is a project-dependent interface; the source does not prescribe a universal detail.": "Узел зависит от проекта; источник не устанавливает универсального решения.",
+}
+
 
 def actor_role_code(user: Any) -> str:
     value = getattr(user, "roleCode", None) or getattr(user, "role_code", None) or getattr(user, "role", "")
@@ -485,7 +498,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         }
         for item in technology.requirements
     ]
-    requirement_codes = {item.id: item.code for item in technology.requirements}
+    requirement_codes = {item.id: REQUIREMENT_NAMES.get(item.code, "Требование к материалу") for item in technology.requirements}
     work_items = tuple(list_work_items())
     work_names = {item.work_code: item.work_name for item in work_items}
     layers = [
@@ -555,6 +568,19 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         **{item_id: (label, "Ресурс знаний M1") for item_id, label in resource_options},
     }
     evidence = []
+    evidence_targets = {}
+    for collection, label_key in ((requirements, "display_name"), (layers, "display_name"),
+                                  (work_steps, "work_name"), (rules, "display_text")):
+        for row in collection:
+            model = row["model"]
+            label = row.get(label_key) or row.get("outcome_label")
+            evidence_targets[str(model.id)] = label
+            for key in ("code", "rule_code"):
+                if getattr(model, key, None):
+                    evidence_targets[getattr(model, key)] = label
+    for node in technology.nodes:
+        evidence_targets[str(node.id)] = node.name
+        evidence_targets[node.code] = node.name
     for item in technology.evidence_references:
         source_id = item.document_id or item.knowledge_resource_id
         source = evidence_sources.get(source_id)
@@ -563,10 +589,46 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
                 "model": item,
                 "title": source[0] if source else "Источник M1 недоступен",
                 "source_type": source[1] if source else "Нарушенная ссылка",
-                "target_label": TARGET_LABELS.get(item.target_kind, _words(item.target_kind)),
+                "target_label": TARGET_LABELS.get(item.target_kind, "Связь с технологией"),
+                "target_name": evidence_targets.get(item.target_reference),
+                "interpretation": SOURCE_INTERPRETATION_TRANSLATIONS.get(item.interpretation, item.interpretation)
+                if item.interpretation and (item.interpretation in SOURCE_INTERPRETATION_TRANSLATIONS or
+                                            any("а" <= char.lower() <= "я" or char.lower() == "ё" for char in item.interpretation))
+                else ("Описание источника пока не переведено." if item.interpretation else None),
                 "verified": item.id in verified_evidence,
             }
         )
+
+    source_groups: dict[tuple, dict[str, Any]] = {}
+    for item in evidence:
+        model = item["model"]
+        key = (model.document_id, model.knowledge_resource_id)
+        group = source_groups.setdefault(key, {
+            "title": item["title"], "source_type": item["source_type"], "links": [],
+        })
+        group["links"].append(item)
+    for group in source_groups.values():
+        group["verified"] = all(item["verified"] for item in group["links"])
+        counts: dict[str, int] = {}
+        for item in group["links"]:
+            counts[item["target_label"]] = counts.get(item["target_label"], 0) + 1
+        group["counts"] = tuple(counts.items())
+
+    rule_section_labels = {
+        "applicability": "Применимость", "exclusions": "Когда не подходит",
+        "quality_before": "До начала работ", "quality_during": "Во время работ",
+        "quality_after": "После выполнения", "common_error": "Типичные ошибки",
+        "project_dependent": "Что требует расчёта",
+    }
+    rule_groups: dict[str, list[dict[str, Any]]] = {}
+    for item in rules:
+        payload = item["model"].outcome_payload or {}
+        section = str(payload.get("section") or "").lower()
+        label = rule_section_labels.get(section, "Другие правила")
+        item["display_text"] = next((payload[key] for key in ("message", "description", "text", "note")
+                                     if isinstance(payload.get(key), str) and payload[key].strip()),
+                                    item["outcome_label"])
+        rule_groups.setdefault(label, []).append(item)
 
     activation_codes = validate_technology_activation(technology)
     activation_blockers = [blocker_label(item) for item in activation_codes]
@@ -609,7 +671,9 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         "norms": norms,
         "compatibility": compatibility,
         "rules": rules,
+        "rule_groups": rule_groups,
         "evidence": evidence,
+        "source_groups": tuple(source_groups.values()),
         "revisions": revisions,
         "activation_blockers": activation_blockers,
         "warnings": warnings,

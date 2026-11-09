@@ -245,14 +245,14 @@ async def test_live_read_only_workbench_and_encyclopedia_smoke() -> None:
             app = _app(session, SimpleNamespace(id=uuid4(), role=UserRole.ADMIN))
             app.include_router(encyclopedia_router, prefix="/api/v1")
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-                workbench = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}")
+                workbench = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=materials")
                 encyclopedia = await client.get(
                     "/api/v1/module2/encyclopedia/technologies/FND_STRIP_MONOLITHIC_RC"
                 )
             assert workbench.status_code == 200
             assert "Значения по умолчанию" in workbench.text
             assert "Глубина заложения" in workbench.text
-            assert "Предположение платформы" in workbench.text
+            assert "Допущение" in workbench.text
             assert encyclopedia.status_code == 200
         finally:
             await session.close()

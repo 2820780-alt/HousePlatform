@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Рабочая область технологий · АТОМ</title>
+  <title>Технологии · АТОМ</title>
   {% include "_atom_ui_standards.html" %}
   {% include "_atom_quick_action_menu.html" %}
   {% include "_module2_workbench_styles.html" %}
@@ -16,11 +16,11 @@
   <main class="m2-shell">
     <header class="m2-page-head">
       <div>
-        <div class="m2-eyebrow">Модуль №2 · Рабочая область технологий</div>
+        <div class="m2-eyebrow">Модуль №2</div>
         <h1>Технологии</h1>
       </div>
       <div class="m2-actions">
-        <details class="m2-service-menu"><summary title="Служебное меню" aria-label="Служебное меню">⋯</summary><a href="/api/v1/admin/cabinet/view/modules/2">О модуле</a></details>
+        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench/categories">Управление категориями</a>
         {% if permissions.edit %}
         <div class="atom-action-with-menu">
           <button
@@ -63,7 +63,7 @@
       <div class="m2-panel-body">
         <form class="m2-toolbar" method="get">
           <div class="m2-filter">
-            <input type="search" name="q" value="{{ query }}" placeholder="Название, код или система" aria-label="Поиск технологий">
+            <input type="search" name="q" value="{{ query }}" placeholder="Название или код" aria-label="Поиск технологий">
             <select name="status" aria-label="Статус технологии">
               <option value="">Все статусы</option>
               <option value="DRAFT" {% if status_filter == 'DRAFT' %}selected{% endif %}>Черновик</option>
@@ -98,15 +98,14 @@
                     data-quick-action-candidate
                     data-quick-action-source-module-code="MODULE_02_KNOWLEDGE_BASE"
                     data-quick-action-feature-code="TECHNOLOGY_CONSTRUCTION_GROUPS"
-                    data-quick-action-key="VIEW"
-                    data-quick-action-permission-key="VIEW"
+                    data-quick-action-key="EDIT"
+                    data-quick-action-permission-key="EDIT"
                     data-quick-action-title="Открыть технологию: {{ item.name }}"
                     data-quick-action-route="/api/v1/admin/module2/workbench/{{ item.id }}"
                     data-quick-action-config-snapshot='{"technologyId":"{{ item.id }}"}'
                     data-quick-action-icon="workflow"
                     data-quick-action-atom-card-accent="green"
                   >{{ item.name }}</a>
-                  <details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ item.code }} · {{ item.system_code }}</span></details>
                 </td>
                 <td>№ {{ item.revision }}</td>
                 <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>

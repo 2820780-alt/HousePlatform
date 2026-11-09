@@ -64,7 +64,6 @@ from app.services.module2_technology_foundation import (
 )
 from app.services.module2_workbench import (
     REQUIREMENT_NAMES,
-    actor_role_code,
     add_evidence,
     build_technology_detail_view,
     build_technology_list_view,
@@ -84,10 +83,28 @@ from app.services.module2_workbench import (
 router = APIRouter(prefix="/admin/module2/workbench", tags=["module2-workbench"])
 templates = Jinja2Templates(directory="templates")
 
+TAB_BY_SECTION = {
+    "general": "general", "validation": "general",
+    "layers": "construction", "nodes": "construction", "construction": "construction",
+    "materials": "materials", "defaults": "materials",
+    "works": "works", "norms": "works",
+    "rules": "rules", "compatibility": "rules",
+    "evidence": "sources", "sources": "sources", "revisions": "revisions",
+}
+LAYER_DEFAULT_PARAMETERS = {
+    "LOAD_BEARING_SLAB": "SLAB_THICKNESS_MM",
+    "SLAB_AND_RIBS": "SLAB_THICKNESS_MM",
+    "RIBBED_RC_FOUNDATION": "SLAB_THICKNESS_MM",
+    "WALL_CONCRETE": "WALL_THICKNESS_MM",
+    "XPS_LAYER": "INSULATION_THICKNESS_MM",
+    "COATING_SYSTEM": "COATING_THICKNESS_MM",
+    "MEMBRANE_SYSTEM": "MEMBRANE_THICKNESS_MM",
+}
+
 
 @router.get("", response_class=HTMLResponse)
 async def technology_workbench_list(request: Request, db: DBSession, user: CurrentUser):
-    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
     rows = list(await build_technology_list_view(db))
     categories = await list_categories(db)
     category_names = {item.id: item.name for item in categories}
@@ -128,7 +145,7 @@ async def technology_workbench_create(request: Request, db: DBSession, user: Cur
                 system_code=_optional(form, "system_code"),
                 category_id=await resolve_category_id(db, _optional(form, "category_code")),
             ),
-            actor_role_code=actor_role_code(user),
+            actor_role_code=user,
             created_by_user_id=_user_id(user),
         )
         await persist_technology_draft(db, technology)
@@ -140,7 +157,7 @@ async def technology_workbench_create(request: Request, db: DBSession, user: Cur
 
 @router.get("/categories", response_class=HTMLResponse)
 async def technology_categories(request: Request, db: DBSession, user: CurrentUser):
-    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
     categories = await list_categories(db)
     return templates.TemplateResponse(
         request, "module2_technology_categories.html",
@@ -246,7 +263,7 @@ async def technology_readiness_widget(db: DBSession, user: CurrentUser):
 
 @router.get("/by-code/{technology_code}")
 async def technology_workbench_by_code(technology_code: str, db: DBSession, user: CurrentUser):
-    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
     technology = await db.scalar(
         select(Technology)
         .where(Technology.technology_code == technology_code, Technology.status == "ACTIVE")
@@ -264,12 +281,30 @@ async def technology_workbench_detail(
     db: DBSession,
     user: CurrentUser,
 ):
-    require_permission(user, MODULE2_OWNER_CODE, "VIEW")
+    require_permission(user, MODULE2_OWNER_CODE, "EDIT")
     technology = await read_technology(db, technology_id)
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
     assumptions = active_defaults(technology)
+    for layer in context["layers"]:
+        model = layer["model"]
+        expression = (model.thickness_expression or "").strip()
+        named_parameter = LAYER_DEFAULT_PARAMETERS.get(model.functional_role)
+        matches = [item for item in assumptions if item.auto_fallback and (
+            (expression and item.parameter_code.lower() == expression.lower()) or
+            (not expression and named_parameter and item.parameter_code == named_parameter) or
+            (not expression and model.material_requirement_id and
+             item.material_requirement_id == model.material_requirement_id and
+             "THICKNESS" in item.parameter_code.upper())
+        )]
+        if len(matches) == 1:
+            value = matches[0].default_value.get("value")
+            layer["thickness_label"] = f"Для предварительной оценки: {matches[0].name_ru} — {value} {matches[0].unit or ''}".strip()
+        elif expression and any(char.isdigit() for char in expression):
+            layer["thickness_label"] = expression
+        else:
+            layer["thickness_label"] = "Уточняется для объекта"
     for item in context["requirements"]:
         requirement = item["model"]
         linked_defaults = tuple(
@@ -310,7 +345,7 @@ async def technology_workbench_detail(
             "permissions": workbench_permissions(user),
             "notice": request.query_params.get("notice"),
             "error": request.query_params.get("error"),
-            "active_section": request.query_params.get("section", "general"),
+            "active_tab": TAB_BY_SECTION.get(request.query_params.get("tab", "general"), "general"),
             "atom_topbar_current_block": "Модуль №2: рабочая область технологий",
         }
     )
@@ -368,7 +403,7 @@ async def technology_workbench_action(
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
 
-    role_code = actor_role_code(user)
+    role_code = user
     section = str(form.get("section") or "general")
     try:
         result = await _perform_action(
@@ -396,7 +431,7 @@ async def _perform_action(
     *,
     technology: Technology,
     db: DBSession,
-    role_code: str,
+    role_code: object,
     user_id: uuid.UUID | None,
 ) -> str | tuple[str, uuid.UUID]:
     item_id = _optional_uuid(form, "item_id")
@@ -808,7 +843,7 @@ def _redirect_detail(
     error: str | None = None,
     section: str | None = None,
 ):
-    query = urlencode({key: value for key, value in {"notice": notice, "error": error, "section": section}.items() if value})
+    query = urlencode({key: value for key, value in {"notice": notice, "error": error, "tab": TAB_BY_SECTION.get(section, "general") if section else None}.items() if value})
     return RedirectResponse(
         f"/api/v1/admin/module2/workbench/{technology_id}{'?' + query if query else ''}",
         status_code=303,

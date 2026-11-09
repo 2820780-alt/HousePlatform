@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.access_levels import AccessLevel
-from app.core.permission_guard import LEGACY_ROLE_ALIASES
+from app.core.permission_guard import LEGACY_ROLE_ALIASES, can
 from app.core.role_access_matrix import STARTER_ROLE_MODULE_ACCESS
 from app.models.module2_technology import (
     MODULE2_OWNER_CODE,
@@ -429,7 +429,11 @@ async def list_technologies(
     return tuple(result.scalars().all())
 
 
-def require_module2_access(role_code: str, required: AccessLevel) -> None:
+def require_module2_access(role_code: object, required: AccessLevel) -> None:
+    if not isinstance(role_code, str):
+        if not can(role_code, MODULE2_OWNER_CODE, required.value):
+            raise Module2TechnologyPermissionError(f"Required access to {MODULE2_OWNER_CODE}: {required.value}")
+        return
     actual = _module2_access_level(role_code)
     if _ACCESS_RANK[actual] < _ACCESS_RANK[required]:
         raise Module2TechnologyPermissionError(

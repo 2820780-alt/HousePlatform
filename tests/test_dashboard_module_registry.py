@@ -115,13 +115,13 @@ def test_construction_groups_are_deprecated_material_hub_feature_alias():
     assert "TECHNOLOGY_CONSTRUCTION_GROUPS" in knowledge_base.featureCodes
 
 
-def test_module2_registry_and_passport_open_the_active_workbench():
+def test_module2_registry_and_passport_open_permission_aware_entry():
     knowledge_base = get_dashboard_module_registry_item("MODULE_02_KNOWLEDGE_BASE")
     passports = _module_passports(0, 0, 0, 0, 0, {"market": "empty", "categories": 0})
     passport = next(item for item in passports if item["number"] == 2)
 
     assert knowledge_base is not None
-    assert knowledge_base.route == "/api/v1/admin/module2/workbench"
+    assert knowledge_base.route == "/api/v1/module2/encyclopedia/entry"
     assert knowledge_base.moduleOwnedWidgets == ["MODULE_02_TECHNOLOGY_READINESS_WIDGET"]
     assert passport["status"] == "Активен"
     assert passport["href"] == "/api/v1/admin/module2/workbench"

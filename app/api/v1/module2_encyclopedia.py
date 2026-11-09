@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 
@@ -17,6 +17,7 @@ from app.services.module2_encyclopedia import (
     technology_article,
 )
 from app.services.module2_workbench import workbench_permissions
+from app.services.module2_encyclopedia_editorial import MATERIAL_NAMES, WORK_STEP_GUIDANCE
 
 
 router = APIRouter(prefix="/module2/encyclopedia", tags=["module2-encyclopedia"])
@@ -39,12 +40,19 @@ def _render(request: Request, view: str, **context):
     )
 
 
+@router.get("/entry", include_in_schema=False)
+async def module2_entry(user: CurrentUser):
+    _view(user)
+    target = "/api/v1/admin/module2/workbench" if workbench_permissions(user)["edit"] else "/api/v1/module2/encyclopedia"
+    return RedirectResponse(target, status_code=303)
+
+
 @router.get("", response_class=HTMLResponse)
 async def encyclopedia_index(request: Request, db: DBSession, user: CurrentUser):
     _view(user)
     query = str(request.query_params.get("q") or "").strip()[:120]
     return _render(request, "index", catalog=await public_catalog(db, query), query=query,
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get("/categories", response_class=HTMLResponse)
@@ -52,7 +60,7 @@ async def encyclopedia_categories(request: Request, db: DBSession, user: Current
     _view(user)
     query = str(request.query_params.get("q") or "").strip()[:120]
     return _render(request, "category_list", catalog=await public_catalog(db, query), query=query,
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get("/technologies", response_class=HTMLResponse)
@@ -60,7 +68,7 @@ async def encyclopedia_technologies(request: Request, db: DBSession, user: Curre
     _view(user)
     query = str(request.query_params.get("q") or "").strip()[:120]
     return _render(request, "technology_list", catalog=await public_catalog(db, query), query=query,
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get("/categories/{category_code}", response_class=HTMLResponse)
@@ -71,7 +79,7 @@ async def encyclopedia_category(
     category = await public_category(db, category_code)
     if category is None:
         raise HTTPException(status_code=404)
-    return _render(request, "category", can_workbench=workbench_permissions(user)["view"], **category)
+    return _render(request, "category", can_workbench=workbench_permissions(user)["edit"], **category)
 
 
 async def _article(db: DBSession, technology_code: str) -> dict:
@@ -87,7 +95,7 @@ async def encyclopedia_technology(
 ):
     _view(user)
     return _render(request, "technology", article=await _article(db, technology_code),
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get(
@@ -107,7 +115,7 @@ async def encyclopedia_material_application(
     if requirement is None:
         raise HTTPException(status_code=404)
     return _render(request, "material", article=article, requirement=requirement,
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get("/technologies/{technology_code}/nodes/{node_code}", response_class=HTMLResponse)
@@ -120,7 +128,7 @@ async def encyclopedia_node(
     if node is None:
         raise HTTPException(status_code=404)
     return _render(request, "node", article=article, node=node,
-                   can_workbench=workbench_permissions(user)["view"])
+                   can_workbench=workbench_permissions(user)["edit"])
 
 
 @router.get("/works/{work_code}", response_class=HTMLResponse)
@@ -136,13 +144,17 @@ async def encyclopedia_work(
     if not current:
         raise HTTPException(status_code=404)
     result = await db.execute(
-        select(TechnologyWorkStep.technology_id).where(
+        select(TechnologyWorkStep).where(
             TechnologyWorkStep.work_code == work_code,
             TechnologyWorkStep.technology_id.in_(current),
         )
     )
-    technologies = tuple(current[item] for item in dict.fromkeys(result.scalars().all()))
+    steps = tuple(result.scalars().all())
+    technologies = tuple(current[item] for item in dict.fromkeys(step.technology_id for step in steps))
     if not technologies:
         raise HTTPException(status_code=404)
-    return _render(request, "work", work=work, technologies=technologies,
-                   can_workbench=workbench_permissions(user)["view"])
+    guidance = WORK_STEP_GUIDANCE.get(work_code)
+    return _render(request, "work", work=work, technologies=technologies, guidance=guidance,
+                   instructions=tuple(dict.fromkeys(step.instructions for step in steps if step.instructions)),
+                   material_names=tuple(MATERIAL_NAMES[code] for code in guidance[2] if code in MATERIAL_NAMES) if guidance else (),
+                   can_workbench=workbench_permissions(user)["edit"])

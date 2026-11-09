@@ -1,9 +1,49 @@
-<nav class="m2-sidebar" aria-label="Разделы модуля технологий">
-  <div class="m2-sidebar-title"><small>Модуль №2</small><strong>Технологии</strong></div>
-  <a class="m2-nav-link {% if m2_nav_active == 'overview' %}active{% endif %}" {% if m2_nav_active == 'overview' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia">Энциклопедия</a>
-  <a class="m2-nav-link {% if m2_nav_active == 'categories' %}active{% endif %}" {% if m2_nav_active == 'categories' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia/categories">Категории</a>
-  <a class="m2-nav-link {% if m2_nav_active == 'technologies' %}active{% endif %}" {% if m2_nav_active == 'technologies' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia/technologies">Технологии</a>
-  {% if (can_workbench is defined and can_workbench) or (permissions is defined and permissions.view) %}
-  <a class="m2-nav-link {% if m2_nav_active == 'workbench' %}active{% endif %}" {% if m2_nav_active == 'workbench' %}aria-current="page"{% endif %} href="/api/v1/admin/module2/workbench">Рабочая область</a>
+<nav class="m2-sidebar" aria-label="Раздел модуля №2">
+  <div class="m2-sidebar-title"><small>Модуль №2</small></div>
+  <div class="m2-nav-group">
+    <div class="m2-nav-heading">
+      <a class="m2-nav-link {% if m2_nav_active != 'workbench' %}active{% endif %}" {% if m2_nav_active != 'workbench' %}aria-current="page"{% endif %} href="/api/v1/module2/encyclopedia">Энциклопедия</a>
+      <button type="button" class="m2-nav-toggle" aria-expanded="false" aria-controls="m2-encyclopedia-menu" aria-label="Подменю энциклопедии" title="Подменю энциклопедии">▾</button>
+    </div>
+    <div class="m2-submenu" id="m2-encyclopedia-menu" hidden>
+      <a href="/api/v1/module2/encyclopedia/categories">Категории строительства</a>
+      {% if view is defined and view == 'technology' %}
+      {% if article.editorial.get('applicability') %}<a href="#applicability">Где применяется</a>{% endif %}
+      {% if article.editorial.get('exclusions') %}<a href="#exclusions">Когда не подходит</a>{% endif %}
+      {% if article.defaults %}<a href="#defaults">Предварительная оценка</a>{% endif %}
+      <a href="#composition">Состав конструкции</a>
+      <a href="#materials">Материалы</a>
+      <a href="#works">Порядок работ</a>
+      {% if article.editorial.get('quality_before') or article.editorial.get('quality_during') or article.editorial.get('quality_after') %}<a href="#quality">Контроль качества</a>{% endif %}
+      {% if article.editorial.get('common_error') %}<a href="#common-errors">Типичные ошибки</a>{% endif %}
+      {% if article.editorial.get('project_dependent') or article.norms or article.compatibility or article.warnings or article.controls %}<a href="#project-checks">Что нужно уточнить</a>{% endif %}
+      {% if article.nodes %}<a href="#nodes">Узлы</a>{% endif %}
+      {% if article.family_alternatives or article.related_technologies or article.related_categories %}<a href="#related">Связанные технологии</a>{% endif %}
+      <a href="#sources">Источники</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if (can_workbench is defined and can_workbench) or (permissions is defined and permissions.edit) %}
+  <div class="m2-nav-group">
+    <div class="m2-nav-heading">
+      <a class="m2-nav-link {% if m2_nav_active == 'workbench' %}active{% endif %}" {% if m2_nav_active == 'workbench' %}aria-current="page"{% endif %} href="/api/v1/admin/module2/workbench">Технологии</a>
+      <button type="button" class="m2-nav-toggle" aria-expanded="false" aria-controls="m2-technologies-menu" aria-label="Подменю технологий" title="Подменю технологий">▾</button>
+    </div>
+    <div class="m2-submenu" id="m2-technologies-menu" hidden>
+      <a href="/api/v1/admin/module2/workbench">Реестр</a>
+      <a href="/api/v1/admin/module2/workbench/categories">Управление категориями</a>
+    </div>
+  </div>
   {% endif %}
 </nav>
+<script>
+  document.querySelectorAll('.m2-nav-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+      const menu = document.getElementById(button.getAttribute('aria-controls'));
+      if (!menu) return;
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!expanded));
+      menu.hidden = expanded;
+    });
+  });
+</script>

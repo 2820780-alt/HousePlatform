@@ -768,12 +768,9 @@ resolution, and dismissal controls stay in the admin Workbench and retain
 their RBAC and audit behavior. A material requirement page identifies itself
 as a requirement, never a duplicate material card.
 
-The shared M2 sidebar has public Encyclopedia, Categories, and Technologies
-destinations and an admin-only Workbench destination. Breadcrumbs and local
-article navigation preserve the hierarchy. Stable codes, source markers and
-internal statuses remain in secondary technical details; Workbench primary
-labels, category, status, default values, and material columns are readable
-Russian. The module passport stays in the service menu. From Module 3, M2
+The A2.3.C navigation and permission model below supersedes the original A2.3
+sidebar and technical-details presentation. Breadcrumbs and local article
+navigation preserve the hierarchy. From Module 3, M2
 borrows only visual tokens and interaction quality (type, colors, spacing,
 borders, controls, active and responsive states), not business logic, table
 layout, widgets or information hierarchy.
@@ -786,3 +783,35 @@ evidence, cross-links, responsive presentation, and RBAC/link tests. Review
 the underlying engineering evidence before adding any new claim. Do not seed
 fake materials or a second Work Catalog. The final M2 UX format is applied
 during the first content pass of each new category, not as a later corrective.
+
+## A2.3.C: Information architecture and permissions
+
+M2 has a reader-facing Encyclopedia and an administrative Technologies
+registry. The common sidebar links to the Encyclopedia for readers and also
+to Technologies for editors. Both sections have closed-by-default submenus;
+article contents are contextual submenu links rather than a second navigation
+column. Category management is inside Technologies. The module entry route
+uses the existing permission guard to choose the registry for EDIT or higher
+and the Encyclopedia for VIEW-only access.
+
+Encyclopedia GET routes require M2 VIEW at the existing LIMITED scope. The
+administrative registry, categories and Technology detail require M2 EDIT at
+the existing GLOBAL scope. Existing EDIT, APPROVE and ADMIN checks continue
+to govern mutations and lifecycle transitions; explicit NO_ACCESS has priority
+over role access. Browser login, CSRF and audit use the platform mechanisms.
+The domain service accepts the authenticated user for permission checks while
+retaining its role-code interface for existing internal callers.
+
+Technology detail uses seven addressable tabs: General, Construction,
+Materials and Parameters, Works, Rules, Sources, and Revisions. Each request
+renders only the selected tab; action redirects retain the relevant tab.
+Materials, default assumptions and existing M1 gap actions remain together.
+Sources are grouped by document with their individual evidence links retained.
+Normal UI uses human names rather than machine identifiers; public articles
+keep their deduplicated source list at the end and link to canonical M1 cards.
+
+For A3-A11, each published Technology belongs in the existing Encyclopedia
+hierarchy and the common administrative registry. New categories do not add
+separate main navigation sections. Content completion still requires reviewed
+evidence, readable articles, canonical M1 references, ordered work, applicable
+defaults, access tests and responsive navigation.

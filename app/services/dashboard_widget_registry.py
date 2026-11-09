@@ -165,7 +165,7 @@ DASHBOARD_WIDGET_REGISTRY: tuple[DashboardWidgetRegistryItem, ...] = (
         enabled_by_default=False,
         feature_code="TECHNOLOGY_CONSTRUCTION_GROUPS",
         required_permissions=["VIEW"],
-        route_to_source_module="/api/v1/admin/module2/workbench",
+        route_to_source_module="/api/v1/module2/encyclopedia/entry",
         supported_placements=["DASHBOARD", "MODULE_OVERVIEW"],
     ),
     _widget_item(

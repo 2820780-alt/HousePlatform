@@ -243,6 +243,12 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
             })
 
     catalog = await public_catalog(db)
+    categories_by_id = {row["category"].id: row["category"] for row in catalog["all_categories"]}
+    breadcrumb = []
+    current_category = category
+    while current_category:
+        breadcrumb.append(current_category)
+        current_category = categories_by_id.get(current_category.parent_id)
     categories_by_code = {
         row["category"].code: row["category"] for row in catalog["all_categories"]
     }
@@ -275,6 +281,7 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
     return {
         "technology": technology,
         "category": category,
+        "breadcrumb": tuple(reversed(breadcrumb)),
         "requirements": tuple(requirements),
         "layers": tuple({"model": layer, "label": LAYER_NAMES.get(layer.functional_role, layer.functional_role)}
                         for layer in sorted(technology.layers, key=lambda layer: layer.position)),

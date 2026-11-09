@@ -182,7 +182,8 @@ async def test_published_technology_uses_stable_codes_and_m1_work_reference():
         assert "Published assembly" in category_page.text
         assert work.work_name in detail.text
         assert technology.technology_code in work_page.text
-        assert "FINISH" in material_page.text
+        assert "Требование к материалу" in material_page.text
+        assert "FINISH" not in material_page.text
         assert "Edge node" in node_page.text
         assert str(technology.id) not in detail.text
         assert "<pre" not in detail.text

@@ -9,14 +9,14 @@
 </head>
 <body data-atom-page data-rbac-ready data-module2-workbench>
   {% include "_atom_platform_topbar.html" %}
-  {% set m2_nav_active = 'categories' %}
+  {% set m2_nav_active = 'workbench' %}
   <div class="m2-layout">
   {% include "_module2_sidebar.html" %}
   <main class="m2-shell">
     <header class="m2-page-head">
       <div><div class="m2-eyebrow">Модуль №2 · Каталог технологий</div><h1>Категории технологий</h1></div>
       <div class="m2-actions">
-        <a class="m2-button ghost" href="/api/v1/module2/encyclopedia/categories">Открыть каталог</a>
+        <a class="m2-button ghost" href="/api/v1/admin/module2/workbench">К технологиям</a>
       </div>
     </header>
 
@@ -30,7 +30,7 @@
         <thead><tr><th>Категория</th><th>Статус</th><th>Контент</th><th>Действия</th></tr></thead>
         <tbody>{% for row in category_rows %}{% set item = row.category %}
           <tr>
-            <td><div style="padding-left: {{ row.depth * 18 }}px"><strong>{{ item.name }}</strong>{% if item.description %}<div class="m2-muted">{{ item.description }}</div>{% endif %}<details class="m2-technical"><summary>Технические данные</summary><span class="m2-code">{{ item.code }} · {{ item.scope_code }}</span></details></div></td>
+            <td><div style="padding-left: {{ row.depth * 18 }}px"><strong>{{ item.name }}</strong>{% if item.description %}<div class="m2-muted">{{ item.description }}</div>{% endif %}</div></td>
             <td><span class="m2-status" data-status="{{ item.status }}">{{ {'ACTIVE':'Действует','DRAFT':'Черновик','ARCHIVED':'Архив'}.get(item.status, 'Неизвестно') }}</span></td>
             <td>{{ {'EMPTY':'Пока пусто','IN_PROGRESS':'Наполняется','CONTENT_COMPLETE':'Раздел наполнен'}.get(item.content_status, 'Неизвестно') }}</td>
             <td>

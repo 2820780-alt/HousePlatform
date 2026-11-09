@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.api.v1.module2_workbench import router
+from app.api.v1.module2_encyclopedia import router as encyclopedia_router
 from app.api.v1.user_module_quick_actions import router as quick_action_router
 from app.core.exceptions import ForbiddenError
 from app.database import engine, get_db
@@ -126,6 +127,7 @@ async def _session():
 def _app(session: AsyncSession, user=ADMIN) -> FastAPI:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
+    app.include_router(encyclopedia_router, prefix="/api/v1")
     app.include_router(quick_action_router, prefix="/api/v1")
 
     async def session_override():
@@ -152,14 +154,16 @@ async def test_technology_list_and_detail_open_without_http_500() -> None:
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
             listing = await client.get("/api/v1/admin/module2/workbench")
             detail = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}")
+            materials = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=materials")
+            works = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=works")
 
         assert listing.status_code == 200
         assert "Тестовая технология" in listing.text
         assert detail.status_code == 200
-        assert "Рабочая область технологий" in detail.text
-        assert "Материалы и требования" in detail.text
+        assert "Технологии" in detail.text
+        assert "Материалы и параметры" in materials.text
         assert "Работы" in detail.text
-        assert list_work_items()[0].work_name in detail.text
+        assert list_work_items()[0].work_name in works.text
         assert "<pre" not in detail.text
 
 
@@ -198,7 +202,7 @@ async def test_create_draft_and_general_edit_use_domain_services() -> None:
 
 
 @pytest.mark.asyncio(loop_scope="module")
-async def test_viewer_can_open_but_cannot_create_or_edit() -> None:
+async def test_viewer_cannot_open_admin_pages_or_create() -> None:
     async with _session() as session:
         technology = _draft()
         await persist_technology_draft(session, technology)
@@ -212,8 +216,8 @@ async def test_viewer_can_open_but_cannot_create_or_edit() -> None:
                 data={"technology_code": "DENIED_CREATE", "name": "Запрещено"},
             )
 
-        assert listing.status_code == 200
-        assert detail.status_code == 200
+        assert listing.status_code == 403
+        assert detail.status_code == 403
         assert "update-general" not in detail.text
         assert create.status_code == 403
         assert workbench_permissions(VIEWER) == {
@@ -222,6 +226,135 @@ async def test_viewer_can_open_but_cannot_create_or_edit() -> None:
             "approve": False,
             "admin": False,
         }
+
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_information_architecture_permissions_and_addressable_tabs() -> None:
+    from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
+    from app.services.module2_content_catalog import create_category, transition_category
+
+    async with _session() as session:
+        suffix = uuid4().hex[:10].upper()
+        category = await create_category(session, code=f"CAT_{suffix}", name="Раздел теста", parent_code=None)
+        await transition_category(session, category, "ACTIVE")
+        published = Technology(technology_code=f"TECH_{suffix}", revision=1,
+                               name="Статья теста", category_id=category.id, status="ACTIVE")
+        draft = _draft(with_work=True)
+        session.add(published)
+        await persist_technology_draft(session, draft)
+        await session.flush()
+
+        def granted(level):
+            return SimpleNamespace(id=ADMIN.id, role=UserRole.SUPPLIER, moduleAccessRules=[{
+                "moduleCode": MODULE2_OWNER_CODE, "accessLevel": level, "accessScope": "GLOBAL",
+            }])
+
+        viewer_app = _app(session, granted("VIEW"))
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=viewer_app), base_url="http://test") as client:
+            for path in ("", f"/categories/{category.code}", f"/technologies/{published.technology_code}"):
+                response = await client.get(f"/api/v1/module2/encyclopedia{path}")
+                assert response.status_code == 200
+                assert "Редактировать технологию" not in response.text
+                assert "Рабочая область" not in response.text
+                assert 'id="m2-encyclopedia-menu" hidden' in response.text
+                assert 'id="m2-technologies-menu"' not in response.text
+            entry = await client.get("/api/v1/module2/encyclopedia/entry")
+            assert entry.headers["location"] == "/api/v1/module2/encyclopedia"
+            for path in ("", "/categories", f"/{draft.id}", f"/by-code/{published.technology_code}"):
+                assert (await client.get(f"/api/v1/admin/module2/workbench{path}")).status_code == 403
+            assert (await client.post(f"/api/v1/admin/module2/workbench/{draft.id}/actions/update-general",
+                                      data={"name": "Запрещено"})).status_code == 403
+
+        tabs = {
+            "general": ("general", "layers"), "construction": ("layers", "materials"),
+            "materials": ("materials", "works"), "works": ("works", "layers"),
+            "rules": ("rules", "evidence"), "sources": ("evidence", "rules"),
+            "revisions": ("revisions", "general"),
+        }
+        for level in ("EDIT", "APPROVE", "ADMIN"):
+            app = _app(session, granted(level))
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                registry = await client.get("/api/v1/admin/module2/workbench")
+                assert registry.status_code == 200
+                assert 'href="/api/v1/module2/encyclopedia">Энциклопедия</a>' in registry.text
+                assert 'id="m2-encyclopedia-menu" hidden' in registry.text
+                assert 'id="m2-technologies-menu" hidden' in registry.text
+                entry = await client.get("/api/v1/module2/encyclopedia/entry")
+                assert entry.headers["location"] == "/api/v1/admin/module2/workbench"
+                for tab, (visible, absent) in tabs.items():
+                    detail = await client.get(f"/api/v1/admin/module2/workbench/{draft.id}?tab={tab}")
+                    assert detail.status_code == 200
+                    assert f'id="{visible}"' in detail.text
+                    assert f'id="{absent}"' not in detail.text
+                    assert f'href="?tab={tab}" class="active"' in detail.text
+                invalid = await client.get(f"/api/v1/admin/module2/workbench/{draft.id}?tab=invalid")
+                assert 'id="general"' in invalid.text and 'id="materials"' not in invalid.text
+                if level == "EDIT":
+                    edited = await client.post(f"/api/v1/admin/module2/workbench/{draft.id}/actions/update-general",
+                                               data={"name": "Изменено редактором", "section": "general"})
+                    assert edited.status_code == 303 and draft.name == "Изменено редактором"
+                    reviewed = await client.post(f"/api/v1/admin/module2/workbench/{draft.id}/actions/transition",
+                                                 data={"target": "REVIEW", "section": "general"})
+                    assert reviewed.status_code == 303 and draft.status == "REVIEW"
+                elif level == "APPROVE":
+                    returned = await client.post(f"/api/v1/admin/module2/workbench/{draft.id}/actions/transition",
+                                                 data={"target": "DRAFT", "section": "general"})
+                    assert returned.status_code == 303 and draft.status == "DRAFT"
+                else:
+                    archived = await client.post(f"/api/v1/admin/module2/workbench/{published.id}/actions/transition",
+                                                 data={"target": "ARCHIVED", "section": "general"})
+                    assert archived.status_code == 303 and published.status == "ARCHIVED"
+
+        denied = SimpleNamespace(id=ADMIN.id, role=UserRole.ADMIN, moduleAccessRules=[{
+            "moduleCode": MODULE2_OWNER_CODE, "accessLevel": "NO_ACCESS", "accessScope": "NONE",
+        }])
+        for user in (denied, SimpleNamespace(id=ADMIN.id, role=UserRole.SUPPLIER)):
+            app = _app(session, user)
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                assert (await client.get("/api/v1/module2/encyclopedia")).status_code == 403
+                assert (await client.get("/api/v1/admin/module2/workbench")).status_code == 403
+
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_m2_browser_login_and_real_csrf_with_explicit_edit(monkeypatch) -> None:
+    import app.api.deps as deps
+    import app.api.v1.module2_workbench as routes
+    from app.core.browser_auth import browser_auth_redirect_middleware
+    from app.core.exceptions import UnauthorizedError
+    from app.models.enums import UserStatus
+    from app.models.module2_technology import MODULE2_OWNER_CODE
+
+    actor = SimpleNamespace(id=uuid4(), role=UserRole.SUPPLIER, status=UserStatus.ACTIVE,
+                            moduleAccessRules=[{"moduleCode": MODULE2_OWNER_CODE,
+                                                "accessLevel": "EDIT", "accessScope": "GLOBAL"}])
+    result = SimpleNamespace(scalar_one_or_none=lambda: actor)
+    database = SimpleNamespace(execute=AsyncMock(return_value=result), flush=AsyncMock())
+    app = FastAPI()
+    app.middleware("http")(browser_auth_redirect_middleware)
+    app.include_router(router, prefix="/api/v1")
+    app.include_router(encyclopedia_router, prefix="/api/v1")
+
+    async def fake_db():
+        yield database
+
+    app.dependency_overrides[get_db] = fake_db
+    app.add_exception_handler(ForbiddenError, lambda _request, exc: JSONResponse({"detail": str(exc)}, status_code=403))
+    app.add_exception_handler(UnauthorizedError, lambda _request, exc: JSONResponse({"detail": str(exc)}, status_code=401))
+    monkeypatch.setattr(deps, "decode_token", lambda _token: {"type": "access", "sub": str(actor.id)})
+    monkeypatch.setattr(routes, "read_technology", AsyncMock(return_value=SimpleNamespace()))
+    perform = AsyncMock(return_value="Сохранено")
+    monkeypatch.setattr(routes, "_perform_action", perform)
+    path = f"/api/v1/admin/module2/workbench/{uuid4()}/actions/update-general"
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        for url in ("/api/v1/module2/encyclopedia", "/api/v1/admin/module2/workbench"):
+            anonymous = await client.get(url, headers={"Accept": "text/html"}, follow_redirects=False)
+            assert anonymous.status_code == 303 and "/auth/login/view" in anonymous.headers["location"]
+        client.cookies.set("atom_access_token", "test-token")
+        client.cookies.set("atom_csrf_token", "csrf-value")
+        assert (await client.post(path, data={"name": "Тест"})).status_code == 403
+        allowed = await client.post(path, data={"name": "Тест"}, headers={"X-CSRF-Token": "csrf-value"})
+        assert allowed.status_code == 303
+        assert perform.await_count == 1 and perform.await_args.kwargs["role_code"] is actor
 
 
 @pytest.mark.asyncio(loop_scope="module")
@@ -519,7 +652,7 @@ def test_templates_cover_workbench_sections_without_raw_json_editor() -> None:
     assert "_atom_quick_action_menu.html" in detail
     assert "_atom_quick_action_menu.html" in listing
     assert 'data-quick-action-key="EDIT"' in listing
-    assert 'data-quick-action-key="VIEW"' in detail
+    assert 'data-quick-action-key="EDIT"' in detail
     assert "data-quick-action-config-snapshot" in listing
     assert "new URLSearchParams(window.location.search)" in scripts
     quick_action_menu = (ROOT / "templates" / "_atom_quick_action_menu.html").read_text(encoding="utf-8")

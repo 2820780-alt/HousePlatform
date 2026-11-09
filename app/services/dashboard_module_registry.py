@@ -193,7 +193,7 @@ DASHBOARD_MODULE_REGISTRY: tuple[DashboardModuleRegistryItem, ...] = (
         "База знаний",
         number=2,
         order=20,
-        route="/api/v1/admin/module2/workbench",
+        route="/api/v1/module2/encyclopedia/entry",
         short_title="Знания",
         description="Технологии, нормы, документы и правила применения.",
         icon="file-text",
