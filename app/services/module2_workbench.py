@@ -40,7 +40,7 @@ from app.schemas.module2_technology import (
     TechnologyWorkStepInput,
 )
 from app.services.module1_work_catalog import get_work_item, list_work_items
-from app.services.module2_default_assumptions import active_defaults
+from app.services.module2_default_assumptions import active_defaults, requires_explicit_foundation_input
 from app.services.module2_knowledge_foundation import (
     attach_evidence_reference,
     create_compatibility_rule_draft,
@@ -686,6 +686,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         "defaults": [
             {
                 "model": item,
+                "requires_explicit_input": requires_explicit_foundation_input(technology, item),
                 "requirement_name": REQUIREMENT_NAMES.get(item.material_requirement.code, item.material_requirement.code)
                 if item.material_requirement else None,
                 "display_value": names["categories"].get(uuid.UUID(str(item.default_value["value"])), str(item.default_value["value"]))
@@ -796,6 +797,7 @@ def _knowledge_blockers(
             technology,
             technology.evidence_references,
             verified_evidence_reference_ids=verified_evidence,
+            allow_draft_technology=True,
         )
     except ValueError:
         return ["Условия записи повреждены и требуют проверки специалистом."]

@@ -244,11 +244,17 @@ def validate_knowledge_activation(
     *,
     verified_evidence_reference_ids: Iterable[uuid.UUID] = (),
     input_package: Module2TechnologyInputPackage | None = None,
+    allow_draft_technology: bool = False,
+    allow_review_technology: bool = False,
 ) -> tuple[str, ...]:
     blockers = list(entity.blockers or ())
     if entity.technology_id != technology.id:
         blockers.append("entity_belongs_to_another_technology")
-    if technology.status != TechnologyLifecycle.ACTIVE.value:
+    if technology.status != TechnologyLifecycle.ACTIVE.value and not (
+        allow_draft_technology and technology.status == TechnologyLifecycle.DRAFT.value
+    ) and not (
+        allow_review_technology and technology.status == TechnologyLifecycle.REVIEW.value
+    ):
         blockers.append("technology_not_active")
     blockers.extend(f"technology_input:{item}" for item in technology.input_blockers or ())
     blockers.extend(
@@ -286,6 +292,25 @@ def validate_knowledge_activation(
     return _unique(blockers)
 
 
+def validate_technology_knowledge_publication(
+    technology: Technology,
+    *,
+    verified_evidence_reference_ids: Iterable[uuid.UUID],
+) -> tuple[str, ...]:
+    """Recheck approved engineering records before publishing their parent revision."""
+    verified = tuple(verified_evidence_reference_ids)
+    blockers = []
+    for entity in (*technology.consumption_norms, *technology.compatibility_rules, *technology.knowledge_rules):
+        if entity.status != TechnologyLifecycle.ACTIVE.value:
+            continue
+        for blocker in validate_knowledge_activation(
+            entity, technology, technology.evidence_references,
+            verified_evidence_reference_ids=verified, allow_review_technology=True,
+        ):
+            blockers.append(f"{_entity_target_kind(entity).value}:{entity.id}:{blocker}")
+    return _unique(blockers)
+
+
 def transition_consumption_norm(
     norm: ConsumptionNorm,
     target: TechnologyLifecycle | str,
@@ -295,6 +320,7 @@ def transition_consumption_norm(
     actor_role_code: str,
     verified_evidence_reference_ids: Iterable[uuid.UUID] = (),
     input_package: Module2TechnologyInputPackage | None = None,
+    allow_draft_technology: bool = False,
 ) -> ConsumptionNorm:
     _transition_entity(
         norm,
@@ -304,6 +330,7 @@ def transition_consumption_norm(
         actor_role_code=actor_role_code,
         verified_evidence_reference_ids=verified_evidence_reference_ids,
         input_package=input_package,
+        allow_draft_technology=allow_draft_technology,
     )
     return norm
 
@@ -318,6 +345,7 @@ def transition_compatibility_rule(
     verified_evidence_reference_ids: Iterable[uuid.UUID] = (),
     input_package: Module2TechnologyInputPackage | None = None,
     peer_rules: Sequence[CompatibilityRule] = (),
+    allow_draft_technology: bool = False,
 ) -> CompatibilityRule:
     target_status = TechnologyLifecycle(target)
     if target_status == TechnologyLifecycle.ACTIVE:
@@ -335,6 +363,7 @@ def transition_compatibility_rule(
         actor_role_code=actor_role_code,
         verified_evidence_reference_ids=verified_evidence_reference_ids,
         input_package=input_package,
+        allow_draft_technology=allow_draft_technology,
     )
     return rule
 
@@ -349,6 +378,7 @@ def transition_knowledge_rule(
     verified_evidence_reference_ids: Iterable[uuid.UUID] = (),
     input_package: Module2TechnologyInputPackage | None = None,
     peer_rules: Sequence[KnowledgeRule] = (),
+    allow_draft_technology: bool = False,
 ) -> KnowledgeRule:
     target_status = TechnologyLifecycle(target)
     if target_status == TechnologyLifecycle.ACTIVE:
@@ -366,6 +396,7 @@ def transition_knowledge_rule(
         actor_role_code=actor_role_code,
         verified_evidence_reference_ids=verified_evidence_reference_ids,
         input_package=input_package,
+        allow_draft_technology=allow_draft_technology,
     )
     return rule
 
@@ -379,6 +410,7 @@ def _transition_entity(
     actor_role_code: str,
     verified_evidence_reference_ids: Iterable[uuid.UUID],
     input_package: Module2TechnologyInputPackage | None,
+    allow_draft_technology: bool,
 ) -> None:
     current = TechnologyLifecycle(entity.status)
     target_status = TechnologyLifecycle(target)
@@ -402,6 +434,7 @@ def _transition_entity(
             evidence_references,
             verified_evidence_reference_ids=verified_evidence_reference_ids,
             input_package=input_package,
+            allow_draft_technology=allow_draft_technology,
         )
         if blockers:
             raise Module2KnowledgeError(

@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from app.core.access_levels import AccessLevel
 from app.core.permission_guard import LEGACY_ROLE_ALIASES, can
 from app.core.role_access_matrix import STARTER_ROLE_MODULE_ACCESS
+from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.module2_technology import (
     MODULE2_OWNER_CODE,
     Technology,
@@ -305,12 +306,42 @@ def create_next_revision(
         revised.requirements.append(copied)
         requirements[item.id] = copied
 
+    references: dict[str, dict[str, str]] = {
+        "MATERIAL_REQUIREMENT": {str(old): str(new.id) for old, new in requirements.items()},
+        "LAYER": {}, "NODE": {}, "WORK_STEP": {},
+        "CONSUMPTION_NORM": {str(item.id): str(uuid.uuid4()) for item in technology.consumption_norms},
+        "COMPATIBILITY_RULE": {str(item.id): str(uuid.uuid4()) for item in technology.compatibility_rules},
+        "KNOWLEDGE_RULE": {str(item.id): str(uuid.uuid4()) for item in technology.knowledge_rules},
+    }
+
+    def mapped(kind: str, reference: object | None) -> str | None:
+        if reference is None:
+            return None
+        if kind == "TECHNOLOGY":
+            if str(reference) != str(technology.id):
+                raise Module2TechnologyError("evidence references a different technology")
+            return str(revised.id)
+        result = references.get(kind, {}).get(str(reference))
+        if result is None:
+            raise Module2TechnologyError(f"cannot copy {kind} reference from source technology")
+        return result
+
+    def selector_copy(selector: dict) -> dict:
+        result = deepcopy(selector)
+        if result.get("material_requirement_id"):
+            result["material_requirement_id"] = mapped("MATERIAL_REQUIREMENT", result["material_requirement_id"])
+        return result
+
+    def mapped_id(kind: str, reference: object | None) -> uuid.UUID | None:
+        result = mapped(kind, reference)
+        return uuid.UUID(result) if result is not None else None
+
     for item in technology.layers:
-        source_requirement_id = (
-            item.material_requirement.id if item.material_requirement else item.material_requirement_id
+        loaded_requirement = item.__dict__.get("material_requirement")
+        source_requirement_id = item.material_requirement_id or (
+            loaded_requirement.id if loaded_requirement is not None else None
         )
-        revised.layers.append(
-            TechnologyLayer(
+        copied = TechnologyLayer(
                 id=uuid.uuid4(),
                 position=item.position,
                 functional_role=item.functional_role,
@@ -320,11 +351,13 @@ def create_next_revision(
                 notes=item.notes,
                 restrictions=deepcopy(item.restrictions),
             )
-        )
+        if source_requirement_id and copied.material_requirement is None:
+            raise Module2TechnologyError("layer references a requirement outside the source technology")
+        revised.layers.append(copied)
+        references["LAYER"][str(item.id)] = str(copied.id)
 
     for item in technology.nodes:
-        revised.nodes.append(
-            TechnologyNode(
+        copied = TechnologyNode(
                 id=uuid.uuid4(),
                 code=item.code,
                 node_type=item.node_type,
@@ -332,11 +365,11 @@ def create_next_revision(
                 description=item.description,
                 conditions=deepcopy(item.conditions),
             )
-        )
+        revised.nodes.append(copied)
+        references["NODE"][str(item.id)] = str(copied.id)
 
     for item in technology.work_steps:
-        revised.work_steps.append(
-            TechnologyWorkStep(
+        copied = TechnologyWorkStep(
                 id=uuid.uuid4(),
                 position=item.position,
                 work_code=item.work_code,
@@ -344,7 +377,46 @@ def create_next_revision(
                 dependency_step_codes=deepcopy(item.dependency_step_codes),
                 instructions=item.instructions,
             )
-        )
+        revised.work_steps.append(copied)
+        references["WORK_STEP"][str(item.id)] = str(copied.id)
+
+    for item in technology.consumption_norms:
+        revised.consumption_norms.append(ConsumptionNorm(
+            id=uuid.UUID(references["CONSUMPTION_NORM"][str(item.id)]),
+            norm_code=item.norm_code, revision=item.revision,
+            scope_layer_id=mapped_id("LAYER", item.scope_layer_id),
+            scope_requirement_id=mapped_id("MATERIAL_REQUIREMENT", item.scope_requirement_id),
+            scope_work_step_id=mapped_id("WORK_STEP", item.scope_work_step_id),
+            resource_kind=item.resource_kind, resource_selector=selector_copy(item.resource_selector),
+            basis_quantity=item.basis_quantity, basis_unit=item.basis_unit,
+            consumption_quantity=item.consumption_quantity, consumption_unit=item.consumption_unit,
+            conditions=deepcopy(item.conditions), status=item.status,
+            owner_module_code=item.owner_module_code, source_kind=item.source_kind,
+            blockers=deepcopy(item.blockers), supersedes_id=item.id,
+            created_by_user_id=created_by_user_id,
+        ))
+    for item in technology.compatibility_rules:
+        revised.compatibility_rules.append(CompatibilityRule(
+            id=uuid.UUID(references["COMPATIBILITY_RULE"][str(item.id)]),
+            rule_code=item.rule_code, revision=item.revision,
+            subject_kind=item.subject_kind, subject_selector=selector_copy(item.subject_selector),
+            object_kind=item.object_kind, object_selector=selector_copy(item.object_selector),
+            relation=item.relation, conditions=deepcopy(item.conditions), reason=item.reason,
+            is_symmetric=item.is_symmetric, status=item.status, owner_module_code=item.owner_module_code,
+            source_kind=item.source_kind, blockers=deepcopy(item.blockers), supersedes_id=item.id,
+            created_by_user_id=created_by_user_id,
+        ))
+    for item in technology.knowledge_rules:
+        revised.knowledge_rules.append(KnowledgeRule(
+            id=uuid.UUID(references["KNOWLEDGE_RULE"][str(item.id)]),
+            rule_code=item.rule_code, revision=item.revision, scope_kind=item.scope_kind,
+            scope_reference=mapped(item.scope_kind, item.scope_reference),
+            conditions=deepcopy(item.conditions), outcome_type=item.outcome_type,
+            outcome_payload=deepcopy(item.outcome_payload), status=item.status,
+            owner_module_code=item.owner_module_code, source_kind=item.source_kind,
+            blockers=deepcopy(item.blockers), supersedes_id=item.id,
+            created_by_user_id=created_by_user_id,
+        ))
 
     evidence: dict[uuid.UUID, TechnologyEvidenceReference] = {}
     for item in technology.evidence_references:
@@ -353,7 +425,7 @@ def create_next_revision(
                 document_id=item.document_id,
                 knowledge_resource_id=item.knowledge_resource_id,
                 target_kind=item.target_kind,
-                target_reference=item.target_reference,
+                target_reference=mapped(item.target_kind, item.target_reference),
                 interpretation=item.interpretation,
         )
         revised.evidence_references.append(copied)

@@ -15,7 +15,7 @@ from app.models.module2_content_catalog import TechnologyCategory
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyNode
 from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
-from app.services.module2_default_assumptions import active_defaults
+from app.services.module2_default_assumptions import active_defaults, requires_explicit_foundation_input
 from app.services.module2_encyclopedia_editorial import (
     MATERIAL_NAMES, MATERIAL_REQUIREMENT_TITLES, WORK_STEP_GUIDANCE, category_article,
     effective_material_name, material_default_label,
@@ -277,6 +277,13 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
     )
     defaults = []
     for item in assumptions:
+        if requires_explicit_foundation_input(technology, item):
+            defaults.append({
+                "name": item.name_ru, "value": "Уточняется для объекта", "unit": None,
+                "warning": "Требуется значение объекта или выбранной системы.",
+                "action": None, "range": False, "alternatives": (),
+            })
+            continue
         defaults.append({
             "name": item.name_ru, "value": await _default_label(db, item),
             "unit": item.unit, "warning": item.warning_text,

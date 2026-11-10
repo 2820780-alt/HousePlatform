@@ -13,6 +13,8 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentUser, DBSession
 from app.core.permission_guard import require_permission
+from app.models.enums import MaterialStatus
+from app.models.material import Material
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
 from app.models.module2_content_catalog import TechnologyCategory
 from app.schemas.module2_knowledge import (
@@ -33,10 +35,11 @@ from app.services.module2_knowledge_foundation import (
     transition_compatibility_rule,
     transition_consumption_norm,
     transition_knowledge_rule,
+    validate_technology_knowledge_publication,
     verify_evidence_references,
 )
 from app.services.module2_operational_widgets import build_technology_readiness_widget, build_workbench_queue_widget
-from app.services.module2_default_assumptions import active_defaults, revise_default_assumption
+from app.services.module2_default_assumptions import active_defaults, may_use_default, revise_default_assumption
 from app.services.module2_encyclopedia_editorial import (
     MATERIAL_NAMES, effective_material_name, material_default_label,
 )
@@ -303,6 +306,19 @@ def _selected_material(requirement, gap, candidates):
     return next((candidate for candidate in candidates if candidate.id == selected_id), None)
 
 
+async def _technical_material_candidates(db, requirements):
+    ids = {item.canonical_material_id for item in requirements
+           if item.selector_kind == "CANONICAL_MATERIAL" and item.canonical_material_id}
+    if not ids:
+        return {}
+    rows = (await db.scalars(select(Material).where(
+        Material.id.in_(ids), Material.status.in_((
+            MaterialStatus.DRAFT, MaterialStatus.AUTO_CREATED, MaterialStatus.NEEDS_REVIEW,
+        )),
+    ))).all()
+    return {item.id: item for item in rows}
+
+
 @router.get("/{technology_id}", response_class=HTMLResponse)
 async def technology_workbench_detail(
     technology_id: uuid.UUID,
@@ -315,12 +331,13 @@ async def technology_workbench_detail(
     if technology is None:
         return _redirect_list(error="Технология не найдена.")
     context = await build_technology_detail_view(db, technology)
+    technical_candidates = await _technical_material_candidates(db, technology.requirements)
     assumptions = active_defaults(technology)
     for layer in context["layers"]:
         model = layer["model"]
         expression = (model.thickness_expression or "").strip()
         named_parameter = LAYER_DEFAULT_PARAMETERS.get(model.functional_role)
-        matches = [item for item in assumptions if item.auto_fallback and (
+        matches = [item for item in assumptions if may_use_default(technology, item) and (
             (expression and item.parameter_code.lower() == expression.lower()) or
             (not expression and named_parameter and item.parameter_code == named_parameter) or
             (not expression and model.material_requirement_id and
@@ -349,6 +366,8 @@ async def technology_workbench_detail(
         item["gap"] = await gap_for_requirement(db, requirement.id)
         item["material_card_url"] = material_card_url
         item["selected_material"] = _selected_material(requirement, item["gap"], item["candidates"])
+        item["technical_candidate"] = (technical_candidates.get(requirement.canonical_material_id)
+                                       if requirement.selector_kind == "CANONICAL_MATERIAL" else None)
     for item in context["defaults"]:
         requirement = item["model"].material_requirement
         item["human_name"] = (
@@ -493,6 +512,13 @@ async def _perform_action(
         return "Новая черновая редакция создана.", revision.id
     if action == "transition":
         target = TechnologyLifecycle(_required(form, "target"))
+        if target == TechnologyLifecycle.ACTIVE:
+            verified = await verify_evidence_references(db, technology.evidence_references)
+            blockers = validate_technology_knowledge_publication(
+                technology, verified_evidence_reference_ids=verified,
+            )
+            if blockers:
+                raise ValueError("У инженерных записей отсутствуют связанные источники или необходимые данные.")
         transition_technology(technology, target, actor_role_code=role_code)
         if target == TechnologyLifecycle.ACTIVE:
             await db.flush()
@@ -504,9 +530,16 @@ async def _perform_action(
                 )
         return f"Статус изменен: {target.value}."
     if action == "save-requirement":
+        command = _requirement_input(form)
+        if item_id:
+            existing = next((item for item in technology.requirements if item.id == item_id), None)
+            if existing is not None:
+                command = command.model_copy(update={"technical_constraints": {
+                    **(existing.technical_constraints or {}), **command.technical_constraints,
+                }})
         upsert_draft_requirement(
             technology,
-            _requirement_input(form),
+            command,
             actor_role_code=role_code,
             item_id=item_id,
         )
@@ -655,6 +688,7 @@ async def _perform_action(
             "evidence_references": technology.evidence_references,
             "actor_role_code": role_code,
             "verified_evidence_reference_ids": verified,
+            "allow_draft_technology": True,
         }
         if component == "norm":
             transition_consumption_norm(entity, target, **common)

@@ -16,6 +16,35 @@ class DefaultAssumptionError(ValueError):
     pass
 
 
+# Historical defaults remain stored for audit, but the current foundation
+# specification explicitly requires these inputs from the object or system.
+FOUNDATION_EXPLICIT_INPUTS = frozenset({
+    ("FND_STRIP_MONOLITHIC_RC", "FOUNDATION_DEPTH_MM"),
+    ("FND_STRIP_PRECAST_FBS_FL", "FOUNDATION_DEPTH_MM"),
+    ("FND_SLAB_RIBBED_RC", "SLAB_THICKNESS_MM"),
+    ("FND_SLAB_RIBBED_RC", "RIB_HEIGHT_MM"),
+    ("FND_SLAB_USHP", "SLAB_THICKNESS_MM"),
+    ("FND_UFF", "SLAB_THICKNESS_MM"),
+    ("FND_PILE_BORED_RC", "PILE_LENGTH_MM"),
+    ("FND_PILE_BORED_RC", "PILE_DIAMETER_MM"),
+    ("FND_PILE_GRILLAGE", "GRILLAGE_WIDTH_MM"),
+    ("FND_PILE_GRILLAGE", "GRILLAGE_HEIGHT_MM"),
+    ("FND_COLUMN_CONCRETE_RC", "COLUMN_WIDTH_MM"),
+    ("FND_COLUMN_CONCRETE_RC", "FOUNDATION_DEPTH_MM"),
+    ("FND_BASEMENT_WALL_MONOLITHIC", "WALL_HEIGHT_MM"),
+    ("FND_SUBSTRUCTURE_WATERPROOFING_COATING", "COATING_THICKNESS_MM"),
+    ("FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE", "MEMBRANE_THICKNESS_MM"),
+})
+
+
+def requires_explicit_foundation_input(technology: Technology, assumption: TechnologyDefaultAssumption) -> bool:
+    return (technology.technology_code, assumption.parameter_code) in FOUNDATION_EXPLICIT_INPUTS
+
+
+def may_use_default(technology: Technology, assumption: TechnologyDefaultAssumption) -> bool:
+    return bool(assumption.auto_fallback) and not requires_explicit_foundation_input(technology, assumption)
+
+
 def active_defaults(technology: Technology) -> tuple[TechnologyDefaultAssumption, ...]:
     return tuple(sorted(
         (item for item in technology.default_assumptions if item.status == "ACTIVE"),
@@ -32,6 +61,10 @@ def _value(assumption: TechnologyDefaultAssumption, value: Any) -> Any:
         if not number.is_finite():
             raise DefaultAssumptionError("Число должно быть конечным.")
         bounds = assumption.allowed_values or {}
+        if bounds.get("positive") and number <= 0:
+            raise DefaultAssumptionError("Значение должно быть положительным.")
+        if bounds.get("integer") and number != number.to_integral_value():
+            raise DefaultAssumptionError("Значение должно быть целым числом.")
         if "min" in bounds and number < Decimal(str(bounds["min"])):
             raise DefaultAssumptionError("Значение ниже допустимого диапазона.")
         if "max" in bounds and number > Decimal(str(bounds["max"])):
@@ -84,7 +117,7 @@ def resolve_default_assumptions(
             resolved, source = _value(item, override), "USER_OVERRIDE"
         elif project_value is not None:
             resolved, source = _value(item, project_value), "PROJECT_VALUE"
-        elif item.auto_fallback:
+        elif may_use_default(technology, item):
             resolved, source = default, "M2_DEFAULT"
         else:
             resolved, source = None, "UNRESOLVED"
@@ -101,8 +134,11 @@ def resolve_default_assumptions(
             "resolved_value": resolved,
             "source": source,
             "source_kind": item.source_kind,
-            "warning_level": item.warning_level if source == "M2_DEFAULT" else None,
-            "warning_text": item.warning_text if source == "M2_DEFAULT" else None,
+            "warning_level": item.warning_level if source == "M2_DEFAULT" else (
+                "WARNING" if source == "UNRESOLVED" and requires_explicit_foundation_input(technology, item) else None),
+            "warning_text": item.warning_text if source == "M2_DEFAULT" else (
+                "Требуется значение объекта или выбранной системы."
+                if source == "UNRESOLVED" and requires_explicit_foundation_input(technology, item) else None),
             "allowed_values_strategy": item.allowed_values_strategy,
             "allowed_values": deepcopy(item.allowed_values),
             "allowed_alternatives": tuple(

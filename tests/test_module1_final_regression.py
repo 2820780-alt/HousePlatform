@@ -251,6 +251,8 @@ READ_ONLY_SERVICES = frozenset(
         "module1_data_quality_dashboard.py",
         "module1_documents_evidence.py",
         "module1_extraction_blueprint_registry.py",
+        "module1_foundation_target_specs.py",
+        "module1_foundation_market_queues.py",
         "module1_golden_materials.py",
         "module1_legacy_compatibility.py",
         "module1_material_roles.py",
@@ -296,6 +298,13 @@ INGESTION_CANONICAL_PIPELINE_SERVICES = frozenset(
 )
 
 PERSISTENCE_SERVICE_BOUNDARIES = {
+    "module1_foundation_target_package.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"material", "unit"}),
+        "allowed_mutation_roots": frozenset({"material"}),
+        "allowed_models": frozenset({"Material", "Unit"}),
+        "reason": "Explicitly acknowledged, audited archival of test materials and creation of review-only M1 foundation targets.",
+    },
     "module1_provider_work_cost_offers.py": {
         "allowed_session_methods": frozenset({"add", "flush"}),
         "allowed_add_targets": frozenset({"offer"}),

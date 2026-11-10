@@ -5,8 +5,11 @@ from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.enums import MaterialStatus
+from app.models.material import Material
 from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.module2_technology import Technology, TechnologyEvidenceReference
 from app.schemas.module2_estimation_contract import (
@@ -32,6 +35,7 @@ from app.schemas.module2_knowledge import (
 from app.schemas.module2_technology import TechnologyLifecycle
 from app.services.module1_unit_conversion_registry import UnitConversionRegistry
 from app.services.module1_work_catalog import get_work_item
+from app.services.module2_foundation_quantity_rules import describe_quantity_rule
 from app.services.module2_knowledge_foundation import (
     detect_compatibility_conflicts,
     detect_knowledge_rule_conflicts,
@@ -86,6 +90,34 @@ async def build_module5_estimation_input_package(
     blockers: list[EstimationIssue] = []
     warnings: list[EstimationIssue] = []
 
+    material_ids = {item.canonical_material_id for item in technology.requirements if item.canonical_material_id}
+    direct_selectors = [
+        (item.resource_kind, item.resource_selector)
+        for item in technology.consumption_norms if item.status == TechnologyLifecycle.ACTIVE.value
+    ]
+    direct_selectors.extend(
+        pair for item in technology.compatibility_rules if item.status == TechnologyLifecycle.ACTIVE.value
+        for pair in ((item.subject_kind, item.subject_selector), (item.object_kind, item.object_selector))
+    )
+    for kind, selector in direct_selectors:
+        if kind == KnowledgeSelectorKind.CANONICAL_MATERIAL.value:
+            try:
+                material_ids.add(uuid.UUID(str((selector or {}).get("canonical_material_id"))))
+            except (ValueError, TypeError, AttributeError):
+                pass
+    for item in technology.knowledge_rules:
+        payload = item.outcome_payload or {}
+        if item.status == TechnologyLifecycle.ACTIVE.value and payload.get("kind") == "FOUNDATION_QUANTITY_RULE":
+            try:
+                material_ids.add(uuid.UUID(str(payload.get("canonical_material_id"))))
+            except (ValueError, TypeError, AttributeError):
+                pass
+    material_statuses = {}
+    if material_ids:
+        material_statuses = dict((await db.execute(
+            select(Material.id, Material.status).where(Material.id.in_(material_ids))
+        )).all())
+
     for code in validate_technology_activation(technology):
         _append_issue(blockers, code, "TECHNOLOGY", technology.id)
 
@@ -106,6 +138,8 @@ async def build_module5_estimation_input_package(
                 "technical_constraints": requirement.technical_constraints,
             },
         )
+        local_blockers = list(local_blockers)
+        local_blockers.extend(_canonical_material_blockers(selector, material_statuses))
         scoped_layers = sorted(
             layers_by_requirement.get(requirement.id, ()),
             key=lambda item: item.position,
@@ -197,6 +231,7 @@ async def build_module5_estimation_input_package(
                 unit_registry,
                 verified_evidence,
                 blockers,
+                material_statuses,
             )
         )
 
@@ -257,6 +292,7 @@ async def build_module5_estimation_input_package(
                 verified_evidence,
                 blockers,
                 warnings,
+                material_statuses,
             )
         )
 
@@ -272,6 +308,7 @@ async def build_module5_estimation_input_package(
             item
             for item in active_rules
             if item.outcome_type != KnowledgeRuleOutcome.INFORMATION.value
+            or (item.outcome_payload or {}).get("kind") == "FOUNDATION_QUANTITY_RULE"
         ),
         key=lambda item: (item.rule_code, item.revision, str(item.id)),
     ):
@@ -282,6 +319,7 @@ async def build_module5_estimation_input_package(
                 active_rules,
                 verified_evidence,
                 blockers,
+                material_statuses,
             )
         )
 
@@ -336,6 +374,7 @@ def _build_norm(
     unit_registry: UnitConversionRegistry,
     verified_evidence: frozenset[uuid.UUID],
     package_blockers: list[EstimationIssue],
+    material_statuses: Mapping[uuid.UUID, MaterialStatus],
 ) -> EstimationConsumptionNorm:
     local_blockers = list(norm.blockers or ())
     basis_unit = unit_registry.normalize_unit(norm.basis_unit)
@@ -360,6 +399,7 @@ def _build_norm(
 
     resource, selector_blockers = _selector(norm.resource_kind, norm.resource_selector)
     local_blockers.extend(selector_blockers)
+    local_blockers.extend(_canonical_material_blockers(resource, material_statuses))
     evidence_ids = _evidence_ids(
         technology.evidence_references,
         "CONSUMPTION_NORM",
@@ -402,10 +442,13 @@ def _build_compatibility_constraint(
     verified_evidence: frozenset[uuid.UUID],
     package_blockers: list[EstimationIssue],
     package_warnings: list[EstimationIssue],
+    material_statuses: Mapping[uuid.UUID, MaterialStatus],
 ) -> EstimationCompatibilityConstraint:
     subject, subject_blockers = _selector(rule.subject_kind, rule.subject_selector)
     object_, object_blockers = _selector(rule.object_kind, rule.object_selector)
     local_blockers = [*(rule.blockers or ()), *subject_blockers, *object_blockers]
+    local_blockers.extend(_canonical_material_blockers(subject, material_statuses))
+    local_blockers.extend(_canonical_material_blockers(object_, material_statuses))
     conflicts = detect_compatibility_conflicts(rule, peer_rules)
     if conflicts:
         local_blockers.append("conflicting_active_compatibility_rule")
@@ -451,8 +494,32 @@ def _build_knowledge_constraint(
     peer_rules: Sequence[KnowledgeRule],
     verified_evidence: frozenset[uuid.UUID],
     package_blockers: list[EstimationIssue],
+    material_statuses: Mapping[uuid.UUID, MaterialStatus],
 ) -> EstimationKnowledgeConstraint:
     local_blockers = list(rule.blockers or ())
+    payload = dict(rule.outcome_payload or {})
+    if payload.get("kind") == "FOUNDATION_QUANTITY_RULE":
+        try:
+            expected = describe_quantity_rule(payload["code"], role_code=payload["material_role_code"],
+                                              material_id=payload["canonical_material_id"])
+            if payload != expected or rule.outcome_type != KnowledgeRuleOutcome.INFORMATION.value:
+                raise ValueError("invalid quantity rule payload")
+            material_id = uuid.UUID(str(payload["canonical_material_id"]))
+        except (KeyError, ValueError, TypeError, AttributeError):
+            local_blockers.append("invalid_foundation_quantity_rule")
+        else:
+            if material_id not in material_statuses:
+                local_blockers.append("canonical_material_missing")
+            elif material_statuses[material_id] != MaterialStatus.VERIFIED:
+                local_blockers.append("canonical_material_not_verified")
+            matched_roles = [
+                item.canonical_material_id == material_id
+                and payload["material_role_code"] in {item.code, item.material_role_code}
+                and rule.scope_reference == str(item.id)
+                for item in technology.requirements
+            ]
+            if rule.scope_kind != "MATERIAL_REQUIREMENT" or not any(matched_roles):
+                local_blockers.append("quantity_rule_role_unresolved")
     if detect_knowledge_rule_conflicts(rule, peer_rules):
         local_blockers.append("conflicting_active_knowledge_rule")
     evidence_ids = _evidence_ids(
@@ -481,6 +548,19 @@ def _build_knowledge_constraint(
         evidence_reference_ids=evidence_ids,
         blockers=local_blockers,
     )
+
+
+def _canonical_material_blockers(
+    selector: EstimationSelector, material_statuses: Mapping[uuid.UUID, MaterialStatus],
+) -> tuple[str, ...]:
+    material_id = selector.canonical_material_id
+    if selector.selector_kind != KnowledgeSelectorKind.CANONICAL_MATERIAL or material_id is None:
+        return ()
+    if material_id not in material_statuses:
+        return ("canonical_material_missing",)
+    if material_statuses[material_id] != MaterialStatus.VERIFIED:
+        return ("canonical_material_not_verified",)
+    return ()
 
 
 def _selector(kind: str, values: Mapping[str, Any] | None) -> tuple[EstimationSelector, tuple[str, ...]]:

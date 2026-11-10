@@ -291,9 +291,9 @@
           <div class="m2-material-row">
             <div><strong>{{ item.effective_name }}</strong></div>
             <div data-label="Значение по умолчанию">{{ item.default_label or 'Не задано' }}</div>
-            <div data-label="Карточка M1">{% if item.selected_material is not defined %}Требуется обновление{% elif item.selected_material %}<a href="{{ item.material_card_url(item.selected_material.id) }}">{{ item.selected_material.canonical_name }}</a>{% else %}Не выбрана{% endif %}</div>
+            <div data-label="Карточка M1">{% if item.selected_material is not defined %}Требуется обновление{% elif item.selected_material %}<a href="{{ item.material_card_url(item.selected_material.id) }}">{{ item.selected_material.canonical_name }}</a>{% elif item.technical_candidate %}<a href="{{ item.material_card_url(item.technical_candidate.id) }}">{{ item.technical_candidate.canonical_name }}</a><small>Техническая карточка на проверке</small>{% else %}Не выбрана{% endif %}</div>
             <div data-label="Варианты">{% set alternative_count = item.candidates|length - (1 if item.selected_material is defined and item.selected_material else 0) %}{% if alternative_count %}{{ alternative_count }} доступно{% else %}Не найдены{% endif %}</div>
-            <div data-label="Статус">{% if item.selected_material is not defined %}<span class="m2-status">Требуется обновление</span>{% elif item.gap and item.gap.status == 'DISMISSED' %}<span class="m2-status">Не требуется</span>{% elif item.selected_material %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% elif item.candidates %}<span class="m2-status" data-status="REVIEW">Есть варианты</span>{% else %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% endif %}</div>
+            <div data-label="Статус">{% if item.selected_material is not defined %}<span class="m2-status">Требуется обновление</span>{% elif item.gap and item.gap.status == 'DISMISSED' %}<span class="m2-status">Не требуется</span>{% elif item.selected_material %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% elif item.technical_candidate %}<span class="m2-status" data-status="REVIEW">Требует проверки</span><small>Цена не подтверждена</small>{% elif item.candidates %}<span class="m2-status" data-status="REVIEW">Есть варианты</span>{% else %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% endif %}</div>
             {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
           </div>
           {% if item.candidates %}
@@ -354,15 +354,15 @@
           {% for item in defaults %}
           <tr>
             <td><strong>{{ item.human_name }}</strong></td>
-            <td>{{ item.display_value }} {{ item.model.unit or '' }} <span class="m2-badge">Допущение</span>{% if item.model.warning_text %}<details><summary>Условия</summary>{{ item.model.warning_text }}</details>{% endif %}</td>
+            <td>{% if item.requires_explicit_input %}Требуется значение объекта{% else %}{{ item.display_value }} {{ item.model.unit or '' }} <span class="m2-badge">Допущение</span>{% if item.model.warning_text %}<details><summary>Условия</summary>{{ item.model.warning_text }}</details>{% endif %}{% endif %}</td>
             <td>{{ item.human_requirement_name or 'Параметр технологии' }}</td>
-            <td>{% if permissions.admin and item.model.value_type in ('NUMBER', 'ENUM', 'BOOLEAN', 'TEXT') %}<button type="button" class="m2-button m2-icon-button ghost" title="Изменить значение по умолчанию" aria-label="Изменить {{ item.model.name_ru }}" data-m2-open-default="m2-default-{{ item.model.assumption_code }}">✎</button>{% endif %}</td>
+            <td>{% if not item.requires_explicit_input and permissions.admin and item.model.value_type in ('NUMBER', 'ENUM', 'BOOLEAN', 'TEXT') %}<button type="button" class="m2-button m2-icon-button ghost" title="Изменить значение по умолчанию" aria-label="Изменить {{ item.model.name_ru }}" data-m2-open-default="m2-default-{{ item.model.assumption_code }}">✎</button>{% endif %}</td>
           </tr>
           {% else %}<tr><td colspan="4" class="m2-empty">Значения по умолчанию пока не заданы.</td></tr>{% endfor %}
           </tbody>
         </table>
       </div>
-      {% for item in defaults if permissions.admin and item.model.value_type in ('NUMBER', 'ENUM', 'BOOLEAN', 'TEXT') %}
+      {% for item in defaults if not item.requires_explicit_input and permissions.admin and item.model.value_type in ('NUMBER', 'ENUM', 'BOOLEAN', 'TEXT') %}
       <dialog id="m2-default-{{ item.model.assumption_code }}" class="m2-default-dialog" aria-labelledby="m2-default-title-{{ item.model.assumption_code }}">
         <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-default" data-m2-form>
           {{ hidden_context('defaults') }}
