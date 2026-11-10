@@ -384,10 +384,10 @@
         </div>
         <div>
           <label for="material-price-filter">Цена</label>
-          <select id="material-price-filter" onchange="applyMaterialFilters()">
+          <select id="material-price-filter" onchange="applyMaterialPriceFilter()">
             <option value="">Все материалы</option>
             <option value="with">Есть цена</option>
-            <option value="without">Без цены</option>
+            <option value="without" {% if material_table_preset == 'needs_price' %}selected{% endif %}>Без цены</option>
           </select>
         </div>
         <div>
@@ -422,6 +422,8 @@
         <tbody>
         {% for material in materials %}
           {% set price_info = material_prices.get(material.id|string) %}
+          {% set technical_attributes = material_attribute_rows(material) %}
+          {% set base_unit_label = {'m': 'м', 'm2': 'м²', 'm3': 'м³', 'piece': 'шт.'}.get(material.base_unit.abbreviation, material.base_unit.abbreviation) if material.base_unit else '' %}
           {% set category_label = material.category.name if material.category else "Не указана" %}
           {% set subcategory_label = material.subcategory.name if material.subcategory else "" %}
           {% set supplier_label = source_display_name(price_info.source) if price_info and price_info.source else "Не указан" %}
@@ -475,13 +477,20 @@
                   {% endfor %}
                   {% if material.specifications|length > 3 %}<span class="material-secondary">Еще {{ material.specifications|length - 3 }} в карточке материала</span>{% endif %}
                 </div>
+              {% elif technical_attributes %}
+                <div class="material-characteristics">
+                  {% for attribute in technical_attributes[:3] %}
+                    <div class="material-characteristic-row"><span>{{ attribute.label }}</span><strong>{{ attribute.value }}{% if attribute.unit %} {{ attribute.unit }}{% endif %}</strong></div>
+                  {% endfor %}
+                  {% if technical_attributes|length > 3 %}<span class="material-secondary">Еще {{ technical_attributes|length - 3 }} в карточке материала</span>{% endif %}
+                </div>
               {% else %}
                 <span class="muted">Не указаны</span>
               {% endif %}
             </td>
             <td data-field="unit_package">
-              {% if price_info and price_info.unit %}
-                <strong>{{ price_info.unit }}</strong>
+              {% if base_unit_label or (price_info and price_info.unit) %}
+                <strong>{{ base_unit_label or price_info.unit }}</strong>
               {% else %}
                 <span class="muted">Единица не указана</span>
               {% endif %}
@@ -530,7 +539,7 @@
                         <div class="material-detail-row"><dt>Категория</dt><dd>{{ category_label }}</dd></div>
                         {% if subcategory_label %}<div class="material-detail-row"><dt>Подкатегория</dt><dd>{{ subcategory_label }}</dd></div>{% endif %}
                         <div class="material-detail-row"><dt>Тип</dt><dd>{{ material.material_type.name if material.material_type else "Не указан" }}</dd></div>
-                        <div class="material-detail-row"><dt>Единица учета</dt><dd>{{ price_info.unit if price_info and price_info.unit else "Не указана" }}</dd></div>
+                        <div class="material-detail-row"><dt>Единица учета</dt><dd>{{ base_unit_label or (price_info.unit if price_info and price_info.unit else "Не указана") }}</dd></div>
                         <div class="material-detail-row"><dt>Статус</dt><dd>{{ enum_label(material.status) }}</dd></div>
                       </dl>
                     </section>
@@ -544,7 +553,7 @@
                     </section>
                     <section class="material-detail-section material-detail-wide">
                       <h3>Характеристики</h3>
-                      {% if material.specifications %}
+                      {% if material.specifications or technical_attributes %}
                         <dl class="material-detail-list">
                           {% for specification in material.specifications %}
                             {% set spec_label = characteristic_label(specification) %}
@@ -555,6 +564,9 @@
                               </div>
                             {% endif %}
                           {% endfor %}
+                          {% for attribute in technical_attributes %}
+                            <div class="material-detail-row"><dt>{{ attribute.label }}</dt><dd>{{ attribute.value }}{% if attribute.unit %} {{ attribute.unit }}{% endif %}</dd></div>
+                          {% endfor %}
                         </dl>
                       {% else %}
                         <div class="muted">Основные характеристики не указаны.</div>
@@ -563,7 +575,7 @@
                     <section class="material-detail-section">
                       <h3>Единица и упаковка</h3>
                       <dl class="material-detail-list">
-                        <div class="material-detail-row"><dt>Единица материала</dt><dd>{{ price_info.unit if price_info and price_info.unit else "Не указана" }}</dd></div>
+                        <div class="material-detail-row"><dt>Единица материала</dt><dd>{{ base_unit_label or (price_info.unit if price_info and price_info.unit else "Не указана") }}</dd></div>
                         <div class="material-detail-row"><dt>Единица цены</dt><dd>{{ price_info.unit if price_info and price_info.unit else "Не указана" }}</dd></div>
                         <div class="material-detail-row"><dt>Упаковка</dt><dd>Данные об упаковке не указаны</dd></div>
                       </dl>
@@ -1696,11 +1708,29 @@
         const field = document.getElementById(fieldId);
         if (field) field.value = params.get(param) || "";
       });
+      if (params.get("price") === "with") document.getElementById("material-price-filter").value = "with";
       if (params.has("page_size")) changePageSize("material-table", params.get("page_size") || "50");
       if (params.has("page")) table.dataset.page = String(Math.max(1, Number(params.get("page") || 1)));
     }
 
+    function applyMaterialPriceFilter() {
+      const value = document.getElementById("material-price-filter").value;
+      const params = new URLSearchParams(window.location.search);
+      const serverPreset = params.get("preset") || "{{ material_table_preset }}";
+      if ((value === "without" && serverPreset !== "needs_price") ||
+          (value !== "without" && serverPreset === "needs_price")) {
+        params.set("preset", value === "without" ? "needs_price" : "all");
+        if (value === "with") params.set("price", "with");
+        else params.delete("price");
+        params.delete("page");
+        window.location.search = params.toString();
+        return;
+      }
+      applyMaterialFilters();
+    }
+
     function applyMaterialFilters() {
+      if (!document.getElementById("material-table")) return;
       const preset = activeMaterialPreset();
       const query = (document.getElementById("material-search").value || "").toLocaleLowerCase();
       const category = (document.getElementById("material-category-filter").value || "").toLocaleLowerCase();
@@ -1758,6 +1788,14 @@
     }
 
     function resetMaterialFilters() {
+      if ((new URLSearchParams(window.location.search).get("preset") || "{{ material_table_preset }}") === "needs_price") {
+        const params = new URLSearchParams(window.location.search);
+        params.set("preset", "all");
+        params.delete("price");
+        params.delete("page");
+        window.location.search = params.toString();
+        return;
+      }
       [
         "material-search",
         "material-category-filter",

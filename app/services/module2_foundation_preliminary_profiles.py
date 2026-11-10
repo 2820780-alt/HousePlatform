@@ -46,6 +46,8 @@ class ProfileReconciliation:
     same_code_needs_review: tuple[str, ...]
     existing_only: tuple[str, ...]
     proposed_only: tuple[str, ...]
+    suggested_expansions: tuple[tuple[str, tuple[str, ...]], ...]
+    unmapped_existing: tuple[str, ...]
 
 
 def _r(code, element, purpose, material=None, rule=None, alternatives=(), condition=None, missing=None, follow_up_rules=()):
@@ -86,6 +88,7 @@ PROFILES = (
         _form("Лента", "FORM-01"),
         _r("PREPARATION", "Основание", "Подготовка", condition="Если предусмотрена", missing="Нужен выбранный состав подготовки."),
         _r("WATERPROOFING", "Лента", "Гидроизоляция", condition="Если предусмотрена", missing="Нужно выбрать систему."),
+        _r("INSULATION", "Лента", "Теплоизоляция", condition="Если предусмотрена", missing="Нужны выбранный материал и зоны."),
     ), (("width", "400", "mm"), ("height", "600", "mm"), ("top_bar_count", "2", "piece"),
         ("bottom_bar_count", "2", "piece"), ("stirrup_spacing", "200", "mm"), ("cover", "40", "mm"))),
     Profile("FND_STRIP_PRECAST_FBS_FL", "FND-FBS-01", (
@@ -130,6 +133,7 @@ PROFILES = (
         _r("SAND", "Основание", "Песчаная подготовка", "BASE-01", "NET_AREA_VOLUME"),
         _r("GRAVEL", "Основание", "Щебёночная подготовка", "BASE-02", "NET_AREA_VOLUME", ("BASE-03",)),
         _r("GEOTEXTILE", "Основание", "Разделительный слой", "BASE-04", missing="Нужна раскладка и нахлёсты."),
+        _r("WATERPROOFING", "Плита", "Гидроизоляция", condition="Если предусмотрена", missing="Нужно выбрать систему."),
         _r("PENETRATIONS", "Вводы", "Гильзы", "PEN-01", "LAYOUT_ITEM_COUNT", ("PEN-02",)),
         _r("HEATING", "Пол", "Трубы отопления", condition="Если включены", missing="Учёт принадлежит выбранной инженерной системе."),
     )),
@@ -219,6 +223,28 @@ PROFILES = (
 )
 
 
+# Candidates describe semantic expansion, not permission to rewrite historical links.
+_ROLE_EXPANSIONS = {
+    "FND_STRIP_MONOLITHIC_RC": {"REBAR": ("REBAR_TOP", "REBAR_BOTTOM", "STIRRUPS", "CORNER_REBAR", "JOINT_REBAR")},
+    "FND_STRIP_PRECAST_FBS_FL": {"FBS": ("FBS_MAIN", "FBS_SHORT", "FBS_SHORTER")},
+    "FND_SLAB_MONOLITHIC_RC": {"REBAR": ("LOWER_X", "LOWER_Y", "UPPER_X", "UPPER_Y", "LOCAL_REBAR")},
+    "FND_SLAB_RIBBED_RC": {"CONCRETE": ("SLAB_CONCRETE", "RIB_CONCRETE"),
+                           "REBAR": ("SLAB_LOWER", "SLAB_UPPER", "RIB_LONGITUDINAL", "STIRRUPS", "RIB_JOINTS")},
+    "FND_SLAB_USHP": {"CONCRETE": ("SLAB_CONCRETE", "RIB_CONCRETE"), "REBAR": ("SLAB_REBAR", "RIB_REBAR"),
+                      "XPS": ("UNDER_SLAB_XPS", "EDGE_XPS")},
+    "FND_UFF": {"REBAR": ("FOUNDATION_REBAR",), "XPS": ("FOUNDATION_XPS",)},
+    "FND_PILE_BORED_RC": {"REBAR": ("PILE_LONGITUDINAL", "STIRRUPS")},
+    "FND_PILE_DRIVEN_RC": {"PILE": ("FACTORY_PILE",)},
+    "FND_PILE_SCREW": {"PILE": ("SCREW_PILE",)},
+    "FND_PILE_GRILLAGE": {"REBAR": ("REBAR_TOP", "REBAR_BOTTOM", "STIRRUPS")},
+    "FND_COLUMN_CONCRETE_RC": {"REBAR": ("COLUMN_REBAR", "STIRRUPS")},
+    "FND_BASEMENT_WALL_MONOLITHIC": {"REBAR": ("OUTER_VERTICAL", "OUTER_HORIZONTAL", "INNER_VERTICAL", "INNER_HORIZONTAL",
+                                                    "CORNER_REBAR", "OPENING_REBAR", "SLAB_JOINT")},
+    "FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE": {"MEMBRANE": ("BITUMEN_MEMBRANE",)},
+    "FND_SUBSTRUCTURE_INSULATION_XPS": {"XPS": ("WALL_XPS", "UNDER_SLAB_XPS", "EDGE_XPS", "NODE_XPS")},
+}
+
+
 def audit_profile_reconciliation(technology: Technology) -> ProfileReconciliation:
     """Compare names only; a shared code is not evidence of semantic equivalence."""
     profile = next((item for item in PROFILES if item.technology_code == technology.technology_code), None)
@@ -229,12 +255,67 @@ def audit_profile_reconciliation(technology: Technology) -> ProfileReconciliatio
         raise ValueError("existing requirement codes require review")
     proposed = {role.code for role in profile.roles}
     existing_set = set(existing)
+    candidates = _ROLE_EXPANSIONS.get(technology.technology_code, {})
+    suggestions = []
+    for code in sorted(existing_set):
+        target_codes = candidates.get(code, (code,) if code in proposed else ())
+        if not set(target_codes) <= proposed:
+            raise ValueError("semantic expansion refers to an unknown proposed role")
+        if target_codes:
+            suggestions.append((code, target_codes))
     return ProfileReconciliation(
         technology_code=technology.technology_code,
         same_code_needs_review=tuple(sorted(existing_set & proposed)),
         existing_only=tuple(sorted(existing_set - proposed)),
         proposed_only=tuple(sorted(proposed - existing_set)),
+        suggested_expansions=tuple(suggestions),
+        unmapped_existing=tuple(sorted(existing_set - {item[0] for item in suggestions})),
     )
+
+
+def prepare_single_role_linkage_draft(technology: Technology, materials_by_code: Mapping[str, object], *, actor_role_code: str):
+    """Prepare a blocked revision; never replace a multi-role requirement or write to a database."""
+    from app.models.enums import MaterialStatus
+    from app.services.module1_foundation_target_package import PACKAGE
+    from app.services.module2_technology_foundation import create_next_revision
+
+    audit = audit_profile_reconciliation(technology)
+    profile = next(item for item in PROFILES if item.technology_code == technology.technology_code)
+    roles = {item.code: item for item in profile.roles}
+    draft = create_next_revision(technology, actor_role_code=actor_role_code)
+    draft.input_blockers = list(dict.fromkeys([*(draft.input_blockers or ()), "foundation_reconciliation_required"]))
+    suggestions = dict(audit.suggested_expansions)
+    linked, unresolved = [], []
+    for requirement in draft.requirements:
+        codes = suggestions.get(requirement.code, ())
+        if len(codes) != 1 or not roles[codes[0]].material_code:
+            unresolved.append(requirement.code)
+            continue
+        material_code = roles[codes[0]].material_code
+        material = materials_by_code.get(material_code)
+        if material is None:
+            unresolved.append(requirement.code)
+            continue
+        marker = {item.attribute_name: item.attribute_value for item in material.attributes}
+        valid = (
+            isinstance(material.id, UUID)
+            and material.status in {MaterialStatus.DRAFT, MaterialStatus.VERIFIED}
+            and marker.get("registry_origin") == PACKAGE
+            and marker.get("registry_code") == material_code
+            and requirement.selector_kind == "MATERIAL_CLASS"
+            and requirement.canonical_material_id is None
+            and requirement.material_type_id is None
+            and not requirement.technical_constraints
+            and requirement.material_category_id is not None
+            and material.category_id == requirement.material_category_id
+        )
+        if not valid:
+            unresolved.append(requirement.code)
+            continue
+        requirement.selector_kind = "CANONICAL_MATERIAL"
+        requirement.canonical_material_id = material.id
+        linked.append(requirement.code)
+    return draft, tuple(linked), tuple(unresolved)
 
 
 def profile_requirement_proposals(technology_code: str, material_ids: Mapping[str, UUID]):
@@ -386,7 +467,8 @@ def profile_material_default_proposals(
             equal = (len(current) == 1 and current[0].value_type == "MATERIAL"
                      and str(current[0].default_value.get("value")) == str(selected)
                      and set((current[0].allowed_values or {}).get("material_ids", ())) == set(allowed)
-                     and current[0].material_requirement_id == requirement_id
+                     and (current[0].material_requirement_id or getattr(
+                         current[0].__dict__.get("material_requirement"), "id", None)) == requirement_id
                      and current[0].auto_fallback and bool(current[0].warning_text))
             (reused if equal else conflicts).append(code)
             continue
@@ -403,3 +485,170 @@ def profile_material_default_proposals(
             material_requirement_id=requirement_id, status="ACTIVE",
         ))
     return tuple(proposals), tuple(reused), tuple(conflicts), tuple(unresolved)
+
+
+def populate_blocked_foundation_draft(technology: Technology, materials_by_code: Mapping[str, object], *, actor_role_code: str):
+    """Add review-only role records to a blocked revision without changing legacy requirements."""
+    from app.models.enums import MaterialStatus
+    from app.core.access_levels import AccessLevel
+    from app.services.module1_foundation_target_package import PACKAGE
+    from app.services.module2_knowledge_foundation import create_knowledge_rule_draft
+    from app.services.module2_technology_foundation import require_module2_access
+    from app.services.module2_workbench import upsert_draft_requirement
+
+    require_module2_access(actor_role_code, AccessLevel.EDIT)
+    if technology.status != "DRAFT" or "foundation_reconciliation_required" not in (technology.input_blockers or ()):
+        raise ValueError("a reconciliation-blocked DRAFT technology is required")
+    ids = {}
+    for code, material in materials_by_code.items():
+        marker = {item.attribute_name: item.attribute_value for item in material.attributes}
+        if (isinstance(material.id, UUID) and material.status in {MaterialStatus.DRAFT, MaterialStatus.VERIFIED}
+                and marker.get("registry_origin") == PACKAGE and marker.get("registry_code") == code):
+            ids[code] = material.id
+    proposals, unresolved = profile_requirement_proposals(technology.technology_code, ids)
+    added_roles, reused_roles, alias_requirements = [], [], {}
+    legacy_expansions = _ROLE_EXPANSIONS.get(technology.technology_code, {})
+    for command in proposals:
+        same_code = next((item for item in technology.requirements if item.code == command.code), None)
+        if same_code is not None:
+            if (same_code.selector_kind == "CANONICAL_MATERIAL"
+                    and same_code.canonical_material_id == command.canonical_material_id
+                    and same_code.material_role_code != command.code):
+                reused_roles.append(command.code)
+                alias_requirements[command.code] = same_code
+            continue
+        existing = next((item for item in technology.requirements
+                         if legacy_expansions.get(item.code) == (command.code,)
+                         and item.selector_kind == "CANONICAL_MATERIAL"
+                         and item.canonical_material_id == command.canonical_material_id), None)
+        if existing is not None:
+            reused_roles.append(command.code)
+            alias_requirements[command.code] = existing
+            continue
+        upsert_draft_requirement(technology, command, actor_role_code=actor_role_code)
+        added_roles.append(command.code)
+    profile = next(item for item in PROFILES if item.technology_code == technology.technology_code)
+    role_material_ids = {role.code: ids.get(role.material_code) for role in profile.roles if role.material_code}
+    requirement_ids = {
+        item.code: item.id for item in technology.requirements
+        if item.selector_kind == "CANONICAL_MATERIAL" and item.material_role_code == item.code
+        and item.canonical_material_id is not None and item.canonical_material_id == role_material_ids.get(item.code)
+    }
+    rules, missing_rules = profile_quantity_rule_proposals(technology.technology_code, ids, requirement_ids)
+    alias_rules = set()
+    for role in profile.roles:
+        requirement = alias_requirements.get(role.code)
+        if requirement is None:
+            continue
+        steps = ((role.quantity_rule,) if role.quantity_rule else ()) + role.follow_up_rules
+        for code in steps:
+            payload = describe_quantity_rule(code, role_code=requirement.material_role_code or requirement.code,
+                                             material_id=str(requirement.canonical_material_id))
+            rules = (*rules, KnowledgeRuleDraftInput(
+                rule_code=f"Q_{role.code}_{code}", scope_kind="MATERIAL_REQUIREMENT",
+                scope_reference=str(requirement.id), outcome_type="INFORMATION", outcome_payload=payload,
+                conditions=[{"source": "CONTEXT", "field": field["name"], "operator": "EXISTS"}
+                            for field in payload["inputs"] if not field.get("required_when")],
+                blockers=["evidence_review_required", "material_review_required"],
+            ))
+            alias_rules.add(role.code)
+    added_rules, conflicts = [], []
+    for parent_code, child_codes in legacy_expansions.items():
+        if len(child_codes) < 2:
+            continue
+        parent = next((item for item in technology.requirements if item.code == parent_code), None)
+        if parent is None:
+            continue
+        children = []
+        missing = []
+        for child_code in child_codes:
+            child = next((item for item in technology.requirements if item.code == child_code
+                          and item.selector_kind == "CANONICAL_MATERIAL" and item.canonical_material_id
+                          and item.canonical_material_id == role_material_ids.get(child_code)), None)
+            if child is None:
+                missing.append(child_code)
+            else:
+                children.append({"role_code": child_code, "requirement_id": str(child.id),
+                                 "material_id": str(child.canonical_material_id)})
+        payload = {"kind": "FOUNDATION_ROLE_COMPOSITION", "version": 1,
+                   "parent_requirement_id": str(parent.id), "children": children,
+                   "unresolved_roles": missing, "parent_is_not_an_additional_purchase": True,
+                   "status": "REVIEW_REQUIRED", "structural_safety_verified": False}
+        command = KnowledgeRuleDraftInput(
+            rule_code=f"ROLE_COMPOSITION_{parent_code}", scope_kind="MATERIAL_REQUIREMENT",
+            scope_reference=str(parent.id), outcome_type="INFORMATION", outcome_payload=payload,
+            conditions=[{"source": "CONTEXT", "field": "foundation_composition_reviewed", "operator": "EQUAL", "value": True}],
+            blockers=["role_reconciliation_required", "material_review_required"],
+        )
+        rules = (*rules, command)
+    for command in rules:
+        current = [item for item in technology.knowledge_rules if item.rule_code == command.rule_code]
+        if current:
+            if (len(current) != 1 or current[0].outcome_payload != command.outcome_payload
+                    or current[0].scope_kind != command.scope_kind.value
+                    or current[0].scope_reference != command.scope_reference or current[0].status != "DRAFT"
+                    or current[0].conditions != [item.model_dump(mode="json") for item in command.conditions]
+                    or not set(command.blockers).issubset(set(current[0].blockers or ()))):
+                conflicts.append(command.rule_code)
+            continue
+        create_knowledge_rule_draft(technology, command, actor_role_code=actor_role_code)
+        added_rules.append(command.rule_code)
+    updated_defaults, completed_alias_defaults = [], set()
+    for role in profile.roles:
+        requirement_id = requirement_ids.get(role.code)
+        requirement = alias_requirements.get(role.code) or next(
+            (item for item in technology.requirements if item.id == requirement_id), None)
+        selected = ids.get(role.material_code)
+        alternatives = [ids.get(code) for code in role.alternatives]
+        parameter_code = f"MATERIAL_{requirement.code}" if role.code in alias_requirements else f"MATERIAL_{role.code}"
+        current = [item for item in technology.default_assumptions
+                   if item.status == "ACTIVE" and item.parameter_code == parameter_code]
+        if not requirement or not selected or not all(alternatives) or len(current) != 1:
+            continue
+        default = current[0]
+        linked_requirement = default.material_requirement_id or getattr(
+            default.__dict__.get("material_requirement"), "id", None)
+        linked_evidence = default.evidence_reference_id or getattr(
+            default.__dict__.get("evidence_reference"), "id", None)
+        if (role.code in alias_requirements and default.value_type == "MATERIAL"
+                and default.default_value == {"value": str(selected)}
+                and set((default.allowed_values or {}).get("material_ids", ())) == {str(value) for value in (selected, *alternatives)}
+                and linked_requirement == requirement.id and default.auto_fallback and default.warning_text):
+            completed_alias_defaults.add(role.code)
+            continue
+        if not (
+            default.assumption_code == default.parameter_code
+            and default.value_type == "MATERIAL_CLASS"
+            and default.source_kind == "PLATFORM_ASSUMPTION"
+            and default.allowed_values_strategy == "M1_REQUIREMENT_CATEGORY"
+            and linked_requirement == requirement.id and linked_evidence is None
+            and requirement.material_category_id is not None
+            and (default.default_value or {}) == {"value": str(requirement.material_category_id)}
+        ):
+            continue
+        default.value_type = "MATERIAL"
+        default.default_value = {"value": str(selected)}
+        default.allowed_values_strategy = "EXPLICIT_M1_MATERIALS"
+        default.allowed_values = {"material_ids": [str(value) for value in (selected, *alternatives)]}
+        default.applicability = {"mode": "PRELIMINARY_ONLY", "source": "USER_PROVIDED_SPRINT_SPECIFICATION",
+                                 "structural_safety_verified": False, "material_verification": "REQUIRED",
+                                 "alternative_kind": "MANUAL_CONFIGURATION_CHANGE_NOT_EQUIVALENCE"}
+        default.auto_fallback = True
+        default.warning_level = "CRITICAL"
+        default.warning_text = profile.warning + " Материал требует проверки; ручная замена не подтверждает равноценность."
+        updated_defaults.append(default.parameter_code)
+        if role.code in alias_requirements:
+            completed_alias_defaults.add(role.code)
+    numeric, _, numeric_conflicts = profile_numeric_default_proposals(technology)
+    material_defaults, _, material_conflicts, missing_defaults = profile_material_default_proposals(
+        technology, ids, requirement_ids)
+    technology.default_assumptions.extend((*numeric, *material_defaults))
+    return {
+        "added_roles": tuple(added_roles), "reused_roles": tuple(reused_roles), "added_rules": tuple(added_rules),
+        "added_defaults": len(numeric) + len(material_defaults),
+        "updated_defaults": tuple(updated_defaults),
+        "conflicts": tuple((*conflicts, *numeric_conflicts, *material_conflicts)),
+        "unresolved": tuple(dict.fromkeys((*unresolved,
+            *(code for code in missing_rules if code not in alias_rules),
+            *(code for code in missing_defaults if code not in completed_alias_defaults)))),
+    }

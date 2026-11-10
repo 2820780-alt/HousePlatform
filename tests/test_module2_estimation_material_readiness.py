@@ -135,3 +135,33 @@ async def test_direct_norm_and_compatibility_selectors_check_m1_status(monkeypat
     assert "canonical_material_not_verified" in package.consumption_norms[0].blockers
     assert "canonical_material_not_verified" in package.compatibility_constraints[0].blockers
     assert not package.ready_for_estimation
+
+
+@pytest.mark.asyncio
+async def test_composition_is_preserved_and_blocks_estimation_until_supported(monkeypatch):
+    requirement = TechnologyMaterialRequirement(id=uuid4(), code="REBAR", selector_kind="ROLE",
+                                                material_role_code="REBAR", technical_constraints={})
+    layer = TechnologyLayer(id=uuid4(), position=1, functional_role="REINFORCEMENT",
+                            material_requirement_id=requirement.id, is_mandatory=True, restrictions={})
+    technology = Technology(id=uuid4(), technology_code="TEST_FOUNDATION", revision=1, status="ACTIVE",
+                            name="Test", source_kind="HUMAN_CURATED", input_missing_fields=[], input_blockers=[])
+    technology.requirements.append(requirement)
+    technology.layers.append(layer)
+    payload = {"kind": "FOUNDATION_ROLE_COMPOSITION", "parent_requirement_id": str(requirement.id),
+               "children": [], "unresolved_roles": ["TOP_REBAR"], "parent_is_not_an_additional_purchase": True}
+    rule = KnowledgeRule(id=uuid4(), rule_code="ROLE_COMPOSITION_REBAR", revision=1, status="ACTIVE",
+                         scope_kind="MATERIAL_REQUIREMENT", scope_reference=str(requirement.id),
+                         conditions=[], outcome_type="INFORMATION", outcome_payload=payload, blockers=[])
+    technology.knowledge_rules.append(rule)
+    evidence = TechnologyEvidenceReference(id=uuid4(), document_id=uuid4(), target_kind="KNOWLEDGE_RULE",
+                                           target_reference=str(rule.id))
+    technology.evidence_references.append(evidence)
+    monkeypatch.setattr(export, "read_technology", AsyncMock(return_value=technology))
+    monkeypatch.setattr(export, "verify_evidence_references", AsyncMock(return_value=frozenset({evidence.id})))
+    db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [])))
+    package = await export.build_module5_estimation_input_package(db, technology.id)
+    assert len(package.knowledge_constraints) == 1
+    constraint = package.knowledge_constraints[0]
+    assert constraint.outcome_payload == payload
+    assert "foundation_role_composition_not_supported" in constraint.blockers
+    assert not package.ready_for_estimation

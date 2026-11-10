@@ -17,8 +17,11 @@ from app.models.material import Material
 from app.models.material_attribute import MaterialAttribute
 from app.models.material_category import MaterialCategory
 from app.models.material_quality_issue import MaterialQualityIssue
+from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.module2_material_gap import Module2MaterialGap
-from app.models.module2_technology import TechnologyDefaultAssumption, TechnologyMaterialRequirement
+from app.models.module2_technology import (
+    TechnologyDefaultAssumption, TechnologyLayer, TechnologyMaterialRequirement, TechnologyNode, TechnologyWorkStep,
+)
 from app.models.unit import Unit
 from app.services.audit_service import log_event
 from app.services.module1_foundation_target_specs import additional_targets
@@ -73,6 +76,44 @@ async def _externally_referenced_material_ids(db: AsyncSession) -> set[UUID]:
         field = relation.c[column_name]
         protected.update((await db.scalars(select(field).where(field.is_not(None)).distinct())).all())
     return protected
+
+
+def _json_uuids(value: object) -> set[UUID]:
+    found: set[UUID] = set()
+    pending = [value]
+    while pending:
+        item = pending.pop()
+        if isinstance(item, dict):
+            pending.extend(item.keys())
+            pending.extend(item.values())
+        elif isinstance(item, (list, tuple)):
+            pending.extend(item)
+        elif isinstance(item, str) and len(item) in (32, 36):
+            try:
+                found.add(UUID(item))
+            except ValueError:
+                pass
+    return found
+
+
+async def _m2_json_referenced_material_ids(db: AsyncSession, material_ids: set[UUID]) -> set[UUID]:
+    """Preserve canonical identities appearing in existing structured M2 data."""
+    columns = (
+        (TechnologyDefaultAssumption.default_value, TechnologyDefaultAssumption.allowed_values,
+         TechnologyDefaultAssumption.applicability),
+        (TechnologyMaterialRequirement.technical_constraints,),
+        (TechnologyLayer.restrictions,), (TechnologyNode.conditions,), (TechnologyWorkStep.dependency_step_codes,),
+        (ConsumptionNorm.resource_selector, ConsumptionNorm.conditions),
+        (CompatibilityRule.subject_selector, CompatibilityRule.object_selector, CompatibilityRule.conditions),
+        (KnowledgeRule.outcome_payload, KnowledgeRule.conditions),
+        (Module2MaterialGap.required_characteristics, Module2MaterialGap.evidence_context),
+    )
+    referenced: set[UUID] = set()
+    for group in columns:
+        for row in (await db.execute(select(*group))).all():
+            for value in row:
+                referenced.update(_json_uuids(value) & material_ids)
+    return referenced
 
 
 async def material_inventory_fingerprint(db: AsyncSession) -> str:
@@ -187,6 +228,10 @@ async def apply_foundation_target_package(
     await db.execute(text("SET LOCAL lock_timeout = '3s'"))
     await db.execute(text("LOCK TABLE public.materials, public.material_attributes, "
                           "public.module2_technology_default_assumptions IN EXCLUSIVE MODE"))
+    await db.execute(text("LOCK TABLE public.module2_technology_material_requirements, public.module2_technology_layers, "
+                          "public.module2_technology_nodes, public.module2_technology_work_steps, "
+                          "public.module2_consumption_norms, public.module2_compatibility_rules, "
+                          "public.module2_knowledge_rules, public.module2_material_gaps IN SHARE MODE"))
     materials = list((await db.scalars(select(Material).options(selectinload(Material.attributes)))).all())
     if len(materials) != expected_existing:
         raise ValueError("material inventory changed since backup; stop for a fresh audit")
@@ -196,6 +241,7 @@ async def apply_foundation_target_package(
     protected = set((await db.scalars(select(TechnologyMaterialRequirement.canonical_material_id)
         .where(TechnologyMaterialRequirement.canonical_material_id.is_not(None)))).all())
     protected.update(await _externally_referenced_material_ids(db))
+    protected.update(await _m2_json_referenced_material_ids(db, {item.id for item in materials}))
     protected.update((await db.scalars(select(Module2MaterialGap.resolved_material_id)
         .where(Module2MaterialGap.resolved_material_id.is_not(None)))).all())
     assumptions = (await db.scalars(select(TechnologyDefaultAssumption).where(

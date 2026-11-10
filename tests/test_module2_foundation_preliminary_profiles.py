@@ -5,9 +5,265 @@ import pytest
 from app.services.module1_foundation_target_package import targets
 from app.services.module2_foundation_preliminary_profiles import (
     PROFILES, audit_profile_reconciliation, profile_material_default_proposals, profile_numeric_default_proposals,
-    profile_quantity_rule_proposals, profile_requirement_proposals,
+    profile_quantity_rule_proposals, profile_requirement_proposals, prepare_single_role_linkage_draft,
+    populate_blocked_foundation_draft,
 )
 from app.services.module2_foundation_quantity_rules import RULES
+
+
+def test_single_role_linkage_preserves_active_technology_and_blocks_publication():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyLayer, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+    from app.services.module2_technology_foundation import Module2TechnologyError, transition_technology
+
+    category_id = uuid4()
+    technology = Technology(id=uuid4(), technology_code="FND_STRIP_MONOLITHIC_RC", revision=1,
+                            name="Лента", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    concrete = TechnologyMaterialRequirement(id=uuid4(), code="CONCRETE", selector_kind="MATERIAL_CLASS",
+                                              material_category_id=category_id, technical_constraints={})
+    rebar = TechnologyMaterialRequirement(id=uuid4(), code="REBAR", selector_kind="MATERIAL_CLASS",
+                                           material_category_id=uuid4(), technical_constraints={})
+    technology.requirements = [concrete, rebar]
+    technology.layers = [TechnologyLayer(id=uuid4(), position=1, functional_role="CONCRETE",
+                                         material_requirement=concrete, restrictions={})]
+    candidate = Material(id=uuid4(), canonical_name="Бетон", status=MaterialStatus.DRAFT, category_id=category_id)
+    candidate.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                            MaterialAttribute(attribute_name="registry_code", attribute_value="BT-02")]
+    draft, linked, unresolved = prepare_single_role_linkage_draft(
+        technology, {"BT-02": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert linked == ("CONCRETE",) and unresolved == ("REBAR",)
+    assert concrete.selector_kind == "MATERIAL_CLASS" and concrete.canonical_material_id is None
+    assert draft.requirements[0].canonical_material_id == candidate.id
+    assert draft.requirements[0].material_category_id == category_id
+    assert draft.requirements[1].selector_kind == "MATERIAL_CLASS"
+    assert draft.layers[0].material_requirement is draft.requirements[0]
+    assert "foundation_reconciliation_required" in draft.input_blockers
+    draft.status = "REVIEW"
+    with pytest.raises(Module2TechnologyError, match="incomplete M1 input"):
+        transition_technology(draft, "ACTIVE", actor_role_code="MODERATOR")
+
+
+def test_single_role_linkage_rejects_unowned_or_wrong_category_candidates():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+
+    technology = Technology(id=uuid4(), technology_code="FND_PILE_SCREW", revision=1,
+                            name="Свая", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    technology.requirements = [TechnologyMaterialRequirement(
+        id=uuid4(), code="PILE", selector_kind="MATERIAL_CLASS", material_category_id=uuid4(), technical_constraints={})]
+    candidate = Material(id=uuid4(), canonical_name="Свая", status=MaterialStatus.DRAFT, category_id=uuid4())
+    candidate.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                            MaterialAttribute(attribute_name="registry_code", attribute_value="PILE-S-02")]
+    draft, linked, unresolved = prepare_single_role_linkage_draft(
+        technology, {"PILE-S-02": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert linked == () and unresolved == ("PILE",)
+    assert draft.requirements[0].canonical_material_id is None
+
+
+def test_single_role_alias_reuses_legacy_requirement_without_duplicate():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+
+    category = uuid4()
+    technology = Technology(id=uuid4(), technology_code="FND_PILE_SCREW", revision=1,
+                            name="Свая", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    technology.requirements = [TechnologyMaterialRequirement(id=uuid4(), code="PILE", selector_kind="MATERIAL_CLASS",
+        material_role_code="STEEL_PILE", material_category_id=category, technical_constraints={})]
+    candidate = Material(id=uuid4(), canonical_name="Свая", status=MaterialStatus.DRAFT, category_id=category)
+    candidate.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                            MaterialAttribute(attribute_name="registry_code", attribute_value="PILE-S-02")]
+    draft, linked, _ = prepare_single_role_linkage_draft(
+        technology, {"PILE-S-02": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    report = populate_blocked_foundation_draft(draft, {"PILE-S-02": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert linked == ("PILE",) and report["reused_roles"] == ("SCREW_PILE",)
+    assert [item.code for item in draft.requirements] == ["PILE"]
+    quantity = next(item for item in draft.knowledge_rules if item.rule_code == "Q_SCREW_PILE_LAYOUT_ITEM_COUNT")
+    assert quantity.scope_reference == str(draft.requirements[0].id)
+    assert quantity.outcome_payload["material_role_code"] == "STEEL_PILE"
+    assert quantity.outcome_payload["canonical_material_id"] == str(candidate.id)
+
+
+def test_same_requirement_code_with_legacy_functional_role_is_reused():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+
+    category = uuid4()
+    technology = Technology(id=uuid4(), technology_code="FND_STRIP_PRECAST_FBS_FL", revision=1,
+                            name="Фундамент", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    technology.requirements = [TechnologyMaterialRequirement(id=uuid4(), code="FL", selector_kind="MATERIAL_CLASS",
+        material_role_code="FOOTING_SLAB", material_category_id=category, technical_constraints={})]
+    candidate = Material(id=uuid4(), canonical_name="ФЛ", status=MaterialStatus.DRAFT, category_id=category)
+    candidate.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                            MaterialAttribute(attribute_name="registry_code", attribute_value="FL-12")]
+    draft, linked, _ = prepare_single_role_linkage_draft(
+        technology, {"FL-12": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    report = populate_blocked_foundation_draft(draft, {"FL-12": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert linked == ("FL",) and "FL" in report["reused_roles"]
+    assert [item.code for item in draft.requirements] == ["FL"]
+    rule = next(item for item in draft.knowledge_rules if item.rule_code == "Q_FL_LAYOUT_ITEM_COUNT")
+    assert rule.scope_reference == str(draft.requirements[0].id)
+    assert rule.outcome_payload["material_role_code"] == "FOOTING_SLAB"
+
+
+def test_blocked_draft_adds_distinct_roles_and_review_only_rules_without_changing_legacy():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+
+    technology = Technology(id=uuid4(), technology_code="FND_STRIP_MONOLITHIC_RC", revision=1,
+                            name="Лента", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    legacy = TechnologyMaterialRequirement(id=uuid4(), code="REBAR", selector_kind="MATERIAL_CLASS",
+                                            material_category_id=uuid4(), technical_constraints={})
+    technology.requirements = [legacy]
+    candidate = Material(id=uuid4(), canonical_name="Арматура", status=MaterialStatus.DRAFT, category_id=legacy.material_category_id)
+    candidate.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                            MaterialAttribute(attribute_name="registry_code", attribute_value="RA-04")]
+    draft, _, unresolved = prepare_single_role_linkage_draft(
+        technology, {"RA-04": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    report = populate_blocked_foundation_draft(draft, {"RA-04": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert unresolved == ("REBAR",)
+    assert {"REBAR_TOP", "REBAR_BOTTOM"} <= set(report["added_roles"])
+    assert legacy.selector_kind == "MATERIAL_CLASS" and legacy.canonical_material_id is None
+    assert next(item for item in draft.requirements if item.code == "REBAR").selector_kind == "MATERIAL_CLASS"
+    new = [item for item in draft.requirements if item.code in {"REBAR_TOP", "REBAR_BOTTOM"}]
+    assert len(new) == 2 and all(item.canonical_material_id == candidate.id for item in new)
+    assert draft.knowledge_rules and all(rule.status == "DRAFT" for rule in draft.knowledge_rules)
+    quantity_rules = [rule for rule in draft.knowledge_rules if rule.outcome_payload.get("kind") == "FOUNDATION_QUANTITY_RULE"]
+    composition = next(rule for rule in draft.knowledge_rules if rule.outcome_payload.get("kind") == "FOUNDATION_ROLE_COMPOSITION")
+    assert all("evidence_review_required" in rule.blockers for rule in quantity_rules)
+    assert "role_reconciliation_required" in composition.blockers
+    assert composition.scope_reference == str(next(item for item in draft.requirements if item.code == "REBAR").id)
+    assert composition.outcome_payload["parent_is_not_an_additional_purchase"] is True
+    assert {child["role_code"] for child in composition.outcome_payload["children"]} == {"REBAR_TOP", "REBAR_BOTTOM"}
+    assert "STIRRUPS" in composition.outcome_payload["unresolved_roles"]
+    again = populate_blocked_foundation_draft(draft, {"RA-04": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert not again["added_roles"] and not again["added_rules"] and again["added_defaults"] == 0
+    assert "foundation_reconciliation_required" in draft.input_blockers
+    quantity_rules[0].scope_reference = str(uuid4())
+    mismatched = populate_blocked_foundation_draft(draft, {"RA-04": candidate}, actor_role_code="ENGINEER_DESIGNER")
+    assert quantity_rules[0].rule_code in mismatched["conflicts"]
+
+
+def test_draft_population_requires_edit_permission_and_reconciliation_blocker():
+    from app.models.module2_technology import Technology
+    from app.services.module2_technology_foundation import Module2TechnologyPermissionError
+
+    draft = Technology(id=uuid4(), technology_code="FND_STRIP_MONOLITHIC_RC", revision=2,
+                       name="Лента", status="DRAFT", input_blockers=["foundation_reconciliation_required"])
+    with pytest.raises(Module2TechnologyPermissionError):
+        populate_blocked_foundation_draft(draft, {}, actor_role_code="CUSTOMER")
+    draft.input_blockers = []
+    with pytest.raises(ValueError, match="reconciliation-blocked"):
+        populate_blocked_foundation_draft(draft, {}, actor_role_code="ENGINEER_DESIGNER")
+    assert not draft.requirements and not draft.knowledge_rules
+
+
+def test_reconciliation_blocker_has_a_user_facing_label():
+    from app.services.module2_workbench import blocker_label
+
+    assert "foundation_reconciliation_required" not in blocker_label("m1_blocker:foundation_reconciliation_required")
+    assert "согласовать" in blocker_label("m1_blocker:foundation_reconciliation_required")
+
+
+@pytest.mark.asyncio
+async def test_all_foundation_drafts_preserve_gaps_and_are_idempotent_on_isolated_database():
+    from sqlalchemy import func, select
+    from sqlalchemy.engine import make_url
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    from sqlalchemy.orm import selectinload
+    from sqlalchemy.pool import NullPool
+    from app.config import settings
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_material_gap import Module2MaterialGap
+    from app.models.module2_technology import Technology
+    from app.services.module1_foundation_target_package import PACKAGE
+    from app.services.module2_technology_foundation import read_technology
+
+    if make_url(settings.DATABASE_URL).database != "houseplatform_fnd_m1_m2_20261110":
+        pytest.skip("requires the dedicated restored foundation database")
+    engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
+    async with async_sessionmaker(engine)() as db:
+        materials = (await db.scalars(select(Material).join(MaterialAttribute).where(
+            MaterialAttribute.attribute_name == "registry_origin", MaterialAttribute.attribute_value == PACKAGE,
+        ).options(selectinload(Material.attributes)))).all()
+        material_map = {}
+        for material in materials:
+            attrs = {item.attribute_name: item.attribute_value for item in material.attributes}
+            if attrs.get("registry_code"):
+                material_map[attrs["registry_code"]] = material
+        technology_ids = (await db.scalars(select(Technology.id).where(
+            Technology.status == "ACTIVE", Technology.technology_code.like("FND_%")))).all()
+        assert len(technology_ids) == 15
+        before = await db.scalar(select(func.count()).select_from(Module2MaterialGap))
+        compositions = 0
+        for technology_id in technology_ids:
+            technology = await read_technology(db, technology_id)
+            draft, _, _ = prepare_single_role_linkage_draft(technology, material_map, actor_role_code="ENGINEER_DESIGNER")
+            populate_blocked_foundation_draft(draft, material_map, actor_role_code="ENGINEER_DESIGNER")
+            db.add(draft)
+            await db.flush()
+            repeat = populate_blocked_foundation_draft(draft, material_map, actor_role_code="ENGINEER_DESIGNER")
+            assert not repeat["added_roles"] and not repeat["added_rules"]
+            assert not repeat["added_defaults"] and not repeat["updated_defaults"]
+            assert "foundation_reconciliation_required" in draft.input_blockers
+            compositions += sum((item.outcome_payload or {}).get("kind") == "FOUNDATION_ROLE_COMPOSITION"
+                                for item in draft.knowledge_rules)
+        assert compositions > 0
+        assert await db.scalar(select(func.count()).select_from(Module2MaterialGap)) == before
+        await db.rollback()
+    await engine.dispose()
+
+
+def test_exact_legacy_category_default_is_updated_only_in_new_draft():
+    from app.models.enums import MaterialStatus
+    from app.models.material import Material
+    from app.models.material_attribute import MaterialAttribute
+    from app.models.module2_technology import Technology, TechnologyDefaultAssumption, TechnologyMaterialRequirement
+    from app.services.module1_foundation_target_package import PACKAGE
+
+    category = uuid4()
+    technology = Technology(id=uuid4(), technology_code="FND_STRIP_MONOLITHIC_RC", revision=1,
+                            name="Лента", status="ACTIVE", input_missing_fields=[], input_blockers=[])
+    requirement = TechnologyMaterialRequirement(id=uuid4(), code="CONCRETE", selector_kind="MATERIAL_CLASS",
+        material_role_code="CONCRETE", material_category_id=category, technical_constraints={})
+    technology.requirements = [requirement]
+    default = TechnologyDefaultAssumption(id=uuid4(), assumption_code="MATERIAL_CONCRETE", revision=1,
+        parameter_code="MATERIAL_CONCRETE", name_ru="Бетон", value_type="MATERIAL_CLASS",
+        default_value={"value": str(category)}, source_kind="PLATFORM_ASSUMPTION", applicability={},
+        auto_fallback=True, warning_level="WARNING", warning_text="Предварительно",
+        allowed_values_strategy="M1_REQUIREMENT_CATEGORY", allowed_values={},
+        material_requirement_id=requirement.id, status="ACTIVE")
+    technology.default_assumptions = [default]
+    materials = {}
+    for code in ("BT-02", "BT-03", "BT-04"):
+        material = Material(id=uuid4(), canonical_name=code, category_id=category, status=MaterialStatus.DRAFT)
+        material.attributes = [MaterialAttribute(attribute_name="registry_origin", attribute_value=PACKAGE),
+                               MaterialAttribute(attribute_name="registry_code", attribute_value=code)]
+        materials[code] = material
+    draft, linked, _ = prepare_single_role_linkage_draft(technology, materials, actor_role_code="ENGINEER_DESIGNER")
+    report = populate_blocked_foundation_draft(draft, materials, actor_role_code="ENGINEER_DESIGNER")
+    assert linked == ("CONCRETE",) and report["updated_defaults"] == ("MATERIAL_CONCRETE",)
+    assert default.value_type == "MATERIAL_CLASS" and default.default_value == {"value": str(category)}
+    copied = next(item for item in draft.default_assumptions if item.parameter_code == "MATERIAL_CONCRETE")
+    assert copied.value_type == "MATERIAL" and copied.default_value == {"value": str(materials["BT-02"].id)}
+    assert copied.applicability["structural_safety_verified"] is False
+    again = populate_blocked_foundation_draft(draft, materials, actor_role_code="ENGINEER_DESIGNER")
+    assert not again["updated_defaults"] and not again["conflicts"]
 
 
 def test_reconciliation_reports_names_without_assuming_equivalence_or_mutating():
@@ -20,10 +276,50 @@ def test_reconciliation_reports_names_without_assuming_equivalence_or_mutating()
     assert result.same_code_needs_review == ("CONCRETE",)
     assert result.existing_only == ("REBAR",)
     assert {"REBAR_TOP", "REBAR_BOTTOM"} <= set(result.proposed_only)
+    assert dict(result.suggested_expansions)["REBAR"][:2] == ("REBAR_TOP", "REBAR_BOTTOM")
+    assert result.unmapped_existing == ()
     assert [item.code for item in technology.requirements] == ["CONCRETE", "REBAR"]
     technology.requirements.append(TechnologyMaterialRequirement(code="REBAR"))
     with pytest.raises(ValueError, match="require review"):
         audit_profile_reconciliation(technology)
+
+
+def test_legacy_requirement_without_semantic_target_remains_explicitly_unmapped():
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+
+    technology = Technology(technology_code="FND_SLAB_USHP", name="УШП", status="ACTIVE")
+    technology.requirements = [TechnologyMaterialRequirement(code="UNRECOGNIZED_LEGACY_ROLE")]
+    result = audit_profile_reconciliation(technology)
+    assert result.unmapped_existing == ("UNRECOGNIZED_LEGACY_ROLE",)
+    assert technology.requirements[0].code == "UNRECOGNIZED_LEGACY_ROLE"
+
+
+def test_semantic_candidates_cover_the_audited_40_requirements_without_losing_gaps():
+    from app.models.module2_technology import Technology, TechnologyMaterialRequirement
+
+    audited = {
+        "FND_STRIP_MONOLITHIC_RC": "CONCRETE FORMWORK INSULATION REBAR WATERPROOFING",
+        "FND_STRIP_PRECAST_FBS_FL": "FBS FL MORTAR WATERPROOFING",
+        "FND_SLAB_MONOLITHIC_RC": "CONCRETE FORMWORK INSULATION REBAR WATERPROOFING",
+        "FND_SLAB_RIBBED_RC": "CONCRETE FORMWORK REBAR",
+        "FND_SLAB_USHP": "CONCRETE REBAR WATERPROOFING XPS",
+        "FND_UFF": "CONCRETE REBAR WATERPROOFING XPS",
+        "FND_PILE_BORED_RC": "CASING CONCRETE REBAR",
+        "FND_PILE_DRIVEN_RC": "PILE", "FND_PILE_SCREW": "PILE",
+        "FND_PILE_GRILLAGE": "CONCRETE REBAR", "FND_COLUMN_CONCRETE_RC": "CONCRETE REBAR",
+        "FND_BASEMENT_WALL_MONOLITHIC": "CONCRETE REBAR WATERPROOFING",
+        "FND_SUBSTRUCTURE_WATERPROOFING_COATING": "MASTIC",
+        "FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE": "MEMBRANE",
+        "FND_SUBSTRUCTURE_INSULATION_XPS": "XPS",
+    }
+    assert sum(len(codes.split()) for codes in audited.values()) == 40
+    unresolved = []
+    for code, codes in audited.items():
+        technology = Technology(technology_code=code, name="Тест", status="ACTIVE")
+        technology.requirements = [TechnologyMaterialRequirement(code=item) for item in codes.split()]
+        audit = audit_profile_reconciliation(technology)
+        unresolved.extend((code, item) for item in audit.unmapped_existing)
+    assert unresolved == []
 
 
 def test_every_existing_foundation_technology_has_one_preliminary_profile():

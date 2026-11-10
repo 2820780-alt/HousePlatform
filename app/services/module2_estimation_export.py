@@ -308,7 +308,7 @@ async def build_module5_estimation_input_package(
             item
             for item in active_rules
             if item.outcome_type != KnowledgeRuleOutcome.INFORMATION.value
-            or (item.outcome_payload or {}).get("kind") == "FOUNDATION_QUANTITY_RULE"
+            or (item.outcome_payload or {}).get("kind") in {"FOUNDATION_QUANTITY_RULE", "FOUNDATION_ROLE_COMPOSITION"}
         ),
         key=lambda item: (item.rule_code, item.revision, str(item.id)),
     ):
@@ -498,6 +498,8 @@ def _build_knowledge_constraint(
 ) -> EstimationKnowledgeConstraint:
     local_blockers = list(rule.blockers or ())
     payload = dict(rule.outcome_payload or {})
+    if payload.get("kind") == "FOUNDATION_ROLE_COMPOSITION":
+        local_blockers.append("foundation_role_composition_not_supported")
     if payload.get("kind") == "FOUNDATION_QUANTITY_RULE":
         try:
             expected = describe_quantity_rule(payload["code"], role_code=payload["material_role_code"],

@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.templating import Jinja2Templates
 from urllib.parse import urlparse
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import DBSession, require_admin
@@ -19,6 +19,7 @@ from app.models.enums import (
     MaterialStatus,
     SourceActionType,
     SourceStatus,
+    SupplierStatus,
     TaskLogLevel,
     TaskResultType,
     TaskStatus,
@@ -37,6 +38,8 @@ from app.models.source import Source
 from app.models.source_task import SourceTask
 from app.models.source_task_log import SourceTaskLog
 from app.models.source_task_result import SourceTaskResult
+from app.models.supplier import Supplier
+from app.models.supplier_price import SupplierPrice
 from app.models.unit_conversion_rule import UnitConversionRule
 from app.services.material_construction_usage import get_material_construction_usage
 from app.services.material_hub_supplier_workspaces import (
@@ -417,8 +420,9 @@ async def _render_data_page(
     page_title: str,
     material_table_preset: str = "all",
 ):
-    materials = await _load_materials(db)
-    material_prices = await _load_material_price_map(db)
+    materials = await _load_materials(db, without_price=material_table_preset == "needs_price")
+    material_prices = ({} if material_table_preset == "needs_price"
+                       else await _load_material_price_map(db, material_ids=[item.id for item in materials]))
     price_recommendations = await _load_price_recommendations(db, in_stock_only)
     estimate_ready_material_ids = {item["material_id"] for item in price_recommendations if item.get("material_id")}
     return templates.TemplateResponse(
@@ -449,6 +453,7 @@ async def _render_data_page(
             "source_policy_note": first_wave_source_note,
             "is_first_wave_blocked_source": is_first_wave_blocked_source,
             "characteristic_label": _characteristic_label,
+            "material_attribute_rows": _material_attribute_rows,
             "is_consumption_characteristic": _is_consumption_characteristic,
             "characteristic_verified_by_moderator": _characteristic_verified_by_moderator,
             "characteristic_history_label": _characteristic_history_label,
@@ -997,10 +1002,41 @@ def _safe_result_title(value: str | None, *, fallback: str) -> str:
 def _enum_value(value: Any) -> str:
     return str(getattr(value, "value", value) or "")
 
+
+_MATERIAL_ATTRIBUTE_LABELS = {
+    "mixture_type": ("Вид смеси", ""), "concrete_class": ("Класс бетона", ""),
+    "water_resistance": ("Водонепроницаемость", ""), "frost_type": ("Тип морозостойкости", ""),
+    "frost_cycles": ("Морозостойкость", "циклов"), "mobility_class": ("Подвижность", ""),
+    "steel_class": ("Класс арматуры", ""), "diameter_mm": ("Диаметр", "мм"),
+    "profile": ("Профиль", ""), "declared_theoretical_mass_kg_per_m": ("Масса погонного метра (заявлена)", "кг/м"),
+    "thickness_mm": ("Толщина", "мм"), "cs_10_y_kpa": ("Прочность CS(10/Y)", "кПа"),
+    "declared_mark": ("Марка (заявлена)", ""), "length_mm": ("Длина", "мм"),
+    "width_mm": ("Ширина", "мм"), "height_mm": ("Высота", "мм"),
+    "load_group": ("Группа несущей способности", ""), "concrete_type": ("Тип бетона", ""),
+    "declared_standard": ("Стандарт (заявлен)", ""), "strength_mark": ("Марка прочности", ""),
+    "mobility_mark": ("Подвижность", ""), "tube_diameter_mm": ("Диаметр трубы", "мм"),
+    "wall_thickness_mm": ("Толщина стенки", "мм"), "blade_diameter_mm": ("Диаметр лопасти", "мм"),
+    "section_width_mm": ("Ширина сечения", "мм"), "section_height_mm": ("Высота сечения", "мм"),
+    "mass_kg": ("Масса", "кг"),
+}
+_MATERIAL_INTERNAL_ATTRIBUTES = frozenset({"registry_origin", "registry_key", "registry_code", "declared_source"})
+
+
+def _material_attribute_rows(material: Material) -> list[dict[str, str]]:
+    rows = []
+    for attribute in material.attributes:
+        name, value = attribute.attribute_name, attribute.attribute_value
+        if name in _MATERIAL_INTERNAL_ATTRIBUTES or name.endswith("_id") or not value:
+            continue
+        label, unit = _MATERIAL_ATTRIBUTE_LABELS.get(name, (_humanize_material_field_key(name), ""))
+        rows.append({"label": label, "value": value, "unit": unit})
+    return rows
+
+
 MATERIAL_TABLE_PRESET_LABELS = {
     "all": ("Все материалы", "Единая каноническая таблица без preset-фильтра."),
     "estimate_ready": ("Готовы к смете", "Материалы из существующего серверного списка готовности для выбора в смете."),
-    "needs_price": ("Требуют цены", "Материалы без положительной цены в текущем серверном price map."),
+    "needs_price": ("Без цены", "Материалы без действующего предложения с положительной ценой."),
     "needs_classification": ("Требуют классификации", "Материалы без назначенной категории."),
     "needs_review": ("Требуют проверки", "Материалы в статусе черновика или ручной проверки."),
 }
@@ -1404,12 +1440,14 @@ async def _load_provider_work_cost_offer_rows(db: DBSession) -> list[dict[str, A
         for offer in offers
     ]
 
-async def _load_materials(db: DBSession) -> list[Material]:
-    result = await db.execute(
+async def _load_materials(db: DBSession, *, without_price: bool = False) -> list[Material]:
+    statement = (
         select(Material)
         .options(
             selectinload(Material.category),
             selectinload(Material.subcategory),
+            selectinload(Material.base_unit),
+            selectinload(Material.attributes),
             selectinload(Material.material_type).selectinload(MaterialType.construction_group),
             selectinload(Material.documents),
             selectinload(Material.specifications).selectinload(MaterialSpecification.template),
@@ -1417,8 +1455,25 @@ async def _load_materials(db: DBSession) -> list[Material]:
         )
         .where(Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED]))
         .order_by(Material.created_at.desc())
-        .limit(500)
     )
+    if without_price:
+        product_price = select(CatalogProduct.id).where(
+            CatalogProduct.material_id == Material.id,
+            CatalogProduct.status == CatalogProductStatus.ACTIVE,
+            CatalogProduct.price > 0,
+        ).exists()
+        supplier_price = select(SupplierPrice.id).join(Supplier).where(
+            SupplierPrice.material_id == Material.id,
+            SupplierPrice.price > 0,
+            Supplier.status != SupplierStatus.BLOCKED,
+            or_(SupplierPrice.valid_until.is_(None), SupplierPrice.valid_until >= date.today()),
+            or_(SupplierPrice.catalog_product_id.is_(None),
+                SupplierPrice.catalog_product.has(CatalogProduct.status == CatalogProductStatus.ACTIVE)),
+        ).exists()
+        statement = statement.where(~product_price, ~supplier_price)
+    else:
+        statement = statement.limit(500)
+    result = await db.execute(statement)
     return list(result.scalars().all())
 
 
@@ -1704,8 +1759,10 @@ def _name_tokens(value: str | None) -> set[str]:
     }
 
 
-async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
-    result = await db.execute(
+async def _load_material_price_map(db: DBSession, *, material_ids: list | None = None) -> dict[str, dict]:
+    if material_ids == []:
+        return {}
+    product_query = (
         select(CatalogProduct)
         .options(selectinload(CatalogProduct.source))
         .where(CatalogProduct.material_id.is_not(None))
@@ -1715,8 +1772,10 @@ async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.ARCHIVED))
         .where(CatalogProduct.material.has(Material.status != MaterialStatus.REJECTED))
         .order_by(CatalogProduct.price.asc())
-        .limit(5000)
     )
+    if material_ids is not None:
+        product_query = product_query.where(CatalogProduct.material_id.in_(material_ids))
+    result = await db.execute(product_query)
     prices: dict[str, dict] = {}
     for product in result.scalars().all():
         key = str(product.material_id)
@@ -1731,6 +1790,27 @@ async def _load_material_price_map(db: DBSession) -> dict[str, dict]:
             "region": product.region,
             "updated_at": product.updated_at,
         }
+    supplier_query = (
+        select(SupplierPrice)
+        .join(Supplier)
+        .options(selectinload(SupplierPrice.supplier))
+        .where(SupplierPrice.price > 0, Supplier.status != SupplierStatus.BLOCKED)
+        .where(or_(SupplierPrice.valid_until.is_(None), SupplierPrice.valid_until >= date.today()))
+        .where(or_(SupplierPrice.catalog_product_id.is_(None),
+                   SupplierPrice.catalog_product.has(CatalogProduct.status == CatalogProductStatus.ACTIVE)))
+        .order_by(SupplierPrice.price.asc())
+    )
+    if material_ids is not None:
+        supplier_query = supplier_query.where(SupplierPrice.material_id.in_(material_ids))
+    supplier_result = await db.execute(supplier_query)
+    for price in supplier_result.scalars().all():
+        key = str(price.material_id)
+        if key not in prices:
+            prices[key] = {
+                "price": price.price, "currency": price.currency, "unit": price.unit,
+                "source": price.supplier.name if price.supplier else "", "availability": price.availability,
+                "region": price.region, "updated_at": price.updated_at,
+            }
     return prices
 
 

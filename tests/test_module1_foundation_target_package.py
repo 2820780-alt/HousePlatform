@@ -37,6 +37,9 @@ def test_requested_variants_are_distinct_and_remain_review_candidates():
     assert items["fl-11"].expected["load_group"] != items["fl-12"].expected["load_group"]
     assert items["xps-03"].expected != items["xps-06"].expected
     assert items["pile-rc-01"].missing
+    assert items["wpr-01"].category_slug == "foundation-waterproofing-mastics"
+    assert items["wpr-03"].category_slug == "foundation-waterproofing-membranes"
+    assert items["wpr-04"].category_slug == "foundation-waterproofing-membranes"
 
 
 def test_owned_class_and_fully_specified_profiles_do_not_merge():
@@ -73,6 +76,20 @@ async def test_missing_fk_inventory_blocks_archival():
     db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [])))
     with pytest.raises(ValueError, match="FK inventory is empty"):
         await _externally_referenced_material_ids(db)
+
+
+@pytest.mark.asyncio
+async def test_nested_m2_json_material_references_are_protected():
+    from unittest.mock import AsyncMock
+    from uuid import uuid4
+    from app.services.module1_foundation_target_package import _json_uuids, _m2_json_referenced_material_ids
+
+    material_id, unrelated_id = uuid4(), uuid4()
+    payload = {"allowed": [{"nested": [str(material_id), "not-a-uuid"]}], str(unrelated_id): True}
+    assert _json_uuids(payload) == {material_id, unrelated_id}
+    db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [(payload,)])))
+    assert await _m2_json_referenced_material_ids(db, {material_id}) == {material_id}
+    assert db.execute.await_count == 9
 
 
 @pytest.mark.asyncio
@@ -125,6 +142,7 @@ async def test_mocked_package_archives_only_unprotected_and_is_idempotent(monkey
 
     monkeypatch.setattr(package, "_unit", unit)
     monkeypatch.setattr(package, "_externally_referenced_material_ids", AsyncMock(return_value={linked.id}))
+    monkeypatch.setattr(package, "_m2_json_referenced_material_ids", AsyncMock(return_value=set()))
     monkeypatch.setattr(package, "material_inventory_fingerprint", AsyncMock(return_value="0" * 32))
     monkeypatch.setattr(package, "log_event", AsyncMock())
     db = MemorySession()

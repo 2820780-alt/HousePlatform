@@ -92,7 +92,13 @@ def additional_targets():
     )
     for prefix, titles, category in groups:
         for number, title in enumerate(titles, 1):
-            items.append(_candidate(f"{prefix}-{number:02d}", title, category_slug=category,
+            code = f"{prefix}-{number:02d}"
+            specific_category = {
+                "WPR-01": "foundation-waterproofing-mastics",
+                "WPR-03": "foundation-waterproofing-membranes",
+                "WPR-04": "foundation-waterproofing-membranes",
+            }.get(code, category)
+            items.append(_candidate(code, title, category_slug=specific_category,
                 missing=("Технические характеристики конкретного изделия и единица продажи",)))
 
     screw = (

@@ -103,6 +103,11 @@ BLOCKER_LABELS = {
     "missing_evidence": "Отсутствует обязательное подтверждение M1.",
     "technology_not_active": "Технология еще не переведена в действующий статус.",
     "entity_belongs_to_another_technology": "Запись относится к другой редакции технологии.",
+    "m1_blocker:foundation_reconciliation_required": "Перед публикацией необходимо согласовать старые и новые роли материалов.",
+    "evidence_review_required": "Необходимо проверить источник и применимость правила.",
+    "material_review_required": "Необходимо проверить техническую карточку материала.",
+    "role_reconciliation_required": "Необходимо проверить состав и распределение материалов по ролям.",
+    "foundation_role_composition_not_supported": "Автоматический расчёт составных ролей пока не поддерживается.",
 }
 FIELD_LABELS = {
     "temperature_c": "Температура",
