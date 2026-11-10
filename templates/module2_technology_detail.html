@@ -69,6 +69,7 @@
 
 {% macro knowledge_actions(component, item, section) -%}
   <div class="m2-item-actions">
+    {% if technology.status == 'DRAFT' %}
     {% if item.model.status == 'DRAFT' and permissions.edit %}
     <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/transition-knowledge" data-m2-form>
       {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="REVIEW">
@@ -88,6 +89,7 @@
       {{ hidden_context(section, item.model.id) }}<input type="hidden" name="component" value="{{ component }}"><input type="hidden" name="target" value="ARCHIVED">
       <button class="m2-button danger" type="submit">В архив</button>
     </form>
+    {% endif %}
     {% endif %}
   </div>
 {%- endmacro %}
@@ -290,7 +292,7 @@
             <div><strong>{{ item.effective_name }}</strong></div>
             <div data-label="Значение по умолчанию">{{ item.default_label or 'Не задано' }}</div>
             <div data-label="Карточка M1">{% if item.selected_material is not defined %}Требуется обновление{% elif item.selected_material %}<a href="{{ item.material_card_url(item.selected_material.id) }}">{{ item.selected_material.canonical_name }}</a>{% else %}Не выбрана{% endif %}</div>
-            <div data-label="Варианты">{% if item.candidates|length > 1 %}{{ item.candidates|length - 1 }} других{% elif item.candidates %}Один вариант{% else %}Не найдены{% endif %}</div>
+            <div data-label="Варианты">{% set alternative_count = item.candidates|length - (1 if item.selected_material is defined and item.selected_material else 0) %}{% if alternative_count %}{{ alternative_count }} доступно{% else %}Не найдены{% endif %}</div>
             <div data-label="Статус">{% if item.selected_material is not defined %}<span class="m2-status">Требуется обновление</span>{% elif item.gap and item.gap.status == 'DISMISSED' %}<span class="m2-status">Не требуется</span>{% elif item.selected_material %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% elif item.candidates %}<span class="m2-status" data-status="REVIEW">Есть варианты</span>{% else %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% endif %}</div>
             {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
           </div>
@@ -298,7 +300,7 @@
           <div class="m2-record-note">Подходящие материалы M1: <a href="{{ item.material_card_url(item.candidates[0].id) }}">{{ item.candidates[0].canonical_name }}</a>{% if item.candidates|length > 1 %}{% set extra = item.candidates|length - 1 %}<details><summary>Ещё {{ extra }} {% if extra == 1 %}подходящий вариант{% elif extra in [2, 3, 4] %}подходящих варианта{% else %}подходящих вариантов{% endif %}</summary>{% for material in item.candidates[1:] %}<div><a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a></div>{% endfor %}</details>{% endif %}</div>
           {% endif %}
           {% if item.gap %}
-          <div class="m2-record-note"><strong>Материал не найден в M1</strong> · {% if item.gap.status == 'SEARCH_REQUESTED' %}Поиск запрошен{% elif item.gap.status == 'REVIEWING' %}На проверке{% elif item.gap.status == 'DISMISSED' %}Не требуется{% elif item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}Разрешено{% else %}Открыто{% endif %}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
+          <div class="m2-record-note"><strong>{% if item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}{{ 'Подбор завершён' if item.selected_material else 'Ранее подобранный материал требует перепроверки' }}{% elif item.gap.status == 'DISMISSED' %}Потребность отклонена{% elif item.candidates %}Материал не выбран{% else %}Материал не найден в M1{% endif %}</strong> · {% if item.gap.status == 'SEARCH_REQUESTED' %}Поиск запрошен{% elif item.gap.status == 'REVIEWING' %}На проверке{% elif item.gap.status == 'DISMISSED' %}Не требуется{% elif item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}Разрешено{% else %}Открыто{% endif %}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
           {% if permissions.admin and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}
           <details class="m2-editor"><summary>Открыть подбор</summary>
           <details class="m2-editor"><summary>Изменить запрос</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/query" data-m2-form><label><span>Поисковая фраза</span><input name="search_phrase" value="{{ item.gap.search_phrase }}" maxlength="500" required></label><button class="m2-button" type="submit">Сохранить запрос</button></form></details>
@@ -387,7 +389,7 @@
         {% for item in work_steps %}
         <article class="m2-record">
           <div class="m2-record-main">
-            <div><strong>{{ item.model.position }}. {{ item.work_name }}</strong></div>
+            <div><strong>{{ item.model.position }}. {% if technology.status == 'ACTIVE' and not item.catalog_missing %}<a href="/api/v1/module2/encyclopedia/works/{{ item.model.work_code }}">{{ item.work_name }}</a>{% else %}{{ item.work_name }}{% endif %}</strong></div>
             <div><span class="m2-cell-label">Назначение</span>{{ item.model.instructions or 'Инструкция не указана' }}</div><div><span class="m2-cell-label">Условия</span>{{ item.model.applicability_expression or 'Без дополнительных условий' }}{% if item.dependencies != 'Нет' %}<br>Зависимости: {{ item.dependencies }}{% endif %}</div><div><span class="m2-cell-label">Единица / норма</span>{% if item.unit is defined %}{{ item.unit or 'Единица не определена' }}<br>{% if item.active_norm_count %}Действующих норм: {{ item.active_norm_count }}{% else %}Норма не определена{% endif %}{% else %}Требуется обновление{% endif %}</div>
             {% if technology.status == 'DRAFT' and permissions.edit %}
             <div class="m2-item-actions">
@@ -488,7 +490,7 @@
       <div class="m2-panel-body m2-records">
         {% for item in nodes %}
         <article class="m2-record">
-          <div class="m2-record-main"><div><strong>{{ item.model.name }}</strong></div><div></div><div></div><div>{{ item.model.description or 'Без описания' }}</div>{% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('node', item.model.id, 'nodes') }}</div>{% endif %}</div>
+          <div class="m2-record-main m2-compact-record"><div><strong>{{ item.model.name }}</strong></div><div>{{ item.model.description or 'Без описания' }}</div>{% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('node', item.model.id, 'nodes') }}</div>{% endif %}</div>
           {% if technology.status == 'DRAFT' and permissions.edit %}
           <details class="m2-editor"><summary>Изменить узел</summary>
             <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-node" data-m2-form>
@@ -509,12 +511,13 @@
 
     {% endif %}
     {% if active_tab == 'rules' %}
+    {% if compatibility or (technology.status == 'DRAFT' and permissions.edit) %}
     <section class="m2-panel m2-section" id="compatibility">
       <div class="m2-panel-head"><h2>Совместимость</h2><span class="m2-count">{{ compatibility|length }}</span></div>
       <div class="m2-panel-body m2-records">
         {% for item in compatibility %}
         <article class="m2-record">
-          <div class="m2-record-main"><div><strong>{{ item.relation_label }}</strong></div><div>{{ item.subject }} → {{ item.object }}</div><div></div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span><small>{{ item.model.reason or 'Причина не указана' }}</small></div><div>{{ knowledge_actions('compatibility', item, 'compatibility') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('compatibility', item.model.id, 'compatibility') }}{% endif %}</div></div>
+          <div class="m2-record-main m2-compact-record"><div><strong>{{ item.relation_label }}</strong>{{ item.subject }} → {{ item.object }}</div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span><small>{{ item.model.reason or 'Причина не указана' }}</small></div><div>{{ knowledge_actions('compatibility', item, 'compatibility') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('compatibility', item.model.id, 'compatibility') }}{% endif %}</div></div>
           {% if item.conflicts %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Конфликт с действующим правилом</span></div>{% endif %}
           {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
           <details class="m2-editor"><summary>Изменить правило совместимости</summary>
@@ -533,6 +536,7 @@
         {{ hidden_context('compatibility') }}<div class="m2-form-grid"><label><span>Код правила</span><input name="rule_code" required></label><label><span>Результат</span><select name="relation"><option value="COMPATIBLE">Совместимо</option><option value="INCOMPATIBLE">Несовместимо</option><option value="CONDITIONAL">Условно совместимо</option><option value="UNKNOWN">Недостаточно данных</option></select></label>{{ selector_fields('subject') }}{{ selector_fields('object') }}{{ condition_fields() }}<label class="full"><span>Причина</span><textarea name="reason"></textarea></label><label class="m2-check"><input type="checkbox" name="is_symmetric" checked> Симметричное правило</label><label class="wide"><span>Блокирующие замечания</span><input name="blockers"></label></div><div class="m2-form-actions"><button class="m2-button primary" type="submit">Добавить правило</button></div>
       </form></details>{% endif %}
     </section>
+    {% endif %}
 
     <section class="m2-panel m2-section" id="rules">
       <div class="m2-panel-head"><h2>Инженерные правила</h2><span class="m2-count">{{ rules|length }}</span></div>
@@ -541,7 +545,7 @@
         <h3>{{ group_name }}</h3>
         {% for item in group_items %}
         <article class="m2-record">
-          <div class="m2-record-main"><div><strong>{{ item.display_text }}</strong></div><div></div><div></div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span></div><div>{{ knowledge_actions('rule', item, 'rules') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('rule', item.model.id, 'rules') }}{% endif %}</div></div>
+          <div class="m2-record-main m2-compact-record m2-rule-line"><div>{% if item.phase_label %}<small>{{ item.phase_label }}</small>{% endif %}<strong>{{ item.display_text }}</strong></div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span></div><div>{{ knowledge_actions('rule', item, 'rules') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('rule', item.model.id, 'rules') }}{% endif %}</div></div>
           {% if item.conflicts %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Конфликт с действующим правилом</span></div>{% endif %}
           {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
           <details class="m2-editor"><summary>Изменить инженерное правило</summary>

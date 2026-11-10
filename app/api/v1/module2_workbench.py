@@ -329,7 +329,7 @@ async def technology_workbench_detail(
         )]
         if len(matches) == 1:
             value = matches[0].default_value.get("value")
-            layer["thickness_label"] = f"Для предварительной оценки: {matches[0].name_ru} — {value} {matches[0].unit or ''}".strip()
+            layer["thickness_label"] = f"Допущение платформы: {matches[0].name_ru} — {value} {matches[0].unit or ''}".strip()
         elif expression and any(char.isdigit() for char in expression):
             layer["thickness_label"] = expression
         else:
@@ -644,6 +644,8 @@ async def _perform_action(
         )
         return "Порядок обновлен."
     if action == "transition-knowledge":
+        if technology.status != TechnologyLifecycle.DRAFT.value:
+            raise ValueError("Изменять инженерные записи можно только в черновой редакции технологии.")
         component = _required(form, "component")
         entity = _knowledge_entity(technology, component, _required_uuid(form, "item_id"))
         target = TechnologyLifecycle(_required(form, "target"))

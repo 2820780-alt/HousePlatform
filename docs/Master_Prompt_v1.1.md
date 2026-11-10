@@ -1,5 +1,12 @@
 # Master_Prompt_v1.1
 
+> Актуальная точка для следующего чата: этот файл сохраняет исторические
+> ограничения Sprint 02. Состояние Module №2, фундаментного контента и границы
+> выпуска ведутся в `docs/Modules/Module_02_Content_Catalog_Encyclopedia.md`;
+> инвентаризация 15 технологий находится в
+> `docs/Modules/Module_02_Foundations_Full_Inventory.md`. Состояние Module №1
+> описано в `docs/Modules/module1/NEW_CHAT_HANDOFF_ATOM_MODULE1.md`.
+
 Дата фиксации: 18.06.2026
 
 Статус: рабочая версия для Sprint 02.

@@ -47,6 +47,10 @@
     .enc-search { display: flex; gap: 8px; max-width: 620px; margin: 0 0 18px; }
     .enc-search input { flex: 1; min-width: 0; }
     .enc-empty { color: var(--m2-muted); }
+    .enc-compare-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; margin: 16px 0; }
+    .enc-compare-form select { width: 100%; }
+    .enc-compare-form button { justify-self: start; }
+    .enc-compare-wrap { max-width: 100%; overflow-x: auto; }
     .enc-compare { width: 100%; border-collapse: collapse; font-size: 13px; }
     .enc-compare th, .enc-compare td { padding: 11px 12px; border-bottom: 1px solid var(--m2-line); text-align: left; vertical-align: top; }
     .enc-compare th { color: var(--m2-muted); background: var(--m2-surface); }
@@ -71,6 +75,7 @@
       .enc-nav strong { width: 100%; margin: 0; }
       .enc-nav a { padding: 4px 0; }
       .enc-columns { grid-template-columns: 1fr; gap: 12px; }
+      .enc-compare-form { grid-template-columns: 1fr; }
       .enc-compare-wrap { overflow-x: auto; }
       .enc-compare { min-width: 610px; }
     }
@@ -106,12 +111,20 @@
             <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Энциклопедия</a>{% for item in breadcrumb %}<span>›</span>{% if loop.last %}<span>{{ item.name }}</span>{% else %}<a href="/api/v1/module2/encyclopedia/categories/{{ item.code }}">{{ item.name }}</a>{% endif %}{% endfor %}</div>
             <h1>{{ category.name }}</h1>
             <p class="enc-lead">{{ overview.intro if overview else category.description or 'Описание раздела пока не опубликовано.' }}</p>
-            {% if category.code in category_tiles %}{% set tile = category_tiles[category.code] %}<figure class="enc-category-figure"><span class="enc-category-image" style="background-position: {{ tile[0] * 100 / 3 }}% {{ tile[1] * 100 / 3 }}%" role="img" aria-label="Иллюстрация раздела: {{ category.name }}"></span><figcaption>Иллюстрация раздела, не рабочая схема.</figcaption></figure>{% endif %}
+            {% if category.code in category_tiles %}{% set tile = category_tiles[category.code] %}<figure class="enc-category-figure"><span class="enc-category-image" style="background-position: {{ tile[0] * 100 / 3 }}% {{ tile[1] * 100 / 3 }}%" role="img" aria-label="Иллюстрация раздела: {{ category.name }}"></span></figure>{% endif %}
             {% if overview %}
               <section><h2>Как это работает</h2><p>{{ overview.principle }}</p></section>
               {% if children %}<section><h2>Какие варианты существуют</h2><ul class="enc-list">{% for row in children %}<li><h3><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></h3>{% for detail in comparison if detail.category.code == row.category.code and detail.article is defined %}<p>{{ detail.article.intro }}</p>{% endfor %}</li>{% endfor %}</ul></section>{% endif %}
-              {% if category.code == 'FOUNDATIONS' and comparison %}
-                <section><h2>Сравнение видов</h2><p class="enc-note">Ориентир для понимания различий, не инженерный выбор для участка.</p><div class="enc-compare-wrap"><table class="enc-compare"><thead><tr><th>Вид</th><th>Подходит когда</th><th>Особенность</th><th>Ограничение</th></tr></thead><tbody>{% for row in comparison %}<tr><td><a href="/api/v1/module2/encyclopedia/categories/{{ row.category.code }}">{{ row.category.name }}</a></td><td>{{ row.article.uses[0] }}</td><td>{{ row.article.advantages[0] }}</td><td>{{ row.article.limitations[0] }}</td></tr>{% endfor %}</tbody></table></div></section>
+              {% if category.code == 'FOUNDATIONS' and foundation_compare %}
+                <section id="foundation-comparison"><h2>Сравнение видов фундаментов</h2><p class="enc-note">Сравнение помогает изучить различия, но не определяет пригодность для участка. Грунты, нагрузки и условия строительства нужно проверить отдельно.</p>
+                  <form class="enc-compare-form" method="get" action="#foundation-comparison">
+                    {% for position in range(3) %}<label><span>{{ 'Первый вариант' if position == 0 else 'Второй вариант' if position == 1 else 'Третий вариант' }}</span><select name="compare" {% if position < 2 %}required{% endif %}><option value="">{{ 'Не выбран' if position < 2 else 'Не сравнивать' }}</option>{% for technology in foundation_compare.options %}<option value="{{ technology.technology_code }}" {% if position < foundation_compare.selected|length and foundation_compare.selected[position] == technology.technology_code %}selected{% endif %}>{{ technology.name }}</option>{% endfor %}</select></label>{% endfor %}
+                    <label><span>Что важно</span><select name="scenario"><option value="">Все критерии</option>{% for key, value in foundation_compare.scenarios.items() %}<option value="{{ key }}" {% if foundation_compare.scenario == key %}selected{% endif %}>{{ value[0] }}</option>{% endfor %}</select></label>
+                    <button class="m2-button" type="submit">Сравнить</button>
+                  </form>
+                  {% if foundation_compare.error %}<p class="enc-callout" role="alert">{{ foundation_compare.error }}</p>{% else %}<div class="enc-compare-wrap"><table class="enc-compare"><thead><tr><th scope="col">Критерий</th>{% for col in foundation_compare.columns %}<th scope="col"><a href="/api/v1/module2/encyclopedia/technologies/{{ col.technology.technology_code }}">{{ col.technology.name }}</a></th>{% endfor %}</tr></thead><tbody>{% for key, label in foundation_compare.criteria %}<tr><th scope="row">{{ label }}</th>{% for col in foundation_compare.columns %}<td>{{ col.profile[key] }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>{% endif %}
+                  <p class="enc-note">Общие принципы: <a href="https://www.fema.gov/sites/default/files/documents/fema_p-749-earthquake-resistant-design-concepts_112022.pdf" target="_blank" rel="noopener noreferrer">FEMA: типы фундаментов</a>; <a href="https://bsesc.energy.gov/energy-basics/slab-edge-insulation-processrequirements" target="_blank" rel="noopener noreferrer">Минэнерго США: утепление края плиты</a>. Это зарубежные справочные материалы, а не российские нормы проектирования.</p>
+                </section>
               {% else %}
                 <section><h2>Где применяется</h2><ul class="enc-bullets">{% for item in overview.uses %}<li>{{ item }}</li>{% endfor %}</ul></section>
                 <section class="enc-columns"><div><h2>Преимущества</h2><ul>{% for item in overview.advantages %}<li>{{ item }}</li>{% endfor %}</ul></div><div><h2>Ограничения</h2><ul>{% for item in overview.limitations %}<li>{{ item }}</li>{% endfor %}</ul></div></section>
@@ -122,7 +135,8 @@
               <section><h2>Что нужно уточнить для конкретного дома</h2><ul class="enc-bullets">{% for item in overview.project_checks %}<li>{{ item }}</li>{% endfor %}</ul></section>
             {% endif %}
             {% if technologies %}<section><h2>Технологии семейства</h2><ul class="enc-list">{% for row in technologies %}<li><h3><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a></h3>{% if row.technology.description %}<p>{{ row.technology.description }}</p>{% endif %}</li>{% endfor %}</ul></section>{% endif %}
-            {% if related_technologies %}<section><h2>Связанные технологии</h2><ul class="enc-list">{% for row in related_technologies %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a></li>{% endfor %}</ul></section>{% endif %}
+            {% if not technologies and not children %}<section><p class="enc-empty">В этом разделе пока нет опубликованных технологий.</p></section>{% endif %}
+            {% if related_technologies %}<section><h2>Связанные технологии из других разделов</h2><ul class="enc-list">{% for row in related_technologies %}<li><a href="/api/v1/module2/encyclopedia/technologies/{{ row.technology.technology_code }}">{{ row.technology.name }}</a><div class="enc-meta">{{ row.category.name }}{% if row.relationship_name %} · Связь: {{ row.relationship_name }}{% endif %}</div>{% if row.relationship_description %}<p>{{ row.relationship_description }}</p>{% endif %}</li>{% endfor %}</ul></section>{% endif %}
             <section><h2>Источники и нормативная база</h2><p class="enc-note">Подтверждения приведены в статьях опубликованных технологий. Обзор обобщает их состав и не заменяет расчет.</p></section>
           {% elif view == 'technology' %}
             <div class="enc-path"><a href="/api/v1/module2/encyclopedia">Энциклопедия</a>{% for item in article.breadcrumb %}<span>›</span><a href="/api/v1/module2/encyclopedia/categories/{{ item.code }}">{{ item.name }}</a>{% endfor %}<span>›</span><span>{{ article.technology.name }}</span></div>

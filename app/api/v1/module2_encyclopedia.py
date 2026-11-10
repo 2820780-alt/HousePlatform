@@ -97,7 +97,10 @@ async def encyclopedia_category(
     category_code: str, request: Request, db: DBSession, user: CurrentUser
 ):
     _view(user)
-    category = await public_category(db, category_code)
+    category = await public_category(
+        db, category_code, compare_codes=request.query_params.getlist("compare")[:4],
+        scenario=str(request.query_params.get("scenario") or "")[:30],
+    )
     if category is None:
         raise HTTPException(status_code=404)
     return _render(request, "category", can_workbench=workbench_permissions(user)["edit"], **category)

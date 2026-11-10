@@ -23,6 +23,7 @@ from app.services.module2_encyclopedia_editorial import (
 from app.services.module2_material_resolution import (
     compatible_materials, gap_for_requirement, material_card_url,
 )
+from app.services.module2_foundation_comparison import foundation_comparison
 from app.services.module2_technology_foundation import read_technology
 from app.services.module2_workbench import LAYER_NAMES, REQUIREMENT_NAMES, format_consumption_norm
 
@@ -69,7 +70,8 @@ async def public_catalog(db: AsyncSession, query: str = "") -> dict:
     return {"categories": matched_rows, "technologies": technologies, "all_categories": rows}
 
 
-async def public_category(db: AsyncSession, code: str) -> dict | None:
+async def public_category(db: AsyncSession, code: str, *, compare_codes: list[str] | None = None,
+                          scenario: str = "") -> dict | None:
     catalog = await public_catalog(db)
     target = next(
         (row for row in catalog["all_categories"] if row["category"].code == code), None
@@ -93,9 +95,11 @@ async def public_category(db: AsyncSession, code: str) -> dict | None:
             TechnologyNode.node_type == "RELATED_CATEGORY",
         ))).all()
         related = [
-            public_by_id[node.technology_id]
+            {**public_by_id[node.technology_id], "relationship_name": node.name,
+             "relationship_description": node.description}
             for node in nodes
             if (node.conditions or {}).get("category_code") == code
+            and public_by_id[node.technology_id]["technology"].category_id != category.id
         ]
     related_technologies = tuple({row["technology"].id: row for row in related}.values())
     by_id = {row["category"].id: row["category"] for row in catalog["all_categories"]}
@@ -130,6 +134,8 @@ async def public_category(db: AsyncSession, code: str) -> dict | None:
         "technologies": technologies, "related_technologies": related_technologies,
         "breadcrumb": tuple(reversed(breadcrumb)),
         "overview": overview, "comparison": comparison, "materials": materials,
+        "foundation_compare": foundation_comparison(catalog["technologies"], compare_codes or [], scenario)
+        if code == "FOUNDATIONS" else None,
     }
 
 

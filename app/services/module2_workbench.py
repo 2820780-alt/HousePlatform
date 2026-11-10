@@ -649,16 +649,18 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         group["counts"] = tuple(counts.items())
 
     rule_section_labels = {
-        "applicability": "Применимость", "exclusions": "Когда не подходит",
-        "quality_before": "До начала работ", "quality_during": "Во время работ",
-        "quality_after": "После выполнения", "common_error": "Типичные ошибки",
-        "project_dependent": "Что требует расчёта",
+        "applicability": "Применимость", "exclusions": "Ограничения и совместимость",
+        "quality_before": "Контроль качества", "quality_during": "Контроль качества",
+        "quality_after": "Контроль качества", "common_error": "Типичные ошибки",
+        "project_dependent": "Ограничения и совместимость",
     }
     rule_groups: dict[str, list[dict[str, Any]]] = {}
     for item in rules:
         payload = item["model"].outcome_payload or {}
         section = str(payload.get("section") or "").lower()
         label = rule_section_labels.get(section, "Другие правила")
+        item["phase_label"] = {"quality_before": "До начала работ", "quality_during": "Во время работ",
+                               "quality_after": "После выполнения"}.get(section)
         item["display_text"] = next((payload[key] for key in ("message", "description", "text", "note")
                                      if isinstance(payload.get(key), str) and payload[key].strip()),
                                     item["outcome_label"])

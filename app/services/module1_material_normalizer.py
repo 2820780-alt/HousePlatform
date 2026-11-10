@@ -160,13 +160,15 @@ def normalize_characteristics(
         elif "гкл" in title:
             values.setdefault("board_type", "standard")
     elif group_code == "rebar":
-        if diameter := _match(r"(?:арматура\s*)?(?:а\d{3}[сc]?\s*)?(\d{1,2}(?:[.,]\d+)?)\s*мм\b", title):
+        diameter = (_match(r"(?:арматура\s*)?(?:а\d{3}[сc]?\s*)?(\d{1,2}(?:[.,]\d+)?)\s*мм\b", title)
+                    or _match(r"(?:ø|⌀|диаметр)\s*(\d{1,2}(?:[.,]\d+)?)(?!\d)", title))
+        if diameter:
             values.setdefault("diameter_mm", _number(diameter))
         if steel_class := _match(r"\b[аa]\s?(\d{3})\s*([сc])?\b", title):
             suffix = _match(r"\b[аa]\s?\d{3}\s*([сc])\b", title) or ""
             values.setdefault("steel_class", f"A{steel_class}{suffix.upper().replace('С', 'C')}")
     elif group_code == "ready_mix_concrete":
-        if concrete_class := _match(r"\bb\s*(\d{1,3}(?:[.,]\d+)?)\b", title):
+        if concrete_class := _match(r"\b[вb]\s*(\d{1,3}(?:[.,]\d+)?)\b", title):
             values.setdefault("concrete_class", f"B{concrete_class.replace(',', '.')}")
         if mobility := _match(r"\b[пp]\s*(\d)\b", title):
             values.setdefault("mobility_class", f"P{mobility}")

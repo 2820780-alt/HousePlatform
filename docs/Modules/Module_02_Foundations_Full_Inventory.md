@@ -1,5 +1,41 @@
 # M2 Foundations: inventory for the next content sprint
 
+## Audit update: M2-FOUNDATIONS-FULL + M1
+
+On 2026-11-10 the live read-only audit confirmed all 15 active technologies and
+six families listed below. There are still 40 existing Material Gaps, each
+linked to an existing M1 acquisition task. Applying the existing compatible
+VERIFIED-material lookup to all 40 requirements found zero candidates. No
+material, product, offer, price, new gap, task, technology revision, engineering
+norm or business data was created or altered by this audit.
+
+For each of the 15 technologies the counts in the table remain an inventory,
+not an editorial or engineering completeness certification. Detailed articles,
+verified source-to-claim review, suitable M1 materials, justified consumption
+norms and estimate-ready M2-to-M5 inputs remain incomplete. Treat the whole
+content package as PARTIAL / IN_PROGRESS, even where older category metadata
+says CONTENT_COMPLETE. Technology-specific engineering drawings are not
+established by the category illustrations.
+
+The existing node connecting driven piles to PREPARATION describes preparation
+of their worksite. It is a cross-category relationship, not membership in that
+category; the public presentation identifies the source family and relation.
+All 16 published roots and six foundation families were checked for own versus
+related active technologies and circular public breadcrumbs.
+
+The comparison now resolves published foundation technologies from the M2
+catalog and presents selectable alternatives and scenario-prioritized criteria.
+It is informational and does not imply suitability or price ranking. FEMA P-749
+is background on shallow/deep foundation principles, and US Department of
+Energy guidance is background on slab-edge insulation; neither is presented as
+a Russian design norm. No numeric engineering norms were imported from them.
+
+The M1 normalizer now recognizes Cyrillic concrete class designations and the
+diameter symbols used for rebar. Matching still reports conflicting classes or
+diameters and does not merge them automatically. The 209-item REF6 and its
+existing three-item extension remain unchanged. Default resolution remains
+USER_OVERRIDE > PROJECT_VALUE > M2_DEFAULT; no M5 or M7 implementation was added.
+
 Read-only snapshot of HousePlatform on 2026-11-09. The counts below describe
 stored links and records, not engineering approval or estimation readiness.
 No catalogue, content, lifecycle, or production data were changed by this audit.

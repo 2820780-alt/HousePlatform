@@ -862,3 +862,53 @@ technology; a missing M1 material is not represented as an established match.
 The read-only foundation snapshot and follow-up checklist are in
 `Module_02_Foundations_Full_Inventory.md`. Release remains conditional on the
 targeted, regression and live visual checks and the controlled web deployment.
+
+## M2-FOUNDATIONS-FULL + M1: current handoff
+
+The current content state is PARTIAL / IN_PROGRESS, not full engineering or
+estimation readiness. The 15 active foundation and substructure technologies,
+their actual structure and the material gap counts are documented in
+`Module_02_Foundations_Full_Inventory.md`. No active technology was directly
+edited and no production data or schema migration was required for this slice.
+
+The existing M1 normalization and matching pipeline is retained. Cyrillic
+concrete classes and rebar diameter symbols are recognized; differing classes
+and diameters remain conflicts. All 40 active requirements were checked through
+the existing VERIFIED-compatible lookup: no compatible card was established,
+and the 40 existing gaps already have acquisition tasks. No fake material,
+product, price, certificate or evidence was created.
+
+Category pages now explicitly distinguish own published technologies from
+typed cross-category relationships, retaining the preparation relationship as
+such. The generic illustration caption was removed. On FOUNDATIONS, a GET-based
+comparison offers two or three currently public supported technologies, 13
+shared qualitative criteria and four scenarios that reorder relevant criteria.
+It is an educational overview, not a foundation recommendation, M5 calculation
+or price ranking. The related external background references are not Russian
+design norms. Administrative work rows link to the existing published M1 work
+representation; compact node and rule layouts preserve permissions and actions.
+Workbench lifecycle actions for a technology's engineering rules and norms are
+restricted server-side to a DRAFT technology revision; its non-DRAFT revisions
+cannot be altered through this endpoint by archiving active child records. The
+independent knowledge service retains its existing internal lifecycle contract;
+future entry points must enforce the same revision boundary.
+
+Still required: detailed verified articles and images for each technology,
+review of claim-level evidence and source applicability, actual compatible M1
+materials, justified norms, construction and editing UX refinements for all
+seven workbench tabs, and structured M2-to-M5 readiness review. Do not start A3
+on the assumption that these tasks are complete. The canonical category and
+material catalogs, lifecycle, RBAC, default priority and REF6 remain unchanged.
+
+Verification for this slice: full isolated regression 1579 passed, 22 skipped,
+2 deselected before the final localized Workbench lifecycle guard; subsequent
+targeted M2 lifecycle/contract/Workbench checks passed (97 passed, 2 skipped),
+as did the final direct-endpoint and comparison tests (22 passed). The two
+deselected security tests directly read the protected Compose environment file.
+Desktop/mobile browser smoke covered 390, 768, 1280 and 1440 pixels, all seven
+tabs, the comparison scenarios and VIEW/admin access. The HousePlatform web
+image was rebuilt and only web was recreated; health API returned 200. No live
+business-data changes or migration were applied, so no new backup was created.
+Counts of the audited M1/M2 tables matched before and after; this is a count
+comparison, not a full row fingerprint. The isolated test DB was retained.
+Commit and remote synchronization are recorded in the Git history.
