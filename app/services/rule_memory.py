@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.catalog_product import CatalogProduct
+from app.models.enums import MaterialStatus
 from app.models.material import Material
 from app.models.rule_memory import RuleMemory
 
@@ -147,6 +148,8 @@ async def find_rule_for_product(
     )
     rules = list(result.scalars().all())
     for rule in rules:
+        if rule.material is None or rule.material.status in {MaterialStatus.ARCHIVED, MaterialStatus.REJECTED}:
+            continue
         if allowed_category_ids is not None and rule.category_id and rule.category_id not in allowed_category_ids:
             continue
         rule_pattern = normalize_rule_pattern(rule.normalized_pattern)
