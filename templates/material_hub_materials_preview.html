@@ -10,7 +10,7 @@
     *{box-sizing:border-box} body{margin:0;background:#050d1c;color:#eef5ff;font:14px Arial,sans-serif}
     body[data-module1-visual-system] .module1-quick-actions-rail{display:none}
     body[data-module1-visual-system] main,body[data-module1-visual-system][data-module1-rail-collapsed="true"] main{margin:0!important;padding:8px 14px 24px!important;max-width:none}
-    .workspace{display:grid;grid-template-columns:165px minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+    .workspace{display:grid;grid-template-columns:165px minmax(0,1fr);gap:12px;align-items:start}
     .catalog-sidebar{padding:14px 4px;color:#bdd1e9}.catalog-sidebar strong{display:block;margin-bottom:20px}
     .catalog-sidebar a{display:block;padding:10px;border:1px solid #117e92;border-radius:5px;color:#d9fbff;background:#0d3446;text-decoration:none}
     body[data-module1-visual-system] .catalog-panel,body[data-module1-visual-system] .catalog-detail{padding:16px;border:1px solid #2b466a;border-radius:7px;background:#071426;min-width:0;box-shadow:none}
@@ -18,7 +18,7 @@
     .presets{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 12px}.presets a{color:#eef5ff;text-decoration:none;border:1px solid #334d71;border-radius:6px;padding:8px 12px}
     .presets a[aria-current]{border-color:#00d0e2;background:#0a3e51}.count{color:#a8c7d6;margin-left:6px}
     .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
-    .search{grid-column:1 / -1}.filter-grid label{display:block;font-size:11px;color:#aec6df;margin-bottom:4px}
+    .search{grid-column:span 2}.filter-grid label{display:block;font-size:11px;color:#aec6df;margin-bottom:4px}
     .filter-grid input,.filter-grid select{width:100%;min-width:0;height:34px;color:#eaf4ff;background:#091321;border:1px solid #304967;border-radius:5px;padding:6px}
     .filter-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}.filter-actions button,.filter-actions a{width:auto;padding:8px;border:1px solid #345370;border-radius:5px;background:#113c50;color:#eafcff;text-decoration:none}
     .toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #2b466a;padding:12px 0;font-size:12px}
@@ -28,14 +28,14 @@
     .pagination{display:flex;align-items:center;gap:10px;padding-top:12px}.pagination a{color:#c9e8f4}.pagination select{background:#101d31;color:#fff;border:1px solid #35506c;border-radius:4px;padding:5px}
     .crumbs{font-size:12px;color:#abc4dd}.detail-head{display:flex;gap:12px;align-items:flex-start;padding:14px 0}.material-placeholder{width:96px;height:76px;flex:0 0 96px;background:#13243a;border:1px solid #314c6a;border-radius:5px;display:grid;place-items:center;color:#a8c3d6;font-size:12px}
     .detail-head h2{margin:0 0 6px;font-size:21px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail-block{border:1px solid #2c4567;border-radius:5px;padding:10px;min-width:0}.detail-block h3{margin:0 0 8px;font-size:14px}.detail-block dl{margin:0}.detail-block dl div{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px 0;border-top:1px solid #223b59}.detail-block dt{color:#a8bed8;font-size:12px}.detail-block dd{margin:0;overflow-wrap:anywhere;font-size:12px}
-    .units{margin:10px 0;padding:10px;border:1px solid #2e4e70;border-radius:5px;background:#102139}.offers h3{font-size:15px;margin:18px 0 10px}.offers-table{min-width:600px}.offers a{color:#56baff}.mobile-back{display:none}
+    .units{margin:10px 0;padding:10px;border:1px solid #2e4e70;border-radius:5px;background:#102139}.offers h3{font-size:15px;margin:18px 0 10px}.offers-table{min-width:600px}.offers a{color:#56baff}.mobile-back{display:inline-block;margin-bottom:12px;color:#75dfe7}
     .primary-action{border:1px solid #078ea8;border-radius:5px;background:#16b8e2;color:#041626;padding:9px 12px;white-space:nowrap;font-weight:700;cursor:pointer}
     .edit-action{margin-left:auto;width:34px;height:34px;flex:0 0 34px;border:1px solid #34506f;border-radius:5px;background:#102139;color:#d6efff;cursor:pointer}
     dialog{width:min(720px,calc(100vw - 24px));max-height:90vh;overflow:auto;border:1px solid #35577d;border-radius:7px;background:#0b182b;color:#eef5ff;padding:18px}
     dialog::backdrop{background:rgba(1,7,17,.75)}.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.editor-grid label{display:block;color:#b4c9df;font-size:12px;margin-bottom:4px}.editor-grid input,.editor-grid select,.editor-grid textarea{width:100%;border:1px solid #35506c;border-radius:5px;background:#07111e;color:#eef5ff;padding:8px;font:inherit}.editor-wide{grid-column:1/-1}.editor-attrs{display:grid;gap:6px}.editor-attr{display:grid;grid-template-columns:1fr 1fr 110px 110px 32px;gap:6px}.editor-attr button{border:1px solid #35506c;border-radius:5px;background:#102139;color:white;cursor:pointer}.editor-actions{display:flex;gap:8px;margin-top:14px}.editor-actions button{width:auto}.editor-error{color:#ffb4c4;min-height:20px;margin-top:8px}
     .editor-conversion{grid-template-columns:1fr 1fr 1fr 32px}.editor-spec{grid-template-columns:1fr 1fr 110px}
-    @media(max-width:1200px){.workspace{grid-template-columns:140px minmax(0,1fr) minmax(0,1fr)}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.detail-grid{grid-template-columns:1fr}}
-    @media(max-width:900px){.workspace{grid-template-columns:minmax(0,1fr)}.catalog-sidebar{display:none}.catalog-detail{display:none}.workspace.show-detail .catalog-panel{display:none}.workspace.show-detail .catalog-detail{display:block}.mobile-back{display:inline-block;margin-bottom:12px;color:#75dfe7}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-attr{grid-template-columns:1fr 1fr}.editor-grid{grid-template-columns:1fr}.editor-wide{grid-column:auto}}
+    @media(max-width:1200px){.workspace{grid-template-columns:140px minmax(0,1fr)}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.detail-grid{grid-template-columns:1fr}}
+    @media(max-width:900px){.workspace{grid-template-columns:minmax(0,1fr)}.catalog-sidebar{display:none}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-attr{grid-template-columns:1fr 1fr}.editor-grid{grid-template-columns:1fr}.editor-wide{grid-column:auto}}
   </style>
 </head>
 <body data-atom-page data-rbac-ready data-module1-visual-system>
@@ -46,7 +46,7 @@
   <main>
     <div class="workspace{% if request.query_params.get('material') %} show-detail{% endif %}">
       <aside class="catalog-sidebar"><strong>M1 · Справочник</strong><a href="{{ preview_url(material='', page=1) }}">Материалы</a></aside>
-      <div class="catalog-panel">
+      {% if not detail_page %}<div class="catalog-panel">
         <div class="panel-heading"><div><h1>Материалы</h1><div class="muted">Технический каталог материалов для технологий, расчётов и смет</div></div><button class="primary-action" type="button" data-add-material>+ Добавить материал</button></div>
         <nav class="presets" aria-label="Наличие цены">
           <a href="{{ preview_url(preset='all', page=1) }}" {% if preset == 'all' %}aria-current="page"{% endif %}>Все материалы <span class="count">{{ counts.all }}</span></a>
@@ -70,7 +70,7 @@
         <div class="table-scroll"><table class="catalog-table"><thead><tr><th>Материал</th><th>Категория</th><th>Характеристики</th><th>Ед.</th><th>Предл.</th><th>Цена от</th></tr></thead><tbody>
           {% for row in rows %}{% set item = row.material %}{% set attrs = material_attribute_rows(item) %}
           <tr data-material-id="{{ item.id }}" class="{% if selected and selected.material.id == item.id %}selected{% endif %}">
-            <td><a data-select-material href="{{ preview_url(material=item.id) }}"><strong>{{ 'Название требует исправления' if '???' in item.canonical_name else item.canonical_name }}</strong></a></td>
+            <td><a data-select-material href="{{ material_detail_url(item.id) }}"><strong>{{ 'Название требует исправления' if '???' in item.canonical_name else item.canonical_name }}</strong></a></td>
             <td>{{ item.category.name if item.category else 'Не назначена' }}{% if item.subcategory %}<span class="secondary">{{ item.subcategory.name }}</span>{% endif %}</td>
             <td>{% for attr in attrs[:3] %}{{ attr.value }}{% if attr.unit %} {{ attr.unit }}{% endif %}{% if not loop.last %} · {% endif %}{% else %}<span class="secondary">Не указаны</span>{% endfor %}</td>
             <td>{{ item.base_unit.abbreviation if item.base_unit else '—' }}</td><td>{{ row.offer_count }}</td>
@@ -78,9 +78,9 @@
           </tr>{% else %}<tr><td colspan="6">Материалы не найдены.</td></tr>{% endfor %}
         </tbody></table></div>
         <div class="pagination">{% if page > 1 %}<a href="{{ preview_url(page=page-1) }}">Назад</a>{% endif %}<span>{{ page }} / {{ page_count }}</span>{% if page < page_count %}<a href="{{ preview_url(page=page+1) }}">Вперёд</a>{% endif %}<span class="secondary">Показано по {{ page_size }}</span></div>
-      </div>
+      </div>{% else %}
       <div class="catalog-detail">
-        <a class="mobile-back" href="{{ preview_url(material='') }}" data-back>← К каталогу</a>
+        <a class="mobile-back" href="{{ preview_url(material='') }}" data-back>← К материалам</a>
         {% if selected %}{% set item = selected.material %}{% set attrs = material_attribute_rows(item) %}
         <div class="crumbs">Материалы {% if item.category %}› {{ item.category.name }}{% endif %}{% if item.subcategory %} › {{ item.subcategory.name }}{% endif %}</div>
         <div class="detail-head"><div class="material-placeholder">Нет фото</div><div><h2>{{ 'Название требует исправления' if '???' in item.canonical_name else item.canonical_name }}</h2>{% if item.description %}<div>{{ item.description }}</div>{% endif %}{% if edit_data.purpose %}<div class="secondary">{{ edit_data.purpose }}</div>{% endif %}</div><button class="edit-action" type="button" data-edit-material aria-label="Редактировать материал" title="Редактировать материал">✎</button></div>
@@ -88,10 +88,10 @@
         <div class="detail-grid"><div class="detail-block"><h3>Основные данные</h3><dl><div><dt>Категория</dt><dd>{{ item.category.name if item.category else 'Не назначена' }}</dd></div><div><dt>Подкатегория</dt><dd>{{ item.subcategory.name if item.subcategory else 'Не указана' }}</dd></div><div><dt>Единица учёта</dt><dd>{{ item.base_unit.abbreviation if item.base_unit else 'Не указана' }}</dd></div></dl></div>
         <div class="detail-block"><h3>Технические характеристики</h3><dl>{% for spec in item.specifications if spec.value %}<div><dt>{{ characteristic_label(spec) }}</dt><dd>{{ spec.value }} {{ spec.unit or '' }}</dd></div>{% endfor %}{% for attr in attrs %}<div><dt>{{ attr.label }}</dt><dd>{{ attr.value }} {{ attr.unit or '' }}</dd></div>{% endfor %}{% if not item.specifications and not attrs %}<div><dt>Не указаны</dt><dd></dd></div>{% endif %}</dl></div></div>
         <div class="units"><strong>Единицы и пересчёт</strong><div class="secondary">Базовая единица: {{ item.base_unit.abbreviation if item.base_unit else 'не указана' }}.</div>{% for rule in selected_rules %}<div class="secondary">1 {{ rule.from_unit }} = {{ rule.coefficient if rule.coefficient is not none else 'не определено' }} {{ rule.to_unit }}{% if rule.status != 'ACTIVE' %} · Требует проверки{% endif %}{% if rule.source %} · {{ rule.source }}{% endif %}</div>{% else %}<div class="secondary">Дополнительные правила пересчёта не указаны.</div>{% endfor %}</div>
-        <div class="offers"><h3>Предложения поставщиков <span class="count">{{ selected.visible_offers|length }}</span></h3><div class="table-scroll"><table class="offers-table"><thead><tr><th>Название у поставщика</th><th>Поставщик</th><th>Регион</th><th>Цена</th><th>Ед.</th><th>За базовую ед.</th><th>Актуальность</th><th>Источник</th></tr></thead><tbody>{% for offer in selected.visible_offers %}<tr><td>{{ offer.name }}{% if offer.source_name %}<span class="secondary">Источник: {{ offer.source_name }}</span>{% endif %}</td><td>{% if offer.supplier_id %}<a href="/api/v1/admin/material-hub/view/materials/suppliers/{{ offer.supplier_id }}">{{ offer.supplier }}</a>{% else %}{{ offer.supplier }}{% endif %}</td><td>{{ offer.region or 'Не указан' }}</td><td>{{ offer.price if offer.price is not none else '—' }} {{ offer.currency or '' }}</td><td>{{ offer.unit or '—' }}</td><td>{{ preview_price(offer.comparable_price) if offer.comparable_price is not none else 'Не рассчитано' }}</td><td>{{ dt(offer.updated_at) if offer.updated_at else 'Не указана' }}</td><td>{% if offer.url %}<a href="{{ offer.url }}" target="_blank" rel="noopener noreferrer">Открыть</a>{% else %}—{% endif %}</td></tr>{% else %}<tr><td colspan="8">Предложений нет.</td></tr>{% endfor %}</tbody></table></div></div>
-        <div class="offers"><h3>Аналоги и варианты замены</h3>{% for link in item.analog_links if link.status not in ['ARCHIVED', 'REJECTED'] and link.analog_material and link.analog_material.status.value not in ['ARCHIVED', 'REJECTED'] %}<div class="detail-block"><a data-open-analog href="{{ preview_url(material=link.analog_material.id) }}">{{ link.analog_material.canonical_name }}</a>{% if link.reason %}<span class="secondary">{{ link.reason }}</span>{% endif %}{% if link.status != 'ACTIVE' %}<span class="secondary">Требует проверки</span>{% endif %}</div>{% else %}<div class="muted">Аналоги не указаны.</div>{% endfor %}</div>
-        {% else %}<div class="muted">Выберите материал.</div>{% endif %}
-      </div>
+        <div class="offers"><h3>Предложения поставщиков <span class="count">{{ selected.visible_offers|length }}</span></h3><div class="table-scroll"><table class="offers-table"><thead><tr><th>Название у поставщика</th><th>Поставщик</th><th>Регион</th><th>Цена</th><th>Ед.</th><th>За базовую ед.</th><th>Актуальность</th><th>Источник</th></tr></thead><tbody>{% for offer in selected.visible_offers %}<tr><td>{% if offer.url %}<a href="{{ offer.url }}" target="_blank" rel="noopener noreferrer">{{ offer.name }}</a>{% else %}{{ offer.name }}{% endif %}{% if offer.source_name %}<span class="secondary">Источник: {{ offer.source_name }}</span>{% endif %}</td><td>{% if offer.supplier_id %}<a href="/api/v1/admin/material-hub/view/materials/suppliers/{{ offer.supplier_id }}">{{ offer.supplier }}</a>{% else %}{{ offer.supplier }}{% endif %}</td><td>{{ offer.region or 'Не указан' }}</td><td>{{ offer.price if offer.price is not none else '—' }} {{ offer.currency or '' }}</td><td>{{ offer.unit or '—' }}</td><td>{{ preview_price(offer.comparable_price) if offer.comparable_price is not none else 'Не рассчитано' }}</td><td>{{ dt(offer.updated_at) if offer.updated_at else 'Не указана' }}</td><td>{% if offer.url %}<a href="{{ offer.url }}" target="_blank" rel="noopener noreferrer">Открыть</a>{% else %}—{% endif %}</td></tr>{% else %}<tr><td colspan="8">Предложений нет.</td></tr>{% endfor %}</tbody></table></div></div>
+        <div class="offers"><h3>Аналоги и варианты замены</h3>{% for link in item.analog_links if link.status not in ['ARCHIVED', 'REJECTED'] and link.analog_material and link.analog_material.status.value not in ['ARCHIVED', 'REJECTED'] %}<div class="detail-block"><a data-open-analog href="{{ material_detail_url(link.analog_material.id) }}">{{ link.analog_material.canonical_name }}</a>{% if link.reason %}<span class="secondary">{{ link.reason }}</span>{% endif %}{% if link.status != 'ACTIVE' %}<span class="secondary">Требует проверки</span>{% endif %}</div>{% else %}<div class="muted">Аналоги не указаны.</div>{% endfor %}</div>
+        {% endif %}
+      </div>{% endif %}
     </div>
   </main>
   <dialog id="material-editor" aria-labelledby="editor-title">
@@ -114,26 +114,12 @@
     const category = document.getElementById('category');
     const subcategory = document.getElementById('subcategory');
     function updateSubcategories(clear) { for (const option of subcategory.options) { if (!option.value) continue; option.hidden = !category.value || option.dataset.parent !== category.value; } if (clear) subcategory.value = ''; }
-    category.addEventListener('change', () => updateSubcategories(true)); updateSubcategories(false);
+    if (category && subcategory) { category.addEventListener('change', () => updateSubcategories(true)); updateSubcategories(false); }
     document.addEventListener('click', async (event) => {
       if (event.target.closest('[data-add-material]')) { openEditor(); return; }
       if (event.target.closest('[data-edit-material]')) { openEditor(JSON.parse(document.getElementById('material-edit-data').textContent)); return; }
-      const link = event.target.closest('[data-select-material], [data-open-analog]');
-      if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.button === 0) {
-        event.preventDefault();
-        try {
-          const response = await fetch(link.href); if (!response.ok) throw new Error('request');
-          const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
-          const detail = parsed.querySelector('.catalog-detail'); if (!detail) throw new Error('detail');
-          document.querySelector('.catalog-detail').replaceWith(detail);
-          document.querySelectorAll('.catalog-table tr.selected').forEach((row) => row.classList.remove('selected'));
-          const selectedRow = document.querySelector(`.catalog-table tr[data-material-id="${new URL(link.href).searchParams.get('material')}"]`); if (selectedRow) selectedRow.classList.add('selected');
-          document.querySelector('.workspace').classList.add('show-detail');
-          history.pushState({}, '', link.href);
-        } catch (_) { window.location.href = link.href; }
-      }
-      const back = event.target.closest('[data-back]');
-      if (back && window.matchMedia('(max-width: 900px)').matches) { event.preventDefault(); document.querySelector('.workspace').classList.remove('show-detail'); history.pushState({}, '', back.href); }
+      const row = event.target.closest('.catalog-table tr[data-material-id]');
+      if (row && !event.target.closest('a') && !event.ctrlKey && !event.metaKey && event.button === 0) window.location.href = row.querySelector('[data-select-material]').href;
     });
     window.addEventListener('popstate', () => window.location.reload());
     const editor = document.getElementById('material-editor');
@@ -197,7 +183,7 @@
         const url = new URL('/api/v1/admin/material-hub/view/materials/save', window.location.origin); if (editId) url.searchParams.set('material_id', editId);
         const response = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
         const body = await response.json(); if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : 'Проверьте введённые данные.');
-        const target = new URL(window.location.href); target.searchParams.set('material', body.id); target.searchParams.delete('page'); window.location.href = target.href;
+        const target = new URL(window.location.href); target.pathname = '/api/v1/admin/material-hub/view/materials/' + encodeURIComponent(body.id); target.searchParams.delete('material'); window.location.href = target.href;
       } catch (error) { document.getElementById('editor-error').textContent = error.message || 'Не удалось сохранить материал.'; }
     });
   </script>

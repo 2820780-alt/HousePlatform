@@ -371,7 +371,7 @@ async def material_hub_materials_preview(
     q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
     minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
     preset: str = "all", page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
-    material: str = "", sort: str = "name",
+    material: str = "", sort: str = "name", detail_page: bool = False,
 ):
     """Render the materials workspace; retain the preview URL for QA."""
     from urllib.parse import urlencode
@@ -410,8 +410,8 @@ async def material_hub_materials_preview(
         selected = next((item for item in all_rows if str(item["material"].id) == material), None)
         if selected is not None:
             selected = {**selected, "visible_offers": selected["offers"]}
-    if selected is None and page_rows:
-        selected = page_rows[0]
+    if detail_page and selected is None:
+        raise HTTPException(status_code=404, detail="Материал не найден.")
     selected_rules = []
     if selected:
         selected_rules = list((await db.scalars(select(UnitConversionRule).where(
@@ -453,7 +453,13 @@ async def material_hub_materials_preview(
             else:
                 params[key] = str(value)
         encoded = urlencode(params)
-        return str(request.url.path) + (f"?{encoded}" if encoded else "")
+        return "/api/v1/admin/material-hub/view/materials" + (f"?{encoded}" if encoded else "")
+
+    def material_detail_url(material_id):
+        params = dict(request.query_params)
+        params.pop("material", None)
+        encoded = urlencode(params)
+        return f"/api/v1/admin/material-hub/view/materials/{material_id}" + (f"?{encoded}" if encoded else "")
 
     def preview_price(value):
         if value is None:
@@ -476,7 +482,8 @@ async def material_hub_materials_preview(
         "default_region": default_region, "atom_topbar_region_name": active_region["name"],
         "atom_topbar_region_code": active_region["code"],
         "minimum": minimum, "maximum": maximum, "preset": preset, "sort": sort,
-        "preview_url": preview_url, "preview_price": preview_price,
+        "preview_url": preview_url, "material_detail_url": material_detail_url,
+        "detail_page": detail_page or bool(material), "preview_price": preview_price,
         "material_attribute_rows": _material_ui_attribute_rows,
         "characteristic_label": _characteristic_label, "dt": _format_datetime,
     })
@@ -515,6 +522,21 @@ async def material_hub_materials_preview_supplier(request: Request, db: DBSessio
     return templates.TemplateResponse(request, "material_hub_supplier_preview.html", {
         "supplier": supplier, "prices": prices, "dt": _format_datetime,
     })
+
+
+@router.get("/materials/{material_id}", response_class=HTMLResponse)
+async def material_hub_material_detail(
+    request: Request, db: DBSession, material_id: str,
+    q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
+    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    preset: str = "all", page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
+    sort: str = "name",
+):
+    return await material_hub_materials_preview(
+        request, db, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
+        minimum=minimum, maximum=maximum, preset=preset, page=page, page_size=page_size,
+        material=material_id, sort=sort, detail_page=True,
+    )
 
 
 @router.get("/work-costs", response_class=HTMLResponse)

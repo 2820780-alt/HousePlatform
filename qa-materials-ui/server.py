@@ -9,7 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import selectinload
 
-QA_DATABASE = "houseplatform_fnd_m1_m2_20261110"
+QA_DATABASE = os.environ.get("M1_UI_QA_DATABASE", "houseplatform_fnd_m1_m2_20261110")
+if QA_DATABASE not in {"houseplatform_fnd_m1_m2_20261110", "houseplatform_m1archive_check_20261111"}:
+    raise RuntimeError("Unapproved QA database")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 original_init = BaseSettings.__init__
 

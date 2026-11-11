@@ -22,16 +22,14 @@ const sizes = [[1672, 941], [1440, 941], [1280, 941], [768, 941], [390, 844]];
       await page.screenshot({ path: path.join(output, `preview-${width}.png`) });
       const links = page.locator('[data-select-material]');
       if (await links.count() > 1) {
-        await page.evaluate(() => { window.__qaNavigationMarker = 'retained'; });
         const label = await links.nth(1).innerText();
         await links.nth(1).click();
         await page.waitForFunction(text => document.querySelector('.catalog-detail h2')?.textContent.trim() === text.trim(), label);
-        if (await page.evaluate(() => window.__qaNavigationMarker) !== 'retained') throw new Error('Selecting a material reloaded the page');
-        if (!new URL(page.url()).searchParams.has('material')) throw new Error('Direct material URL was not retained');
-        if (width <= 900) {
-          await page.locator('[data-back]').click();
-          if (!(await page.locator('.catalog-panel').isVisible())) throw new Error('Mobile return did not restore catalogue');
-        }
+        if (!/\/materials\/[^/]+$/.test(new URL(page.url()).pathname)) throw new Error('Dedicated material URL was not retained');
+        if (await page.locator('.catalog-panel').count()) throw new Error('Catalogue still appears on the detail page');
+        await page.screenshot({ path: path.join(output, `detail-${width}.png`) });
+        await page.locator('[data-back]').click();
+        if (!(await page.locator('.catalog-panel').isVisible())) throw new Error('Return did not restore catalogue');
       }
       if (errors.length) throw new Error(errors.join('; '));
       if (width === 1672 && await page.locator('.pagination a').filter({ hasText: 'Вперёд' }).count()) {

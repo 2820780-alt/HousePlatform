@@ -300,6 +300,13 @@ INGESTION_CANONICAL_PIPELINE_SERVICES = frozenset(
 )
 
 PERSISTENCE_SERVICE_BOUNDARIES = {
+    "module1_foundation_material_release.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"material", "subcategory"}),
+        "allowed_mutation_roots": frozenset({"material"}),
+        "allowed_models": frozenset({"Material", "MaterialCategory"}),
+        "reason": "Release identifiable M1 foundation drafts and their approved-category subcategories without archival.",
+    },
     "module1_material_ui_write.py": {
         "allowed_session_methods": frozenset({"add", "flush"}),
         "allowed_add_targets": frozenset({"current", "selected_subcategory", "conversion_rule", "analog"}),

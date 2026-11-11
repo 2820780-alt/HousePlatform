@@ -21,6 +21,40 @@ async def test_package_requires_edit_permission_and_complete_reviewed_snapshot()
 
 
 @pytest.mark.asyncio
+async def test_partial_foundation_drafts_remain_blocked_on_qa_database():
+    from sqlalchemy import select
+    from sqlalchemy.engine import make_url
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from app.config import settings
+    from app.models.module2_technology import Technology
+    from app.services.module2_foundation_integration import prepare_partial_foundation_drafts
+    from app.services.module2_foundation_preliminary_profiles import PROFILES
+
+    if make_url(settings.DATABASE_URL).database != "houseplatform_m1archive_check_20261111":
+        pytest.skip("requires restored foundation QA database")
+    engine = create_async_engine(settings.DATABASE_URL)
+    try:
+        async with async_sessionmaker(engine, expire_on_commit=False)() as db:
+            codes = {profile.technology_code for profile in PROFILES}
+            active = (await db.scalars(select(Technology).where(
+                Technology.technology_code.in_(codes), Technology.status == "ACTIVE"))).all()
+            snapshot = {item.technology_code: (item.id, item.revision) for item in active}
+            result = await prepare_partial_foundation_drafts(
+                db, expected_active_revisions=snapshot, actor_role_code="ENGINEER_DESIGNER")
+            assert result["drafts"] == 15
+            assert sum(len(item["legacy_unresolved"]) for item in result["reports"]) == 40
+            assert all(item["unresolved"] for item in result["reports"])
+            drafts = (await db.scalars(select(Technology).where(
+                Technology.technology_code.in_(codes), Technology.status == "DRAFT"))).all()
+            assert len(drafts) == 15
+            assert all("foundation_reconciliation_required" in item.input_blockers for item in drafts)
+            await db.rollback()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
 async def test_transactional_package_on_fresh_isolated_backup():
     from sqlalchemy import func, select
     from sqlalchemy.engine import make_url
