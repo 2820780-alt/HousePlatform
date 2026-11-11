@@ -14,6 +14,7 @@ class MaterialAttribute(Base):
     material_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("materials.id", ondelete="CASCADE"), nullable=False, index=True)
     attribute_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     attribute_value: Mapped[str] = mapped_column(String(500), nullable=False)
+    value_type: Mapped[str] = mapped_column(String(20), nullable=False, default="text", server_default="text")
     unit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("units.id"))
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 

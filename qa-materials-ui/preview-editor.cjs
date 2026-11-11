@@ -1,0 +1,62 @@
+const { chromium } = require('playwright');
+const { randomUUID } = require('node:crypto');
+const base = 'http://127.0.0.1:18080/api/v1/admin/material-hub/view/materials';
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1672, height: 941 } });
+    await page.goto(base, { waitUntil: 'networkidle' });
+    if (await page.locator('#category option').count() !== 15) throw new Error('The 14 approved categories are not available');
+    const name = `QA editor ${randomUUID()}`;
+    await page.locator('[data-add-material]').click();
+    await page.locator('#editor-name').fill(name);
+    await page.locator('#editor-category').selectOption({ label: 'Крепёж и монтажные изделия' });
+    const categoryId = await page.locator('#editor-category').inputValue();
+    await page.locator('#editor-subcategory').fill('QA подкатегория');
+    await page.locator('#editor-description').fill('Тестовое описание в изолированной базе');
+    await page.locator('#editor-purpose').fill('Тестовое назначение');
+    const units = page.locator('#editor-base-unit option');
+    if (await units.count() < 2) throw new Error('No units available in QA');
+    await page.locator('#editor-base-unit').selectOption({ index: 1 });
+    await page.locator('#editor-add-attr').click();
+    await page.locator('#editor-attrs input').nth(0).fill('QA параметр');
+    await page.locator('#editor-attrs input').nth(1).fill('125');
+    await page.locator('#editor-attrs select').nth(0).selectOption('number');
+    await Promise.all([page.waitForURL(/material=/, { timeout: 30000 }), page.getByRole('button', { name: 'Сохранить' }).click()]);
+    const id = new URL(page.url()).searchParams.get('material');
+    if (!id) throw new Error('Created item has no stable direct URL');
+    await page.locator('[data-edit-material]').click();
+    if (await page.locator('#editor-name').inputValue() !== name) throw new Error('Name was not retained');
+    if (await page.locator('#editor-attrs input').nth(1).inputValue() !== '125') throw new Error('Characteristic was not retained');
+    if (await page.locator('#editor-attrs select').nth(0).inputValue() !== 'number') throw new Error('Characteristic type was not retained');
+    await page.locator('#editor-description').fill('QA описание обновлено');
+    const baseUnit = await page.locator('#editor-base-unit').inputValue();
+    await page.locator('#editor-add-conversion').click();
+    const conversion = page.locator('#editor-conversions .editor-attr');
+    const alternate = await page.locator('#editor-base-unit option').evaluateAll((options, selected) => options.find(option => option.value && option.value !== selected)?.value, baseUnit);
+    if (!alternate) throw new Error('QA needs a second unit for conversion');
+    await conversion.locator('select').selectOption(alternate);
+    await conversion.locator('input').nth(0).fill('2');
+    await conversion.locator('input').nth(1).fill('QA источник коэффициента');
+    await page.locator('#editor-analogs').selectOption({ label: 'QA изолированный аналог B20' });
+    await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle', timeout: 30000 }), page.getByRole('button', { name: 'Сохранить' }).click()]);
+    await page.reload({ waitUntil: 'networkidle' });
+    if (new URL(page.url()).searchParams.get('material') !== id) throw new Error('Editing changed the material ID');
+    if (!(await page.locator('.catalog-detail').innerText()).includes('QA описание обновлено')) throw new Error('Edited description was not retained');
+    if (!(await page.locator('.units').innerText()).includes('Требует проверки')) throw new Error('Unverified conversion was not marked for review');
+    if (!(await page.locator('.catalog-detail').innerText()).includes('QA изолированный аналог B20')) throw new Error('Analog was not retained');
+    const filter = new URL(base); filter.searchParams.set('preset', 'without_price'); filter.searchParams.set('q', name); filter.searchParams.set('category', categoryId);
+    await page.goto(filter.href, { waitUntil: 'networkidle' });
+    if (!(await page.locator('.catalog-table tbody').innerText()).includes(name)) throw new Error('New no-price material is absent from the price filter');
+    await page.locator('[data-add-material]').click();
+    await page.locator('#editor-name').fill(name);
+    await page.locator('#editor-category').selectOption({ label: 'Крепёж и монтажные изделия' });
+    await page.locator('#editor-base-unit').selectOption({ index: 1 });
+    await page.getByRole('button', { name: 'Сохранить' }).click();
+    await page.getByRole('alert').filter({ hasText: 'уже существует' }).waitFor();
+    console.log('QA create/edit: category, description, attribute, direct ID and reload PASS');
+  } finally {
+    await browser.close();
+  }
+})().catch(error => { console.error(error.message); process.exitCode = 1; });

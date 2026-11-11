@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -9,7 +10,7 @@ from urllib.parse import urlparse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import DBSession, require_admin
+from app.api.deps import CurrentUser, DBSession, require_admin
 from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
@@ -41,6 +42,8 @@ from app.models.source_task_result import SourceTaskResult
 from app.models.supplier import Supplier
 from app.models.supplier_price import SupplierPrice
 from app.models.unit_conversion_rule import UnitConversionRule
+from app.models.unit import Unit
+from app.services.module1_material_ui_write import MaterialUIWrite, save_material_ui
 from app.services.material_construction_usage import get_material_construction_usage
 from app.services.material_hub_supplier_workspaces import (
     load_supplier_cards,
@@ -348,10 +351,170 @@ async def material_hub_materials(
     db: DBSession,
     in_stock_only: bool = Query(False),
     preset: str | None = Query(None),
+    q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
+    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100), material: str = "", sort: str = "name",
 ):
-    material_table_preset = _material_table_preset(preset, default="estimate_ready")
-    page_title = "Материалы, готовые к смете" if material_table_preset == "estimate_ready" else "Каноническая база материалов"
-    return await _render_data_page(request, db, in_stock_only, "materials", page_title, material_table_preset)
+    compatibility = {"needs_price": "without_price", "estimate_ready": "all",
+                     "needs_classification": "all", "needs_review": "all"}
+    selected_preset = compatibility.get(preset, preset or "all")
+    return await material_hub_materials_preview(
+        request, db, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
+        minimum=minimum, maximum=maximum, preset=selected_preset, page=page, page_size=page_size,
+        material=material, sort=sort,
+    )
+
+
+@router.get("/materials-ui-preview", response_class=HTMLResponse, include_in_schema=False)
+async def material_hub_materials_preview(
+    request: Request, db: DBSession,
+    q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
+    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    preset: str = "all", page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
+    material: str = "", sort: str = "name",
+):
+    """Render the materials workspace; retain the preview URL for QA."""
+    from urllib.parse import urlencode
+    from app.api.v1.admin_cabinet_view import _load_active_region_context
+    from app.services.module1_material_ui_catalog import (
+        MATERIAL_UI_CATEGORIES, filter_material_ui_rows, load_material_ui_catalog, material_ui_rows,
+    )
+
+    if preset not in {"all", "with_price", "without_price"}:
+        raise HTTPException(status_code=400, detail="Unknown materials price filter")
+    if sort not in {"name", "price_asc", "price_desc"}:
+        raise HTTPException(status_code=400, detail="Unknown materials sorting")
+    if minimum is not None and maximum is not None and minimum > maximum:
+        raise HTTPException(status_code=400, detail="Minimum price exceeds maximum price")
+    active_region = await _load_active_region_context(db)
+    default_region = active_region["name"] if active_region["is_configured"] else ""
+    if region is None:
+        region = default_region
+    rules_by_material = {}
+    for rule in (await db.scalars(select(UnitConversionRule).where(
+            UnitConversionRule.material_id.is_not(None), UnitConversionRule.status == "ACTIVE"))).all():
+        rules_by_material.setdefault(rule.material_id, []).append(rule)
+    all_rows = material_ui_rows(await load_material_ui_catalog(db), conversion_rules=rules_by_material)
+    rows, counts = filter_material_ui_rows(all_rows, search=q, category=category, subcategory=subcategory,
+                                           supplier=supplier, region=region, minimum=minimum, maximum=maximum,
+                                           preset=preset)
+    if sort == "price_asc":
+        rows.sort(key=lambda item: (item["price"] is None, item["price"] or Decimal(0), item["material"].canonical_name))
+    elif sort == "price_desc":
+        rows.sort(key=lambda item: (item["price"] is None, -(item["price"] or Decimal(0)), item["material"].canonical_name))
+    page_count = max(1, (len(rows) + page_size - 1) // page_size)
+    page = min(page, page_count)
+    page_rows = rows[(page - 1) * page_size:page * page_size]
+    selected = next((item for item in rows if str(item["material"].id) == material), None)
+    if selected is None and material:
+        selected = next((item for item in all_rows if str(item["material"].id) == material), None)
+        if selected is not None:
+            selected = {**selected, "visible_offers": selected["offers"]}
+    if selected is None and page_rows:
+        selected = page_rows[0]
+    selected_rules = []
+    if selected:
+        selected_rules = list((await db.scalars(select(UnitConversionRule).where(
+            UnitConversionRule.material_id == selected["material"].id,
+            UnitConversionRule.status != "ARCHIVED").order_by(UnitConversionRule.created_at))).all())
+    units = (await db.scalars(select(Unit).order_by(Unit.name))).all()
+    suppliers = {offer.supplier_id: offer.supplier for row in all_rows for offer in row["offers"] if offer.supplier_id}
+    edit_data = None
+    if selected:
+        item = selected["material"]
+        attrs = [attribute for attribute in item.attributes
+                 if attribute.attribute_name != "ui_purpose"
+                 and not attribute.attribute_name.startswith(("registry_", "declared_"))
+                 and not attribute.attribute_name.endswith("_id")]
+        edit_data = {
+            "id": str(item.id), "name": item.canonical_name,
+            "category_id": str(item.category_id or ""), "subcategory": item.subcategory.name if item.subcategory else "",
+            "description": item.description or "", "base_unit_id": str(item.base_unit_id or ""),
+            "purpose": next((a.attribute_value for a in item.attributes if a.attribute_name == "ui_purpose"), ""),
+            "attributes": [{"name": a.attribute_name, "value": a.attribute_value,
+                            "unit_id": str(a.unit_id or ""), "value_type": a.value_type} for a in attrs],
+            "specifications": [{"id": str(spec.id), "label": _characteristic_label(spec),
+                                "value": spec.value, "unit": spec.unit or ""} for spec in item.specifications],
+            "conversions": [{"from_unit_id": str(unit.id), "coefficient": str(rule.coefficient), "source": rule.source}
+                            for rule in selected_rules for unit in units
+                            if rule.status == "NEEDS_REVIEW" and rule.formula_type == "LINEAR_COEFFICIENT"
+                            and rule.coefficient is not None and rule.source and unit.abbreviation == rule.from_unit
+                            and item.base_unit and rule.to_unit == item.base_unit.abbreviation],
+            "analog_ids": [str(link.analog_material_id) for link in item.analog_links
+                           if link.status not in {"ARCHIVED", "REJECTED"} and link.analog_material
+                           and link.analog_material.status not in {MaterialStatus.ARCHIVED, MaterialStatus.REJECTED}],
+        }
+
+    def preview_url(**changes):
+        params = dict(request.query_params)
+        for key, value in changes.items():
+            if value is None or value == "":
+                params.pop(key, None)
+            else:
+                params[key] = str(value)
+        encoded = urlencode(params)
+        return str(request.url.path) + (f"?{encoded}" if encoded else "")
+
+    def preview_price(value):
+        if value is None:
+            return "Без цены"
+        if Decimal(0) < value < Decimal("0.005"):
+            return "< 0,01 ₽"
+        return f"{value:.2f} ₽".replace(".", ",")
+
+    categories = await _load_categories(db)
+    by_name = {item.name: item for item in categories if not item.parent_id and item.status == "ACTIVE"}
+    approved_categories = [by_name[name] for name in MATERIAL_UI_CATEGORIES if name in by_name]
+    return templates.TemplateResponse(request, "material_hub_materials_preview.html", {
+        "rows": page_rows, "all_rows": all_rows, "selected": selected, "selected_rules": selected_rules,
+        "edit_data": edit_data, "counts": counts, "total": len(rows),
+        "page": page, "page_count": page_count, "page_size": page_size,
+        "categories": categories, "approved_categories": approved_categories,
+        "units": units,
+        "suppliers": sorted(suppliers.items(), key=lambda item: item[1]),
+        "q": q, "category": category, "subcategory": subcategory, "supplier": supplier, "region": region,
+        "default_region": default_region, "atom_topbar_region_name": active_region["name"],
+        "atom_topbar_region_code": active_region["code"],
+        "minimum": minimum, "maximum": maximum, "preset": preset, "sort": sort,
+        "preview_url": preview_url, "preview_price": preview_price,
+        "material_attribute_rows": _material_ui_attribute_rows,
+        "characteristic_label": _characteristic_label, "dt": _format_datetime,
+    })
+
+
+@router.post("/materials/save", include_in_schema=False)
+@router.post("/materials-ui-preview/save", include_in_schema=False)
+async def material_hub_materials_preview_save(
+    payload: MaterialUIWrite, db: DBSession, user: CurrentUser, material_id: str | None = None,
+):
+    from uuid import UUID
+
+    try:
+        identifier = UUID(material_id) if material_id else None
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Некорректный идентификатор материала.")
+    result = await save_material_ui(db, payload, actor_id=user.id, material_id=identifier)
+    return {"id": str(result.id)}
+
+
+@router.get("/materials/suppliers/{supplier_id}", response_class=HTMLResponse, include_in_schema=False)
+@router.get("/materials-ui-preview/suppliers/{supplier_id}", response_class=HTMLResponse, include_in_schema=False)
+async def material_hub_materials_preview_supplier(request: Request, db: DBSession, supplier_id: str):
+    from uuid import UUID
+
+    try:
+        identifier = UUID(supplier_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Поставщик не найден.")
+    supplier = await db.get(Supplier, identifier)
+    if supplier is None:
+        raise HTTPException(status_code=404, detail="Поставщик не найден.")
+    prices = (await db.scalars(select(SupplierPrice).where(SupplierPrice.supplier_id == identifier)
+                              .options(selectinload(SupplierPrice.material))
+                              .order_by(SupplierPrice.updated_at.desc()))).all()
+    return templates.TemplateResponse(request, "material_hub_supplier_preview.html", {
+        "supplier": supplier, "prices": prices, "dt": _format_datetime,
+    })
 
 
 @router.get("/work-costs", response_class=HTMLResponse)
@@ -1019,7 +1182,7 @@ _MATERIAL_ATTRIBUTE_LABELS = {
     "section_width_mm": ("Ширина сечения", "мм"), "section_height_mm": ("Высота сечения", "мм"),
     "mass_kg": ("Масса", "кг"),
 }
-_MATERIAL_INTERNAL_ATTRIBUTES = frozenset({"registry_origin", "registry_key", "registry_code", "declared_source"})
+_MATERIAL_INTERNAL_ATTRIBUTES = frozenset({"registry_origin", "registry_key", "registry_code", "declared_source", "ui_purpose"})
 
 
 def _material_attribute_rows(material: Material) -> list[dict[str, str]]:
@@ -1030,6 +1193,18 @@ def _material_attribute_rows(material: Material) -> list[dict[str, str]]:
             continue
         label, unit = _MATERIAL_ATTRIBUTE_LABELS.get(name, (_humanize_material_field_key(name), ""))
         rows.append({"label": label, "value": value, "unit": unit})
+    return rows
+
+
+def _material_ui_attribute_rows(material: Material) -> list[dict[str, str]]:
+    rows = []
+    for attribute in material.attributes:
+        name, value = attribute.attribute_name, attribute.attribute_value
+        if name in _MATERIAL_INTERNAL_ATTRIBUTES or name.endswith("_id") or not value:
+            continue
+        label, fallback_unit = _MATERIAL_ATTRIBUTE_LABELS.get(name, (_humanize_material_field_key(name), ""))
+        rows.append({"label": label, "value": value,
+                     "unit": attribute.unit.abbreviation if attribute.unit else fallback_unit})
     return rows
 
 

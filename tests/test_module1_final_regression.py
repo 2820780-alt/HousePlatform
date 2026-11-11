@@ -245,6 +245,8 @@ def test_ui_view_model_is_human_readable_and_hides_dto_names_and_raw_payloads() 
 
 READ_ONLY_SERVICES = frozenset(
     {
+        "module1_material_ui_catalog.py",
+        "module1_material_ui_prices.py",
         "module1_alternatives_analogs.py",
         "module1_characteristic_schema_registry.py",
         "module1_compatibility_matrix.py",
@@ -298,6 +300,13 @@ INGESTION_CANONICAL_PIPELINE_SERVICES = frozenset(
 )
 
 PERSISTENCE_SERVICE_BOUNDARIES = {
+    "module1_material_ui_write.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"current", "selected_subcategory", "conversion_rule", "analog"}),
+        "allowed_mutation_roots": frozenset({"current", "specification", "existing_purpose", "existing", "link"}),
+        "allowed_models": frozenset({"Material", "MaterialCategory", "UnitConversionRule", "MaterialAnalog"}),
+        "reason": "The M1 material editor writes its own cards and review-only category, conversion and analog records.",
+    },
     "module1_foundation_target_package.py": {
         "allowed_session_methods": frozenset({"add", "flush"}),
         "allowed_add_targets": frozenset({"material", "unit"}),

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Материалы · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module1_visual_system.html" %}
+  <style>
+    *{box-sizing:border-box} body{margin:0;background:#050d1c;color:#eef5ff;font:14px Arial,sans-serif}
+    body[data-module1-visual-system] .module1-quick-actions-rail{display:none}
+    body[data-module1-visual-system] main,body[data-module1-visual-system][data-module1-rail-collapsed="true"] main{margin:0!important;padding:8px 14px 24px!important;max-width:none}
+    .workspace{display:grid;grid-template-columns:165px minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+    .catalog-sidebar{padding:14px 4px;color:#bdd1e9}.catalog-sidebar strong{display:block;margin-bottom:20px}
+    .catalog-sidebar a{display:block;padding:10px;border:1px solid #117e92;border-radius:5px;color:#d9fbff;background:#0d3446;text-decoration:none}
+    body[data-module1-visual-system] .catalog-panel,body[data-module1-visual-system] .catalog-detail{padding:16px;border:1px solid #2b466a;border-radius:7px;background:#071426;min-width:0;box-shadow:none}
+    .panel-heading{display:flex;align-items:start;justify-content:space-between;gap:10px}.panel-heading h1{margin:0;font-size:23px}.muted{color:#a7bdd8;font-size:12px}
+    .presets{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 12px}.presets a{color:#eef5ff;text-decoration:none;border:1px solid #334d71;border-radius:6px;padding:8px 12px}
+    .presets a[aria-current]{border-color:#00d0e2;background:#0a3e51}.count{color:#a8c7d6;margin-left:6px}
+    .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+    .search{grid-column:1 / -1}.filter-grid label{display:block;font-size:11px;color:#aec6df;margin-bottom:4px}
+    .filter-grid input,.filter-grid select{width:100%;min-width:0;height:34px;color:#eaf4ff;background:#091321;border:1px solid #304967;border-radius:5px;padding:6px}
+    .filter-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}.filter-actions button,.filter-actions a{width:auto;padding:8px;border:1px solid #345370;border-radius:5px;background:#113c50;color:#eafcff;text-decoration:none}
+    .toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #2b466a;padding:12px 0;font-size:12px}
+    .table-scroll{overflow-x:auto;max-width:100%}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid #233d5d;vertical-align:top}
+    th{color:#b5c8df;font-weight:600;background:#102039}td{color:#e9f2ff}.catalog-table{min-width:620px}.catalog-table a{color:inherit;text-decoration:none}.catalog-table tr.selected{background:#103549;outline:1px solid #00cedd;outline-offset:-1px}
+    .secondary{display:block;color:#a7bdd8;font-size:11px;margin-top:4px}.no-price{color:#bdcadd}.table-scroll a:focus-visible,.catalog-detail a:focus-visible{outline:2px solid #00d9e8}
+    .pagination{display:flex;align-items:center;gap:10px;padding-top:12px}.pagination a{color:#c9e8f4}.pagination select{background:#101d31;color:#fff;border:1px solid #35506c;border-radius:4px;padding:5px}
+    .crumbs{font-size:12px;color:#abc4dd}.detail-head{display:flex;gap:12px;align-items:flex-start;padding:14px 0}.material-placeholder{width:96px;height:76px;flex:0 0 96px;background:#13243a;border:1px solid #314c6a;border-radius:5px;display:grid;place-items:center;color:#a8c3d6;font-size:12px}
+    .detail-head h2{margin:0 0 6px;font-size:21px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail-block{border:1px solid #2c4567;border-radius:5px;padding:10px;min-width:0}.detail-block h3{margin:0 0 8px;font-size:14px}.detail-block dl{margin:0}.detail-block dl div{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px 0;border-top:1px solid #223b59}.detail-block dt{color:#a8bed8;font-size:12px}.detail-block dd{margin:0;overflow-wrap:anywhere;font-size:12px}
+    .units{margin:10px 0;padding:10px;border:1px solid #2e4e70;border-radius:5px;background:#102139}.offers h3{font-size:15px;margin:18px 0 10px}.offers-table{min-width:600px}.offers a{color:#56baff}.mobile-back{display:none}
+    .primary-action{border:1px solid #078ea8;border-radius:5px;background:#16b8e2;color:#041626;padding:9px 12px;white-space:nowrap;font-weight:700;cursor:pointer}
+    .edit-action{margin-left:auto;width:34px;height:34px;flex:0 0 34px;border:1px solid #34506f;border-radius:5px;background:#102139;color:#d6efff;cursor:pointer}
+    dialog{width:min(720px,calc(100vw - 24px));max-height:90vh;overflow:auto;border:1px solid #35577d;border-radius:7px;background:#0b182b;color:#eef5ff;padding:18px}
+    dialog::backdrop{background:rgba(1,7,17,.75)}.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.editor-grid label{display:block;color:#b4c9df;font-size:12px;margin-bottom:4px}.editor-grid input,.editor-grid select,.editor-grid textarea{width:100%;border:1px solid #35506c;border-radius:5px;background:#07111e;color:#eef5ff;padding:8px;font:inherit}.editor-wide{grid-column:1/-1}.editor-attrs{display:grid;gap:6px}.editor-attr{display:grid;grid-template-columns:1fr 1fr 110px 110px 32px;gap:6px}.editor-attr button{border:1px solid #35506c;border-radius:5px;background:#102139;color:white;cursor:pointer}.editor-actions{display:flex;gap:8px;margin-top:14px}.editor-actions button{width:auto}.editor-error{color:#ffb4c4;min-height:20px;margin-top:8px}
+    .editor-conversion{grid-template-columns:1fr 1fr 1fr 32px}.editor-spec{grid-template-columns:1fr 1fr 110px}
+    @media(max-width:1200px){.workspace{grid-template-columns:140px minmax(0,1fr) minmax(0,1fr)}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.detail-grid{grid-template-columns:1fr}}
+    @media(max-width:900px){.workspace{grid-template-columns:minmax(0,1fr)}.catalog-sidebar{display:none}.catalog-detail{display:none}.workspace.show-detail .catalog-panel{display:none}.workspace.show-detail .catalog-detail{display:block}.mobile-back{display:inline-block;margin-bottom:12px;color:#75dfe7}.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-attr{grid-template-columns:1fr 1fr}.editor-grid{grid-template-columns:1fr}.editor-wide{grid-column:auto}}
+  </style>
+</head>
+<body data-atom-page data-rbac-ready data-module1-visual-system>
+  {% set atom_topbar_current_block = "Материалы" %}
+  {% include "_atom_platform_topbar.html" %}
+  {% from "_module1_shell.html" import module1_shell %}
+  {{ module1_shell("materials", "Материалы", "") }}
+  <main>
+    <div class="workspace{% if request.query_params.get('material') %} show-detail{% endif %}">
+      <aside class="catalog-sidebar"><strong>M1 · Справочник</strong><a href="{{ preview_url(material='', page=1) }}">Материалы</a></aside>
+      <div class="catalog-panel">
+        <div class="panel-heading"><div><h1>Материалы</h1><div class="muted">Технический каталог материалов для технологий, расчётов и смет</div></div><button class="primary-action" type="button" data-add-material>+ Добавить материал</button></div>
+        <nav class="presets" aria-label="Наличие цены">
+          <a href="{{ preview_url(preset='all', page=1) }}" {% if preset == 'all' %}aria-current="page"{% endif %}>Все материалы <span class="count">{{ counts.all }}</span></a>
+          <a href="{{ preview_url(preset='without_price', page=1) }}" {% if preset == 'without_price' %}aria-current="page"{% endif %}>Без цены <span class="count">{{ counts.without_price }}</span></a>
+          <a href="{{ preview_url(preset='with_price', page=1) }}" {% if preset == 'with_price' %}aria-current="page"{% endif %}>С ценами <span class="count">{{ counts.with_price }}</span></a>
+        </nav>
+        <form method="get" class="filter-grid">
+          <input type="hidden" name="preset" value="{{ preset }}">
+          <div class="search"><label for="search">Поиск</label><input id="search" name="q" value="{{ q }}" placeholder="Материал, марка, размер, характеристики"></div>
+          <div><label for="category">Категория</label><select id="category" name="category"><option value="">Все категории</option>{% for item in approved_categories %}<option value="{{ item.id }}" {% if item.id|string == category %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+          <div><label for="subcategory">Подкатегория</label><select id="subcategory" name="subcategory"><option value="">Все подкатегории</option>{% for item in categories if item.parent_id and item.status != 'ARCHIVED' %}<option value="{{ item.id }}" data-parent="{{ item.parent_id }}" {% if item.id|string == subcategory %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></div>
+          <div><label for="supplier">Поставщик</label><select id="supplier" name="supplier"><option value="">Все поставщики</option>{% for id, name in suppliers %}<option value="{{ id }}" {% if id == supplier %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+          <div><label for="region">Регион</label><input id="region" name="region" value="{{ region }}"></div>
+          <div><label for="minimum">Цена от, ₽</label><input id="minimum" name="minimum" type="number" min="0" step="0.01" value="{{ minimum if minimum is not none else '' }}"></div>
+          <div><label for="maximum">Цена до, ₽</label><input id="maximum" name="maximum" type="number" min="0" step="0.01" value="{{ maximum if maximum is not none else '' }}"></div>
+          <div><label for="sort">Сортировка</label><select id="sort" name="sort"><option value="name">По названию</option><option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Сначала дешевле</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Сначала дороже</option></select></div>
+          <div class="filter-actions"><button type="submit">Применить</button><a href="{{ request.url.path }}?region={{ default_region|urlencode }}">Сбросить</a></div>
+          <div><label for="page-size">Строк на странице</label><select id="page-size" name="page_size">{% for size in [10,25,50,100] %}<option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }}</option>{% endfor %}</select></div>
+        </form>
+        <div class="toolbar"><span>Найдено: {{ total }}</span></div>
+        <div class="table-scroll"><table class="catalog-table"><thead><tr><th>Материал</th><th>Категория</th><th>Характеристики</th><th>Ед.</th><th>Предл.</th><th>Цена от</th></tr></thead><tbody>
+          {% for row in rows %}{% set item = row.material %}{% set attrs = material_attribute_rows(item) %}
+          <tr data-material-id="{{ item.id }}" class="{% if selected and selected.material.id == item.id %}selected{% endif %}">
+            <td><a data-select-material href="{{ preview_url(material=item.id) }}"><strong>{{ 'Название требует исправления' if '???' in item.canonical_name else item.canonical_name }}</strong></a></td>
+            <td>{{ item.category.name if item.category else 'Не назначена' }}{% if item.subcategory %}<span class="secondary">{{ item.subcategory.name }}</span>{% endif %}</td>
+            <td>{% for attr in attrs[:3] %}{{ attr.value }}{% if attr.unit %} {{ attr.unit }}{% endif %}{% if not loop.last %} · {% endif %}{% else %}<span class="secondary">Не указаны</span>{% endfor %}</td>
+            <td>{{ item.base_unit.abbreviation if item.base_unit else '—' }}</td><td>{{ row.offer_count }}</td>
+            <td>{% if row.price is not none %}{{ preview_price(row.price) }}{% else %}<span class="no-price">Без цены</span>{% endif %}</td>
+          </tr>{% else %}<tr><td colspan="6">Материалы не найдены.</td></tr>{% endfor %}
+        </tbody></table></div>
+        <div class="pagination">{% if page > 1 %}<a href="{{ preview_url(page=page-1) }}">Назад</a>{% endif %}<span>{{ page }} / {{ page_count }}</span>{% if page < page_count %}<a href="{{ preview_url(page=page+1) }}">Вперёд</a>{% endif %}<span class="secondary">Показано по {{ page_size }}</span></div>
+      </div>
+      <div class="catalog-detail">
+        <a class="mobile-back" href="{{ preview_url(material='') }}" data-back>← К каталогу</a>
+        {% if selected %}{% set item = selected.material %}{% set attrs = material_attribute_rows(item) %}
+        <div class="crumbs">Материалы {% if item.category %}› {{ item.category.name }}{% endif %}{% if item.subcategory %} › {{ item.subcategory.name }}{% endif %}</div>
+        <div class="detail-head"><div class="material-placeholder">Нет фото</div><div><h2>{{ 'Название требует исправления' if '???' in item.canonical_name else item.canonical_name }}</h2>{% if item.description %}<div>{{ item.description }}</div>{% endif %}{% if edit_data.purpose %}<div class="secondary">{{ edit_data.purpose }}</div>{% endif %}</div><button class="edit-action" type="button" data-edit-material aria-label="Редактировать материал" title="Редактировать материал">✎</button></div>
+        <script type="application/json" id="material-edit-data">{{ edit_data|tojson }}</script>
+        <div class="detail-grid"><div class="detail-block"><h3>Основные данные</h3><dl><div><dt>Категория</dt><dd>{{ item.category.name if item.category else 'Не назначена' }}</dd></div><div><dt>Подкатегория</dt><dd>{{ item.subcategory.name if item.subcategory else 'Не указана' }}</dd></div><div><dt>Единица учёта</dt><dd>{{ item.base_unit.abbreviation if item.base_unit else 'Не указана' }}</dd></div></dl></div>
+        <div class="detail-block"><h3>Технические характеристики</h3><dl>{% for spec in item.specifications if spec.value %}<div><dt>{{ characteristic_label(spec) }}</dt><dd>{{ spec.value }} {{ spec.unit or '' }}</dd></div>{% endfor %}{% for attr in attrs %}<div><dt>{{ attr.label }}</dt><dd>{{ attr.value }} {{ attr.unit or '' }}</dd></div>{% endfor %}{% if not item.specifications and not attrs %}<div><dt>Не указаны</dt><dd></dd></div>{% endif %}</dl></div></div>
+        <div class="units"><strong>Единицы и пересчёт</strong><div class="secondary">Базовая единица: {{ item.base_unit.abbreviation if item.base_unit else 'не указана' }}.</div>{% for rule in selected_rules %}<div class="secondary">1 {{ rule.from_unit }} = {{ rule.coefficient if rule.coefficient is not none else 'не определено' }} {{ rule.to_unit }}{% if rule.status != 'ACTIVE' %} · Требует проверки{% endif %}{% if rule.source %} · {{ rule.source }}{% endif %}</div>{% else %}<div class="secondary">Дополнительные правила пересчёта не указаны.</div>{% endfor %}</div>
+        <div class="offers"><h3>Предложения поставщиков <span class="count">{{ selected.visible_offers|length }}</span></h3><div class="table-scroll"><table class="offers-table"><thead><tr><th>Название у поставщика</th><th>Поставщик</th><th>Регион</th><th>Цена</th><th>Ед.</th><th>За базовую ед.</th><th>Актуальность</th><th>Источник</th></tr></thead><tbody>{% for offer in selected.visible_offers %}<tr><td>{{ offer.name }}{% if offer.source_name %}<span class="secondary">Источник: {{ offer.source_name }}</span>{% endif %}</td><td>{% if offer.supplier_id %}<a href="/api/v1/admin/material-hub/view/materials/suppliers/{{ offer.supplier_id }}">{{ offer.supplier }}</a>{% else %}{{ offer.supplier }}{% endif %}</td><td>{{ offer.region or 'Не указан' }}</td><td>{{ offer.price if offer.price is not none else '—' }} {{ offer.currency or '' }}</td><td>{{ offer.unit or '—' }}</td><td>{{ preview_price(offer.comparable_price) if offer.comparable_price is not none else 'Не рассчитано' }}</td><td>{{ dt(offer.updated_at) if offer.updated_at else 'Не указана' }}</td><td>{% if offer.url %}<a href="{{ offer.url }}" target="_blank" rel="noopener noreferrer">Открыть</a>{% else %}—{% endif %}</td></tr>{% else %}<tr><td colspan="8">Предложений нет.</td></tr>{% endfor %}</tbody></table></div></div>
+        <div class="offers"><h3>Аналоги и варианты замены</h3>{% for link in item.analog_links if link.status not in ['ARCHIVED', 'REJECTED'] and link.analog_material and link.analog_material.status.value not in ['ARCHIVED', 'REJECTED'] %}<div class="detail-block"><a data-open-analog href="{{ preview_url(material=link.analog_material.id) }}">{{ link.analog_material.canonical_name }}</a>{% if link.reason %}<span class="secondary">{{ link.reason }}</span>{% endif %}{% if link.status != 'ACTIVE' %}<span class="secondary">Требует проверки</span>{% endif %}</div>{% else %}<div class="muted">Аналоги не указаны.</div>{% endfor %}</div>
+        {% else %}<div class="muted">Выберите материал.</div>{% endif %}
+      </div>
+    </div>
+  </main>
+  <dialog id="material-editor" aria-labelledby="editor-title">
+    <h2 id="editor-title">Материал</h2>
+    <form id="editor-form" class="editor-grid">
+      <div class="editor-wide"><label for="editor-name">Наименование *</label><input id="editor-name" maxlength="500" required></div>
+      <div><label for="editor-category">Категория *</label><select id="editor-category" required><option value="">Выберите категорию</option>{% for item in approved_categories %}<option value="{{ item.id }}">{{ item.name }}</option>{% endfor %}</select></div>
+      <div><label for="editor-subcategory">Подкатегория</label><input id="editor-subcategory" maxlength="255"></div>
+      <div class="editor-wide"><label for="editor-description">Описание</label><textarea id="editor-description" rows="2"></textarea></div>
+      <div><label for="editor-purpose">Назначение</label><input id="editor-purpose" maxlength="500"></div>
+      <div><label for="editor-base-unit">Базовая единица *</label><select id="editor-base-unit" required><option value="">Выберите единицу</option>{% for unit in units %}<option value="{{ unit.id }}">{{ unit.name }} ({{ unit.abbreviation }})</option>{% endfor %}</select></div>
+      <div class="editor-wide"><label>Технические характеристики</label><div id="editor-attrs" class="editor-attrs"></div><button type="button" id="editor-add-attr">+ Добавить характеристику</button></div>
+      <div class="editor-wide"><div id="editor-specs" class="editor-attrs"></div></div>
+      <div class="editor-wide"><label>Дополнительные единицы и коэффициенты</label><div id="editor-conversions" class="editor-attrs"></div><button type="button" id="editor-add-conversion">+ Добавить пересчёт</button></div>
+      <div class="editor-wide"><label for="editor-analogs">Аналоги и варианты замены</label><select id="editor-analogs" multiple size="4">{% for row in all_rows %}<option value="{{ row.material.id }}">{{ 'Название требует исправления' if '???' in row.material.canonical_name else row.material.canonical_name }}</option>{% endfor %}</select></div>
+      <div class="editor-wide"><div id="editor-error" class="editor-error" role="alert"></div><div class="editor-actions"><button class="primary-action" type="submit">Сохранить</button><button type="button" data-close-editor>Отмена</button></div></div>
+    </form>
+  </dialog>
+  <script>
+    const category = document.getElementById('category');
+    const subcategory = document.getElementById('subcategory');
+    function updateSubcategories(clear) { for (const option of subcategory.options) { if (!option.value) continue; option.hidden = !category.value || option.dataset.parent !== category.value; } if (clear) subcategory.value = ''; }
+    category.addEventListener('change', () => updateSubcategories(true)); updateSubcategories(false);
+    document.addEventListener('click', async (event) => {
+      if (event.target.closest('[data-add-material]')) { openEditor(); return; }
+      if (event.target.closest('[data-edit-material]')) { openEditor(JSON.parse(document.getElementById('material-edit-data').textContent)); return; }
+      const link = event.target.closest('[data-select-material], [data-open-analog]');
+      if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.button === 0) {
+        event.preventDefault();
+        try {
+          const response = await fetch(link.href); if (!response.ok) throw new Error('request');
+          const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+          const detail = parsed.querySelector('.catalog-detail'); if (!detail) throw new Error('detail');
+          document.querySelector('.catalog-detail').replaceWith(detail);
+          document.querySelectorAll('.catalog-table tr.selected').forEach((row) => row.classList.remove('selected'));
+          const selectedRow = document.querySelector(`.catalog-table tr[data-material-id="${new URL(link.href).searchParams.get('material')}"]`); if (selectedRow) selectedRow.classList.add('selected');
+          document.querySelector('.workspace').classList.add('show-detail');
+          history.pushState({}, '', link.href);
+        } catch (_) { window.location.href = link.href; }
+      }
+      const back = event.target.closest('[data-back]');
+      if (back && window.matchMedia('(max-width: 900px)').matches) { event.preventDefault(); document.querySelector('.workspace').classList.remove('show-detail'); history.pushState({}, '', back.href); }
+    });
+    window.addEventListener('popstate', () => window.location.reload());
+    const editor = document.getElementById('material-editor');
+    const form = document.getElementById('editor-form');
+    const attributeList = document.getElementById('editor-attrs');
+    const unitOptions = [...document.getElementById('editor-base-unit').options];
+    let editId = '';
+    function addAttribute(data = {}) {
+      const row = document.createElement('div'); row.className = 'editor-attr';
+      const name = document.createElement('input'); name.placeholder = 'Характеристика'; name.value = data.name || ''; name.maxLength = 100;
+      const value = document.createElement('input'); value.placeholder = 'Значение'; value.value = data.value || ''; value.maxLength = 500;
+      const type = document.createElement('select'); type.setAttribute('aria-label', 'Тип характеристики');
+      for (const [key, label] of [['text','Текст'],['number','Число'],['dimension','Размер'],['class','Класс'],['unit','Единица']]) { const option = document.createElement('option'); option.value = key; option.textContent = label; type.append(option); } type.value = data.value_type || 'text';
+      const unit = document.createElement('select'); for (const option of unitOptions) unit.append(option.cloneNode(true)); unit.options[0].textContent = 'Без единицы'; unit.value = data.unit_id || '';
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.title = 'Убрать из формы'; remove.setAttribute('aria-label', 'Убрать характеристику из формы'); remove.addEventListener('click', () => row.remove());
+      row.append(name, value, type, unit, remove); attributeList.append(row);
+    }
+    function openEditor(data = {}) {
+      form.reset(); attributeList.replaceChildren(); document.getElementById('editor-conversions').replaceChildren(); document.getElementById('editor-specs').replaceChildren(); editId = data.id || '';
+      document.getElementById('editor-title').textContent = editId ? 'Редактирование материала' : 'Добавить материал';
+      document.getElementById('editor-name').value = data.name || '';
+      document.getElementById('editor-category').value = data.category_id || '';
+      document.getElementById('editor-subcategory').value = data.subcategory || '';
+      document.getElementById('editor-description').value = data.description || '';
+      document.getElementById('editor-purpose').value = data.purpose || '';
+      document.getElementById('editor-base-unit').value = data.base_unit_id || '';
+      for (const option of document.getElementById('editor-analogs').options) { option.selected = (data.analog_ids || []).includes(option.value); option.disabled = option.value === editId; }
+      document.getElementById('editor-error').textContent = '';
+      (data.attributes || []).forEach(addAttribute); (data.conversions || []).forEach(addConversion);
+      for (const spec of data.specifications || []) {
+        const row = document.createElement('div'); row.className = 'editor-attr editor-spec'; row.dataset.specId = spec.id;
+        const label = document.createElement('span'); label.textContent = spec.label;
+        const input = document.createElement('input'); input.value = spec.value; input.required = true; input.maxLength = 500;
+        const unit = document.createElement('span'); unit.textContent = spec.unit || '';
+        row.append(label, input, unit); document.getElementById('editor-specs').append(row);
+      }
+      editor.showModal();
+    }
+    document.getElementById('editor-add-attr').addEventListener('click', () => addAttribute());
+    function addConversion(data = {}) {
+      const row = document.createElement('div'); row.className = 'editor-attr editor-conversion';
+      const unit = document.createElement('select'); for (const option of unitOptions) unit.append(option.cloneNode(true)); unit.required = true; unit.value = data.from_unit_id || '';
+      const factor = document.createElement('input'); factor.type = 'number'; factor.min = '0.00000001'; factor.step = '0.00000001'; factor.placeholder = 'Коэффициент'; factor.required = true; factor.value = data.coefficient || '';
+      const source = document.createElement('input'); source.placeholder = 'Источник'; source.required = true; source.maxLength = 500; source.value = data.source || '';
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.title = 'Убрать пересчёт'; remove.setAttribute('aria-label', 'Убрать пересчёт'); remove.addEventListener('click', () => row.remove());
+      row.append(unit, factor, source, remove); document.getElementById('editor-conversions').append(row);
+    }
+    document.getElementById('editor-add-conversion').addEventListener('click', () => addConversion());
+    document.querySelector('[data-close-editor]').addEventListener('click', () => editor.close());
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const attributes = [...attributeList.children].map(row => ({name:row.children[0].value.trim(), value:row.children[1].value.trim(), value_type:row.children[2].value, unit_id:row.children[3].value || null}));
+      if (attributes.some(item => !item.name || !item.value)) { document.getElementById('editor-error').textContent = 'Заполните название и значение каждой характеристики.'; return; }
+      const data = {name:document.getElementById('editor-name').value, category_id:document.getElementById('editor-category').value,
+        subcategory:document.getElementById('editor-subcategory').value, description:document.getElementById('editor-description').value,
+        purpose:document.getElementById('editor-purpose').value, base_unit_id:document.getElementById('editor-base-unit').value, attributes,
+        conversions:[...document.getElementById('editor-conversions').children].map(row => ({from_unit_id:row.children[0].value, coefficient:row.children[1].value, source:row.children[2].value})),
+        specifications:[...document.getElementById('editor-specs').children].map(row => ({id:row.dataset.specId, value:row.children[1].value.trim()})),
+        analog_ids:[...document.getElementById('editor-analogs').selectedOptions].map(option => option.value)};
+      try {
+        const url = new URL('/api/v1/admin/material-hub/view/materials/save', window.location.origin); if (editId) url.searchParams.set('material_id', editId);
+        const response = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+        const body = await response.json(); if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : 'Проверьте введённые данные.');
+        const target = new URL(window.location.href); target.searchParams.set('material', body.id); target.searchParams.delete('page'); window.location.href = target.href;
+      } catch (error) { document.getElementById('editor-error').textContent = error.message || 'Не удалось сохранить материал.'; }
+    });
+  </script>
+</body>
+</html>

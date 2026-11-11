@@ -1,0 +1,8 @@
+{
+  "name": "houseplatform-materials-ui-qa",
+  "private": true,
+  "description": "Isolated browser checks for the HousePlatform materials interface",
+  "devDependencies": {
+    "playwright": "1.57.0"
+  }
+}

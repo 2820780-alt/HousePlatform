@@ -51,12 +51,13 @@ def test_material_table_presets_are_on_canonical_table() -> None:
     assert "activeMaterialPreset" in text
 
 
-def test_old_materials_route_is_compatibility_entrypoint_for_estimate_ready() -> None:
+def test_materials_route_uses_new_catalog_and_preserves_legacy_preset_urls() -> None:
     view = _view_text()
 
     assert '@router.get("/materials", response_class=HTMLResponse)' in view
-    assert '_material_table_preset(preset, default="estimate_ready")' in view
-    assert '"\u041c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b, \u0433\u043e\u0442\u043e\u0432\u044b\u0435 \u043a \u0441\u043c\u0435\u0442\u0435"' in view
+    assert '"needs_price": "without_price"' in view
+    assert '"estimate_ready": "all"' in view
+    assert "return await material_hub_materials_preview(" in view
     assert '"/api/v1/admin/material-hub/view/materials?preset={key}"' in view
     assert '@router.get("/data", response_class=HTMLResponse)' in view
     assert '_material_table_preset(preset, default="all")' in view

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ supplier.name }} · АТОМ</title>
+  {% include "_atom_ui_standards.html" %}
+  {% include "_module1_visual_system.html" %}
+  <style>
+    body{margin:0;font:14px Arial,sans-serif;background:#07101f;color:#edf5ff}
+    body[data-module1-visual-system] main{padding:20px 24px!important;margin:0!important;max-width:1100px!important}
+    .module1-quick-actions-rail{display:none}h1{margin:12px 0}.muted{color:#a7bdd8}.supplier-info{display:flex;gap:20px;flex-wrap:wrap;margin:16px 0}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:600px}th,td{text-align:left;padding:10px;border-bottom:1px solid #294563}a{color:#62d8ef}
+  </style>
+</head>
+<body data-atom-page data-rbac-ready data-module1-visual-system>
+  {% set atom_topbar_current_block = "Поставщик" %}{% include "_atom_platform_topbar.html" %}
+  {% from "_module1_shell.html" import module1_shell %}{{ module1_shell("materials", "Материалы", "") }}
+  <main>
+    <a href="/api/v1/admin/material-hub/view/materials">← К материалам</a>
+    <h1>{{ supplier.name }}</h1>
+    <div class="supplier-info">
+      {% if supplier.region %}<span>Регион: {{ supplier.region }}</span>{% endif %}
+      {% if supplier.city %}<span>Город: {{ supplier.city }}</span>{% endif %}
+      {% if supplier.phone %}<span>Телефон: {{ supplier.phone }}</span>{% endif %}
+      {% if supplier.email %}<span>Почта: {{ supplier.email }}</span>{% endif %}
+      {% if supplier.site %}<span>Сайт: {{ supplier.site }}</span>{% endif %}
+    </div>
+    <h2>Связанные предложения</h2>
+    <div class="table-wrap"><table><thead><tr><th>Материал</th><th>Цена</th><th>Единица</th><th>Регион</th><th>Дата</th></tr></thead><tbody>
+      {% for price in prices %}<tr><td>{% if price.material %}<a href="/api/v1/admin/material-hub/view/materials?material={{ price.material_id }}">{{ price.material.canonical_name }}</a>{% else %}Не указан{% endif %}</td><td>{{ price.price if price.price is not none else 'Не указана' }} {{ price.currency or '' }}</td><td>{{ price.unit or 'Не указана' }}</td><td>{{ price.region or 'Не указан' }}</td><td>{{ dt(price.updated_at) if price.updated_at else 'Не указана' }}</td></tr>{% else %}<tr><td colspan="5">Предложений пока нет.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </main>
+</body>
+</html>
