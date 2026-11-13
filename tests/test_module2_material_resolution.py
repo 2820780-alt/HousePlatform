@@ -14,8 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.api.v1.module1_material_card import router as material_router
+from app.api.v1.material_hub_view import router as material_hub_router
 from app.api.v1.module2_encyclopedia import router as encyclopedia_router
 from app.api.v1.module2_workbench import router as workbench_router
+from app.api.v1.module2_workbench import _admin_material_card_url
 from app.core.exceptions import ForbiddenError
 from app.database import Base, engine, get_db, init_db
 from app.models.enums import MaterialStatus, TaskStatus, UserRole
@@ -50,6 +52,7 @@ async def _session():
 def _app(session: AsyncSession, role: UserRole = UserRole.ADMIN) -> FastAPI:
     app = FastAPI()
     app.include_router(material_router, prefix="/api/v1")
+    app.include_router(material_hub_router, prefix="/api/v1")
     app.include_router(encyclopedia_router, prefix="/api/v1")
     app.include_router(workbench_router, prefix="/api/v1")
 
@@ -64,6 +67,60 @@ def _app(session: AsyncSession, role: UserRole = UserRole.ADMIN) -> FastAPI:
         return JSONResponse({"detail": str(exc)}, status_code=403)
 
     return app
+
+
+@pytest.mark.asyncio(loop_scope="module")
+async def test_draft_material_card_uses_admin_route_without_public_leak():
+    async with _session() as db:
+        draft = Material(canonical_name=f"Тестовый материал {uuid4().hex}", status=MaterialStatus.DRAFT)
+        db.add(draft)
+        await db.flush()
+        technology = Technology(technology_code=f"QA_M1_ACCESS_{uuid4().hex}", revision=1,
+                                name="Проверка доступа к материалу", status="DRAFT")
+        technology.requirements.append(TechnologyMaterialRequirement(
+            code="QA_MATERIAL", selector_kind="CANONICAL_MATERIAL", canonical_material_id=draft.id))
+        db.add(technology)
+        await db.flush()
+        admin_url = _admin_material_card_url(draft.id)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=_app(db)), base_url="http://test") as client:
+            workbench = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=materials")
+            public_response = await client.get(material_card_url(draft.id))
+            admin_response = await client.get(admin_url)
+            empty_prices = await client.get("/api/v1/admin/material-hub/view/materials", params={"minimum": "", "maximum": ""})
+            negative_price = await client.get("/api/v1/admin/material-hub/view/materials", params={"minimum": "-1"})
+        assert public_response.status_code == 404
+        assert admin_response.status_code == 200
+        assert draft.canonical_name in admin_response.text
+        assert empty_prices.status_code == 200
+        assert negative_price.status_code == 422
+        assert workbench.status_code == 200 and admin_url in workbench.text
+
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=_app(db, UserRole.SUPPLIER)), base_url="http://test") as client:
+            denied_response = await client.get(admin_url)
+        assert denied_response.status_code == 403
+        assert draft.canonical_name not in denied_response.text
+
+        denied_app = _app(db)
+        denied_app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+            id=None, role=UserRole.ADMIN, module_access_rules=[{
+                "moduleCode": "MODULE_01_MATERIAL_HUB", "accessLevel": "NO_ACCESS", "accessScope": "GLOBAL",
+            }],
+        )
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=denied_app), base_url="http://test") as client:
+            denied_workbench = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=materials")
+            assert denied_workbench.status_code == 200
+            assert admin_url not in denied_workbench.text
+            assert "Доступ к карточке M1 ограничен" in denied_workbench.text
+            for url in (admin_url, "/api/v1/admin/material-hub/view/materials",
+                        f"/api/v1/admin/material-hub/view/materials-ui-preview?material={draft.id}",
+                        f"/api/v1/admin/material-hub/view/materials/suppliers/{uuid4()}"):
+                response = await client.get(url)
+                assert response.status_code == 403
+                assert draft.canonical_name not in response.text
+            denied_write = await client.post("/api/v1/admin/material-hub/view/materials/save", json={
+                "name": "Проверка запрета", "category_id": str(uuid4()), "base_unit_id": str(uuid4()),
+            })
+            assert denied_write.status_code == 403
 
 
 @pytest.mark.asyncio(loop_scope="module")

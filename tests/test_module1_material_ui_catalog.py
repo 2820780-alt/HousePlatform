@@ -33,6 +33,9 @@ def test_valid_supplier_offer_converts_and_keeps_original_ids():
 def test_unconvertible_offer_remains_visible_without_comparable_price():
     view = supplier_offer_view(offer(unit="pallet"), material(unit="piece"), today=date.today())
     assert view is not None and view.comparable_price is None
+    rows, counts = filter_material_ui_rows([{"material": material(), "offers": [view]}], preset="without_price")
+    assert counts["without_price"] == 1
+    assert rows[0]["offer_count"] == 1 and rows[0]["price"] is None
 
 
 def test_expired_blocked_or_unavailable_offers_are_excluded():
@@ -111,19 +114,24 @@ async def test_catalog_uses_the_full_isolated_database_without_writes():
     from app.models.material import Material
     from app.services.module1_material_ui_catalog import load_material_ui_catalog, material_ui_rows
 
-    if make_url(settings.DATABASE_URL).database != "houseplatform_fnd_m1_m2_20261110":
-        pytest.skip("requires the isolated materials UI database")
+    if make_url(settings.DATABASE_URL).database != "houseplatform_ui_clean_20261112":
+        pytest.skip("requires the clean isolated materials UI database")
     engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
     async with async_sessionmaker(engine)() as db:
         before = await db.scalar(select(func.count()).select_from(Material))
+        assert before == 0
+        db.add_all(Material(canonical_name=f"QA catalog material {index:03d}", status=MaterialStatus.DRAFT)
+                   for index in range(55))
+        await db.flush()
         expected = await db.scalar(select(func.count()).select_from(Material).where(
             Material.status.not_in([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED])))
         materials = await load_material_ui_catalog(db)
         rows = material_ui_rows(materials)
-        assert len(rows) == expected
+        assert len(rows) == expected == 55
         assert len({item["material"].id for item in rows}) == expected
         _, counts = filter_material_ui_rows(rows)
         assert counts["all"] == expected
-        assert await db.scalar(select(func.count()).select_from(Material)) == before
+        assert await db.scalar(select(func.count()).select_from(Material)) == expected
         await db.rollback()
+        assert await db.scalar(select(func.count()).select_from(Material)) == before
     await engine.dispose()

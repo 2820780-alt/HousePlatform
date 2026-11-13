@@ -182,7 +182,7 @@
         {{ hidden_context('general') }}
         <div class="m2-form-grid">
           <label class="wide"><span>Название</span><input name="name" value="{{ technology.name }}" required></label>
-          <label><span>Система</span><input name="system_code" value="{{ technology.system_code or '' }}"></label>
+          <input type="hidden" name="system_code" value="{{ technology.system_code or '' }}">
           <label><span>Категория</span><select name="category_code"><option value="">Без категории</option>{% for category in technology_category_options %}<option value="{{ category.code }}" {% if category.code == category_code %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
           <label class="full"><span>Описание</span><textarea name="description">{{ technology.description or '' }}</textarea></label>
         </div>
@@ -282,25 +282,19 @@
     {% endif %}
     {% if active_tab == 'materials' %}
     <section class="m2-panel m2-section" id="materials">
-      <div class="m2-panel-head"><h2>Материалы и параметры</h2><span class="m2-count">{{ requirements|length + defaults|length }}</span></div>
-      <div class="m2-panel-body"><p>Значения по умолчанию используются только для предварительной оценки, если пользователь или проект не задали другое значение.</p></div>
+      <div class="m2-panel-head"><h2>Материальные потребности</h2><span class="m2-count">{{ requirements|length }}</span></div>
       <div class="m2-panel-body m2-records{% if technology.status != 'DRAFT' or not permissions.edit %} m2-readonly-materials{% endif %}">
-        {% if requirements %}<div class="m2-material-head"><span>Материал / требование</span><span>Значение по умолчанию</span><span>Найдено в M1</span><span>Допустимые варианты</span><span>Статус</span>{% if technology.status == 'DRAFT' and permissions.edit %}<span>Действия</span>{% endif %}</div>{% endif %}
+        {% if requirements %}<div class="m2-material-head m2-requirement-row"><span>Что требуется</span><span>Параметры</span><span>Состояние подбора</span>{% if technology.status == 'DRAFT' and permissions.edit %}<span>Действия</span>{% endif %}</div>{% endif %}
         {% for item in requirements %}
         <article class="m2-record">
-          <div class="m2-material-row">
+          <div class="m2-material-row m2-requirement-row">
             <div><strong>{{ item.effective_name }}</strong></div>
-            <div data-label="Значение по умолчанию">{{ item.default_label or 'Не задано' }}</div>
-            <div data-label="Карточка M1">{% if item.selected_material is not defined %}Требуется обновление{% elif item.selected_material %}<a href="{{ item.material_card_url(item.selected_material.id) }}">{{ item.selected_material.canonical_name }}</a>{% elif item.technical_candidate %}<a href="{{ item.material_card_url(item.technical_candidate.id) }}">{{ item.technical_candidate.canonical_name }}</a><small>Техническая карточка на проверке</small>{% else %}Не выбрана{% endif %}</div>
-            <div data-label="Варианты">{% set alternative_count = item.candidates|length - (1 if item.selected_material is defined and item.selected_material else 0) %}{% if alternative_count %}{{ alternative_count }} доступно{% else %}Не найдены{% endif %}</div>
-            <div data-label="Статус">{% if item.selected_material is not defined %}<span class="m2-status">Требуется обновление</span>{% elif item.gap and item.gap.status == 'DISMISSED' %}<span class="m2-status">Не требуется</span>{% elif item.selected_material %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% elif item.technical_candidate %}<span class="m2-status" data-status="REVIEW">Требует проверки</span><small>Цена не подтверждена</small>{% elif item.candidates %}<span class="m2-status" data-status="REVIEW">Есть варианты</span>{% else %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% endif %}</div>
+            <div data-label="Параметры">{{ item.constraints_display }}</div>
+            <div data-label="Статус">{% if item.selected_material is not defined %}<span class="m2-status">Требуется обновление</span>{% elif item.gap and item.gap.status == 'DISMISSED' %}<span class="m2-status">Не требуется</span>{% elif item.gap and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}<span class="m2-status" data-status="REVIEW">Подбор не завершён</span>{% elif item.selected_material %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% elif item.technical_candidate %}<span class="m2-status" data-status="REVIEW">Требует проверки</span>{% elif item.candidates %}<span class="m2-status" data-status="REVIEW">Есть варианты</span>{% else %}<span class="m2-status" data-status="REVIEW">Требует подбора</span>{% endif %}</div>
             {% if technology.status == 'DRAFT' and permissions.edit %}<div>{{ delete_button('requirement', item.model.id, 'materials') }}</div>{% endif %}
           </div>
-          {% if item.candidates %}
-          <div class="m2-record-note">Подходящие материалы M1: <a href="{{ item.material_card_url(item.candidates[0].id) }}">{{ item.candidates[0].canonical_name }}</a>{% if item.candidates|length > 1 %}{% set extra = item.candidates|length - 1 %}<details><summary>Ещё {{ extra }} {% if extra == 1 %}подходящий вариант{% elif extra in [2, 3, 4] %}подходящих варианта{% else %}подходящих вариантов{% endif %}</summary>{% for material in item.candidates[1:] %}<div><a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a></div>{% endfor %}</details>{% endif %}</div>
-          {% endif %}
           {% if item.gap %}
-          <div class="m2-record-note"><strong>{% if item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}{{ 'Подбор завершён' if item.selected_material else 'Ранее подобранный материал требует перепроверки' }}{% elif item.gap.status == 'DISMISSED' %}Потребность отклонена{% elif item.candidates %}Материал не выбран{% else %}Материал не найден в M1{% endif %}</strong> · {% if item.gap.status == 'SEARCH_REQUESTED' %}Поиск запрошен{% elif item.gap.status == 'REVIEWING' %}На проверке{% elif item.gap.status == 'DISMISSED' %}Не требуется{% elif item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}Разрешено{% else %}Открыто{% endif %}{% if item.gap.resolved_material_id %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
+          <div class="m2-record-note"><strong>{% if item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}{{ 'Подбор завершён' if item.selected_material else 'Ранее подобранный материал требует перепроверки' }}{% elif item.gap.status == 'DISMISSED' %}Потребность отклонена{% elif item.technical_candidate %}Техническая карточка найдена, требуется проверка{% elif item.candidates %}Материал не выбран{% else %}Материал не найден в M1{% endif %}</strong> · {% if item.gap.status == 'SEARCH_REQUESTED' %}Поиск запрошен{% elif item.gap.status == 'REVIEWING' %}На проверке{% elif item.gap.status == 'DISMISSED' %}Не требуется{% elif item.gap.status in ['RESOLVED_EXISTING','RESOLVED_NEW_MATERIAL'] %}Разрешено{% else %}Открыто{% endif %}{% if item.gap.resolved_material_id and can_view_m1_card %} · <a href="{{ item.material_card_url(item.gap.resolved_material_id) }}">Карточка M1</a>{% endif %}</div>
           {% if permissions.admin and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}
           <details class="m2-editor"><summary>Открыть подбор</summary>
           <details class="m2-editor"><summary>Изменить запрос</summary><form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/material-gaps/{{ item.model.id }}/query" data-m2-form><label><span>Поисковая фраза</span><input name="search_phrase" value="{{ item.gap.search_phrase }}" maxlength="500" required></label><button class="m2-button" type="submit">Сохранить запрос</button></form></details>
@@ -346,7 +340,19 @@
         </form>
       </details>
       {% endif %}
-      <div class="m2-panel-head"><h3>Параметры</h3></div>
+      <div class="m2-panel-head"><h3>Подобранные материалы</h3></div>
+      <div class="m2-panel-body m2-records">
+        {% for item in requirements if item.selected_material or item.technical_candidate %}
+        {% set material = item.selected_material or item.technical_candidate %}
+        <article class="m2-record m2-material-row m2-requirement-row">
+          <div><strong>{{ 'Роль не указана' if item.display_name == 'Требование к материалу' else item.display_name }}</strong></div>
+          <div data-label="Карточка M1">{% if can_view_m1_card %}<a href="{{ item.material_card_url(material.id) }}">{{ material.canonical_name }}</a>{% else %}Доступ к карточке M1 ограничен{% endif %}</div>
+          <div data-label="Статус">{% if item.technical_candidate and not item.selected_material %}<span class="m2-status" data-status="REVIEW">Техническая карточка на проверке</span>{% elif item.gap and item.gap.status in ['OPEN','REVIEWING','SEARCH_REQUESTED'] %}<span class="m2-status" data-status="REVIEW">Подбор не завершён</span>{% else %}<span class="m2-status" data-status="ACTIVE">Подобрано</span>{% endif %}</div>
+        </article>
+        {% else %}<div class="m2-empty">Подобранных материалов пока нет.</div>{% endfor %}
+      </div>
+      <div class="m2-panel-head"><h3>Расчётные параметры</h3></div>
+      <div class="m2-panel-body"><p>Значения по умолчанию используются только для предварительной оценки, если пользователь или проект не задали другое значение.</p></div>
       <div class="m2-table-wrap">
         <table class="m2-table m2-default-table">
           <thead><tr><th>Параметр</th><th>Значение по умолчанию</th><th>Связь с материалом</th><th>Действия</th></tr></thead>
@@ -354,7 +360,7 @@
           {% for item in defaults %}
           <tr>
             <td><strong>{{ item.human_name }}</strong></td>
-            <td>{% if item.requires_explicit_input %}Требуется значение объекта{% else %}{{ item.display_value }} {{ item.model.unit or '' }} <span class="m2-badge">Допущение</span>{% if item.model.warning_text %}<details><summary>Условия</summary>{{ item.model.warning_text }}</details>{% endif %}{% endif %}</td>
+            <td>{% if item.requires_explicit_input %}Требуется значение объекта{% else %}{{ item.display_value }} {{ item.model.unit or '' }} <span class="m2-badge">Допущение</span>{% if item.model.warning_text %}<details><summary>Условия</summary>{{ item.model.warning_text }}</details>{% elif item.model.applicability %}<small>Есть условия применимости, требуют уточнения.</small>{% endif %}{% endif %}<small>{% if item.model.source_kind == 'EVIDENCE_BACKED_TYPICAL' %}Типовое значение с обоснованием{% else %}Допущение платформы{% endif %}{% if item.model.evidence_reference_id %} · источник на вкладке «Источники»{% endif %}</small></td>
             <td>{{ item.human_requirement_name or 'Параметр технологии' }}</td>
             <td>{% if not item.requires_explicit_input and permissions.admin and item.model.value_type in ('NUMBER', 'ENUM', 'BOOLEAN', 'TEXT') %}<button type="button" class="m2-button m2-icon-button ghost" title="Изменить значение по умолчанию" aria-label="Изменить {{ item.model.name_ru }}" data-m2-open-default="m2-default-{{ item.model.assumption_code }}">✎</button>{% endif %}</td>
           </tr>
@@ -545,9 +551,11 @@
         <h3>{{ group_name }}</h3>
         {% for item in group_items %}
         <article class="m2-record">
-          <div class="m2-record-main m2-compact-record m2-rule-line"><div>{% if item.phase_label %}<small>{{ item.phase_label }}</small>{% endif %}<strong>{{ item.display_text }}</strong></div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span></div><div>{{ knowledge_actions('rule', item, 'rules') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('rule', item.model.id, 'rules') }}{% endif %}</div></div>
+          <div class="m2-record-main m2-compact-record m2-rule-line"><div>{% if item.phase_label %}<small>{{ item.phase_label }}</small>{% endif %}<strong>{{ item.display_text }}</strong>{% if item.structured_role %}<small>Материальная роль: {{ item.structured_role }}</small>{% endif %}{% if item.structured_note %}<small>{{ item.structured_note }}</small>{% endif %}</div><div><span class="m2-status" data-status="{{ item.model.status }}">{{ item.status_label }}</span></div><div>{{ knowledge_actions('rule', item, 'rules') }}{% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}{{ delete_button('rule', item.model.id, 'rules') }}{% endif %}</div></div>
+          {% if item.structured_formula %}<div class="m2-record-detail">{{ item.structured_formula }}</div>{% endif %}
+          {% if item.structured_children %}<div class="m2-record-detail">Состав: {{ item.structured_children|join('; ') }}</div>{% endif %}
           {% if item.conflicts %}<div class="m2-record-detail"><span class="m2-status" data-status="REVIEW">Конфликт с действующим правилом</span></div>{% endif %}
-          {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit %}
+          {% if item.model.status == 'DRAFT' and technology.status == 'DRAFT' and permissions.edit and not item.structured_rule %}
           <details class="m2-editor"><summary>Изменить инженерное правило</summary>
             <form method="post" action="/api/v1/admin/module2/workbench/{{ technology.id }}/actions/save-rule" data-m2-form>
               {{ hidden_context('rules', item.model.id) }}

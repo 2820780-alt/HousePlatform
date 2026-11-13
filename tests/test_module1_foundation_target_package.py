@@ -199,10 +199,18 @@ async def test_target_package_is_idempotent_and_preserves_linked_tables():
     from sqlalchemy.pool import NullPool
     from app.config import settings
 
-    if make_url(settings.DATABASE_URL).database != "houseplatform_fnd_m1_m2_20261110":
-        pytest.skip("requires the dedicated restored foundation database")
+    if make_url(settings.DATABASE_URL).database != "houseplatform_ui_clean_20261112":
+        pytest.skip("requires the clean isolated foundation test database")
     engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
     async with async_sessionmaker(engine)() as db:
+        from uuid import NAMESPACE_URL, uuid5
+        from app.models.material_category import MaterialCategory
+
+        assert await db.scalar(select(func.count()).select_from(Material)) == 0
+        for slug in sorted({item.category_slug for item in targets() if item.category_slug}):
+            db.add(MaterialCategory(id=uuid5(NAMESPACE_URL, f"atom/test/category/{slug}"),
+                                    name=slug, slug=slug, status="ACTIVE"))
+        await db.flush()
         async def count(model):
             return await db.scalar(select(func.count()).select_from(model))
         before = {model.__tablename__: await count(model)
@@ -225,5 +233,36 @@ async def test_target_package_is_idempotent_and_preserves_linked_tables():
             assert await count(model) == before[model.__tablename__]
         selected = (await db.scalars(select(Material).where(Material.id.in_(result["target_ids"].values())))).all()
         assert len(selected) == len(targets()) and all(item.status == MaterialStatus.DRAFT for item in selected)
+        await db.rollback()
+    await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_target_package_refuses_duplicate_candidates_in_clean_database():
+    from uuid import NAMESPACE_URL, uuid5
+    from sqlalchemy.engine import make_url
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    from sqlalchemy.pool import NullPool
+    from app.config import settings
+    from app.models.material_attribute import MaterialAttribute
+
+    if make_url(settings.DATABASE_URL).database != "houseplatform_ui_clean_20261112":
+        pytest.skip("requires the clean isolated foundation test database")
+    engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
+    async with async_sessionmaker(engine)() as db:
+        assert await db.scalar(select(func.count()).select_from(Material)) == 0
+        target = next(item for item in targets() if item.key == "concrete-20")
+        for index in range(2):
+            material = Material(id=uuid5(NAMESPACE_URL, f"atom/test/ambiguous/{index}"),
+                                canonical_name=target.title, status=MaterialStatus.DRAFT)
+            material.attributes = [MaterialAttribute(attribute_name=key, attribute_value=value)
+                                   for key, value in target.expected.items()]
+            db.add(material)
+        await db.flush()
+        fingerprint = await material_inventory_fingerprint(db)
+        with pytest.raises(ValueError, match="multiple possible M1 identities require review: concrete-20"):
+            await apply_foundation_target_package(db, expected_existing=2,
+                expected_inventory_fingerprint=fingerprint, acknowledge_test_data=True)
+        assert await db.scalar(select(func.count()).select_from(Material)) == 2
         await db.rollback()
     await engine.dispose()

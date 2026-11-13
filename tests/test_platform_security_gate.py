@@ -100,6 +100,7 @@ def test_env_secret_files_are_untracked_ignored_and_excluded_from_docker() -> No
     assert "docs" in dockerignore
     assert "tests" in dockerignore
     assert "tools" in dockerignore
+    assert "qa-ui-*" in dockerignore
 
 
 def test_safe_docker_example_contains_placeholders_not_local_secrets() -> None:
@@ -120,6 +121,35 @@ def test_auth_dependency_versions_are_reproducibly_pinned() -> None:
     requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
     assert "passlib[bcrypt]==1.7.4" in requirements
     assert "bcrypt==4.0.1" in requirements
+
+
+def test_secret_scan_with_synthetic_fixture_detects_leaks(tmp_path: Path) -> None:
+    import io
+    import tarfile
+    from tools.platform_security_image_scan import scan_image_archive, scan_text_file
+
+    fixture = tmp_path / "synthetic-input"
+    fixture.write_text("JWT_SECRET_KEY=fixture-secret-123\nADMIN_PASSWORD=fixture-password-456\n", encoding="utf-8")
+    clean = tmp_path / "clean.txt"
+    clean.write_text("development-only-change-me", encoding="utf-8")
+    assert scan_text_file(clean, fixture)["passed"]
+    clean.write_text("fixture-secret-123", encoding="utf-8")
+    assert not scan_text_file(clean, fixture)["passed"]
+    image = tmp_path / "synthetic-image.tar"
+    with tarfile.open(image, "w") as archive:
+        data = b"fixture-password-456"
+        member = tarfile.TarInfo("application/data")
+        member.size = len(data)
+        archive.addfile(member, io.BytesIO(data))
+    assert not scan_image_archive(image, fixture)["passed"]
+
+
+def test_example_uses_placeholders_without_reading_local_env() -> None:
+    example = parse_env_file(ROOT / ".env.docker.example")
+    assert example["JWT_SECRET_KEY"].startswith("CHANGE_ME")
+    assert example["ADMIN_PASSWORD"].startswith("CHANGE_ME")
+    assert "CHANGE_ME" in example["DATABASE_URL"]
+    assert "CHANGE_ME" in example["DATABASE_URL_SYNC"]
 
 
 def test_packaged_config_uses_noncredential_development_placeholders() -> None:

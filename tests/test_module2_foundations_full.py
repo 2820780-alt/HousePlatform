@@ -95,11 +95,12 @@ async def test_preparation_relationship_is_not_a_category_technology(monkeypatch
     }))
     node = SimpleNamespace(technology_id=driven["technology"].id,
                            conditions={"category_code": "PREPARATION"},
-                           name="Подготовка площадки", description="Подготовка относится к этому разделу.")
+                           name="Подготовка площадки", description="Подготовка относится к PREPARATION.")
     db = SimpleNamespace(scalars=AsyncMock(return_value=SimpleNamespace(all=lambda: [node])))
     result = await module2_encyclopedia.public_category(db, "PREPARATION")
     assert result["technologies"] == ()
     assert result["related_technologies"][0]["relationship_name"] == "Подготовка площадки"
+    assert result["related_technologies"][0]["relationship_description"] == "Подготовка относится к разделу «Подготовка»."
     env = Environment(loader=FileSystemLoader("templates"), autoescape=select_autoescape(("html",)))
     html = env.get_template("module2_encyclopedia.html").render(view="category", **result)
     assert "Связанные технологии из других разделов" in html

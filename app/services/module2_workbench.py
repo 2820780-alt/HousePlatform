@@ -500,6 +500,10 @@ async def build_technology_list_view(db: AsyncSession) -> tuple[dict[str, Any], 
 
 
 async def build_technology_detail_view(db: AsyncSession, technology: Technology) -> dict[str, Any]:
+    from app.services.module2_foundation_preliminary_profiles import PROFILES
+
+    profile = next((item for item in PROFILES if item.technology_code == technology.technology_code), None)
+    role_names = {item.code: item.purpose for item in profile.roles} if profile else {}
     material_options = await _options(db, Material, Material.canonical_name)
     category_options = await _options(db, MaterialCategory, MaterialCategory.name)
     type_options = await _options(db, MaterialType, MaterialType.name)
@@ -521,15 +525,16 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
     requirements = [
         {
             "model": item,
-            "display_name": REQUIREMENT_NAMES.get(item.code, item.code),
+            "display_name": role_names.get(item.code, REQUIREMENT_NAMES.get(item.code, "Требование к материалу")),
             "selector_label": SELECTOR_LABELS.get(item.selector_kind, _words(item.selector_kind)),
             "reference": _requirement_reference(item, names),
             "constraints": _human_mapping(item.technical_constraints),
+            "constraints_display": _material_constraints_display(item.technical_constraints),
             "constraint_pair": _first_pair(item.technical_constraints),
         }
         for item in technology.requirements
     ]
-    requirement_codes = {item.id: REQUIREMENT_NAMES.get(item.code, "Требование к материалу") for item in technology.requirements}
+    requirement_codes = {item.id: role_names.get(item.code, REQUIREMENT_NAMES.get(item.code, "Требование к материалу")) for item in technology.requirements}
     work_items = tuple(list_work_items())
     work_by_code = {item.work_code: item for item in work_items}
     layers = [
@@ -653,6 +658,45 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
             counts[item["target_label"]] = counts.get(item["target_label"], 0) + 1
         group["counts"] = tuple(counts.items())
 
+    quantity_rule_names = {
+        "PRISM_VOLUME": "Объём прямоугольного элемента",
+        "BOX_UNION_VOLUME": "Объём объединённых прямоугольных элементов",
+        "BOX_VOLUME_EXCLUDING_OCCUPIED": "Объём за вычетом занятого пространства",
+        "NET_AREA": "Площадь за вычетом проёмов",
+        "NET_AREA_VOLUME": "Объём по площади и толщине",
+        "CYLINDER_VOLUME": "Объём цилиндрического элемента",
+        "SPACED_ELEMENT_COUNT": "Количество элементов по шагу",
+        "SPACED_ZONES_COUNT": "Количество элементов по зонам",
+        "BAR_TOTAL_LENGTH": "Общая длина арматуры",
+        "LAP_ALLOWANCE_LENGTH": "Длина нахлёстов арматуры",
+        "BAR_MASS": "Масса арматуры",
+        "STIRRUP_CUT_LENGTH": "Длина заготовки хомута",
+        "HELIX_TURN_LENGTH": "Длина одного витка спирали",
+        "FORMWORK_AREA": "Площадь опалубки",
+        "LAYOUT_ITEM_COUNT": "Количество элементов по раскладке",
+        "COATING_QUANTITY": "Количество покрытия по подтверждённому расходу",
+        "WHOLE_PACKAGES": "Количество целых упаковок",
+    }
+    quantity_explanations = {
+        "PRISM_VOLUME": "Длина × ширина × высота.",
+        "BOX_UNION_VOLUME": "Объём объединения прямоугольных элементов без повторного учёта пересечений.",
+        "BOX_VOLUME_EXCLUDING_OCCUPIED": "Объём объединения элементов с занятым пространством минус объём занятого пространства.",
+        "NET_AREA": "Общая площадь минус площадь проёмов.",
+        "NET_AREA_VOLUME": "Площадь за вычетом проёмов × толщина.",
+        "CYLINDER_VOLUME": "π × диаметр² × длина / 4.",
+        "SPACED_ELEMENT_COUNT": "Расстояние между крайними осями / максимальный шаг, округлить вверх и прибавить один.",
+        "SPACED_ZONES_COUNT": "Сумма количества по зонам минус общие граничные элементы.",
+        "BAR_TOTAL_LENGTH": "Сумма заданных длин стержней.",
+        "LAP_ALLOWANCE_LENGTH": "Сумма заданных длин отдельных нахлёстов.",
+        "BAR_MASS": "Сумма длин стержней × масса погонного метра.",
+        "STIRRUP_CUT_LENGTH": "Сумма участков по осевой линии и заданных длин концов.",
+        "HELIX_TURN_LENGTH": "Корень из суммы квадрата длины окружности по осевой линии и квадрата шага.",
+        "FORMWORK_AREA": "Сумма площадей формующих поверхностей.",
+        "LAYOUT_ITEM_COUNT": "Количество элементов выбранного материала в заданной раскладке.",
+        "COATING_QUANTITY": "Площадь × подтверждённый расход × коэффициент слоёв.",
+        "WHOLE_PACKAGES": "Требуемое количество изделий / количество в упаковке, округлить вверх.",
+    }
+    from app.services.module2_foundation_quantity_rules import RULES as FOUNDATION_QUANTITY_RULES
     rule_section_labels = {
         "applicability": "Применимость", "exclusions": "Ограничения и совместимость",
         "quality_before": "Контроль качества", "quality_during": "Контроль качества",
@@ -669,6 +713,24 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         item["display_text"] = next((payload[key] for key in ("message", "description", "text", "note")
                                      if isinstance(payload.get(key), str) and payload[key].strip()),
                                     item["outcome_label"])
+        item["structured_rule"] = payload.get("kind") in {"FOUNDATION_QUANTITY_RULE", "FOUNDATION_ROLE_COMPOSITION"}
+        item["structured_role"] = requirement_codes.get(
+            next((requirement.id for requirement in technology.requirements
+                  if str(requirement.id) == item["model"].scope_reference), None)
+        )
+        if payload.get("kind") == "FOUNDATION_QUANTITY_RULE":
+            item["display_text"] = quantity_rule_names.get(payload.get("code"), "Расчётное правило требует уточнения")
+            item["structured_note"] = "Предварительное правило; входные данные и инженерная проверка обязательны."
+            known_rule = FOUNDATION_QUANTITY_RULES.get(payload.get("code"))
+            item["structured_formula"] = (quantity_explanations.get(payload.get("code"))
+                                          if known_rule and payload.get("expression") == known_rule.expression else None)
+        elif payload.get("kind") == "FOUNDATION_ROLE_COMPOSITION":
+            item["display_text"] = "Состав материальной потребности"
+            item["structured_note"] = "Общая потребность не является дополнительной закупкой; состав требует проверки."
+            item["structured_children"] = tuple(
+                role_names.get(child.get("role_code"), "Роль требует уточнения")
+                for child in payload.get("children", ()) if isinstance(child, dict)
+            )
         rule_groups.setdefault(label, []).append(item)
 
     activation_codes = validate_technology_activation(technology)
@@ -692,9 +754,9 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
             {
                 "model": item,
                 "requires_explicit_input": requires_explicit_foundation_input(technology, item),
-                "requirement_name": REQUIREMENT_NAMES.get(item.material_requirement.code, item.material_requirement.code)
+                "requirement_name": requirement_codes.get(item.material_requirement.id, "Требование к материалу")
                 if item.material_requirement else None,
-                "display_value": names["categories"].get(uuid.UUID(str(item.default_value["value"])), str(item.default_value["value"]))
+                "display_value": _material_default_name(item.default_value["value"], names)
                 if item.value_type == "MATERIAL_CLASS" else str(item.default_value["value"]),
                 "alternatives": tuple(item.allowed_values.get("values", ()))
                 if item.value_type == "ENUM" else (),
@@ -894,6 +956,14 @@ async def _options(db: AsyncSession, model: type[Any], label_column: Any, *, lim
     return tuple((item_id, str(label)) for item_id, label in result.all())
 
 
+def _material_default_name(value: Any, names: Mapping[str, Mapping[uuid.UUID, str]]) -> str:
+    try:
+        identifier = uuid.UUID(str(value))
+    except (TypeError, ValueError, AttributeError):
+        return str(value)
+    return names["materials"].get(identifier) or names["categories"].get(identifier) or "Материал M1 недоступен"
+
+
 def _requirement_reference(item: TechnologyMaterialRequirement, names: Mapping[str, Mapping[uuid.UUID, str]]) -> str:
     if item.canonical_material_id:
         return names["materials"].get(item.canonical_material_id, "Материал M1 недоступен")
@@ -904,6 +974,29 @@ def _requirement_reference(item: TechnologyMaterialRequirement, names: Mapping[s
     if item.material_role_code:
         return _words(item.material_role_code)
     return _human_mapping(item.technical_constraints) or "Не разрешено"
+
+
+def _material_constraints_display(value: Mapping[str, Any] | None) -> str:
+    labels = {
+        "concrete_class": "Класс бетона", "strength_class": "Класс прочности",
+        "water_resistance": "Водонепроницаемость", "frost_type": "Тип морозостойкости",
+        "frost_cycles": "Морозостойкость, циклов", "mobility_class": "Подвижность",
+        "steel_class": "Класс арматуры", "diameter_mm": "Диаметр, мм",
+        "thickness_mm": "Толщина, мм", "cs_10_y_kpa": "Прочность CS(10/Y), кПа",
+    }
+    if not value:
+        return "Не указаны"
+    result = []
+    unresolved = False
+    for key, item in value.items():
+        text = str(item).strip() if isinstance(item, (str, int, float)) and not isinstance(item, bool) else ""
+        if key not in labels or not text or len(text) > 80 or _uuid(text) is not None:
+            unresolved = True
+            continue
+        result.append(f"{labels[key]}: {text}")
+    if unresolved:
+        result.append("Другие условия требуют уточнения")
+    return "; ".join(result)
 
 
 def _human_mapping(value: Mapping[str, Any] | None) -> str:

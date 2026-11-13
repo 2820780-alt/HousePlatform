@@ -178,6 +178,7 @@ class UploadRowStatus(str, enum.Enum):
 
 class UnitType(str, enum.Enum):
     LENGTH = "length"
+    PRESSURE = "pressure"
     AREA = "area"
     VOLUME = "volume"
     WEIGHT = "weight"

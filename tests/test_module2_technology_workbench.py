@@ -168,6 +168,47 @@ async def test_technology_list_and_detail_open_without_http_500() -> None:
 
 
 @pytest.mark.asyncio(loop_scope="module")
+async def test_structured_foundation_rule_is_named_and_not_offered_lossy_editor() -> None:
+    from app.schemas.module2_knowledge import KnowledgeRuleDraftInput
+    from app.services.module2_foundation_quantity_rules import describe_quantity_rule
+    from app.services.module2_knowledge_foundation import create_knowledge_rule_draft
+
+    async with _session() as session:
+        technology = _draft()
+        technology.technology_code = "FND_SLAB_USHP"
+        technology.revision = 997701
+        requirement = technology.requirements[0]
+        requirement.code = "SLAB_CONCRETE"
+        requirement.id = uuid4()
+        payload = describe_quantity_rule("NET_AREA_VOLUME", role_code="SLAB_CONCRETE")
+        rule = create_knowledge_rule_draft(
+            technology,
+            KnowledgeRuleDraftInput(rule_code=f"QA_{uuid4().hex.upper()}", scope_kind="MATERIAL_REQUIREMENT",
+                                    scope_reference=str(requirement.id), outcome_type="INFORMATION",
+                                    outcome_payload=payload, conditions=[{
+                                        "source": "CONTEXT", "field": "thickness_m", "operator": "EXISTS",
+                                    }]),
+            actor_role_code="ADMIN",
+        )
+        await persist_technology_draft(session, technology)
+        await session.flush()
+        technology = await read_technology(session, technology.id)
+        view = await build_technology_detail_view(session, technology)
+        rendered_rule = next(item for item in view["rules"] if item["model"].id == rule.id)
+        assert rendered_rule["display_text"] == "Объём по площади и толщине"
+        assert rendered_rule["structured_role"] == "Бетон плиты"
+        assert rendered_rule["structured_rule"] is True
+        assert rendered_rule["structured_formula"] == "Площадь за вычетом проёмов × толщина."
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=_app(session)), base_url="http://test") as client:
+            response = await client.get(f"/api/v1/admin/module2/workbench/{technology.id}?tab=rules")
+        assert response.status_code == 200
+        assert "Объём по площади и толщине" in response.text
+        assert "Предварительное правило" in response.text
+        assert "Изменить инженерное правило" not in response.text
+        assert rule.outcome_payload == payload
+
+
+@pytest.mark.asyncio(loop_scope="module")
 async def test_create_draft_and_general_edit_use_domain_services() -> None:
     async with _session() as session:
         app = _app(session)
@@ -565,6 +606,17 @@ def test_structured_condition_renderer_uses_human_language() -> None:
     assert rendered == "Температура не ниже -5 °C"
     assert "GTE" not in rendered
     assert "{" not in rendered
+
+
+def test_material_constraints_hide_unknown_keys_and_uuids() -> None:
+    from app.services.module2_workbench import _material_constraints_display
+
+    result = _material_constraints_display({"diameter_mm": 12, "unknown_internal_key": str(uuid4()),
+                                            "steel_class": "А500С"})
+    assert "Диаметр, мм: 12" in result and "Класс арматуры: А500С" in result
+    assert "Другие условия требуют уточнения" in result
+    assert "unknown" not in result and "{" not in result
+    assert _material_constraints_display({"steel_class": str(uuid4())}) == "Другие условия требуют уточнения"
 
 
 @pytest.mark.asyncio(loop_scope="module")

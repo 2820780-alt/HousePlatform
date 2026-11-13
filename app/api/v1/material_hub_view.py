@@ -1,16 +1,18 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.templating import Jinja2Templates
+from pydantic import BeforeValidator
 from urllib.parse import urlparse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, DBSession, require_admin
+from app.core.permission_guard import require_permission
 from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
@@ -76,6 +78,7 @@ router = APIRouter(
     dependencies=[require_admin()],
 )
 templates = Jinja2Templates(directory="templates")
+OptionalPrice = Annotated[Decimal | None, Query(ge=0), BeforeValidator(lambda value: None if value == "" else value)]
 
 
 ACTION_LABELS = {
@@ -349,17 +352,18 @@ async def material_hub_data(
 async def material_hub_materials(
     request: Request,
     db: DBSession,
+    user: CurrentUser,
     in_stock_only: bool = Query(False),
     preset: str | None = Query(None),
     q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
-    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    minimum: OptionalPrice = None, maximum: OptionalPrice = None,
     page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100), material: str = "", sort: str = "name",
 ):
     compatibility = {"needs_price": "without_price", "estimate_ready": "all",
                      "needs_classification": "all", "needs_review": "all"}
     selected_preset = compatibility.get(preset, preset or "all")
     return await material_hub_materials_preview(
-        request, db, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
+        request, db, user, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
         minimum=minimum, maximum=maximum, preset=selected_preset, page=page, page_size=page_size,
         material=material, sort=sort,
     )
@@ -367,9 +371,9 @@ async def material_hub_materials(
 
 @router.get("/materials-ui-preview", response_class=HTMLResponse, include_in_schema=False)
 async def material_hub_materials_preview(
-    request: Request, db: DBSession,
+    request: Request, db: DBSession, user: CurrentUser,
     q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
-    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    minimum: OptionalPrice = None, maximum: OptionalPrice = None,
     preset: str = "all", page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
     material: str = "", sort: str = "name", detail_page: bool = False,
 ):
@@ -380,6 +384,7 @@ async def material_hub_materials_preview(
         MATERIAL_UI_CATEGORIES, filter_material_ui_rows, load_material_ui_catalog, material_ui_rows,
     )
 
+    require_permission(user, "MODULE_01_MATERIAL_HUB", "VIEW")
     if preset not in {"all", "with_price", "without_price"}:
         raise HTTPException(status_code=400, detail="Unknown materials price filter")
     if sort not in {"name", "price_asc", "price_desc"}:
@@ -432,7 +437,10 @@ async def material_hub_materials_preview(
             "description": item.description or "", "base_unit_id": str(item.base_unit_id or ""),
             "purpose": next((a.attribute_value for a in item.attributes if a.attribute_name == "ui_purpose"), ""),
             "attributes": [{"name": a.attribute_name, "value": a.attribute_value,
-                            "unit_id": str(a.unit_id or ""), "value_type": a.value_type} for a in attrs],
+                            "unit_id": str(a.unit_id or ""), "value_type": a.value_type,
+                            "display_label": _MATERIAL_ATTRIBUTE_LABELS.get(a.attribute_name, ("", ""))[0],
+                            "display_unit": _MATERIAL_ATTRIBUTE_LABELS.get(a.attribute_name, ("", ""))[1]}
+                           for a in attrs],
             "specifications": [{"id": str(spec.id), "label": _characteristic_label(spec),
                                 "value": spec.value, "unit": spec.unit or ""} for spec in item.specifications],
             "conversions": [{"from_unit_id": str(unit.id), "coefficient": str(rule.coefficient), "source": rule.source}
@@ -496,6 +504,7 @@ async def material_hub_materials_preview_save(
 ):
     from uuid import UUID
 
+    require_permission(user, "MODULE_01_MATERIAL_HUB", "EDIT")
     try:
         identifier = UUID(material_id) if material_id else None
     except ValueError:
@@ -506,9 +515,10 @@ async def material_hub_materials_preview_save(
 
 @router.get("/materials/suppliers/{supplier_id}", response_class=HTMLResponse, include_in_schema=False)
 @router.get("/materials-ui-preview/suppliers/{supplier_id}", response_class=HTMLResponse, include_in_schema=False)
-async def material_hub_materials_preview_supplier(request: Request, db: DBSession, supplier_id: str):
+async def material_hub_materials_preview_supplier(request: Request, db: DBSession, user: CurrentUser, supplier_id: str):
     from uuid import UUID
 
+    require_permission(user, "MODULE_01_MATERIAL_HUB", "VIEW")
     try:
         identifier = UUID(supplier_id)
     except ValueError:
@@ -526,14 +536,15 @@ async def material_hub_materials_preview_supplier(request: Request, db: DBSessio
 
 @router.get("/materials/{material_id}", response_class=HTMLResponse)
 async def material_hub_material_detail(
-    request: Request, db: DBSession, material_id: str,
+    request: Request, db: DBSession, user: CurrentUser, material_id: str,
     q: str = "", category: str = "", subcategory: str = "", supplier: str = "", region: str | None = None,
-    minimum: Decimal | None = Query(None, ge=0), maximum: Decimal | None = Query(None, ge=0),
+    minimum: OptionalPrice = None, maximum: OptionalPrice = None,
     preset: str = "all", page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
     sort: str = "name",
 ):
+    require_permission(user, "MODULE_01_MATERIAL_HUB", "VIEW")
     return await material_hub_materials_preview(
-        request, db, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
+        request, db, user, q=q, category=category, subcategory=subcategory, supplier=supplier, region=region,
         minimum=minimum, maximum=maximum, preset=preset, page=page, page_size=page_size,
         material=material_id, sort=sort, detail_page=True,
     )
@@ -1225,8 +1236,10 @@ def _material_ui_attribute_rows(material: Material) -> list[dict[str, str]]:
         if name in _MATERIAL_INTERNAL_ATTRIBUTES or name.endswith("_id") or not value:
             continue
         label, fallback_unit = _MATERIAL_ATTRIBUTE_LABELS.get(name, (_humanize_material_field_key(name), ""))
+        stored_unit = attribute.unit.abbreviation if attribute.unit else None
         rows.append({"label": label, "value": value,
-                     "unit": attribute.unit.abbreviation if attribute.unit else fallback_unit})
+                     "unit": {"mm": "мм", "kPa": "кПа"}.get(stored_unit, stored_unit) if stored_unit else fallback_unit,
+                     "unit_inferred": bool(fallback_unit and not attribute.unit)})
     return rows
 
 

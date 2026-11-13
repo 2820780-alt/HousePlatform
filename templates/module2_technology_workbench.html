@@ -66,7 +66,7 @@
     <section class="m2-panel" aria-labelledby="technology-list-title">
       <div class="m2-panel-head">
         <h2 id="technology-list-title">Реестр технологий</h2>
-        <span class="m2-count">{{ technologies|length }}</span>
+        <span class="m2-count">{{ technologies|groupby('code')|length }}</span>
       </div>
       <div class="m2-panel-body">
         <form class="m2-toolbar" method="get">
@@ -115,7 +115,8 @@
               </tr>
             </thead>
             <tbody>
-              {% for item in technologies %}
+              {% for group in technologies|groupby('code') %}
+              {% set item = group.list[0] %}
               <tr>
                 <td>
                   <a
@@ -134,7 +135,7 @@
                   >{{ item.name }}</a>
                 </td>
                 <td>{{ item.category_name }}</td>
-                <td><span class="m2-status" data-status="{{ item.status }}">{{ item.status_label }}</span></td>
+                <td>{% for revision in group.list %}<a class="m2-status" data-status="{{ revision.status }}" href="/api/v1/admin/module2/workbench/{{ revision.id }}" aria-label="{{ revision.status_label }}: {{ revision.name }}, редакция {{ revision.revision }}">{{ revision.status_label }}{% if group.list|length > 1 %} · № {{ revision.revision }}{% endif %}</a>{% if not loop.last %} {% endif %}{% endfor %}</td>
                 <td>{{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}</td>
               </tr>
               {% endfor %}

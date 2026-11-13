@@ -12,8 +12,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentUser, DBSession
-from app.core.permission_guard import require_permission
-from app.models.enums import MaterialStatus
+from app.core.permission_guard import can, require_permission
+from app.models.enums import MaterialStatus, UserRole
 from app.models.material import Material
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
 from app.models.module2_content_catalog import TechnologyCategory
@@ -45,7 +45,7 @@ from app.services.module2_encyclopedia_editorial import (
 )
 from app.services.module2_material_resolution import (
     MaterialResolutionError, change_gap_query, compatible_materials, dismiss_gap, ensure_gap,
-    gap_for_requirement, material_card_url, request_m1_search, resolve_existing,
+    gap_for_requirement, request_m1_search, resolve_existing,
 )
 from app.services.module2_content_catalog import (
     ContentCatalogError,
@@ -85,6 +85,10 @@ from app.services.module2_workbench import (
 
 router = APIRouter(prefix="/admin/module2/workbench", tags=["module2-workbench"])
 templates = Jinja2Templates(directory="templates")
+
+
+def _admin_material_card_url(material_id: uuid.UUID) -> str:
+    return f"/api/v1/admin/material-hub/view/materials/{material_id}"
 
 TAB_BY_SECTION = {
     "general": "general", "validation": "general",
@@ -364,7 +368,7 @@ async def technology_workbench_detail(
         item["class_label"] = MATERIAL_NAMES.get(requirement.code, item["display_name"])
         item["candidates"] = await compatible_materials(db, requirement)
         item["gap"] = await gap_for_requirement(db, requirement.id)
-        item["material_card_url"] = material_card_url
+        item["material_card_url"] = _admin_material_card_url
         item["selected_material"] = _selected_material(requirement, item["gap"], item["candidates"])
         item["technical_candidate"] = (technical_candidates.get(requirement.canonical_material_id)
                                        if requirement.selector_kind == "CANONICAL_MATERIAL" else None)
@@ -392,6 +396,7 @@ async def technology_workbench_detail(
     context.update(
         {
             "permissions": workbench_permissions(user),
+            "can_view_m1_card": user.role == UserRole.ADMIN and can(user, "MODULE_01_MATERIAL_HUB", "VIEW"),
             "notice": request.query_params.get("notice"),
             "error": request.query_params.get("error"),
             "active_tab": TAB_BY_SECTION.get(request.query_params.get("tab", "general"), "general"),

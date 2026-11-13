@@ -188,15 +188,17 @@ def filter_material_ui_rows(
         visible_offers = [offer for offer in offers
                           if (not supplier or offer.supplier_id == supplier)
                           and (not region or region in (offer.region or "").casefold())]
-        prices = [offer.comparable_price for offer in visible_offers if offer.comparable_price is not None]
         if supplier and not visible_offers:
             continue
-        prices = [price for price in prices if (minimum is None or price >= minimum)
-                  and (maximum is None or price <= maximum)]
+        if minimum is not None or maximum is not None:
+            visible_offers = [offer for offer in visible_offers if offer.comparable_price is not None
+                              and (minimum is None or offer.comparable_price >= minimum)
+                              and (maximum is None or offer.comparable_price <= maximum)]
+        prices = [offer.comparable_price for offer in visible_offers if offer.comparable_price is not None]
         if (minimum is not None or maximum is not None) and not prices:
             continue
         matching.append({**row, "visible_offers": visible_offers,
-                         "price": min(prices) if prices else None, "offer_count": len(prices)})
+                         "price": min(prices) if prices else None, "offer_count": len(visible_offers)})
     counts = {"all": len(matching), "with_price": sum(row["price"] is not None for row in matching)}
     counts["without_price"] = counts["all"] - counts["with_price"]
     return ([row for row in matching if preset == "all" or (row["price"] is not None) == (preset == "with_price")], counts)

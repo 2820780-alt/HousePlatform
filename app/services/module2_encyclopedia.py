@@ -96,7 +96,8 @@ async def public_category(db: AsyncSession, code: str, *, compare_codes: list[st
         ))).all()
         related = [
             {**public_by_id[node.technology_id], "relationship_name": node.name,
-             "relationship_description": node.description}
+             "relationship_description": node.description.replace(code, f"разделу «{category.name}»")
+             if node.description else None}
             for node in nodes
             if (node.conditions or {}).get("category_code") == code
             and public_by_id[node.technology_id]["technology"].category_id != category.id

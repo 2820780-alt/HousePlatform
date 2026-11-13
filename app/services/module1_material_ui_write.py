@@ -199,6 +199,8 @@ async def save_material_ui(db, payload: MaterialUIWrite, *, actor_id: UUID, mate
                 raise HTTPException(400, "Для размера укажите единицу измерения.")
         existing = next((item for item in current.attributes if item.attribute_name == key), None)
         if existing:
+            if existing.unit_id is not None and existing.unit_id != field.unit_id:
+                raise HTTPException(409, "Нельзя изменить сохранённую единицу характеристики без проверки пересчёта.")
             existing.attribute_value, existing.unit_id, existing.value_type = field.value.strip(), field.unit_id, field.value_type
         else:
             current.attributes.append(MaterialAttribute(attribute_name=key, attribute_value=field.value.strip(),
