@@ -26,6 +26,7 @@ backup
 VmesteRest
 qa-artifacts-*
 qa-ui-*
+qa-fnd-*
 qa-materials-ui
 RestAppShell.routing-work*.tsx
 rest-*.patch

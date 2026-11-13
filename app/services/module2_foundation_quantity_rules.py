@@ -79,6 +79,10 @@ RULES = {
         QuantityRule("LAYOUT_ITEM_COUNT", "count(layout_items equal to material_code)",
                      (("layout_items", "piece"), ("material_code", "code"), ("layout_complete", "boolean")),
                      "piece", "A complete explicit layout is required; no volume-based estimation."),
+        QuantityRule("SHEET_CUT_AREA", "sum(cut_sheet_areas_m2)",
+                     (("cut_sheet_areas_m2", "m2"), ("layout_complete", "boolean"),
+                      ("overlaps_included", "boolean")), "m2",
+                     "Purchase area of explicitly laid-out cuts, including overlaps; roll packaging and waste are separate."),
         QuantityRule("COATING_QUANTITY", "area_m2 * confirmed_rate * layer_factor",
                      (("area_m2", "m2"), ("confirmed_rate", "unit/m2"), ("rate_basis", "PER_LAYER|TOTAL_SYSTEM"),
                       ("consumption_unit", "kg|l"), ("rate_confirmed", "boolean"), ("rate_source", "reference")), "specified",
@@ -202,7 +206,8 @@ def describe_quantity_rule(code: str, *, role_code: str, material_id: str | None
         "expression": rule.expression, "inputs": inputs,
         "result_unit": rule.result_unit, "material_role_code": role_code,
         "canonical_material_id": material_reference, "parameter_status": "PRELIMINARY_ESTIMATE",
-        "source": "USER_PROVIDED_SPRINT_SPECIFICATION", "limitation": rule.limitation,
+        "source": "DERIVED_LAYOUT_GEOMETRY" if code == "SHEET_CUT_AREA" else "USER_PROVIDED_SPRINT_SPECIFICATION",
+        "limitation": rule.limitation,
         "structural_safety_verified": False,
     }
 
@@ -222,6 +227,11 @@ def evaluate_quantity_rule(code: str, inputs: Mapping[str, Any]) -> QuantityResu
     missing = [name for name in required if name not in inputs or inputs[name] is None]
     if code == "LAYOUT_ITEM_COUNT" and inputs.get("layout_complete") is False:
         missing.append("complete_layout")
+    if code == "SHEET_CUT_AREA":
+        if inputs.get("layout_complete") is False:
+            missing.append("complete_layout")
+        if inputs.get("overlaps_included") is False:
+            missing.append("overlap_details")
     if code == "COATING_QUANTITY" and inputs.get("rate_confirmed") is False:
         missing.append("confirmed_rate_source")
     if missing:
@@ -284,6 +294,10 @@ def evaluate_quantity_rule(code: str, inputs: Mapping[str, Any]) -> QuantityResu
             if not isinstance(material, str) or not material.strip():
                 raise ValueError("material_code must be an explicit material code")
             value = Decimal(sum(item == material for item in items))
+        elif code == "SHEET_CUT_AREA":
+            if inputs["layout_complete"] is not True or inputs["overlaps_included"] is not True:
+                raise ValueError("layout_complete and overlaps_included must be explicit booleans")
+            value = sum(_lengths(inputs["cut_sheet_areas_m2"], "cut_sheet_areas_m2"), Decimal(0))
         elif code == "COATING_QUANTITY":
             if inputs["rate_confirmed"] is not True:
                 raise ValueError("rate_confirmed must be an explicit boolean")

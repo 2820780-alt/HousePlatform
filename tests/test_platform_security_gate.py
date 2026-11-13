@@ -101,6 +101,7 @@ def test_env_secret_files_are_untracked_ignored_and_excluded_from_docker() -> No
     assert "tests" in dockerignore
     assert "tools" in dockerignore
     assert "qa-ui-*" in dockerignore
+    assert "qa-fnd-*" in dockerignore
 
 
 def test_safe_docker_example_contains_placeholders_not_local_secrets() -> None:

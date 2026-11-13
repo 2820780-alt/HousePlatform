@@ -205,7 +205,7 @@ PROFILES = (
         _r("PROTECTION", "Покрытие", "Защитный материал", "WPR-10", condition="Если предусмотрен", missing="Нужна выбранная система."),
     ), (("layers", "2", "piece"),)),
     Profile("FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE", "FND-WPR-MEMBRANE-01", (
-        _r("BITUMEN_MEMBRANE", "Покрытие", "Наплавляемый материал", "WPR-03", alternatives=("WPR-04",),
+        _r("BITUMEN_MEMBRANE", "Покрытие", "Наплавляемый материал", "WPR-03", "SHEET_CUT_AREA", alternatives=("WPR-04",),
            missing="Нужны раскладка, нахлёсты и совместимость выбранной системы."),
         _r("PRIMER", "Основание", "Совместимый праймер", missing="Нужен праймер выбранной системы."),
         _r("PENETRATIONS", "Проходки", "Герметизация", "WPR-09", condition="Если предусмотрена", missing="Нужна совместимость системы."),

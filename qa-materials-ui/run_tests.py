@@ -9,7 +9,8 @@ from sqlalchemy.engine import make_url
 
 QA_DATABASE = os.environ.get("M1_UI_TEST_DATABASE", "houseplatform_fnd_m1_m2_20261110")
 if QA_DATABASE not in {"houseplatform_ui_clean_20261112", "houseplatform_fnd_m1_m2_20261110", "houseplatform_m1ui_reg_20261111",
-                       "houseplatform_m1archive_check_20261111"}:
+                       "houseplatform_m1archive_check_20261111", "houseplatform_fnd_final_20261113",
+                       "houseplatform_fnd_final_reg_20261113", "houseplatform_fnd_release_20261113"}:
     raise RuntimeError("Unapproved test database")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 original_init = BaseSettings.__init__
