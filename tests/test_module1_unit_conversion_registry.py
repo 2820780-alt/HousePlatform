@@ -75,6 +75,12 @@ def test_simple_direct_conversions_do_not_require_material_profile() -> None:
     assert requirements.required_fields == ()
 
 
+def test_liter_volume_conversion_does_not_invent_mass_conversion() -> None:
+    assert convert_quantity(1, "л", "m3").value == Decimal("0.001")
+    assert convert_quantity(1, "m3", "liter").value == Decimal("1000")
+    assert convert_quantity(1, "liter", "kg").success is False
+
+
 def test_rebar_conversion_reports_missing_profile_fields_without_guessing() -> None:
     result = convert_quantity(3, "м.п.", "кг", material_group="rebar")
 

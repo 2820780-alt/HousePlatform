@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.access_levels import AccessLevel
 from app.core.permission_guard import can
+from app.models.enums import MaterialStatus
 from app.models.knowledge_resource import KnowledgeResource
 from app.models.material import Material
 from app.models.material_category import MaterialCategory
@@ -506,7 +507,9 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
 
     profile = next((item for item in PROFILES if item.technology_code == technology.technology_code), None)
     role_names = {item.code: item.purpose for item in profile.roles} if profile else {}
-    material_options = await _options(db, Material, Material.canonical_name)
+    material_result = await db.execute(select(Material.id, Material.canonical_name).where(
+        Material.status.not_in((MaterialStatus.ARCHIVED, MaterialStatus.REJECTED))).order_by(Material.canonical_name))
+    material_options = tuple((identifier, str(name)) for identifier, name in material_result.all())
     category_options = await _options(db, MaterialCategory, MaterialCategory.name)
     type_options = await _options(db, MaterialType, MaterialType.name)
     document_options = await _options(db, MaterialDocument, MaterialDocument.title, limit=300)
@@ -524,10 +527,20 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         "categories": dict(category_options),
         "types": dict(type_options),
     }
+    def requirement_name(item):
+        known = role_names.get(item.code, REQUIREMENT_NAMES.get(item.code))
+        if known:
+            return known
+        if item.code.startswith("FND2_ROLE_") and item.notes:
+            return item.notes.split(". ", 1)[0]
+        if item.code.startswith("FND2_") and item.canonical_material_id:
+            return names["materials"].get(item.canonical_material_id, "Материал M1 недоступен")
+        return "Требование к материалу"
+
     requirements = [
         {
             "model": item,
-            "display_name": role_names.get(item.code, REQUIREMENT_NAMES.get(item.code, "Требование к материалу")),
+            "display_name": requirement_name(item),
             "selector_label": SELECTOR_LABELS.get(item.selector_kind, _words(item.selector_kind)),
             "reference": _requirement_reference(item, names),
             "constraints": _human_mapping(item.technical_constraints),
@@ -536,7 +549,7 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         }
         for item in technology.requirements
     ]
-    requirement_codes = {item.id: role_names.get(item.code, REQUIREMENT_NAMES.get(item.code, "Требование к материалу")) for item in technology.requirements}
+    requirement_codes = {item.id: requirement_name(item) for item in technology.requirements}
     from app.services.module1_work_catalog_store import load_work_catalog
     work_items = await load_work_catalog(db)
     work_by_code = {item.work_code: item for item in work_items}

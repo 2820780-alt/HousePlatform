@@ -52,6 +52,13 @@ def test_conversion_requires_explicit_positive_factor_and_source():
     assert result.amount == Decimal("8000")
 
 
+def test_liter_price_is_volume_based_and_does_not_assume_density():
+    context = replace(CONTEXT, base_unit="liter")
+    quote = calculate_price(context, [candidate("volume", "6000", unit="m3")])
+    assert quote.amount == Decimal("6")
+    assert calculate_price(context, [candidate("mass", "6", unit="kg")]).source == "NO_PRICE"
+
+
 def test_same_offer_is_never_counted_twice():
     with pytest.raises(ValueError, match="unique"):
         calculate_price(CONTEXT, [candidate("same", "7500"), candidate("same", "8500")])

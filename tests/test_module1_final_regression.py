@@ -300,7 +300,17 @@ INGESTION_CANONICAL_PIPELINE_SERVICES = frozenset(
     }
 )
 
+# This importer delegates all persisted changes to the existing versioned store.
+DELEGATING_PERSISTENCE_SERVICES = frozenset({"module1_fnd2_works.py"})
+
 PERSISTENCE_SERVICE_BOUNDARIES = {
+    "module1_fnd2_materials.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"material", "sub"}),
+        "allowed_mutation_roots": frozenset({"material"}),
+        "allowed_models": frozenset({"Material", "MaterialCategory"}),
+        "reason": "Import reviewed FND-2 draft materials and categories without archiving existing cards.",
+    },
     "module1_work_catalog_store.py": {
         "allowed_session_methods": frozenset({"add", "flush"}),
         "allowed_add_targets": frozenset({"item", "revision"}),
@@ -536,9 +546,20 @@ def test_module1_service_boundary_classification_is_complete() -> None:
         READ_ONLY_SERVICES
         | EXPORT_PACKAGE_SERVICES
         | INGESTION_CANONICAL_PIPELINE_SERVICES
+        | DELEGATING_PERSISTENCE_SERVICES
         | set(PERSISTENCE_SERVICE_BOUNDARIES)
     )
     assert actual == classified
+
+
+def test_delegating_work_import_uses_the_versioned_store() -> None:
+    tree = _service_tree("module1_fnd2_works.py")
+    assert "app.services.module1_work_catalog_store" in _imported_modules(tree)
+    assert any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "save_work_item"
+               for node in ast.walk(tree))
+    assert not _session_write_calls(tree)
+    assert not _dml_builder_calls(tree)
+    assert not _raw_sql_writes(tree)
 
 
 def test_read_only_export_and_pipeline_services_have_no_database_writes() -> None:

@@ -14,7 +14,7 @@ from sqlalchemy import select
 from app.api.deps import get_current_user
 from app.api.v1.admin_material_hub import router as admin_material_hub_router
 from app.api.v1.material_hub_view import router as material_hub_view_router
-from app.config import settings
+from app.config import Settings
 from app.models.enums import UserRole
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.schemas.auth import PUBLIC_REGISTRATION_ROLE, RegisterRequest
@@ -22,7 +22,7 @@ from app.schemas.user import UserRead, UserUpdate
 from app.services import auth_service
 from app.services.module1_operational_widgets import WORK_COST_WIDGET_CODE, get_module1_widget_catalog
 from app.services.module1_provider_work_cost_offers import _apply_list_permissions
-from tools.platform_security_image_scan import known_secret_values, parse_env_file
+from tools.platform_security_image_scan import parse_env_file
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -104,18 +104,13 @@ def test_env_secret_files_are_untracked_ignored_and_excluded_from_docker() -> No
     assert "qa-fnd-*" in dockerignore
 
 
-def test_safe_docker_example_contains_placeholders_not_local_secrets() -> None:
+def test_safe_docker_example_contains_placeholders() -> None:
     example_path = ROOT / ".env.docker.example"
     example = parse_env_file(example_path)
     assert example["JWT_SECRET_KEY"].startswith("CHANGE_ME")
     assert example["ADMIN_PASSWORD"].startswith("CHANGE_ME")
     assert "CHANGE_ME" in example["DATABASE_URL"]
     assert "CHANGE_ME" in example["DATABASE_URL_SYNC"]
-
-    local_env = ROOT / ".env.docker"
-    if local_env.exists():
-        example_bytes = example_path.read_bytes()
-        assert all(value not in example_bytes for value in known_secret_values(local_env))
 
 
 def test_auth_dependency_versions_are_reproducibly_pinned() -> None:
@@ -154,19 +149,22 @@ def test_example_uses_placeholders_without_reading_local_env() -> None:
 
 
 def test_packaged_config_uses_noncredential_development_placeholders() -> None:
-    local_env = ROOT / ".env.docker"
-    if not local_env.exists():
-        pytest.skip("local env is unavailable for exact-value comparison")
-    known_values = set(known_secret_values(local_env))
-    packaged_defaults = {
-        settings.DATABASE_URL.encode(),
-        settings.DATABASE_URL_SYNC.encode(),
-        settings.JWT_SECRET_KEY.encode(),
-        settings.ADMIN_PASSWORD.encode(),
-    }
-    assert known_values.isdisjoint(packaged_defaults)
-    assert settings.JWT_SECRET_KEY == "development-only-change-me"
-    assert settings.ADMIN_PASSWORD == "development-only-change-me"
+    # Inspect declared defaults, never the environment-dependent settings instance.
+    assert Settings.model_fields["JWT_SECRET_KEY"].default == "development-only-change-me"
+    assert Settings.model_fields["ADMIN_PASSWORD"].default == "development-only-change-me"
+
+
+def test_placeholder_checks_do_not_open_local_env(monkeypatch) -> None:
+    original_open = Path.open
+
+    def guarded_open(path, *args, **kwargs):
+        if path.name in {".env", ".env.docker"}:
+            pytest.fail("placeholder checks must not open local secrets")
+        return original_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", guarded_open)
+    test_safe_docker_example_contains_placeholders()
+    test_packaged_config_uses_noncredential_development_placeholders()
 
 def test_public_registration_role_is_server_owned_and_privileged_roles_are_rejected() -> None:
     safe = RegisterRequest(email="safe@example.invalid", password="safe-password")

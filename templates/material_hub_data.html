@@ -423,7 +423,7 @@
         {% for material in materials %}
           {% set price_info = material_prices.get(material.id|string) %}
           {% set technical_attributes = material_attribute_rows(material) %}
-          {% set base_unit_label = {'m': 'м', 'm2': 'м²', 'm3': 'м³', 'piece': 'шт.'}.get(material.base_unit.abbreviation, material.base_unit.abbreviation) if material.base_unit else '' %}
+          {% set base_unit_label = {'m': 'м', 'm2': 'м²', 'm3': 'м³', 'piece': 'шт.', 'liter': 'л'}.get(material.base_unit.abbreviation, material.base_unit.abbreviation) if material.base_unit else '' %}
           {% set category_label = material.category.name if material.category else "Не указана" %}
           {% set subcategory_label = material.subcategory.name if material.subcategory else "" %}
           {% set supplier_label = source_display_name(price_info.source) if price_info and price_info.source else "Не указан" %}

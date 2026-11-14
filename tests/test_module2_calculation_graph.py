@@ -30,6 +30,14 @@ def test_prism_calculation_converts_units_and_recalculates_geometry():
     assert evaluate_block(block, {**inputs, "strip.width": ("500", "mm")})["volume"].value == Decimal("3")
 
 
+def test_liter_is_volume_and_cannot_be_substituted_for_mass():
+    block = CalculationBlock("1", "volume", (
+        CalculationNode("input", "INPUT", "liter", input_key="quantity"),
+    ), ("input",))
+    assert evaluate_block(block, {"quantity": ("1", "m3")})["input"].value == Decimal("1000")
+    assert evaluate_block(block, {"quantity": ("1", "kg")})["input"].errors == ("INVALID_INPUT:input",)
+
+
 def test_missing_input_blocks_only_its_dependent_branch():
     block = CalculationBlock("1", "partial", (
         CalculationNode("missing", "INPUT", "m", input_key="missing"),
