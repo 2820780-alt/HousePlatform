@@ -1,0 +1,33 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Цена · {{ name }}</title>{% include "_atom_ui_standards.html" %}{% include "_module2_workbench_styles.html" %}
+</head><body data-atom-page data-rbac-ready>{% include "_atom_platform_topbar.html" %}{% from "_module1_shell.html" import module1_shell with context %}{{ module1_shell('materials' if kind == 'material' else 'work-costs') }}
+<main class="m2-shell"><header class="m2-page-head"><div><div class="m2-eyebrow">Справочник M1</div><h1>{{ name }}</h1></div>
+<a class="m2-button ghost" href="{% if kind == 'material' %}/api/v1/admin/material-hub/view/materials/{{ identifier }}{% else %}/api/v1/admin/vertical-m1/works/{{ identifier }}{% endif %}">К карточке</a></header>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>Базовая цена для расчёта</h2></div><div class="m2-panel-body">
+<form method="get"><div class="m2-form-grid"><label><span>Регион</span><input name="region" required value="{{ region }}"></label><label><span>Условия цены</span><input name="terms" required value="{{ terms }}"></label></div><button class="m2-button" type="submit">Показать</button></form>
+{% if quote_result %}<p>{% if quote_result.amount is none %}Нет цены{% else %}{{ quote_result.amount }} ₽ / {{ quote_result.context.base_unit }} · {{ 'средняя по предложениям' if quote_result.source == 'AVERAGE' else 'ручная резервная' }}{% endif %}</p>{% endif %}
+<form method="post" data-m2-form><div class="m2-form-grid"><label><span>Регион</span><input name="region" required value="{{ region }}"></label><label><span>Условия цены</span><input name="terms" required value="{{ terms }}"></label><label><span>Ручная резервная цена, ₽</span><input name="amount" inputmode="decimal"></label></div><button class="m2-button primary" type="submit">Сохранить</button></form>
+</div></section>
+{% if kind == 'material' and may_review %}<section class="m2-panel"><div class="m2-panel-head"><h2>Предложения поставщиков</h2></div><div class="m2-panel-body">
+{% for offer, supplier, review, valid in offers %}<p>{{ supplier.name }} · {{ offer.price }} ₽ / {{ offer.unit }} · {{ offer.region }} · {{ 'Подтверждено' if valid else 'Не участвует в расчёте' }}</p>
+{% if valid %}<form method="post" action="/api/v1/admin/vertical-m1/prices/material/{{ identifier }}/offers/{{ offer.id }}/withdraw" data-m2-form data-m2-confirm="Исключить предложение из расчёта?">
+<input type="hidden" name="region" value="{{ region }}"><input type="hidden" name="terms" value="{{ review.terms }}"><button class="m2-button" type="submit">Исключить из расчёта</button></form>{% endif %}
+{% else %}<p>Предложений пока нет.</p>{% endfor %}
+<form method="post" action="/api/v1/admin/vertical-m1/prices/material/{{ identifier }}/offers" data-m2-form><div class="m2-form-grid">
+<label><span>Поставщик</span><select name="supplier_id" required><option value="">Выберите поставщика</option>{% for supplier in suppliers %}<option value="{{ supplier.id }}">{{ supplier.name }}</option>{% endfor %}</select></label>
+<label><span>Регион</span><input name="region" required value="{{ region }}"></label><label><span>Условия цены</span><input name="terms" required value="{{ terms }}"></label>
+<label><span>Цена за базовую единицу, ₽</span><input name="amount" required inputmode="decimal"></label></div>
+<label><input type="checkbox" name="confirmed" required> Подтверждаю соответствие материала, условий и наличие предложения</label>
+<button class="m2-button" type="submit" {% if not suppliers %}disabled{% endif %}>Добавить предложение</button></form>
+</div></section>{% endif %}
+{% if kind == 'work' and may_review %}<section class="m2-panel"><div class="m2-panel-head"><h2>Предложения исполнителей</h2>
+<a class="m2-button" href="/api/v1/admin/material-hub/view/work-costs">К предложениям</a></div><div class="m2-panel-body">
+{% for offer, owner, review, valid in work_offers %}<p>{{ owner.name or 'Исполнитель' }} · {{ offer.fixed_amount if offer.fixed_amount is not none else 'Диапазон' }} ₽ / {{ offer.pricing_unit }} · {{ offer.region }} · {{ 'Подтверждено' if valid else 'Не участвует в расчёте' }}</p>
+<form method="post" action="/api/v1/admin/vertical-m1/prices/work/{{ identifier }}/offers/{{ offer.id }}/{{ 'withdraw' if valid else 'confirm' }}" data-m2-form>
+<input type="hidden" name="region" value="{{ region or offer.region }}"><label><span>Условия цены</span><input name="terms" required value="{{ review.terms if review else terms }}"></label>
+{% if not valid %}<label><input type="checkbox" name="confirmed" required> Подтверждаю соответствие работы и условий предложения</label>{% endif %}
+<button class="m2-button" type="submit">{{ 'Исключить из расчёта' if valid else 'Подтвердить предложение' }}</button></form>
+{% else %}<p>Предложений пока нет.</p>{% endfor %}</div></section>{% endif %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>История ручной цены</h2></div><div class="m2-panel-body">{% for item in history %}<p>{{ item.effective_from }} · {{ item.region }} · {{ item.terms }} · {{ item.amount ~ ' ₽' if item.amount is not none else 'Цена снята' }}</p>{% else %}<p>Цен пока нет.</p>{% endfor %}</div></section>
+</main>{% include "_module2_workbench_scripts.html" %}</body></html>

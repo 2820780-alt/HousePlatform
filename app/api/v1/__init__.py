@@ -19,6 +19,9 @@ from app.api.v1 import (
     module2_encyclopedia,
     module2_home,
     module2_workbench,
+    module2_calculation_builder,
+    vertical_calculation_preview,
+    vertical_work_catalog,
     module1_work_cost_offers,
     partner_portal_view,
     price_dynamics_view,
@@ -47,6 +50,9 @@ api_router.include_router(module1_material_card.router)
 api_router.include_router(module2_encyclopedia.router)
 api_router.include_router(module2_home.router)
 api_router.include_router(module2_workbench.router)
+api_router.include_router(module2_calculation_builder.router)
+api_router.include_router(vertical_calculation_preview.router)
+api_router.include_router(vertical_work_catalog.router)
 api_router.include_router(module1_work_cost_offers.router)
 api_router.include_router(partner_portal_view.router)
 api_router.include_router(price_dynamics_view.router)

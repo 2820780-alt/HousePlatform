@@ -16,6 +16,7 @@ from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
 from app.core.permission_guard import can
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.services.module1_work_catalog import get_work_item, list_work_items
+from app.services.module1_work_catalog_store import load_work_catalog
 
 
 MODULE_01_MATERIAL_HUB = "MODULE_01_MATERIAL_HUB"
@@ -26,6 +27,11 @@ STATUSES = frozenset({"draft", "active", "inactive"})
 SUPPORTED_CURRENCIES = frozenset({"RUB"})
 MIN_COMPARABLE_OFFERS = 5
 MARKET_SANITY_IQR_MULTIPLIER = Decimal("1.5")
+_SEED_LOOKUP = object()
+
+
+async def _runtime_work(db: AsyncSession, work_code: str):
+    return next((item for item in await load_work_catalog(db) if item.work_code == work_code), None)
 
 
 @dataclass(frozen=True)
@@ -85,7 +91,7 @@ async def create_provider_work_cost_offer(
     user: Any,
 ) -> ProviderWorkCostOffer:
     owner_user_id = _require_create_permission(user)
-    normalized = validate_provider_work_cost_payload(payload)
+    normalized = validate_provider_work_cost_payload(payload, work_item=await _runtime_work(db, payload.work_code))
     offer = ProviderWorkCostOffer(
         work_code=normalized.work_code,
         owner_user_id=owner_user_id,
@@ -549,7 +555,7 @@ async def update_provider_work_cost_offer(
 ) -> ProviderWorkCostOffer:
     offer = await _get_offer_or_404(db, offer_id)
     _require_update_permission(user, offer)
-    normalized = validate_provider_work_cost_payload(payload)
+    normalized = validate_provider_work_cost_payload(payload, work_item=await _runtime_work(db, payload.work_code))
 
     offer.work_code = normalized.work_code
     offer.region = normalized.region
@@ -585,9 +591,10 @@ async def deactivate_provider_work_cost_offer(
     return offer
 
 
-def validate_provider_work_cost_payload(payload: ProviderWorkCostOfferPayload) -> ProviderWorkCostOfferPayload:
+def validate_provider_work_cost_payload(payload: ProviderWorkCostOfferPayload, *, work_item=_SEED_LOOKUP) -> ProviderWorkCostOfferPayload:
     work_code = _required_str(payload.work_code, "work_code")
-    work_item = get_work_item(work_code)
+    if work_item is _SEED_LOOKUP:
+        work_item = get_work_item(work_code)
     if work_item is None:
         raise ValidationError("work_code must reference an existing Work Catalog item")
 
@@ -647,7 +654,7 @@ def validate_provider_work_cost_payload(payload: ProviderWorkCostOfferPayload) -
     )
 
 
-def list_work_catalog_options() -> tuple[dict[str, Any], ...]:
+def list_work_catalog_options(items=None) -> tuple[dict[str, Any], ...]:
     return tuple(
         {
             "workCode": item.work_code,
@@ -661,7 +668,7 @@ def list_work_catalog_options() -> tuple[dict[str, Any], ...]:
             ),
             "isRangeAllowed": item.is_range_allowed,
         }
-        for item in list_work_items()
+        for item in (items if items is not None else list_work_items())
     )
 
 
@@ -669,8 +676,9 @@ def provider_work_cost_offer_to_dict(
     offer: ProviderWorkCostOffer,
     user: Any | None = None,
     market_sanity: ProviderWorkCostMarketSanity | None = None,
+    work_by_code: dict | None = None,
 ) -> dict[str, Any]:
-    work_item = get_work_item(offer.work_code)
+    work_item = work_by_code.get(offer.work_code) if work_by_code is not None else get_work_item(offer.work_code)
     can_edit = _can_edit_offer(user, offer)
     return {
         "id": str(offer.id),
@@ -697,7 +705,7 @@ def provider_work_cost_offer_to_dict(
         "validityLabel": validity_label(offer),
         "status": offer.status,
         "statusLabel": status_label(offer),
-        "qualityFlags": quality_flags(offer),
+        "qualityFlags": quality_flags(offer, work_by_code=work_by_code),
         "marketSanity": (
             provider_work_cost_market_sanity_to_dict(market_sanity)
             if market_sanity is not None
@@ -767,11 +775,11 @@ def status_label(offer: ProviderWorkCostOffer) -> str:
     }.get(offer.status, "Требует проверки")
 
 
-def quality_flags(offer: ProviderWorkCostOffer) -> list[dict[str, str]]:
+def quality_flags(offer: ProviderWorkCostOffer, *, work_by_code: dict | None = None) -> list[dict[str, str]]:
     flags: list[dict[str, str]] = []
     if _is_expired(offer):
         flags.append({"code": "expired", "label": "Срок истёк", "tone": "warning"})
-    if get_work_item(offer.work_code) is None:
+    if (work_by_code.get(offer.work_code) if work_by_code is not None else get_work_item(offer.work_code)) is None:
         flags.append({"code": "catalog_work_missing", "label": "Работа требует проверки", "tone": "warning"})
     if offer.pricing_mode == "fixed" and (offer.fixed_amount is None or offer.fixed_amount <= 0):
         flags.append({"code": "invalid_amount", "label": "Стоимость требует проверки", "tone": "danger"})

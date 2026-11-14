@@ -1,0 +1,20 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ work.work_name if work else 'Работы' }} · ATOM</title>{% include "_atom_ui_standards.html" %}{% include "_module2_workbench_styles.html" %}
+</head><body data-atom-page data-rbac-ready>{% include "_atom_platform_topbar.html" %}{% from "_module1_shell.html" import module1_shell with context %}{{ module1_shell('work-costs') }}
+<main class="m2-shell"><header class="m2-page-head"><div><div class="m2-eyebrow">Справочник M1</div><h1>{{ work.work_name if work else 'Работы' }}</h1></div>
+{% if work %}<a class="m2-button ghost" href="/api/v1/admin/vertical-m1/works">К работам</a>{% endif %}</header>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>{{ 'Изменить работу' if work else 'Добавить работу' }}</h2></div><div class="m2-panel-body">
+<form action="/api/v1/admin/vertical-m1/works/save" method="post" data-m2-form>
+{% if work %}<input type="hidden" name="work_code" value="{{ work.work_code }}"><input type="hidden" name="version" value="{{ work.version }}">{% endif %}
+<div class="m2-form-grid"><label><span>Название</span><input name="name" required maxlength="500" value="{{ work.work_name if work else '' }}"></label>
+<label><span>Раздел</span><select name="work_group" required>{% for group in groups %}<option value="{{ group.work_group }}" {% if work and work.work_group == group.work_group %}selected{% endif %}>{{ group.work_category }}</option>{% endfor %}</select></label>
+<label><span>Единица измерения</span><select name="unit" required>{% for unit in units %}<option value="{{ unit }}" {% if work and work.default_unit == unit %}selected{% endif %}>{{ unit }}</option>{% endfor %}</select></label>
+<label><span>Описание</span><textarea name="description">{{ work.description or '' if work else '' }}</textarea></label></div>
+<button class="m2-button primary" type="submit">Сохранить</button>
+{% if work %}<a class="m2-button" href="/api/v1/admin/vertical-m1/prices/work/{{ work.work_code }}">Цена для расчёта</a>{% endif %}</form></div></section>
+{% if work and work.status == 'DRAFT' and may_approve %}<form method="post" action="/api/v1/admin/vertical-m1/works/{{ work.work_code }}/approve" data-m2-form data-m2-confirm="Подтвердить работу для использования в технологиях?">
+<input type="hidden" name="version" value="{{ work.version }}"><button class="m2-button" type="submit">Утвердить работу</button></form>{% endif %}
+{% if not work %}<section class="m2-panel"><div class="m2-panel-head"><h2>Справочник работ</h2></div><div class="m2-panel-body">
+{% for item in works %}<p><a href="/api/v1/admin/vertical-m1/works/{{ item.work_code }}">{{ item.work_name }}</a> · {{ item.default_unit }}</p>{% else %}<p>Работ пока нет.</p>{% endfor %}</div></section>{% endif %}
+</main>{% include "_module2_workbench_scripts.html" %}</body></html>

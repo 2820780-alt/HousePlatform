@@ -1,0 +1,138 @@
+{% macro resources(selected_material='', selected_work='', selected_role='', selected_step='') -%}
+<label><span>Материал M1</span><select name="material_id"><option value="">Не выбран</option>
+{% for material in materials %}<option value="{{ material.id }}" {% if selected_material|string == material.id|string %}selected{% endif %}>{{ material.canonical_name }}</option>{% endfor %}</select></label>
+<label><span>Работа M1 <a href="/api/v1/admin/vertical-m1/works">Открыть справочник</a></span><select name="work_code"><option value="">Не выбрана</option>
+{% for work in works %}<option value="{{ work.work_code }}" {% if selected_work == work.work_code %}selected{% endif %}>{{ work.work_name }}</option>{% endfor %}</select></label>
+<label><span>Материальная роль технологии</span><select name="material_requirement_id"><option value="">Не выбрана</option>{% for id, label in material_roles %}<option value="{{ id }}" {% if selected_role|string == id|string %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label><span>Этап работы технологии</span><select name="work_step_id"><option value="">Не выбран</option>{% for id, label in work_steps %}<option value="{{ id }}" {% if selected_step|string == id|string %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+{%- endmacro %}
+{% macro ranges(prefix, cases=()) -%}
+{% for index in range(4) %}{% set item = cases[index] if index < cases|length else none %}
+<div class="m2-form-grid"><label><span>Ширина от, мм</span><input name="{{ prefix }}.{{ index }}.lower" inputmode="decimal" value="{{ item.lower if item else '' }}"></label>
+<label><span>До, мм</span><input name="{{ prefix }}.{{ index }}.upper" inputmode="decimal" value="{{ item.upper if item else '' }}"></label>
+<label><span>Стержней в ряду</span><input name="{{ prefix }}.{{ index }}.count" inputmode="numeric" value="{{ item.result if item else '' }}"></label>
+<label><input type="checkbox" name="{{ prefix }}.{{ index }}.inclusive" {% if item and item.upper_inclusive %}checked{% endif %}> Включая верхнюю границу</label></div>
+{% endfor %}
+{%- endmacro %}
+{% macro composer_form(action, graph=none, data=none, row=none) -%}
+<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/{{ action }}" data-m2-form data-compose-form>
+{% if row %}<input type="hidden" name="block_id" value="{{ row.id }}"><input type="hidden" name="version" value="{{ row.version }}">{% endif %}
+<label><span>Название расчёта</span><input name="name" maxlength="255" value="{{ graph.name if graph else '' }}" required></label>
+{% for index in range(1, 13) %}{% set step = data.steps[index - 1] if data and index <= data.steps|length else {} %}
+<details class="m2-compose-step" data-compose-step="{{ index }}" {% if index == 1 %}open{% endif %}><summary>Шаг {{ index }}</summary><div class="m2-form-grid">
+<label><span>Название шага</span><input name="step.{{ index }}.label" maxlength="255" value="{{ step.get('label', '') }}"></label>
+<label><span>Действие</span><select name="step.{{ index }}.operation"><option value="">Не используется</option>{% for value, label in [('INPUT','Входное значение'),('CONSTANT','Постоянное значение'),('ADD','Сложить'),('SUBTRACT','Вычесть'),('MULTIPLY','Умножить'),('DIVIDE','Разделить'),('CEIL','Округлить вверх'),('FLOOR','Округлить вниз'),('LESS_THAN','Сравнить: меньше'),('IF','Условие: да / нет'),('PRISM_VOLUME','Объём прямоугольной конструкции')] %}<option value="{{ value }}" {% if step.get('operation') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label><span>Единица результата</span><select name="step.{{ index }}.unit">{% for value, label in [('1','Без единицы'),('piece','шт.'),('mm','мм'),('m','м'),('m2','м²'),('m3','м³'),('kg','кг'),('kg_per_m','кг/м'),('kg_per_m2_mm','кг/(м²·мм)')] %}<option value="{{ value }}" {% if step.get('unit') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label data-compose-source><span>Источник входного значения</span><select name="step.{{ index }}.source">{% for value, label in [('PARAMETER','Параметр технологии'),('geometry.length','Длина ленты'),('geometry.width','Ширина ленты'),('geometry.height','Высота ленты')] %}<option value="{{ value }}" {% if step.get('source') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label data-compose-constant><span>Постоянное значение</span><input name="step.{{ index }}.constant" inputmode="decimal" value="{{ step.get('constant', '') }}"></label>
+{% for arg in range(1, 4) %}<label data-compose-arg="{{ arg }}"><span>{{ ['Первый', 'Второй', 'Третий'][arg-1] }} исходный шаг</span><select name="step.{{ index }}.ref.{{ arg }}"><option value="">Не выбран</option>{% for previous in range(1, index) %}<option value="{{ previous }}" {% if step.get('references', [])|length >= arg and step.references[arg-1] == previous %}selected{% endif %}>Шаг {{ previous }}</option>{% endfor %}</select></label>{% endfor %}
+</div></details>{% endfor %}
+<div class="m2-form-grid">{{ resources(graph.material_id or '', graph.work_code or '', graph.material_requirement_id or '', graph.work_step_id or '') if graph else resources() }}
+<label><span>Результат для материала</span><select name="material_step"><option value="">Не выбран</option>{% for index in range(1, 13) %}<option value="{{ index }}" {% if data and data.material_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
+<label><span>Результат для работы</span><select name="work_step"><option value="">Не выбран</option>{% for index in range(1, 13) %}<option value="{{ index }}" {% if data and data.work_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
+<label><span>Основание расчёта</span><input name="rule_source" maxlength="1000" value="{{ graph.rule_source or '' if graph else '' }}"></label></div>
+<button class="m2-button primary" type="submit">{{ 'Сохранить схему' if graph else 'Создать расчёт' }}</button></form>
+{%- endmacro %}
+{% macro source_form(row, graph, action) -%}
+<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/{{ action }}" data-m2-form>
+  <input type="hidden" name="source_id" value="{{ row.id }}">
+  <div class="m2-form-grid">
+    {% for node in graph.nodes if node.operation == 'INPUT' %}
+    <label><span>{% set labels = graph.parameters | selectattr('input_key', 'equalto', node.input_key) | list %}{{ labels[0].label if labels else 'Вход' }} ({{ node.unit }})</span>
+      <select name="mapping.{{ node.input_key }}" required><option value="">Выберите источник</option>
+      {% if node.unit in ['m','mm'] %}<option value="geometry.length">Длина ленты</option><option value="geometry.width">Ширина ленты</option><option value="geometry.height">Высота ленты</option>{% endif %}
+      {% if node.unit == 'm2' %}<option value="geometry.area">Площадь поверхности</option>{% endif %}
+      {% if node.unit == 'm3' %}<option value="geometry.volume">Объём конструкции</option>{% endif %}
+      {% if node.input_key not in ['geometry.length','geometry.width','geometry.height','geometry.area','geometry.volume'] %}<option value="{{ node.input_key }}">Параметр блока</option>{% endif %}</select></label>
+    {% endfor %}
+    {{ resources() }}
+  </div><button class="m2-button" type="submit">Добавить копию</button>
+</form>
+{%- endmacro %}
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Расчётные блоки · {{ technology.name }}</title>
+{% include "_atom_ui_standards.html" %}{% include "_atom_quick_action_menu.html" %}{% include "_module2_workbench_styles.html" %}
+<style>.m2-compose-step{border-bottom:1px solid #263c58;padding:10px 0}.m2-compose-step summary{cursor:pointer;font-weight:600}.m2-compose-step .m2-form-grid{padding:12px 0 4px}[data-compose-step] [hidden]{display:none!important}</style>
+</head><body data-atom-page data-rbac-ready data-module2-workbench>
+{% include "_atom_platform_topbar.html" %}{% set m2_nav_active = 'workbench' %}<div class="m2-layout">
+{% include "_module2_sidebar.html" %}<main class="m2-shell">
+<header class="m2-page-head"><div><div class="m2-eyebrow">Технологии</div><h1>Расчётные блоки</h1>
+<div class="m2-status-line">{{ technology.name }} · Редакция № {{ technology.revision }} · {{ technology.status }}</div></div>
+<div class="m2-actions"><a class="m2-button ghost" href="/api/v1/admin/module2/workbench/{{ technology.id }}">К технологии</a>
+<a class="m2-button" href="/api/v1/admin/vertical-preview/{{ technology.id }}">Предварительный расчёт</a></div></header>
+{% if error %}<div class="m2-alert danger" role="alert">{{ error }}</div>{% endif %}
+{% if technology.status == 'DRAFT' %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>Добавить блок</h2></div><div class="m2-panel-body">
+<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/add" data-m2-form>
+<div class="m2-form-grid"><label><span>Вид расчёта</span><select name="preset"><option value="volume">Объём конструкции</option><option value="surface">Покрытие поверхности</option><option value="reinforcement">Продольная арматура</option></select></label>{{ resources() }}</div>
+<details><summary>Диапазоны для продольной арматуры</summary>{{ ranges('range') }}<label><span>Основание правила</span><input name="rule_source" maxlength="1000"></label></details>
+<button class="m2-button primary" type="submit">Добавить блок</button></form>
+</div></section>
+<section class="m2-panel"><div class="m2-panel-head"><h2>Составить свой расчёт</h2></div><div class="m2-panel-body">
+{{ composer_form('compose') }}</div></section>
+{% endif %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>Блоки технологии</h2></div><div class="m2-panel-body">
+{% for row, graph in blocks %}<details><summary>{{ row.position }}. {{ row.name }}</summary>
+<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/update" data-m2-form>
+<input type="hidden" name="block_id" value="{{ row.id }}"><input type="hidden" name="version" value="{{ row.version }}">
+<div class="m2-form-grid"><label><span>Название</span><input name="name" value="{{ graph.name }}" required></label>
+{{ resources(graph.material_id or '', graph.work_code or '', graph.material_requirement_id or '', graph.work_step_id or '') }}
+{% for parameter in graph.parameters %}<label><span>{{ parameter.label }} ({{ parameter.unit }})</span>
+<input name="default.{{ parameter.input_key }}" inputmode="decimal" value="{{ parameter.default if parameter.default is not none else '' }}"></label>
+<label><span>Основание значения</span><input name="source.{{ parameter.input_key }}" value="{{ parameter.source or '' }}"></label>
+<label><span>Допустимо от</span><input name="min.{{ parameter.input_key }}" inputmode="decimal" value="{{ parameter.minimum if parameter.minimum is not none else '' }}"></label>
+<label><span>До</span><input name="max.{{ parameter.input_key }}" inputmode="decimal" value="{{ parameter.maximum if parameter.maximum is not none else '' }}"></label>{% endfor %}</div>
+{% for node in graph.nodes if node.operation == 'PIECEWISE' %}<details><summary>Диапазоны количества</summary>{{ ranges('range.' ~ node.id, node.thresholds) }}</details>{% endfor %}
+{% if graph.rule_source or graph.nodes | selectattr('operation','equalto','PIECEWISE') | list %}<label><span>Основание правила</span><input name="rule_source" value="{{ graph.rule_source or '' }}" maxlength="1000"></label>{% endif %}
+{% if technology.status == 'DRAFT' %}<button class="m2-button" type="submit">Сохранить</button>{% endif %}</form>
+<p>Операции: {% for node in graph.nodes if node.operation != 'INPUT' %}{{ node.label or {'PRISM_VOLUME':'объём', 'MULTIPLY':'умножение', 'ADD':'сложение', 'SUBTRACT':'вычитание', 'DIVIDE':'деление', 'CEIL':'округление вверх', 'FLOOR':'округление вниз'}.get(node.operation, 'результат') }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+{% if technology.status == 'DRAFT' and composer_data.get(row.id|string) %}<details><summary>Изменить схему расчёта</summary>{{ composer_form('compose-update', graph, composer_data[row.id|string], row) }}</details>{% endif %}
+{% if technology.status == 'DRAFT' %}<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/delete" data-m2-form data-m2-confirm="Удалить блок из технологии?">
+<input type="hidden" name="block_id" value="{{ row.id }}"><input type="hidden" name="version" value="{{ row.version }}"><button class="m2-button danger" type="submit">Удалить из технологии</button></form>
+{% if may_approve %}<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/verify" data-m2-form data-m2-confirm="Подтвердить проверку правила и значений?">
+<input type="hidden" name="block_id" value="{{ row.id }}"><input type="hidden" name="version" value="{{ row.version }}"><label><span>Источник проверенного правила</span><input name="rule_source" value="{{ graph.rule_source or '' }}" required maxlength="1000"></label><button class="m2-button" type="submit">Подтвердить правило</button></form>{% endif %}
+{% if may_template %}<form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/save-template" data-m2-form>
+<input type="hidden" name="block_id" value="{{ row.id }}"><div class="m2-form-grid"><label><span>Название шаблона</span><input name="template_name" value="{{ row.name }}" required></label>
+<label><span>Версия шаблона</span><select name="template_key"><option value="">Новый шаблон</option>{% for item, _ in library %}<option value="{{ item.template_key }}">{{ item.name }} · № {{ item.version }}</option>{% endfor %}</select></label></div>
+<button class="m2-button" type="submit">Сохранить как шаблон</button></form>{% endif %}{% endif %}
+</details>{% else %}<p>Расчётных блоков пока нет.</p>{% endfor %}
+</div></section>
+{% if technology.status == 'DRAFT' %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>Добавить из библиотеки</h2></div><div class="m2-panel-body">
+{% for row, graph in library %}<details><summary>{{ row.name }} · версия {{ row.version }}</summary>
+{% if template_usage.get(row.template_key) %}<p>Используется в редакциях:</p><ul>{% for revision in template_usage[row.template_key] %}<li><a href="{% if revision.status == 'DRAFT' %}/api/v1/admin/module2/calculation-builder/{{ revision.id }}{% else %}/api/v1/admin/module2/workbench/{{ revision.id }}{% endif %}">{{ revision.name }} · № {{ revision.revision }}</a>{% if revision.status == 'DRAFT' %} · можно добавить новую версию{% endif %}</li>{% endfor %}</ul>{% endif %}
+{{ source_form(row, graph, 'copy-template') }}</details>{% else %}<p>Шаблонов пока нет.</p>{% endfor %}</div></section>
+<section class="m2-panel"><div class="m2-panel-head"><h2>Копировать из технологии</h2></div><div class="m2-panel-body">
+{% for row, source, graph in sources %}<details><summary>{{ source.name }} · {{ row.name }}</summary>{{ source_form(row, graph, 'copy-technology') }}</details>{% else %}<p>Других блоков пока нет.</p>{% endfor %}</div></section>
+{% endif %}</main></div>{% include "_module2_workbench_scripts.html" %}
+<script>
+(() => {
+  document.querySelectorAll('[data-compose-form]').forEach(form => {
+  const steps = [...form.querySelectorAll('[data-compose-step]')];
+  const arity = {INPUT:0, CONSTANT:0, ADD:2, SUBTRACT:2, MULTIPLY:2, DIVIDE:2, CEIL:1, FLOOR:1, LESS_THAN:2, IF:3, PRISM_VOLUME:3};
+  function refresh() {
+    const names = steps.map(step => step.querySelector('input[name$=".label"]').value.trim());
+    let preceding = true;
+    steps.forEach((step, offset) => {
+      const operation = step.querySelector('select[name$=".operation"]').value;
+      step.hidden = !preceding;
+      step.querySelector('summary').textContent = `Шаг ${offset + 1}${names[offset] ? ' · ' + names[offset] : ''}`;
+      step.querySelector('[data-compose-source]').hidden = operation !== 'INPUT';
+      step.querySelector('[data-compose-constant]').hidden = operation !== 'CONSTANT';
+      step.querySelectorAll('[data-compose-arg]').forEach(label => { label.hidden = Number(label.dataset.composeArg) > (arity[operation] || 0); });
+      if (!operation) preceding = false;
+    });
+    form.querySelectorAll('select[name^="step."][name*=".ref."], select[name="material_step"], select[name="work_step"]').forEach(select => {
+      [...select.options].filter(option => option.value).forEach(option => {
+        const index = Number(option.value) - 1;
+        option.textContent = `Шаг ${index + 1}${names[index] ? ' · ' + names[index] : ''}`;
+        option.disabled = !steps[index].querySelector('select[name$=".operation"]').value;
+      });
+    });
+  }
+  form.addEventListener('input', refresh);
+  form.addEventListener('change', refresh);
+  refresh();
+  });
+})();
+</script></body></html>

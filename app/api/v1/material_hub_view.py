@@ -12,7 +12,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, DBSession, require_admin
-from app.core.permission_guard import require_permission
+from app.core.permission_guard import can, require_permission
 from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.enums import (
@@ -65,6 +65,7 @@ from app.services.module1_provider_work_cost_offers import (
     provider_work_cost_offer_to_dict,
 )
 from app.services.source_document_refs import is_document_url
+from app.services.module1_work_catalog_store import load_work_catalog
 from app.services.supplier_price_standard import (
     TEMPLATE_BASENAME,
     build_supplier_price_template_csv,
@@ -494,6 +495,7 @@ async def material_hub_materials_preview(
         "detail_page": detail_page or bool(material), "preview_price": preview_price,
         "material_attribute_rows": _material_ui_attribute_rows,
         "characteristic_label": _characteristic_label, "dt": _format_datetime,
+        "vertical_price_enabled": settings.VERTICAL_CALCULATION_PREVIEW_ENABLED and can(user, "MODULE_01_MATERIAL_HUB", "EDIT"),
     })
 
 
@@ -552,12 +554,13 @@ async def material_hub_material_detail(
 
 @router.get("/work-costs", response_class=HTMLResponse)
 async def material_hub_work_costs(request: Request, db: DBSession):
+    catalog = await load_work_catalog(db) if settings.VERTICAL_CALCULATION_PREVIEW_ENABLED else None
     return templates.TemplateResponse(
         request,
         "material_hub_work_costs.html",
         {
-            "offer_rows": jsonable_encoder(await _load_provider_work_cost_offer_rows(db)),
-            "work_catalog_options": jsonable_encoder(list_work_catalog_options()),
+            "offer_rows": jsonable_encoder(await _load_provider_work_cost_offer_rows(db, catalog=catalog)),
+            "work_catalog_options": jsonable_encoder(list_work_catalog_options(catalog)),
         },
     )
 @router.get("/sources", response_class=HTMLResponse)
@@ -1633,7 +1636,7 @@ async def _load_catalog_products(db: DBSession) -> list[CatalogProduct]:
     return list(result.scalars().all())
 
 
-async def _load_provider_work_cost_offer_rows(db: DBSession) -> list[dict[str, Any]]:
+async def _load_provider_work_cost_offer_rows(db: DBSession, *, catalog=None) -> list[dict[str, Any]]:
     result = await db.execute(
         select(ProviderWorkCostOffer)
         .options(selectinload(ProviderWorkCostOffer.owner))
@@ -1642,10 +1645,12 @@ async def _load_provider_work_cost_offer_rows(db: DBSession) -> list[dict[str, A
     )
     offers = tuple(result.scalars().all())
     market_sanity = await build_provider_work_cost_market_sanity_map(db, offers)
+    work_by_code = {item.work_code: item for item in catalog} if catalog is not None else None
     return [
         provider_work_cost_offer_to_dict(
             offer,
             market_sanity=market_sanity.get(str(offer.id)),
+            work_by_code=work_by_code,
         )
         for offer in offers
     ]

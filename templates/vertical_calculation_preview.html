@@ -1,0 +1,36 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Предварительный расчёт · {{ technology.name }}</title>
+{% include "_atom_ui_standards.html" %}{% include "_atom_quick_action_menu.html" %}{% include "_module2_workbench_styles.html" %}
+<style>.vertical-table{width:100%;border-collapse:collapse}.vertical-table th,.vertical-table td{text-align:left;padding:10px;border-bottom:1px solid #2b4260;vertical-align:top}.vertical-table th{font-size:12px}.vertical-missing{color:#ff7f8b}.vertical-wrap{overflow-x:auto}.vertical-total{font-weight:700;font-size:18px}@media(max-width:640px){.vertical-table thead{display:none}.vertical-table,.vertical-table tbody,.vertical-table tr{display:block}.vertical-table tr{padding:8px 0;border-bottom:1px solid #2b4260}.vertical-table td{display:grid;grid-template-columns:minmax(110px,40%) minmax(0,1fr);gap:10px;border:0;padding:5px 0;overflow-wrap:anywhere}.vertical-table td:before{content:attr(data-label);color:#a9bad0;font-size:12px}}</style>
+</head><body data-atom-page data-rbac-ready data-module2-workbench>{% include "_atom_platform_topbar.html" %}
+{% set m2_nav_active = 'workbench' %}<div class="m2-layout">{% include "_module2_sidebar.html" %}<main class="m2-shell">
+<header class="m2-page-head"><div><div class="m2-eyebrow">Предварительная оценка</div><h1>{{ technology.name }}</h1>
+<div class="m2-status-line">Редакция № {{ technology.revision }}</div></div><a class="m2-button ghost" href="/api/v1/admin/module2/calculation-builder/{{ technology.id }}">К блокам</a></header>
+{% if error %}<div class="m2-alert danger" role="alert">{{ error }}</div>{% endif %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>Размеры и условия</h2></div><div class="m2-panel-body">
+<form method="post" action="/api/v1/admin/vertical-preview/{{ technology.id }}" data-m2-form>
+{% if object %}<input type="hidden" name="object_id" value="{{ object.id }}"><input type="hidden" name="version" value="{{ geometry.version }}">{% endif %}
+<div class="m2-form-grid"><label><span>Объект</span><input name="name" required value="{{ object.name if object else '' }}" {% if object %}readonly{% endif %}></label>
+<label><span>Длина ленты, м</span><input name="length_m" inputmode="decimal" required value="{{ geometry.length_m if geometry else '' }}"></label>
+<label><span>Ширина ленты, м</span><input name="width_m" inputmode="decimal" required value="{{ geometry.width_m if geometry else '' }}"></label>
+<label><span>Высота ленты, м</span><input name="height_m" inputmode="decimal" required value="{{ geometry.height_m if geometry else '' }}"></label>
+<label><span>Регион</span><input name="region" required value="{{ snapshot.payload.region if snapshot else '' }}"></label>
+<label><span>Условия цены</span><input name="terms" required value="{{ snapshot.payload.terms if snapshot else '' }}"></label>
+{% for row, block in blocks %}{% for parameter in block.parameters if parameter.input_key not in protected_geometry_inputs %}<label><span>{{ row.name }} · {{ parameter.label }} ({{ parameter.unit }})</span><input name="parameter.{{ row.id }}.{{ parameter.input_key }}" inputmode="decimal" value="{{ provided_parameters.get((row.id|string, parameter.input_key), '') }}"></label>{% endfor %}{% endfor %}
+{% for row, block in blocks %}{% for kind, output, label in [('MATERIAL',block.material_output_id,'Материалы'),('WORK',block.work_output_id,'Работы')] if output %}
+<label><span>{{ row.name }} · {{ label }}: область учёта</span><input name="scope.{{ row.id }}.{{ kind }}" required value="{% if snapshot %}{% for line in snapshot.payload.result.materials + snapshot.payload.result.works if line.binding.block_id == row.id|string and line.binding.kind == kind %}{{ line.binding.accounting_key }}{% endfor %}{% endif %}"></label>
+{% endfor %}{% endfor %}</div>
+<button class="m2-button primary" type="submit" {% if not blocks %}disabled{% endif %}>{{ 'Пересчитать' if snapshot else 'Рассчитать' }}</button></form>
+</div></section>
+{% if snapshot %}{% if not snapshot.payload.result.complete %}<p class="vertical-missing" role="status">Смета неполная: проверьте отсутствующие данные и цены.</p>{% endif %}
+{% for kind, title, lines in [('MATERIAL','Материалы',snapshot.payload.result.materials),('WORK','Работы',snapshot.payload.result.works)] %}
+<section class="m2-panel"><div class="m2-panel-head"><h2>{{ title }}</h2></div><div class="m2-panel-body vertical-wrap">
+<table class="vertical-table"><thead><tr><th>Наименование</th><th>Количество</th><th>Цена за единицу</th><th>Стоимость</th><th>Расчёт</th></tr></thead><tbody>
+{% for line in lines %}<tr><td data-label="Наименование">{% set resource = line.binding.resource_id or '' %}{% if resource %}<a href="{% if kind == 'MATERIAL' %}/api/v1/admin/material-hub/view/materials/{{ resource }}{% else %}/api/v1/admin/vertical-m1/works/{{ resource }}{% endif %}">{{ names.get(kind ~ ':' ~ resource, 'Карточка') }}</a>{% else %}{{ names.get(kind ~ ':', 'Не выбрано') }}{% endif %}</td>
+<td data-label="Количество">{{ number(line.quantity) if line.quantity is not none else 'Не рассчитано' }} {{ line.unit }}</td>
+<td data-label="Цена за единицу">{% if line.unit_price is none %}<span class="vertical-missing">Нет цены</span>{% else %}<span>{{ number(line.unit_price) }} ₽ <small>{{ 'средняя' if line.price_source == 'AVERAGE' else 'ручная' }}</small></span>{% endif %}</td>
+<td data-label="Стоимость">{{ number(line.line_amount) ~ ' ₽' if line.line_amount is not none else '—' }}{% if 'POTENTIAL_DOUBLE_COUNT' in line.issues %}<br><small class="vertical-missing">Не включено в итог: возможен повторный учёт</small>{% endif %}{% if 'TECHNOLOGY_ROLE_INVALID' in line.issues %}<br><small class="vertical-missing">Не включено в итог: связь с ролью технологии изменилась</small>{% endif %}</td>
+<td data-label="Расчёт"><details><summary>Показать</summary>{% if line.warnings %}<p>Предварительные допущения требуют проверки.</p>{% endif %}{% for node_id, value in line.trace %}{% for graph in snapshot.payload.graph %}{% for node in graph.nodes if node.id == node_id %}<div>{{ {'INPUT':'Входное значение', 'PRISM_VOLUME':'Объём', 'MULTIPLY':'Произведение', 'ADD':'Сумма', 'SUBTRACT':'Разность', 'DIVIDE':'Деление'}.get(node.operation, 'Результат') }}: {{ number(value.value) if value.value is not none else 'Нет данных' }} {{ value.unit }}</div>{% endfor %}{% endfor %}{% endfor %}</details></td></tr>{% else %}<tr><td colspan="5">Нет строк.</td></tr>{% endfor %}</tbody></table></div></section>{% endfor %}
+<p>Материалы: {{ snapshot.payload.result.material_subtotal }} ₽ · Работы: {{ snapshot.payload.result.work_subtotal }} ₽</p>
+<p class="vertical-total">Итого: {{ snapshot.payload.result.known_total }} ₽{% if not snapshot.payload.result.complete %} <small>(неполный расчёт)</small>{% endif %}</p>{% endif %}
+</main></div>{% include "_module2_workbench_scripts.html" %}</body></html>

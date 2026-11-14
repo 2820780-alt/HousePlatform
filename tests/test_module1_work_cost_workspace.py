@@ -162,8 +162,11 @@ def test_work_catalog_options_come_from_registry_without_hardcoded_209():
 
 
 @pytest.mark.asyncio
-async def test_work_catalog_api_returns_existing_contract():
-    result = await work_cost_api.list_work_cost_catalog(SimpleNamespace(id=uuid4(), roleCode="PLATFORM_ADMIN"))
+async def test_work_catalog_api_returns_existing_contract(monkeypatch):
+    async def unmigrated_catalog(_db):
+        return list_work_items()
+    monkeypatch.setattr(work_cost_api, "load_work_catalog", unmigrated_catalog)
+    result = await work_cost_api.list_work_cost_catalog(None, SimpleNamespace(id=uuid4(), roleCode="PLATFORM_ADMIN"))
 
     assert len(result["items"]) == len(list_work_items())
     assert {"workCode", "workTitle", "workGroupTitle", "allowedUnits"}.issubset(result["items"][0])

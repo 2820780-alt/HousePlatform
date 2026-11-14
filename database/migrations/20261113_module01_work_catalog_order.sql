@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE module1_work_items ADD COLUMN IF NOT EXISTS catalog_order integer NOT NULL DEFAULT 0;
+COMMIT;

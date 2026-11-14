@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # App
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
+    VERTICAL_CALCULATION_PREVIEW_ENABLED: bool = True
 
     # Admin seed
     ADMIN_EMAIL: str = "admin@buildplatform.ru"

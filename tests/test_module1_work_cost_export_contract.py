@@ -170,6 +170,10 @@ async def test_export_builder_delegates_to_permissioned_list_service(monkeypatch
         return SimpleNamespace(items=[offer], total=1, offset=3, limit=7)
 
     monkeypatch.setattr(export_service, "list_provider_work_cost_offers", fake_list_provider_work_cost_offers)
+    from app.services import module1_work_catalog_store
+    async def unmigrated_catalog(_db):
+        return list_work_items()
+    monkeypatch.setattr(module1_work_catalog_store, "load_work_catalog", unmigrated_catalog)
 
     user = SimpleNamespace(id=uuid4(), roleCode="PLATFORM_ADMIN")
     package = await build_work_cost_offer_export_package(

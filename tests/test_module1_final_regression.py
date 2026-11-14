@@ -247,6 +247,7 @@ READ_ONLY_SERVICES = frozenset(
     {
         "module1_material_ui_catalog.py",
         "module1_material_ui_prices.py",
+        "module1_calculation_price.py",
         "module1_alternatives_analogs.py",
         "module1_characteristic_schema_registry.py",
         "module1_compatibility_matrix.py",
@@ -300,6 +301,27 @@ INGESTION_CANONICAL_PIPELINE_SERVICES = frozenset(
 )
 
 PERSISTENCE_SERVICE_BOUNDARIES = {
+    "module1_work_catalog_store.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"item", "revision"}),
+        "allowed_mutation_roots": frozenset({"current", "item"}),
+        "allowed_models": frozenset({"WorkCatalogItem", "WorkCatalogItemRevision"}),
+        "reason": "Persist versioned M1 work cards while preserving existing codes and references.",
+    },
+    "module1_manual_calculation_price.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"revision"}),
+        "allowed_mutation_roots": frozenset(),
+        "allowed_models": frozenset({"ManualCalculationPriceRevision"}),
+        "reason": "Append the auditable M1 material or work manual-price revision.",
+    },
+    "module1_offer_qualification.py": {
+        "allowed_session_methods": frozenset({"add", "flush"}),
+        "allowed_add_targets": frozenset({"review"}),
+        "allowed_mutation_roots": frozenset(),
+        "allowed_models": frozenset({"CalculationOfferQualification"}),
+        "reason": "Append the administrator review of an existing price offer.",
+    },
     "module1_foundation_material_release.py": {
         "allowed_session_methods": frozenset({"add", "flush"}),
         "allowed_add_targets": frozenset({"material", "subcategory"}),

@@ -7,7 +7,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select, text
+from sqlalchemy import func, inspect, select, text
 from sqlalchemy.orm import selectinload
 
 from app.models.catalog_product import CatalogProduct
@@ -17,6 +17,8 @@ from app.models.material_analog import MaterialAnalog
 from app.models.material_attribute import MaterialAttribute
 from app.models.material_category import MaterialCategory
 from app.models.material_specification import MaterialSpecification
+from app.models.module1_work_item import ManualCalculationPriceRevision
+from app.models.module2_calculation_block import CalculationBlockTemplate, TechnologyCalculationBlock
 from app.models.price_history import PriceHistory
 from app.models.supplier_price import SupplierPrice
 from app.models.unit import Unit
@@ -29,6 +31,19 @@ from app.services.module1_raw_ingestion_pipeline import Module1RawIngestionItem
 
 IDENTITY_FIELDS = frozenset({"concrete_class", "steel_class", "diameter_mm", "length_mm", "width_mm",
                              "height_mm", "thickness_mm", "density_class", "strength_class", "declared_mark"})
+
+
+async def _has_vertical_unit_references(db, material_id: UUID) -> bool:
+    # During staged rollout these tables may not exist yet. Never skip a table that does exist.
+    connection = await db.connection()
+    models = (ManualCalculationPriceRevision, TechnologyCalculationBlock, CalculationBlockTemplate)
+    existing = await connection.run_sync(lambda sync: {model.__tablename__ for model in models
+                                                        if inspect(sync).has_table(model.__tablename__)})
+    for model in models:
+        if model.__tablename__ in existing and await db.scalar(
+                select(model.id).where(model.material_id == material_id).limit(1)):
+            return True
+    return False
 
 
 class MaterialUIAttribute(BaseModel):
@@ -144,6 +159,8 @@ async def save_material_ui(db, payload: MaterialUIWrite, *, actor_id: UUID, mate
         for model in (SupplierPrice, CatalogProduct, PriceHistory, UnitConversionRule):
             if await db.scalar(select(model.id).where(model.material_id == current.id).limit(1)):
                 raise HTTPException(409, "Нельзя изменить базовую единицу: есть цены, история или правила пересчёта.")
+        if await _has_vertical_unit_references(db, current.id):
+            raise HTTPException(409, "Нельзя изменить базовую единицу: есть расчётные цены или связи технологии.")
 
     subcategory_name = " ".join(payload.subcategory.split())
     selected_subcategory = None

@@ -64,6 +64,11 @@ from app.models.module2_technology import (
     TechnologyWorkStep,
 )
 from app.models.module2_content_catalog import TechnologyCategory
+from app.models.module2_calculation_block import CalculationBlockTemplate, TechnologyCalculationBlock
+from app.models.module1_work_item import ManualCalculationPriceRevision, WorkCatalogItem, WorkCatalogItemRevision
+from app.models.module1_offer_qualification import CalculationOfferQualification
+from app.models.module7_geometry import DigitalHouseObject, StripGeometryRevision
+from app.models.module5_estimate_snapshot import EstimatePreviewSnapshot
 from app.models.module2_material_gap import Module2MaterialGap
 from app.models.module2_knowledge import CompatibilityRule, ConsumptionNorm, KnowledgeRule
 from app.models.material_analog import MaterialAnalog

@@ -39,7 +39,7 @@ from app.schemas.module2_technology import (
     TechnologyNodeInput,
     TechnologyWorkStepInput,
 )
-from app.services.module1_work_catalog import get_work_item, list_work_items
+from app.services.module1_work_catalog import get_work_item
 from app.services.module2_default_assumptions import active_defaults, requires_explicit_foundation_input
 from app.services.module2_knowledge_foundation import (
     attach_evidence_reference,
@@ -266,10 +266,12 @@ def upsert_draft_work_step(
     *,
     actor_role_code: str,
     item_id: uuid.UUID | None = None,
+    available_work_codes: set[str] | None = None,
 ) -> TechnologyWorkStep:
     _require_editable(technology, actor_role_code)
     command = _command(data, TechnologyWorkStepInput)
-    if get_work_item(command.work_code) is None:
+    if (command.work_code not in available_work_codes if available_work_codes is not None
+            else get_work_item(command.work_code) is None):
         raise Module2WorkbenchError("Выбранная работа отсутствует в каталоге работ M1.")
     item = _find(technology.work_steps, item_id) if item_id else None
     _ensure_unique(technology.work_steps, "position", command.position, item)
@@ -535,7 +537,8 @@ async def build_technology_detail_view(db: AsyncSession, technology: Technology)
         for item in technology.requirements
     ]
     requirement_codes = {item.id: role_names.get(item.code, REQUIREMENT_NAMES.get(item.code, "Требование к материалу")) for item in technology.requirements}
-    work_items = tuple(list_work_items())
+    from app.services.module1_work_catalog_store import load_work_catalog
+    work_items = await load_work_catalog(db)
     work_by_code = {item.work_code: item for item in work_items}
     layers = [
         {

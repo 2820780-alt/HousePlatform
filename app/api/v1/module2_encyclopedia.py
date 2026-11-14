@@ -11,7 +11,6 @@ from app.api.deps import CurrentUser, DBSession
 from app.core.access_scopes import AccessScope
 from app.core.permission_guard import require_permission
 from app.models.module2_technology import MODULE2_OWNER_CODE, TechnologyWorkStep
-from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
 from app.services.module2_encyclopedia import (
     public_catalog,
@@ -160,7 +159,8 @@ async def encyclopedia_work(
     work_code: str, request: Request, db: DBSession, user: CurrentUser
 ):
     _view(user)
-    work = get_work_item(work_code)
+    from app.services.module1_work_catalog_store import load_work_catalog
+    work = next((item for item in await load_work_catalog(db) if item.work_code == work_code), None)
     if work is None:
         raise HTTPException(status_code=404)
     catalog = await public_catalog(db)

@@ -34,7 +34,6 @@ from app.schemas.module2_knowledge import (
 )
 from app.schemas.module2_technology import TechnologyLifecycle
 from app.services.module1_unit_conversion_registry import UnitConversionRegistry
-from app.services.module1_work_catalog import get_work_item
 from app.services.module2_foundation_quantity_rules import describe_quantity_rule
 from app.services.module2_knowledge_foundation import (
     detect_compatibility_conflicts,
@@ -235,10 +234,13 @@ async def build_module5_estimation_input_package(
             )
         )
 
+    from app.services.module1_work_catalog_store import load_work_catalog
+    work_by_code = ({item.work_code: item for item in await load_work_catalog(db)}
+                    if technology.work_steps else {})
     work_steps = []
     for step in sorted(technology.work_steps, key=lambda item: (item.position, str(item.id))):
         local_blockers = []
-        work_item = get_work_item(step.work_code)
+        work_item = work_by_code.get(step.work_code)
         if work_item is None:
             local_blockers.append("unknown_m1_work_code")
         local_blockers = _record_local_blockers(

@@ -23,6 +23,7 @@ from app.services.module2_foundation_preliminary_profiles import (
     PROFILES, populate_blocked_foundation_draft, prepare_single_role_linkage_draft,
 )
 from app.services.module2_technology_foundation import read_technology, require_module2_access
+from app.services.module2_calculation_blocks import copy_revision_blocks
 
 
 async def prepare_partial_foundation_drafts(
@@ -69,6 +70,9 @@ async def prepare_partial_foundation_drafts(
         if report["conflicts"]:
             raise ValueError(f"foundation draft has conflicting records: {technology.technology_code}")
         db.add(draft)
+        await db.flush()
+        await copy_revision_blocks(db, source_technology_id=technology.id, technology_id=draft.id,
+                                   actor=actor_role_code, actor_id=None)
         reports.append({"technology": item.technology_code, "legacy_linked": list(linked),
                         "legacy_unresolved": list(unresolved), "added_roles": list(report["added_roles"]),
                         "unresolved": list(report["unresolved"])})
@@ -142,6 +146,9 @@ async def prepare_foundation_integration(
         if report["conflicts"]:
             raise ValueError(f"foundation draft has conflicting records: {technology.technology_code}")
         db.add(draft)
+        await db.flush()
+        await copy_revision_blocks(db, source_technology_id=technology.id, technology_id=draft.id,
+                                   actor=actor_role_code, actor_id=None)
         totals["drafts"] += 1
         totals["direct_links"] += len(linked)
         totals["legacy_unresolved"] += len(unresolved)

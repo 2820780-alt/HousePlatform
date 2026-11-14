@@ -132,6 +132,8 @@ async def build_work_cost_offer_export_package(
         "pricing_unit": pricing_unit,
         "updated_since": updated_since,
     }
+    from app.services.module1_work_catalog_store import load_work_catalog
+    work_by_code = {item.work_code: item for item in await load_work_catalog(db)}
     return build_work_cost_offer_export_package_from_offers(
         result.items,
         generated_at=generated_at,
@@ -140,6 +142,7 @@ async def build_work_cost_offer_export_package(
         offset=result.offset,
         limit=result.limit,
         total_scanned=result.total,
+        work_by_code=work_by_code,
     )
 
 
@@ -152,12 +155,13 @@ def build_work_cost_offer_export_package_from_offers(
     offset: int = 0,
     limit: int = 100,
     total_scanned: int | None = None,
+    work_by_code: Mapping[str, Any] | None = None,
 ) -> WorkCostOfferExportPackageV1:
     offer_list = tuple(offers)
-    eligibility = tuple(work_cost_offer_eligibility(offer) for offer in offer_list)
+    eligibility = tuple(work_cost_offer_eligibility(offer, work_by_code=work_by_code) for offer in offer_list)
     eligible_offers = tuple(offer for offer, report in zip(offer_list, eligibility) if report.is_eligible)
     duplicate_warnings = _duplicate_warning_map(eligible_offers)
-    records = tuple(_record_from_offer(offer, duplicate_warnings.get(str(offer.id), tuple())) for offer in eligible_offers)
+    records = tuple(_record_from_offer(offer, duplicate_warnings.get(str(offer.id), tuple()), work_by_code=work_by_code) for offer in eligible_offers)
     records = tuple(sorted(records, key=_record_sort_key))
     exclusion_counts: dict[str, int] = {}
     for report in eligibility:
@@ -185,7 +189,7 @@ def build_work_cost_offer_export_package_from_offers(
     )
 
 
-def work_cost_offer_eligibility(offer: ProviderWorkCostOffer) -> WorkCostOfferEligibilityReport:
+def work_cost_offer_eligibility(offer: ProviderWorkCostOffer, *, work_by_code: Mapping[str, Any] | None = None) -> WorkCostOfferEligibilityReport:
     reason_codes: list[str] = []
     status = (getattr(offer, "status", None) or "").lower()
     if status == "draft":
@@ -197,7 +201,8 @@ def work_cost_offer_eligibility(offer: ProviderWorkCostOffer) -> WorkCostOfferEl
     valid_until = getattr(offer, "valid_until", None)
     if valid_until is not None and valid_until < date.today():
         reason_codes.append("expired")
-    work_item = get_work_item(getattr(offer, "work_code", ""))
+    code = getattr(offer, "work_code", "")
+    work_item = work_by_code.get(code) if work_by_code is not None else get_work_item(code)
     if work_item is None:
         reason_codes.append("missing_work")
     pricing_mode = (getattr(offer, "pricing_mode", None) or "").lower()
@@ -236,8 +241,8 @@ def work_cost_export_package_to_dict(package: WorkCostOfferExportPackageV1) -> d
     return _jsonable(package)
 
 
-def _record_from_offer(offer: ProviderWorkCostOffer, quality_warnings: tuple[str, ...]) -> WorkCostOfferExportRecordV1:
-    work_item = get_work_item(offer.work_code)
+def _record_from_offer(offer: ProviderWorkCostOffer, quality_warnings: tuple[str, ...], *, work_by_code: Mapping[str, Any] | None = None) -> WorkCostOfferExportRecordV1:
+    work_item = work_by_code.get(offer.work_code) if work_by_code is not None else get_work_item(offer.work_code)
     return WorkCostOfferExportRecordV1(
         offer_id=str(offer.id),
         work_code=offer.work_code,

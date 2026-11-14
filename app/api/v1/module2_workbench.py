@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import CurrentUser, DBSession
+from app.config import settings
 from app.core.permission_guard import can, require_permission
 from app.models.enums import MaterialStatus, UserRole
 from app.models.material import Material
@@ -81,6 +82,8 @@ from app.services.module2_workbench import (
     upsert_knowledge_rule,
     workbench_permissions,
 )
+from app.services.module2_calculation_blocks import copy_revision_blocks, require_verified_calculation_blocks
+from app.services.module1_work_catalog_store import load_work_catalog
 
 
 router = APIRouter(prefix="/admin/module2/workbench", tags=["module2-workbench"])
@@ -393,6 +396,10 @@ async def technology_workbench_detail(
     context["category_name"] = next(
         (item.name for item in categories if item.id == technology.category_id), "Без категории"
     )
+    if settings.VERTICAL_CALCULATION_PREVIEW_ENABLED and can(user, "MODULE_01_MATERIAL_HUB", "VIEW"):
+        context["linkable_materials"] = (await db.scalars(select(Material).where(
+            Material.status.notin_([MaterialStatus.ARCHIVED, MaterialStatus.REJECTED])
+        ).order_by(Material.canonical_name, Material.id))).all()
     context.update(
         {
             "permissions": workbench_permissions(user),
@@ -401,6 +408,7 @@ async def technology_workbench_detail(
             "error": request.query_params.get("error"),
             "active_tab": TAB_BY_SECTION.get(request.query_params.get("tab", "general"), "general"),
             "atom_topbar_current_block": "Модуль №2: рабочая область технологий",
+            "vertical_calculation_preview_enabled": settings.VERTICAL_CALCULATION_PREVIEW_ENABLED,
         }
     )
     return templates.TemplateResponse(request, "module2_technology_detail.html", context)
@@ -514,6 +522,8 @@ async def _perform_action(
             created_by_user_id=user_id,
         )
         await persist_technology_draft(db, revision)
+        await copy_revision_blocks(db, source_technology_id=technology.id, technology_id=revision.id,
+                                   actor=role_code, actor_id=user_id)
         return "Новая черновая редакция создана.", revision.id
     if action == "transition":
         target = TechnologyLifecycle(_required(form, "target"))
@@ -524,6 +534,7 @@ async def _perform_action(
             )
             if blockers:
                 raise ValueError("У инженерных записей отсутствуют связанные источники или необходимые данные.")
+            await require_verified_calculation_blocks(db, technology.id)
         transition_technology(technology, target, actor_role_code=role_code)
         if target == TechnologyLifecycle.ACTIVE:
             await db.flush()
@@ -536,6 +547,11 @@ async def _perform_action(
         return f"Статус изменен: {target.value}."
     if action == "save-requirement":
         command = _requirement_input(form)
+        if settings.VERTICAL_CALCULATION_PREVIEW_ENABLED and command.canonical_material_id:
+            require_permission(role_code, "MODULE_01_MATERIAL_HUB", "VIEW")
+            material = await db.get(Material, command.canonical_material_id)
+            if material is None or material.status in {MaterialStatus.ARCHIVED, MaterialStatus.REJECTED}:
+                raise ValueError("Материал не найден или находится в архиве.")
         if item_id:
             existing = next((item for item in technology.requirements if item.id == item_id), None)
             if existing is not None:
@@ -591,6 +607,7 @@ async def _perform_action(
             ),
             actor_role_code=role_code,
             item_id=item_id,
+            available_work_codes={item.work_code for item in await load_work_catalog(db)},
         )
         return "Работа сохранена."
     if action == "save-norm":

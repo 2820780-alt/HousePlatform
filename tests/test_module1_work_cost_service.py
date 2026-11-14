@@ -48,6 +48,12 @@ class FakeResult:
 
 
 class FakeDB:
+    async def connection(self):
+        class UnmigratedConnection:
+            async def run_sync(self, _operation):
+                return False
+        return UnmigratedConnection()
+
     def __init__(self, offer=None, items=None):
         self.added = []
         self.offer = offer

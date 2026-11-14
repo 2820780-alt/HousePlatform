@@ -21,6 +21,19 @@ class Base(DeclarativeBase):
     pass
 
 
+VERTICAL_PREVIEW_TABLES = frozenset({
+    "module1_work_items", "module1_work_item_revisions", "module1_manual_price_revisions",
+    "module1_calculation_offer_qualifications", "module2_calculation_block_templates",
+    "module2_calculation_blocks", "module7_digital_house_objects", "module7_strip_geometry_revisions",
+    "module5_estimate_preview_snapshots",
+})
+
+
+def _required_schema_tables(*, vertical_preview_enabled: bool) -> set[str]:
+    tables = set(Base.metadata.tables)
+    return tables if vertical_preview_enabled else tables - VERTICAL_PREVIEW_TABLES
+
+
 async def init_db(*, create_schema: bool = False) -> None:
     import app.models  # noqa: F401
 
@@ -34,7 +47,8 @@ async def init_db(*, create_schema: bool = False) -> None:
         existing = await conn.run_sync(
             lambda sync_conn: set(inspect(sync_conn).get_table_names())
         )
-        missing = sorted(set(Base.metadata.tables) - existing)
+        missing = sorted(_required_schema_tables(
+            vertical_preview_enabled=settings.VERTICAL_CALCULATION_PREVIEW_ENABLED) - existing)
         if missing:
             raise RuntimeError(
                 "Database schema is missing tables; apply controlled migrations: "

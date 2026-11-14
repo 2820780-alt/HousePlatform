@@ -509,4 +509,5 @@ def test_contract_does_not_define_a_module2_work_catalog_clone() -> None:
 
     assert "class WorkGroup" not in schema_source + service_source
     assert "class WorkItem" not in schema_source + service_source
-    assert "get_work_item(step.work_code)" in service_source
+    assert "load_work_catalog(db)" in service_source
+    assert "work_by_code.get(step.work_code)" in service_source

@@ -41,6 +41,12 @@ class QueryResult:
 
 
 class QueryOnlyDB:
+    async def connection(self):
+        class UnmigratedConnection:
+            async def run_sync(self, _operation):
+                return False
+        return UnmigratedConnection()
+
     def __init__(self, items):
         self.items = tuple(items)
         self.execute_count = 0

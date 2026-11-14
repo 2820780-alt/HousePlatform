@@ -13,7 +13,6 @@ from app.models.material_category import MaterialCategory
 from app.models.material_document import MaterialDocument
 from app.models.module2_content_catalog import TechnologyCategory
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyNode
-from app.services.module1_work_catalog import get_work_item
 from app.services.module2_content_catalog import category_tree, list_categories
 from app.services.module2_default_assumptions import active_defaults, requires_explicit_foundation_input
 from app.services.module2_encyclopedia_editorial import (
@@ -204,9 +203,11 @@ async def technology_article(db: AsyncSession, technology: Technology) -> dict:
             "sources": tuple(evidence_by_target.get(("MATERIAL_REQUIREMENT", str(item.id)), ())),
         })
 
+    from app.services.module1_work_catalog_store import load_work_catalog
+    work_by_code = {item.work_code: item for item in await load_work_catalog(db)}
     steps = []
     for item in sorted(technology.work_steps, key=lambda step: step.position):
-        work = get_work_item(item.work_code)
+        work = work_by_code.get(item.work_code)
         guidance = WORK_STEP_GUIDANCE.get(item.work_code)
         steps.append({
             "model": item, "work": work,

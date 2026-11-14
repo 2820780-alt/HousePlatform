@@ -121,6 +121,7 @@
         </div>
       </div>
       <div class="m2-actions">
+        {% if vertical_calculation_preview_enabled %}<a class="m2-button ghost" href="/api/v1/admin/module2/calculation-builder/{{ technology.id }}">Расчётные блоки</a>{% endif %}
         {% if technology.status == 'ACTIVE' and category_code %}<a class="m2-button ghost" href="/api/v1/module2/encyclopedia/technologies/{{ technology.technology_code }}">Открыть как пользователь</a>{% endif %}
         <a
           class="m2-button ghost"
@@ -169,9 +170,20 @@
     {% if error %}<div class="m2-alert bad" role="alert">{{ error }}</div>{% endif %}
 
     <nav class="m2-tabs" aria-label="Разделы технологии">
+      {% if vertical_calculation_preview_enabled %}
+      <a href="?tab=materials" {% if active_tab in ['materials'] %}class="active" aria-current="page"{% endif %}>Материалы</a>
+      <a href="?tab=works" {% if active_tab in ['works'] %}class="active" aria-current="page"{% endif %}>Работы</a>
+      <a href="/api/v1/admin/module2/calculation-builder/{{ technology.id }}">Технология и параметры</a>
+      <details><summary>Дополнительно</summary>
+        {% for tab, label in [('general','Общее'),('construction','Конструкция'),('rules','Правила'),('sources','Источники'),('revisions','Редакции')] %}
+        <a href="?tab={{ tab }}" {% if active_tab == tab %}class="active" aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+      </details>
+      {% else %}
       {% for tab, label in [('general','Общее'),('construction','Конструкция'),('materials','Материалы и параметры'),('works','Работы'),('rules','Правила'),('sources','Источники'),('revisions','Редакции')] %}
       <a href="?tab={{ tab }}" {% if active_tab == tab %}class="active" aria-current="page"{% endif %}>{{ label }}</a>
       {% endfor %}
+      {% endif %}
     </nav>
 
     {% if active_tab == 'general' %}
@@ -331,7 +343,8 @@
           {{ hidden_context('materials') }}
           <div class="m2-form-grid">
             <label><span>Код требования</span><input name="code" required></label>
-            <label><span>Тип требования</span><select name="selector_kind"><option value="MATERIAL_CLASS">Класс материалов M1</option><option value="TECHNICAL_CONSTRAINTS">Технические ограничения</option><option value="ROLE">Функциональная роль</option></select></label>
+            <label><span>Тип требования</span><select name="selector_kind">{% if vertical_calculation_preview_enabled and linkable_materials is defined %}<option value="CANONICAL_MATERIAL">Материал M1</option>{% endif %}<option value="MATERIAL_CLASS">Класс материалов M1</option><option value="TECHNICAL_CONSTRAINTS">Технические ограничения</option><option value="ROLE">Функциональная роль</option></select></label>
+            {% if vertical_calculation_preview_enabled and linkable_materials is defined %}<label><span>Материал M1</span><select name="canonical_material_id"><option value="">Не выбран</option>{% for material in linkable_materials %}<option value="{{ material.id }}">{{ material.canonical_name }}</option>{% endfor %}</select></label>{% endif %}
             <label><span>Категория M1</span><select name="material_category_id"><option value="">Не выбрана</option>{% for option_id, label in category_options %}<option value="{{ option_id }}">{{ label }}</option>{% endfor %}</select></label>
             <label><span>Тип материала M1</span><select name="material_type_id"><option value="">Не выбран</option>{% for option_id, label in type_options %}<option value="{{ option_id }}">{{ label }}</option>{% endfor %}</select></label>
             <label><span>Код роли</span><input name="material_role_code"></label><label><span>Параметр</span><input name="constraint_field"></label><label><span>Значение</span><input name="constraint_value"></label>
