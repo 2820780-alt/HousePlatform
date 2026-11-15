@@ -20,6 +20,7 @@ from app.api.v1 import (
     module2_home,
     module2_workbench,
     module2_calculation_builder,
+    module7_foundation_geometry,
     vertical_calculation_preview,
     vertical_work_catalog,
     module1_work_cost_offers,
@@ -51,6 +52,7 @@ api_router.include_router(module2_encyclopedia.router)
 api_router.include_router(module2_home.router)
 api_router.include_router(module2_workbench.router)
 api_router.include_router(module2_calculation_builder.router)
+api_router.include_router(module7_foundation_geometry.router)
 api_router.include_router(vertical_calculation_preview.router)
 api_router.include_router(vertical_work_catalog.router)
 api_router.include_router(module1_work_cost_offers.router)

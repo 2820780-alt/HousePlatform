@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 
 from app.api.deps import DBSession
+from app.config import settings
 from app.models.catalog_product import CatalogProduct
 from app.models.dashboard_profile import DashboardProfile
 from app.models.dashboard_widget import DashboardWidget
@@ -491,7 +492,7 @@ async def admin_module_passport_view(module_number: int, request: Request, db: D
     return templates.TemplateResponse(
         request,
         "admin_module_passport.html",
-        {"card": card},
+        {"card": card, "foundation_preview_enabled": settings.VERTICAL_CALCULATION_PREVIEW_ENABLED},
     )
 
 

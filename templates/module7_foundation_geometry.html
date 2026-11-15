@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Геометрия фундамента · АТОМ</title>
+{% include "_atom_ui_standards.html" %}
+<style>
+  body { margin:0; background:#080f1d; color:#edf4fb; font:15px Arial,sans-serif; }
+  main { max-width:1200px; margin:auto; padding:24px; }
+  h1 { font-size:25px; margin:0 0 18px; } h2 { font-size:18px; margin:26px 0 14px; }
+  a { color:#36d1df; } .toolbar { display:flex; gap:12px; flex-wrap:wrap; align-items:end; }
+  label { display:grid; gap:7px; min-width:0; color:#d6e4f2; }
+  input,select,button { font:inherit; color:#edf4fb; background:#101d2d; border:1px solid #49637c; border-radius:5px; min-height:40px; padding:8px 10px; }
+  input,select { width:100%; box-sizing:border-box; } button { cursor:pointer; background:#087b88; border-color:#10b5c4; font-weight:700; }
+  button:disabled { opacity:.55; cursor:not-allowed; } .wide { flex:1 1 300px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:15px; }
+  .field-unit { color:#9eb3c7; font-size:12px; } .actions { display:flex; align-items:center; flex-wrap:wrap; gap:16px; margin-top:24px; }
+  .check { display:flex; align-items:center; gap:8px; } .check input { width:17px; min-height:17px; height:17px; margin:0; }
+  .message { margin:16px 0; padding:12px; border-left:3px solid #d9a630; background:#242016; }
+  .message:empty { display:none; } .back { display:inline-block; margin-bottom:20px; }
+  @media(max-width:600px) { main { padding:18px 14px; } .toolbar>label,.toolbar>button { width:100%; } }
+</style></head>
+<body data-atom-page data-rbac-ready>{% include "_atom_platform_topbar.html" %}
+<main><a class="back" href="/api/v1/admin/cabinet/view/modules/7">← К модулю №7</a>
+<h1>Геометрия фундамента</h1>
+<div class="toolbar"><label class="wide">Сохранённые объекты<select id="saved"><option value="">Новый объект</option></select></label><button id="open" type="button">Открыть</button></div>
+<form id="geometry"><div class="toolbar" style="margin-top:18px">
+<label class="wide">Название объекта<input id="name" maxlength="255" required></label>
+<label class="wide">Технология<select id="technology" required><option value="">Выберите технологию</option>{% for item in technologies %}<option value="{{ item.id }}">{{ item.name }}{% if item.status == 'DRAFT' %} · черновик{% endif %}</option>{% endfor %}</select></label>
+</div><h2>Размеры и состав</h2><div id="fields" class="grid"></div>
+<div id="message" class="message" role="status" aria-live="polite"></div>
+<div class="actions"><label class="check"><input type="checkbox" id="preliminary">Применять предварительные значения технологии</label>
+<button id="save" type="submit" {% if not can_create or not can_edit %}disabled{% endif %}>Сохранить</button></div></form>
+</main><script>
+(() => {
+  const base='/api/v1/admin/module7/foundations', $=id=>document.getElementById(id);
+  const unit={m:'м',m2:'м²',m3:'м³',piece:'шт.'};
+  let revision=null, specs=[], userValues={}, projectValues={};
+  const canCreate={{ can_create|tojson }}, canEdit={{ can_edit|tojson }};
+  const csrf=()=>decodeURIComponent((document.cookie.split('; ').find(v=>v.startsWith('atom_csrf_token='))||'').split('=').slice(1).join('='));
+  async function request(path, options={}) {
+    const response=await fetch(base+path, {...options, headers:{'Content-Type':'application/json','X-CSRF-Token':csrf(),...(options.headers||{})}});
+    if (!response.ok) { let data={}; try { data=await response.json(); } catch (_) {} throw new Error(typeof data.detail==='string' && /[А-Яа-яЁё]/.test(data.detail) ? data.detail : 'Не удалось выполнить действие. Проверьте данные и права доступа.'); }
+    return response.json();
+  }
+  async function loadFields(id) {
+    $('fields').replaceChildren(); specs=[];
+    if (!id) return;
+    specs=(await request('/technologies/'+encodeURIComponent(id)+'/fields')).fields;
+    for (const spec of specs) {
+      const label=document.createElement('label'), title=document.createElement('span'), input=document.createElement('input');
+      title.textContent=spec.label+(spec.required?' *':'')+' · '+(unit[spec.unit]||spec.unit);
+      input.type='text'; input.inputMode='decimal'; input.dataset.key=spec.key; input.autocomplete='off';
+      input.value=revision?.inputs?.values?.[spec.key]?.value??'';
+      input.addEventListener('input',()=>{ const value=input.value.trim().replace(',','.'); if(value) userValues[spec.key]=value; else delete userValues[spec.key]; });
+      label.append(title,input); $('fields').append(label);
+    }
+  }
+  async function list() {
+    const records=await request('/objects'); const selected=$('saved').value;
+    $('saved').replaceChildren(new Option('Новый объект',''));
+    for(const record of records) $('saved').add(new Option(record.name+' · '+record.technology,record.revision_id));
+    if(records.some(record=>record.revision_id===selected)) $('saved').value=selected;
+    return records;
+  }
+  async function openRevision(id) {
+    if(!id) { revision=null; userValues={}; projectValues={}; $('name').value=''; $('name').readOnly=false; $('technology').disabled=false; $('technology').value=''; $('preliminary').checked=false; $('message').textContent=''; $('save').disabled=!(canCreate&&canEdit); await loadFields(''); return; }
+    revision=await request('/revisions/'+encodeURIComponent(id)); userValues={...revision.inputs.user_values}; projectValues={...revision.inputs.project_values};
+    await list();
+    $('name').value=revision.object_name; $('name').readOnly=true; $('technology').value=revision.technology_id; $('technology').disabled=true; $('save').disabled=!canEdit;
+    $('preliminary').checked=!!revision.inputs.allow_preliminary; await loadFields(revision.technology_id); showStatus();
+  }
+  function showStatus() {
+    const missing=revision?.inputs?.missing||[]; const labels=missing.map(key=>specs.find(field=>field.key===key)?.label||({'geometry.insulation_zone':'Площадь утепления','layout.items':'Количество сборных изделий'}[key]||'Дополнительные параметры'));
+    $('message').textContent=missing.length ? 'Не заполнено: '+[...new Set(labels)].join(', ')+'.' : 'Параметры сохранены.';
+  }
+  $('technology').addEventListener('change',async()=>{ userValues={}; projectValues={}; try { await loadFields($('technology').value); } catch(e) { $('message').textContent=e.message; } });
+  $('open').addEventListener('click',async()=>{ try { await openRevision($('saved').value); } catch(e) { $('message').textContent=e.message; } });
+  $('geometry').addEventListener('submit',async event=>{ event.preventDefault();
+    const data={technology_id:$('technology').value,expected_version:revision?.version||0,user_values:userValues,project_values:projectValues,allow_preliminary:$('preliminary').checked};
+    try { const path=revision?'/objects/'+revision.object_id+'/revisions':'/objects/with-geometry'; if(!revision) data.name=$('name').value;
+      const saved=await request(path,{method:'POST',body:JSON.stringify(data)}); await list(); $('saved').value=saved.id; await openRevision(saved.id); history.replaceState(null,'','?revision='+encodeURIComponent(saved.id));
+    } catch(e) { $('message').textContent=e.message; }
+  });
+  (async()=>{try { await list(); const id=new URLSearchParams(location.search).get('revision'); if(id) { $('saved').value=id; await openRevision(id); } } catch(e) { $('message').textContent=e.message; }})();
+})();
+</script></body></html>

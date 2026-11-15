@@ -136,6 +136,9 @@
           <div class="passport-row"><strong>Документ</strong>{{ card.document }}</div>
         </div>
         <div class="action-row">
+          {% if card.number == 7 and foundation_preview_enabled %}
+          <a class="action" href="/api/v1/admin/module7/foundations/view">Геометрия фундаментов</a>
+          {% endif %}
           {% if card.implemented %}
           <a class="action" href="{{ card.href }}">Открыть рабочий модуль</a>
           {% else %}
