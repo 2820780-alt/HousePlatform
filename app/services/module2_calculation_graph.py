@@ -23,6 +23,8 @@ UNITS = {
     "liter": ((3, 0), Decimal("0.001")),
     "kg": ((0, 1), Decimal("1")),
     "kg_per_m": ((-1, 1), Decimal("1")),
+    "kg_per_m2": ((-2, 1), Decimal("1")),
+    "liter_per_m2": ((1, 0), Decimal("0.001")),
     "kg_per_m2_mm": ((-3, 1), Decimal("1000")),
 }
 

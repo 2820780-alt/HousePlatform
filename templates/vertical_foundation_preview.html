@@ -11,7 +11,7 @@
 <header class="m2-page-head"><div><div class="m2-eyebrow">Предварительная смета</div><h1>{{ technology.name }}</h1>
 <div class="m2-status-line">Версия геометрии № {{ geometry.version }}</div></div><a class="m2-button ghost" href="/api/v1/admin/module7/foundations/view?revision={{ geometry.id }}">К геометрии</a></header>
 {% if error %}<div class="m2-alert danger" role="alert">{{ error }}</div>{% endif %}
-{% set unit_labels = {'m':'м', 'm2':'м²', 'm3':'м³', 'mm':'мм', 'kg':'кг', 'kg_per_m':'кг/м', 'piece':'шт.', 'liter':'л'} %}
+{% set unit_labels = {'m':'м', 'm2':'м²', 'm3':'м³', 'mm':'мм', 'kg':'кг', 'kg_per_m':'кг/м', 'kg_per_m2':'кг/м²', 'liter_per_m2':'л/м²', 'piece':'шт.', 'liter':'л'} %}
 <section class="m2-panel"><div class="m2-panel-head"><h2>Геометрия</h2></div><div class="m2-panel-body">
 <div class="m2-form-grid">{% for field in fields %}<div><small>{{ field.label }}</small><div>{% set item = geometry.inputs['values'].get(field.key) %}{{ number(item.value) if item else 'Не задано' }} {{ unit_labels.get(field.unit, field.unit) }}</div></div>{% endfor %}</div>
 {% if geometry.inputs.missing %}<p class="estimate-warning">Не все обязательные параметры геометрии заполнены.</p>{% endif %}</div></section>
