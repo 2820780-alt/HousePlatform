@@ -28,14 +28,23 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
       await page.locator('[name="region"]').fill(`qa-${crypto.randomBytes(8).toString('hex')}`);
       await page.locator('[name="terms"]').fill('qa test only');
+      const fillDetails=async()=>{
+        for(const role of ['slab_lower','slab_upper','rib_longitudinal','stirrups'])
+          for(const [part,value] of Object.entries({length:'12',count:'4',lap_length:'0.5',lap_count:'2',mass_per_m:'0.888'}))
+            await page.locator(`input[name$=".${role}.${part}"]`).fill(value);
+        await page.locator('input[name$=".formwork.material_area"]').fill('8');
+        await page.locator('input[name$=".formwork.installation_area"]').fill('20');
+      };
+      await fillDetails();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       const unconfirmed=page.url();
       if(!(await page.locator('body').innerText()).includes('Не включено в итог: проверьте состав и связи.'))
         throw new Error('Rib/slab disjoint confirmation not required');
       await page.locator('[name="ribbed_concrete_disjoint_confirmed"]').check();
+      await page.locator('[name="ribbed_rebar_disjoint_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==unconfirmed,{timeout:60000}),page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 м³','2,3 м³','Материалы','Работы','Нет цены','Смета неполная'])
+      for(const expected of ['10 м³','2,3 м³','49 м','43,512 кг','Материалы','Работы','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if(text.includes('Не включено в итог: проверьте состав и связи.')) throw new Error('Confirmed rib/slab sections rejected');
       await page.getByRole('link',{name:'К геометрии'}).click();
@@ -45,7 +54,9 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
       await page.locator('[name="region"]').fill(`qa-${crypto.randomBytes(8).toString('hex')}`);
       await page.locator('[name="terms"]').fill('qa test only');
+      await fillDetails();
       await page.locator('[name="ribbed_concrete_disjoint_confirmed"]').check();
+      await page.locator('[name="ribbed_rebar_disjoint_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       const revised=page.url();
       if(!(await page.locator('body').innerText()).includes('14 м³')) throw new Error('Ribbed slab recalculation failed');

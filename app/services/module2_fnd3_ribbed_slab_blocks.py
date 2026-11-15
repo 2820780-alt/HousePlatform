@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import replace
 from decimal import Decimal
 
 from sqlalchemy import select, text
@@ -10,11 +11,19 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
 from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
+from app.services.module2_fnd3_slab_blocks import (formwork_block as slab_formwork_block,
+                                                    reinforcement_block as slab_reinforcement_block)
 
 TECHNOLOGY_CODE = "FND_SLAB_RIBBED_RC"
 USHP_CODE = "FND_SLAB_USHP"
 CONCRETE_WORK = "foundations_concrete_betonirovanie_konstrukciy"
+REBAR_WORK = "reinforcement_armirovanie_plity"
+FORMWORK_WORK = "foundations_concrete_montazh_opalubki_fundamenta"
 ROLES = {"SLAB_CONCRETE": "slab", "RIB_CONCRETE": "ribs"}
+REBAR_ROLES = {"SLAB_LOWER": ("LOWER_X", "Нижняя арматура плиты"),
+               "SLAB_UPPER": ("LOWER_Y", "Верхняя арматура плиты"),
+               "RIB_LONGITUDINAL": ("UPPER_X", "Продольная арматура рёбер"),
+               "STIRRUPS": ("UPPER_Y", "Хомуты рёбер")}
 
 
 def _id(technology_id: uuid.UUID, group: str, part: str) -> str:
@@ -51,6 +60,21 @@ def concrete_block(technology_id: uuid.UUID, code: str, role, step) -> Calculati
         work_code=step.work_code, work_step_id=str(step.id), material_output_id=result.id, work_output_id=result.id)
 
 
+def reinforcement_block(technology_id: uuid.UUID, role_code: str, role, step) -> CalculationBlock:
+    template_code, title = REBAR_ROLES[role_code]
+    template = slab_reinforcement_block(technology_id, template_code, role, step)
+    key, old_key = role_code.lower(), template_code.lower()
+    mapping = {item.id: _id(technology_id, key, str(index)) for index, item in enumerate(template.nodes)}
+    nodes = tuple(replace(item, id=mapping[item.id], inputs=tuple(mapping[value] for value in item.inputs),
+                          input_key=item.input_key.replace(old_key + ".", key + ".", 1) if item.input_key else None)
+                  for item in template.nodes)
+    parameters = tuple(replace(item, input_key=item.input_key.replace(old_key + ".", key + ".", 1))
+                       for item in template.parameters)
+    return replace(template, id=_id(technology_id, key, "block"), name=title, nodes=nodes,
+                   outputs=tuple(mapping[value] for value in template.outputs), parameters=parameters,
+                   material_output_id=mapping[template.material_output_id], work_output_id=mapping[template.work_output_id])
+
+
 async def expected_blocks(db, technology):
     roles = {row.code: row for row in (await db.scalars(select(TechnologyMaterialRequirement).where(
         TechnologyMaterialRequirement.technology_id == technology.id,
@@ -76,6 +100,46 @@ async def add_ribbed_slab_blocks(db, *, actor: object, technology_code: str = TE
     technology = technologies[0]
     created, reused, edited = 0, 0, []
     for block in await expected_blocks(db, technology):
+        existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+        if existing:
+            changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
+                       existing.name != block.name or str(existing.material_id or "") != block.material_id or
+                       existing.work_code != block.work_code)
+            if changed:
+                edited.append(block.name)
+            else:
+                reused += 1
+            continue
+        await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
+        created += 1
+    return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
+
+
+async def add_ribbed_slab_detail_blocks(db, *, actor: object) -> dict:
+    if db.bind.dialect.name != "postgresql":
+        raise ValueError("Ribbed-slab setup requires PostgreSQL transaction locking")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+                     {"key": f"atom.fnd3.ribbed-slab.{TECHNOLOGY_CODE}"})
+    technologies = (await db.scalars(select(Technology).where(
+        Technology.technology_code == TECHNOLOGY_CODE, Technology.status == "DRAFT").with_for_update())).all()
+    if len(technologies) != 1:
+        raise ValueError("Expected one ribbed-slab draft")
+    technology = technologies[0]
+    codes = (*REBAR_ROLES, "FND2_FORM_01")
+    roles = {row.code: row for row in (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code.in_(codes)))).all()}
+    rows = (await db.scalars(select(TechnologyWorkStep).where(TechnologyWorkStep.technology_id == technology.id,
+        TechnologyWorkStep.work_code.in_((REBAR_WORK, FORMWORK_WORK))))).all()
+    steps = {row.work_code: row for row in rows}
+    if (set(roles) != set(codes) or any(role.canonical_material_id is None for role in roles.values()) or
+            len(rows) != 2 or set(steps) != {REBAR_WORK, FORMWORK_WORK}):
+        raise ValueError("Ribbed-slab reinforcement or formwork requires explicit M1 selections")
+    formwork = replace(slab_formwork_block(technology.id, roles["FND2_FORM_01"], steps[FORMWORK_WORK]),
+                       name="Опалубка плиты и рёбер")
+    blocks = tuple(reinforcement_block(technology.id, code, roles[code], steps[REBAR_WORK]) for code in REBAR_ROLES) + (formwork,)
+    created, reused, edited = 0, 0, []
+    for block in blocks:
         existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
         if existing:
             changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or

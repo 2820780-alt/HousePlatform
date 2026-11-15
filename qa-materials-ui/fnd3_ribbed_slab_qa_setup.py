@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
-from app.services.module2_fnd3_ribbed_slab_blocks import add_ribbed_slab_blocks
+from app.services.module2_fnd3_ribbed_slab_blocks import add_ribbed_slab_blocks, add_ribbed_slab_detail_blocks
 
 
 async def main():
@@ -20,8 +20,11 @@ async def main():
         second = await add_ribbed_slab_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 2:
             raise RuntimeError("QA ribbed-slab blocks were edited or are not idempotent")
+        first, second = await add_ribbed_slab_detail_blocks(db, actor=actor), await add_ribbed_slab_detail_blocks(db, actor=actor)
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 5:
+            raise RuntimeError("QA ribbed-slab detail blocks were edited or are not idempotent")
         await db.commit()
-        print("QA ribbed-slab blocks prepared: slab and ribs")
+        print("QA ribbed-slab blocks prepared: concrete, rebar groups and formwork")
 
 
 if __name__ == "__main__":

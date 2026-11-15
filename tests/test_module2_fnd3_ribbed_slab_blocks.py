@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.database import engine as configured_engine
 from app.models.module2_technology import Technology
 from app.models.user import User
-from app.services.module2_fnd3_ribbed_slab_blocks import TECHNOLOGY_CODE, _id, add_ribbed_slab_blocks
+from app.services.module2_fnd3_ribbed_slab_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, _id, add_ribbed_slab_blocks,
+                                                          add_ribbed_slab_detail_blocks)
+from app.services.module2_fnd3_slab_blocks import _id as slab_id
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
@@ -40,15 +42,25 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
             slab, ribs = (_id(tech.id, name, "block") for name in ("slab", "ribs"))
             keys = {(slab,"MATERIAL"):"slab-concrete", (ribs,"MATERIAL"):"rib-concrete",
                     (slab,"WORK"):"slab-pouring", (ribs,"WORK"):"rib-pouring"}
+            for code in REBAR_ROLES:
+                block_id = _id(tech.id, code.lower(), "block")
+                keys[(block_id,"MATERIAL")] = "material-"+code
+                keys[(block_id,"WORK")] = "work-"+code
+            formwork = slab_id(tech.id,"block","formwork")
+            keys[(formwork,"MATERIAL")] = "formwork-material"
+            keys[(formwork,"WORK")] = "formwork-work"
             unconfirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys)
             assert all("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in
-                       unconfirmed.payload["result"]["materials"] + unconfirmed.payload["result"]["works"])
+                       unconfirmed.payload["result"]["materials"] + unconfirmed.payload["result"]["works"]
+                       if line["binding"]["block_id"] in {slab,ribs})
             confirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys, ribbed_concrete_disjoint_confirmed=True)
-            assert sorted(line["quantity"] for line in confirmed.payload["result"]["materials"]) == ["10.0", "2.30"]
+            assert sorted(line["quantity"] for line in confirmed.payload["result"]["materials"]
+                          if line["binding"]["block_id"] in {slab,ribs}) == ["10.0", "2.30"]
             assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in
-                       confirmed.payload["result"]["materials"] + confirmed.payload["result"]["works"])
+                       confirmed.payload["result"]["materials"] + confirmed.payload["result"]["works"]
+                       if line["binding"]["block_id"] in {slab,ribs})
             assert not confirmed.payload["result"]["complete"]
             bad = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values={**values, "geometry.rib_overlap_volume":"3"}, project_values={}, expected_version=1)
@@ -56,6 +68,27 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
                 region="qa", terms="qa", accounting_keys=keys, ribbed_concrete_disjoint_confirmed=True)
             rib_line = next(line for line in invalid.payload["result"]["materials"] if line["binding"]["block_id"] == ribs)
             assert rib_line["quantity"] is None and "NEGATIVE_QUANTITY" in rib_line["issues"]
+            detail, repeat = await add_ribbed_slab_detail_blocks(db, actor=user), await add_ribbed_slab_detail_blocks(db, actor=user)
+            assert detail["created"] + detail["reused"] == 5 and not detail["edited"]
+            assert repeat["reused"] == 5 and not repeat["edited"]
+            params = {(formwork,"formwork.material_area"):"8", (formwork,"formwork.installation_area"):"20"}
+            for code in REBAR_ROLES:
+                key = code.lower()
+                block_id = _id(tech.id,key,"block")
+                for suffix,value in {"length":"12", "count":"4", "lap_length":"0.5",
+                                     "lap_count":"2", "mass_per_m":"0.888"}.items():
+                    params[(block_id,f"{key}.{suffix}")] = value
+            details = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params,
+                ribbed_concrete_disjoint_confirmed=True, ribbed_rebar_disjoint_confirmed=True)
+            rebar = [line for line in details.payload["result"]["materials"] if line["unit"] == "m"]
+            rebar_work = [line for line in details.payload["result"]["works"] if line["unit"] == "kg"]
+            assert len(rebar) == len(rebar_work) == 4
+            assert all(line["quantity"] == "49.0" for line in rebar)
+            assert all(line["quantity"] == "43.5120" for line in rebar_work)
+            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in rebar + rebar_work)
+            assert any(line["quantity"] == "8" and line["unit"] == "m2" for line in details.payload["result"]["materials"])
+            assert any(line["quantity"] == "20" and line["unit"] == "m2" for line in details.payload["result"]["works"])
             await db.rollback()
     finally:
         await engine.dispose()
