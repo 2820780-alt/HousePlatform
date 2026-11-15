@@ -35,6 +35,8 @@ from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCRE
     expected_blocks as expected_screw_pile_blocks)
 from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
     expected_blocks as expected_membrane_blocks)
+from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIBBED_SLAB_CODE,
+    expected_blocks as expected_ribbed_slab_blocks)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -131,6 +133,31 @@ async def _reinforcement_scope_review(db, technology, blocks, bindings, block_is
     return frozenset(allowed)
 
 
+async def _ribbed_scope_review(db, technology, blocks, bindings, block_issues, confirmed):
+    if technology.technology_code != RIBBED_SLAB_CODE or not confirmed:
+        return frozenset()
+    try:
+        expected = {item.id: item for item in await expected_ribbed_slab_blocks(db, technology)}
+    except ValueError:
+        return frozenset()
+    actual = {item.id: item for item in blocks}
+    exact = {key for key, item in actual.items() if key in expected and key not in block_issues and
+             encode_definition(item) == encode_definition(expected[key]) and
+             item.material_id == expected[key].material_id and item.work_code == expected[key].work_code}
+    allowed = set()
+    for kind in ("MATERIAL", "WORK"):
+        groups = {}
+        for binding in bindings:
+            if binding.kind == kind and binding.resource_id:
+                groups.setdefault(binding.resource_id, []).append(binding)
+        for group in groups.values():
+            if (len(group) == 2 and {item.block_id for item in group} == set(expected) and
+                    all(item.block_id in exact for item in group) and
+                    len({actual[item.block_id].material_requirement_id for item in group}) == 2):
+                allowed.update(item.id for item in group)
+    return frozenset(allowed)
+
+
 async def create_estimate_preview(
     db: AsyncSession, *, actor: object, geometry_revision_id: uuid.UUID | None = None,
     foundation_geometry_revision_id: uuid.UUID | None = None, region: str, terms: str,
@@ -141,11 +168,13 @@ async def create_estimate_preview(
     pile_roles_confirmed: bool = False,
     screw_head_match_confirmed: bool = False,
     membrane_areas_disjoint_confirmed: bool = False,
+    ribbed_concrete_disjoint_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
-            pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed)):
+            pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
+            ribbed_concrete_disjoint_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -283,6 +312,7 @@ async def create_estimate_preview(
         SLAB_TECHNOLOGY_CODE, SLAB_REBAR_ROLES, SLAB_REBAR_WORK, slab_rebar_block)
     disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues, pile_roles_confirmed,
         PILE_TECHNOLOGY_CODE, PILE_REBAR_ROLES, PILE_REBAR_WORK, pile_rebar_block)
+    disjoint |= await _ribbed_scope_review(db, technology, blocks, bindings, block_issues, ribbed_concrete_disjoint_confirmed)
     if foundation:
         if geometry.inputs.get("missing"):
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
@@ -318,6 +348,7 @@ async def create_estimate_preview(
         "pile_roles_confirmed": pile_roles_confirmed,
         "screw_head_match_confirmed": screw_head_match_confirmed,
         "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
+        "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})

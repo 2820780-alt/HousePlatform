@@ -151,12 +151,12 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                 {"moduleCode": module, "accessLevel": "ADMIN", "accessScope": "GLOBAL"}
                 for module in ("MODULE_01_MATERIAL_HUB", "MODULE_02_KNOWLEDGE_BASE",
                                "MODULE_05_ESTIMATE_ENGINE", "MODULE_07_DIGITAL_HOUSE")])
-            tech = await db.scalar(select(Technology).where(
-                Technology.technology_code == "FND_SLAB_RIBBED_RC", Technology.status == "DRAFT"))
+            tech = Technology(id=uuid.uuid4(), technology_code="FND_SLAB_RIBBED_RC", revision=1000000000,
+                              name="QA ribbed slab", status="DRAFT")
             unit = await db.scalar(select(Unit).where(Unit.abbreviation.in_(["m3", "м³", "м3"])).limit(1))
             material = Material(id=uuid.uuid4(), canonical_name="QA slab " + uuid.uuid4().hex,
                                 base_unit_id=unit.id, status=MaterialStatus.DRAFT)
-            db.add(material)
+            db.add_all([material, tech])
             await db.flush()
             block = replace(slab_net_area_volume_block(), material_id=str(material.id), work_output_id=None)
             await add_block(db, technology_id=tech.id, block=block, actor=user, actor_id=owner)
