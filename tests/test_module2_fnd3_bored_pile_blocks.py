@@ -1,4 +1,6 @@
+import copy
 import os
+import uuid
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -8,8 +10,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.database import engine as configured_engine
 from app.models.module2_technology import Technology
+from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
-from app.services.module2_fnd3_bored_pile_blocks import TECHNOLOGY_CODE, _id, add_bored_pile_blocks
+from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, _id, add_bored_pile_blocks,
+                                                        add_bored_pile_reinforcement_blocks)
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
@@ -40,16 +44,57 @@ async def test_bored_pile_concrete_and_drilling_are_separate_on_restored_qa():
                 project_values={}, expected_version=0)
             first_id = _id(tech.id, "concrete-drilling", "block")
             second_id = _id(tech.id, "pouring", "block")
+            keys = {(first_id,"MATERIAL"):"pile-concrete", (first_id,"WORK"):"pile-drilling",
+                    (second_id,"WORK"):"pile-pouring"}
+            for code in REBAR_ROLES:
+                key = code.lower()
+                block_id = _id(tech.id, key, "block")
+                keys[(block_id, "MATERIAL")] = "material-" + key
+                keys[(block_id, "WORK")] = "work-" + key
             snapshot = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
-                region="qa", terms="qa", accounting_keys={(first_id,"MATERIAL"):"pile-concrete",
-                    (first_id,"WORK"):"pile-drilling", (second_id,"WORK"):"pile-pouring"})
+                region="qa", terms="qa", accounting_keys=keys)
             material = snapshot.payload["result"]["materials"]
             work = snapshot.payload["result"]["works"]
-            assert len(material) == 1 and abs(Decimal(material[0]["quantity"]) - Decimal("1.256637061435917")) < Decimal("0.000000000001")
+            concrete = [line for line in material if line["unit"] == "m3"]
+            assert len(concrete) == 1 and abs(Decimal(concrete[0]["quantity"]) - Decimal("1.256637061435917")) < Decimal("0.000000000001")
             assert any(line["unit"] == "piece" and line["quantity"] == "5" for line in work)
-            assert any(line["unit"] == "m3" and line["quantity"] == material[0]["quantity"] for line in work)
+            assert any(line["unit"] == "m3" and line["quantity"] == concrete[0]["quantity"] for line in work)
             assert not snapshot.payload["result"]["complete"] and snapshot.payload["missing_required_roles"]
-            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in work)
+            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in work if line["unit"] in {"m3", "piece"})
+            first_rebar = await add_bored_pile_reinforcement_blocks(db, actor=user)
+            second_rebar = await add_bored_pile_reinforcement_blocks(db, actor=user)
+            assert first_rebar["created"] + first_rebar["reused"] == 2 and not first_rebar["edited"]
+            assert second_rebar["reused"] == 2 and not second_rebar["edited"]
+            params = {}
+            for code in REBAR_ROLES:
+                key = code.lower()
+                block_id = _id(tech.id, key, "block")
+                keys[(block_id, "MATERIAL")] = "material-" + key
+                keys[(block_id, "WORK")] = "work-" + key
+                for suffix, value in {"length":"2", "count":"20", "lap_length":"0.5",
+                                      "lap_count":"4", "mass_per_m":"0.888"}.items():
+                    params[(block_id, f"{key}.{suffix}")] = value
+            unconfirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params)
+            assert sum("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in
+                       unconfirmed.payload["result"]["works"]) == 2
+            confirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params, pile_roles_confirmed=True)
+            rebar = [line for line in confirmed.payload["result"]["materials"] if line["unit"] == "m"]
+            assert len(rebar) == 2 and all(line["quantity"] == "42.0" for line in rebar)
+            reinforcement_work = [line for line in confirmed.payload["result"]["works"] if line["unit"] == "kg"]
+            assert len(reinforcement_work) == 2 and all(line["quantity"] == "37.2960" for line in reinforcement_work)
+            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in reinforcement_work)
+            assert not confirmed.payload["result"]["complete"]
+            row = await db.get(TechnologyCalculationBlock, uuid.UUID(_id(tech.id, "pile_longitudinal", "block")))
+            altered = copy.deepcopy(row.definition)
+            altered["parameters"][0]["label"] = "Изменённый параметр"
+            row.definition = altered
+            await db.flush()
+            changed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params, pile_roles_confirmed=True)
+            assert sum("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in
+                       changed.payload["result"]["works"]) == 2
             await db.rollback()
     finally:
         await engine.dispose()
