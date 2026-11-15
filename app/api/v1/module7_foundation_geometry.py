@@ -105,8 +105,11 @@ async def fields(technology_id: uuid.UUID, db: DBSession, user: CurrentUser):
         specs = FOUNDATION_FIELDS.get(technology.technology_code)
         if specs is None:
             raise ValueError("unsupported foundation technology")
+        uff_labels = {"geometry.net_area": "Площадь пола без фундаментной части",
+                      "geometry.slab_thickness": "Толщина пола по грунту"}
         return {"technology_id": str(technology.id), "technology_code": technology.technology_code,
-                "fields": [{"key": item.key, "label": item.label, "unit": item.unit,
+                "fields": [{"key": item.key, "label": uff_labels.get(item.key, item.label)
+                            if technology.technology_code == "FND_UFF" else item.label, "unit": item.unit,
                             "required": item.required, "allow_zero": item.allow_zero} for item in specs]}
     except ValueError:
         raise HTTPException(status_code=404, detail="Технология недоступна") from None

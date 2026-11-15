@@ -15,7 +15,8 @@ TECHNOLOGY_CODE = "FND_SUBSTRUCTURE_INSULATION_XPS"
 INSTALL_WORK = "foundations_concrete_uteplenie_fundamenta"
 ROLES = {"WALL_XPS": ("wall", "Утепление стен", "geometry.wall_area"),
          "UNDER_SLAB_XPS": ("slab", "Утепление под плитой", "geometry.slab_area")}
-EXTRA_ROLES = {"EDGE_XPS": ("edge", "Утепление торцов", "geometry.edge_area")}
+EXTRA_ROLES = {"EDGE_XPS": ("edge", "Утепление торцов", "geometry.edge_area"),
+               "FOUNDATION_XPS": ("slab", "Утепление основания", "geometry.slab_area")}
 
 
 def _id(technology_id: uuid.UUID, group: str, part: str) -> str:

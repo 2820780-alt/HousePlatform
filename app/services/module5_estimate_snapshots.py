@@ -39,6 +39,8 @@ from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIB
     USHP_CODE, expected_blocks as expected_ribbed_slab_blocks)
 from app.services.module2_fnd3_column_wall_blocks import (REBAR_ROLES as COLUMN_WALL_REBAR_ROLES,
     REBAR_WORK as COLUMN_WALL_REBAR_WORK, reinforcement_block as column_wall_rebar_block)
+from app.services.module2_fnd3_uff_blocks import (TECHNOLOGY_CODE as UFF_CODE,
+    concrete_blocks as uff_concrete_blocks, expected_blocks as expected_uff_roles)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -172,12 +174,14 @@ async def create_estimate_preview(
     membrane_areas_disjoint_confirmed: bool = False,
     ribbed_concrete_disjoint_confirmed: bool = False,
     column_wall_rebar_disjoint_confirmed: bool = False,
+    uff_floor_disjoint_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
             pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
-            ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed)):
+            ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
+            uff_floor_disjoint_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -308,6 +312,24 @@ async def create_estimate_preview(
         if not membrane_valid:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "COVERAGE_ALLOCATION_UNVERIFIED")
+    if foundation and technology.technology_code == UFF_CODE:
+        uff_scope_valid = False
+        try:
+            roles, steps = await expected_uff_roles(db, technology)
+            expected = uff_concrete_blocks(technology.id, roles, steps)
+            actual = {block.id: block for block in blocks}
+            uff_scope_valid = bool(uff_floor_disjoint_confirmed and all(
+                item.id in actual and item.id not in block_issues and
+                encode_definition(actual[item.id]) == encode_definition(item) and
+                actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                for item in expected))
+            protected_ids = {item.id for item in expected}
+        except ValueError:
+            protected_ids = {block.id for block in blocks}
+        if not uff_scope_valid:
+            for block in blocks:
+                if block.id in protected_ids:
+                    block_issues[block.id] = (*block_issues.get(block.id, ()), "UFF_SCOPE_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
@@ -328,6 +350,11 @@ async def create_estimate_preview(
             missing_roles += ("Полнота комплектации технологии требует проверки",)
         if technology.technology_code == USHP_CODE and values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0:
             missing_roles += ("Материал утепления стен не выбран",)
+        if technology.technology_code == UFF_CODE:
+            if not uff_scope_valid:
+                missing_roles += ("Подтвердите, что площадь пола не включает фундаментную часть",)
+            if values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0 or values.get("geometry.edge_area", (Decimal(0), "m2"))[0] > 0:
+                missing_roles += ("Материал утепления стен или торцов не выбран",)
         if technology.technology_code == DRIVEN_PILE_CODE and not valid_allocation:
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
         if technology.technology_code == SCREW_PILE_CODE and not screw_valid:
@@ -360,6 +387,7 @@ async def create_estimate_preview(
         "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,
+        "uff_floor_disjoint_confirmed": uff_floor_disjoint_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
