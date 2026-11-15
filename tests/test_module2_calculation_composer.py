@@ -37,12 +37,31 @@ def test_composer_rejects_future_reference_wrong_units_and_unsourced_constants()
     with pytest.raises(ValueError, match="source"):
         compose_block("Ошибка", (ComposerStep("Постоянная", "CONSTANT", "1", constant=Decimal("2")),),
                       material_step=1, work_step=None)
-    with pytest.raises(ValueError, match="length unit"):
+    with pytest.raises(ValueError, match="unit does not match"):
         compose_block("Ошибка", (ComposerStep("Длина", "INPUT", "kg", source="geometry.length"),),
                       material_step=1, work_step=None)
-    with pytest.raises(ValueError, match="geometry input"):
-        compose_block("Ошибка", (ComposerStep("Площадь", "INPUT", "m2", source="geometry.area"),),
+    with pytest.raises(ValueError, match="unit does not match"):
+        compose_block("Ошибка", (ComposerStep("Площадь", "INPUT", "m", source="geometry.area"),),
                       material_step=1, work_step=None)
+
+
+def test_composer_supports_typed_foundation_geometry_and_longer_graphs():
+    steps = (ComposerStep("Площадь", "INPUT", "m2", source="geometry.net_area"),
+             ComposerStep("Толщина", "INPUT", "mm", source="geometry.slab_thickness"),
+             ComposerStep("Объём", "MULTIPLY", "m3", (1, 2)))
+    graph = compose_block("Плита", steps, material_step=3, work_step=None)
+    assert evaluate_block(graph, {"geometry.net_area": ("50", "m2"),
+                                  "geometry.slab_thickness": ("0.2", "m")})[graph.outputs[0]].value == Decimal("10")
+    assert composer_form_data(graph)["steps"][0]["source"] == "geometry.net_area"
+    with pytest.raises(ValueError, match="unit does not match"):
+        compose_block("Ошибка", (ComposerStep("Число свай", "INPUT", "1", source="pile.count"),),
+                      material_step=1, work_step=None)
+    with pytest.raises(ValueError, match="unit does not match"):
+        compose_block("Ошибка", (ComposerStep("Расход", "INPUT", "liter_per_m2", source="geometry.length"),),
+                      material_step=1, work_step=None)
+    long_steps = tuple(ComposerStep(f"Параметр {index}", "INPUT", "m", source="PARAMETER") for index in range(14))
+    long_graph = compose_block("Длинная схема", long_steps, material_step=14, work_step=None)
+    assert len(composer_form_data(long_graph)["steps"]) == 14
 
 
 def test_composer_does_not_accept_arbitrary_operations_or_missing_output():

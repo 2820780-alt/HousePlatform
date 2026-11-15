@@ -24,8 +24,10 @@ from app.services.module2_calculation_blocks import (
     add_block, copy_from_technology, copy_from_template, decode_definition, remove_block, save_template, update_block,
     verify_block,
 )
-from app.services.module2_calculation_graph import Threshold
-from app.services.module2_calculation_composer import ComposerStep, OPERATIONS, compose_block, composer_form_data, recompose_block
+from app.services.module2_calculation_graph import Threshold, UNITS
+from app.services.module2_calculation_composer import (GEOMETRY_INPUTS, ComposerStep, OPERATIONS, compose_block,
+                                                        composer_form_data, geometry_unit_compatible, recompose_block)
+from app.services.module7_foundation_inputs import FOUNDATION_FIELDS, STRIP
 from app.services.module2_calculation_presets import (
     area_consumption_block, counted_prism_volume_block, cylindrical_piles_volume_block, rectangular_volume_block,
     reinforcement_block, slab_net_area_volume_block,
@@ -105,13 +107,25 @@ async def builder(technology_id: uuid.UUID, request: Request, db: DBSession, use
     material_names = {item.id: item.canonical_name for item in materials}
     work_names = {item.work_code: item.work_name for item in works}
     block_views = [(row, _block(row)) for row in rows]
+    geometry_fields = FOUNDATION_FIELDS.get(technology.technology_code, STRIP[:3])
+    available_geometry = {item.key for item in geometry_fields}
+    composer_data = {}
+    for row, graph in block_views:
+        data = composer_form_data(graph)
+        if data and any(step["source"] in GEOMETRY_INPUTS and step["source"] not in available_geometry
+                        for step in data["steps"]):
+            data = None
+        composer_data[str(row.id)] = data
+    geometry_by_unit = {unit: [item for item in geometry_fields if geometry_unit_compatible(item.unit, unit)]
+                        for unit in UNITS}
     return templates.TemplateResponse(request, "module2_calculation_builder.html", {
         "technology": technology, "blocks": block_views,
-        "composer_data": {str(row.id): composer_form_data(graph) for row, graph in block_views},
+        "composer_data": composer_data,
         "library": [(row, _block(row)) for row in library],
         "template_usage": {key: list(items.values()) for key, items in template_usage.items()},
         "sources": [(row, source, _block(row)) for row, source in sources],
         "materials": materials, "works": works,
+        "geometry_fields": geometry_fields, "geometry_by_unit": geometry_by_unit,
         "material_roles": [(item.id, REQUIREMENT_NAMES.get(item.code) or material_names.get(item.canonical_material_id)
                             or f"Материальная роль {index + 1}") for index, item in enumerate(requirements)],
         "work_steps": [(item.id, f"{item.position}. {work_names.get(item.work_code, 'Работа M1')}")
@@ -133,10 +147,10 @@ async def builder_action(technology_id: uuid.UUID, action: str, request: Request
     try:
         if action in {"compose", "compose-update"}:
             steps = []
-            for index in range(1, 13):
+            for index in range(1, 25):
                 operation = str(form.get(f"step.{index}.operation") or "").strip()
                 if not operation:
-                    if any(str(form.get(f"step.{later}.operation") or "").strip() for later in range(index + 1, 13)):
+                    if any(str(form.get(f"step.{later}.operation") or "").strip() for later in range(index + 1, 25)):
                         raise ValueError("steps must be consecutive")
                     break
                 if operation not in OPERATIONS:
@@ -148,6 +162,13 @@ async def builder_action(technology_id: uuid.UUID, action: str, request: Request
                     source=str(form.get(f"step.{index}.source") or ""),
                     constant=_number(form.get(f"step.{index}.constant")) if operation == "CONSTANT" else None,
                 ))
+            technology = await db.get(Technology, technology_id)
+            if technology is None:
+                raise ValueError("technology missing")
+            available_geometry = {item.key for item in FOUNDATION_FIELDS.get(technology.technology_code, STRIP[:3])}
+            if any(step.operation == "INPUT" and step.source in GEOMETRY_INPUTS and step.source not in available_geometry
+                   for step in steps):
+                raise ValueError("geometry input is unavailable for this technology")
             material_step = int(str(form["material_step"])) if form.get("material_step") else None
             work_step = int(str(form["work_step"])) if form.get("work_step") else None
             graph = compose_block(str(form.get("name") or ""), tuple(steps), material_step=material_step,
@@ -196,6 +217,19 @@ async def builder_action(technology_id: uuid.UUID, action: str, request: Request
             graph = _block(source)
             keys = {node.input_key for node in graph.nodes if node.operation == "INPUT"}
             mapping = {key: str(form.get(f"mapping.{key}") or "").strip() for key in keys}
+            technology = await db.get(Technology, technology_id)
+            if technology is None:
+                raise ValueError("technology missing")
+            available = {item.key: item for item in FOUNDATION_FIELDS.get(technology.technology_code, STRIP[:3])}
+            parameters = {item.input_key for item in graph.parameters}
+            if technology.technology_code in FOUNDATION_FIELDS:
+                for node in (item for item in graph.nodes if item.operation == "INPUT"):
+                    target = mapping[node.input_key]
+                    if target in available:
+                        if not geometry_unit_compatible(available[target].unit, node.unit):
+                            raise ValueError("geometry input unit does not match")
+                    elif target != node.input_key or target not in parameters:
+                        raise ValueError("select an available geometry field or existing parameter")
             material = uuid.UUID(str(form["material_id"])) if form.get("material_id") else None
             common = dict(technology_id=technology_id, input_mapping=mapping, material_id=material,
                           work_code=str(form["work_code"]) if form.get("work_code") else None,

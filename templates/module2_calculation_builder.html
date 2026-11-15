@@ -18,18 +18,18 @@
 <form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/{{ action }}" data-m2-form data-compose-form>
 {% if row %}<input type="hidden" name="block_id" value="{{ row.id }}"><input type="hidden" name="version" value="{{ row.version }}">{% endif %}
 <label><span>Название расчёта</span><input name="name" maxlength="255" value="{{ graph.name if graph else '' }}" required></label>
-{% for index in range(1, 13) %}{% set step = data.steps[index - 1] if data and index <= data.steps|length else {} %}
+{% for index in range(1, 25) %}{% set step = data.steps[index - 1] if data and index <= data.steps|length else {} %}
 <details class="m2-compose-step" data-compose-step="{{ index }}" {% if index == 1 %}open{% endif %}><summary>Шаг {{ index }}</summary><div class="m2-form-grid">
 <label><span>Название шага</span><input name="step.{{ index }}.label" maxlength="255" value="{{ step.get('label', '') }}"></label>
 <label><span>Действие</span><select name="step.{{ index }}.operation"><option value="">Не используется</option>{% for value, label in [('INPUT','Входное значение'),('CONSTANT','Постоянное значение'),('ADD','Сложить'),('SUBTRACT','Вычесть'),('MULTIPLY','Умножить'),('DIVIDE','Разделить'),('CEIL','Округлить вверх'),('FLOOR','Округлить вниз'),('LESS_THAN','Сравнить: меньше'),('IF','Условие: да / нет'),('PRISM_VOLUME','Объём прямоугольной конструкции')] %}<option value="{{ value }}" {% if step.get('operation') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-<label><span>Единица результата</span><select name="step.{{ index }}.unit">{% for value, label in [('1','Без единицы'),('piece','шт.'),('mm','мм'),('m','м'),('m2','м²'),('m3','м³'),('liter','л'),('kg','кг'),('kg_per_m','кг/м'),('kg_per_m2_mm','кг/(м²·мм)')] %}<option value="{{ value }}" {% if step.get('unit') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-<label data-compose-source><span>Источник входного значения</span><select name="step.{{ index }}.source">{% for value, label in [('PARAMETER','Параметр технологии'),('geometry.length','Длина ленты'),('geometry.width','Ширина ленты'),('geometry.height','Высота ленты')] %}<option value="{{ value }}" {% if step.get('source') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label><span>Единица результата</span><select name="step.{{ index }}.unit">{% for value, label in [('1','Без единицы'),('piece','шт.'),('mm','мм'),('m','м'),('m2','м²'),('m3','м³'),('liter','л'),('kg','кг'),('kg_per_m','кг/м'),('kg_per_m2','кг/м²'),('liter_per_m2','л/м²'),('kg_per_m2_mm','кг/(м²·мм)')] %}<option value="{{ value }}" {% if step.get('unit') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label data-compose-source><span>Источник входного значения</span><select name="step.{{ index }}.source"><option value="PARAMETER" {% if step.get('source') == 'PARAMETER' %}selected{% endif %}>Параметр технологии</option>{% for field in geometry_fields %}<option value="{{ field.key }}" data-unit="{{ field.unit }}" {% if step.get('source') == field.key %}selected{% endif %}>{{ field.label }}</option>{% endfor %}</select></label>
 <label data-compose-constant><span>Постоянное значение</span><input name="step.{{ index }}.constant" inputmode="decimal" value="{{ step.get('constant', '') }}"></label>
 {% for arg in range(1, 4) %}<label data-compose-arg="{{ arg }}"><span>{{ ['Первый', 'Второй', 'Третий'][arg-1] }} исходный шаг</span><select name="step.{{ index }}.ref.{{ arg }}"><option value="">Не выбран</option>{% for previous in range(1, index) %}<option value="{{ previous }}" {% if step.get('references', [])|length >= arg and step.references[arg-1] == previous %}selected{% endif %}>Шаг {{ previous }}</option>{% endfor %}</select></label>{% endfor %}
 </div></details>{% endfor %}
 <div class="m2-form-grid">{{ resources(graph.material_id or '', graph.work_code or '', graph.material_requirement_id or '', graph.work_step_id or '') if graph else resources() }}
-<label><span>Результат для материала</span><select name="material_step"><option value="">Не выбран</option>{% for index in range(1, 13) %}<option value="{{ index }}" {% if data and data.material_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
-<label><span>Результат для работы</span><select name="work_step"><option value="">Не выбран</option>{% for index in range(1, 13) %}<option value="{{ index }}" {% if data and data.work_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
+<label><span>Результат для материала</span><select name="material_step"><option value="">Не выбран</option>{% for index in range(1, 25) %}<option value="{{ index }}" {% if data and data.material_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
+<label><span>Результат для работы</span><select name="work_step"><option value="">Не выбран</option>{% for index in range(1, 25) %}<option value="{{ index }}" {% if data and data.work_step == index %}selected{% endif %}>Шаг {{ index }}</option>{% endfor %}</select></label>
 <label><span>Основание расчёта</span><input name="rule_source" maxlength="1000" value="{{ graph.rule_source or '' if graph else '' }}"></label></div>
 <button class="m2-button primary" type="submit">{{ 'Сохранить схему' if graph else 'Создать расчёт' }}</button></form>
 {%- endmacro %}
@@ -40,10 +40,8 @@
     {% for node in graph.nodes if node.operation == 'INPUT' %}
     <label><span>{% set labels = graph.parameters | selectattr('input_key', 'equalto', node.input_key) | list %}{{ labels[0].label if labels else 'Вход' }} ({{ node.unit }})</span>
       <select name="mapping.{{ node.input_key }}" required><option value="">Выберите источник</option>
-      {% if node.unit in ['m','mm'] %}<option value="geometry.length">Длина ленты</option><option value="geometry.width">Ширина ленты</option><option value="geometry.height">Высота ленты</option>{% endif %}
-      {% if node.unit == 'm2' %}<option value="geometry.area">Площадь поверхности</option>{% endif %}
-      {% if node.unit == 'm3' %}<option value="geometry.volume">Объём конструкции</option>{% endif %}
-      {% if node.input_key not in ['geometry.length','geometry.width','geometry.height','geometry.area','geometry.volume'] %}<option value="{{ node.input_key }}">Параметр блока</option>{% endif %}</select></label>
+      {% for field in geometry_by_unit.get(node.unit, []) %}<option value="{{ field.key }}">{{ field.label }}</option>{% endfor %}
+      {% if graph.parameters | selectattr('input_key', 'equalto', node.input_key) | list %}<option value="{{ node.input_key }}">Параметр блока</option>{% endif %}</select></label>
     {% endfor %}
     {{ resources() }}
   </div><button class="m2-button" type="submit">Добавить копию</button>
@@ -110,11 +108,18 @@
   document.querySelectorAll('[data-compose-form]').forEach(form => {
   const steps = [...form.querySelectorAll('[data-compose-step]')];
   const arity = {INPUT:0, CONSTANT:0, ADD:2, SUBTRACT:2, MULTIPLY:2, DIVIDE:2, CEIL:1, FLOOR:1, LESS_THAN:2, IF:3, PRISM_VOLUME:3};
+  const compatible = {m:['m','mm'], m2:['m2'], m3:['m3','liter'], piece:['piece']};
   function refresh() {
     const names = steps.map(step => step.querySelector('input[name$=".label"]').value.trim());
     let preceding = true;
     steps.forEach((step, offset) => {
       const operation = step.querySelector('select[name$=".operation"]').value;
+      const unit = step.querySelector('select[name$=".unit"]').value;
+      const source = step.querySelector('select[name$=".source"]');
+      [...source.options].filter(option => option.dataset.unit).forEach(option => {
+        option.disabled = !(compatible[option.dataset.unit] || []).includes(unit);
+      });
+      if (source.selectedOptions[0]?.disabled) source.value = 'PARAMETER';
       step.hidden = !preceding;
       step.querySelector('summary').textContent = `Шаг ${offset + 1}${names[offset] ? ' · ' + names[offset] : ''}`;
       step.querySelector('[data-compose-source]').hidden = operation !== 'INPUT';

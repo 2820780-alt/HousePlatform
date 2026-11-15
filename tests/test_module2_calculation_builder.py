@@ -29,6 +29,49 @@ def _actor(level):
 
 
 @pytest.mark.asyncio
+async def test_foundation_builder_enforces_available_typed_geometry_on_restored_qa(monkeypatch):
+    dbname = "houseplatform_vertical_20261113_171244"
+    if os.environ.get("ATOM_VERTICAL_QA_DB") != dbname:
+        pytest.skip("requires the explicitly restored vertical QA database")
+    monkeypatch.setattr(settings, "VERTICAL_CALCULATION_PREVIEW_ENABLED", True)
+    engine = create_async_engine(configured_engine.url.set(database=dbname), echo=False)
+    try:
+        async with engine.connect() as connection:
+            transaction = await connection.begin()
+            async with AsyncSession(bind=connection, expire_on_commit=False, join_transaction_mode="create_savepoint") as db:
+                first = Technology(id=uuid.uuid4(), technology_code="FND_PILE_BORED_RC", revision=1000000000,
+                                   name="QA bored pile", status="DRAFT")
+                second = Technology(id=uuid.uuid4(), technology_code="FND_PILE_BORED_RC", revision=999999999,
+                                    name="QA bored pile copy", status="DRAFT")
+                db.add_all([first, second])
+                await db.flush()
+                app = FastAPI()
+                app.include_router(router, prefix="/api/v1")
+                app.dependency_overrides[get_current_user] = lambda: _actor("ADMIN")
+                app.dependency_overrides[get_db] = lambda: db
+                async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                    base = f"/api/v1/admin/module2/calculation-builder/{first.id}"
+                    page = await client.get(base)
+                    assert page.status_code == 200 and 'value="pile.count"' in page.text
+                    assert 'value="step.24' not in page.text and 'name="step.24.label"' in page.text
+                    form = {"name":"QA count", "step.1.label":"Количество свай", "step.1.operation":"INPUT",
+                            "step.1.unit":"piece", "step.1.source":"pile.count", "material_step":"1"}
+                    result = await client.post(f"{base}/compose", data=form)
+                    assert result.status_code == 303 and "error=" not in result.headers["location"]
+                    block = await db.scalar(select(TechnologyCalculationBlock).where(
+                        TechnologyCalculationBlock.technology_id == first.id, TechnologyCalculationBlock.name == "QA count"))
+                    assert block.definition["nodes"][0]["input_key"] == "pile.count"
+                    target = f"/api/v1/admin/module2/calculation-builder/{second.id}/copy-technology"
+                    copied = await client.post(target, data={"source_id":str(block.id), "mapping.pile.count":"pile.count"})
+                    assert copied.status_code == 303 and "error=" not in copied.headers["location"]
+                    invalid_copy = await client.post(target, data={"source_id":str(block.id), "mapping.pile.count":"geometry.area"})
+                    assert "error=" in invalid_copy.headers["location"]
+            await transaction.rollback()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
 async def test_m2_requirement_accepts_only_accessible_nonarchived_m1_material(monkeypatch):
     from app.api.v1.module2_workbench import _perform_action
 

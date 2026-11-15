@@ -5,14 +5,22 @@ from dataclasses import dataclass, replace
 from decimal import Decimal
 from uuid import uuid4
 
-from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode, UNITS, validate_block
+from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode, validate_block
+from app.services.module7_foundation_inputs import FOUNDATION_FIELDS
 
 
 OPERATIONS = {
     "INPUT": 0, "CONSTANT": 0, "ADD": 2, "SUBTRACT": 2, "MULTIPLY": 2,
     "DIVIDE": 2, "CEIL": 1, "FLOOR": 1, "LESS_THAN": 2, "IF": 3, "PRISM_VOLUME": 3,
 }
-GEOMETRY_INPUTS = {"geometry.length", "geometry.width", "geometry.height"}
+GEOMETRY_UNITS = {item.key: item.unit for fields in FOUNDATION_FIELDS.values() for item in fields}
+GEOMETRY_UNITS.update({"geometry.length":"m", "geometry.width":"m", "geometry.height":"m"})
+GEOMETRY_INPUTS = set(GEOMETRY_UNITS)
+GEOMETRY_COMPATIBLE_UNITS = {"m": {"m", "mm"}, "m2": {"m2"}, "m3": {"m3", "liter"}, "piece": {"piece"}}
+
+
+def geometry_unit_compatible(source_unit: str, target_unit: str) -> bool:
+    return target_unit in GEOMETRY_COMPATIBLE_UNITS.get(source_unit, set())
 
 
 @dataclass(frozen=True)
@@ -44,8 +52,9 @@ def compose_block(name: str, steps: tuple[ComposerStep, ...], *, material_step: 
                 key = f"parameter.{uuid4().hex}"
                 parameters.append(BlockParameter(key, step.label.strip(), step.unit))
             elif step.source in GEOMETRY_INPUTS:
-                if step.unit not in UNITS or UNITS[step.unit][0] != (1, 0):
-                    raise ValueError("geometry dimensions require a length unit")
+                source_unit = GEOMETRY_UNITS[step.source]
+                if not geometry_unit_compatible(source_unit, step.unit):
+                    raise ValueError("geometry input unit does not match")
                 key = step.source
             else:
                 raise ValueError("select a geometry input or parameter")
@@ -72,7 +81,7 @@ def compose_block(name: str, steps: tuple[ComposerStep, ...], *, material_step: 
 def composer_form_data(block: CalculationBlock) -> dict | None:
     """Expose supported graphs as ordered, named form steps without raw JSON editing."""
     nodes = validate_block(block)
-    if len(nodes) > 12 or any(node.operation not in OPERATIONS for node in nodes):
+    if len(nodes) > 24 or any(node.operation not in OPERATIONS for node in nodes):
         return None
     parameter_keys = {parameter.input_key for parameter in block.parameters}
     if any(node.operation == "INPUT" and node.input_key not in GEOMETRY_INPUTS | parameter_keys for node in nodes):
