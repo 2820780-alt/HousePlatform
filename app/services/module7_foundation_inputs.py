@@ -50,6 +50,7 @@ PILE_CYLINDER = (field("pile.diameter", "Диаметр сваи", "m", True),
                  field("pile.length", "Длина сваи", "m", True),
                  field("pile.count", "Количество свай", "piece", True))
 PILE_COUNT = (field("pile.count", "Количество свай", "piece", True),)
+SCREW_PILE = PILE_COUNT + (field("pile.head_count", "Количество оголовков", "piece", True, True),)
 PIER = (field("element.length", "Длина опоры", "m", True),
         field("element.width", "Ширина опоры", "m", True),
         field("element.height", "Высота опоры", "m", True),
@@ -77,7 +78,7 @@ FOUNDATION_FIELDS = {
     "FND_UFF": STRIP + SLAB + ZONES,
     "FND_PILE_BORED_RC": PILE_CYLINDER,
     "FND_PILE_DRIVEN_RC": PILE_COUNT,
-    "FND_PILE_SCREW": PILE_COUNT,
+    "FND_PILE_SCREW": SCREW_PILE,
     "FND_PILE_GRILLAGE": STRIP + PILE_COUNT,
     "FND_COLUMN_CONCRETE_RC": PIER,
     "FND_BASEMENT_WALL_MONOLITHIC": WALL,

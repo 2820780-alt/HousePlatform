@@ -31,6 +31,8 @@ from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REB
     REBAR_WORK as PILE_REBAR_WORK, TECHNOLOGY_CODE as PILE_TECHNOLOGY_CODE, reinforcement_block as pile_rebar_block)
 from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
     expected_blocks as expected_driven_pile_blocks)
+from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
+    expected_blocks as expected_screw_pile_blocks)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -135,10 +137,12 @@ async def create_estimate_preview(
     strip_roles_confirmed: bool = False,
     slab_roles_confirmed: bool = False,
     pile_roles_confirmed: bool = False,
+    screw_head_match_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
-    if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed, pile_roles_confirmed)):
+    if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
+                                                       pile_roles_confirmed, screw_head_match_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -227,6 +231,27 @@ async def create_estimate_preview(
         if not valid_allocation:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+    if foundation and technology.technology_code == SCREW_PILE_CODE:
+        screw_valid = False
+        try:
+            expected = await expected_screw_pile_blocks(db, technology)
+            actual = {block.id: block for block in blocks}
+            exact = all(item.id in actual and item.id not in block_issues and
+                        encode_definition(actual[item.id]) == encode_definition(item) and
+                        actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                        for item in expected)
+            counts = [explicit_parameters.get((item.id, item.parameters[0].input_key)) for item in expected[:5]]
+            pile_total, head_total = values.get("pile.count"), values.get("pile.head_count")
+            screw_valid = bool(exact and pile_total and head_total and all(item is not None for item in counts) and
+                all(item[0] >= 0 and item[0] == item[0].to_integral_value() for item in counts) and
+                sum(item[0] for item in counts[:3]) == pile_total[0] and
+                sum(item[0] for item in counts[3:]) == head_total[0] and head_total[0] <= pile_total[0] and
+                (head_total[0] == 0 or screw_head_match_confirmed))
+        except ValueError:
+            screw_valid = False
+        if not screw_valid:
+            for block in blocks:
+                block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
@@ -241,6 +266,8 @@ async def create_estimate_preview(
             missing_roles += ("Полнота комплектации технологии требует проверки",)
         if technology.technology_code == DRIVEN_PILE_CODE and not valid_allocation:
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
+        if technology.technology_code == SCREW_PILE_CODE and not screw_valid:
+            missing_roles += ("Проверьте распределение свай и оголовков и подтвердите их совместимость",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
                                           allow_preliminary_defaults=True, parameter_values=explicit_parameters,
                                           block_issues=block_issues, ambiguous_work_codes=conflicts,
@@ -263,6 +290,7 @@ async def create_estimate_preview(
                        for key, value in explicit_parameters.items()],
         "strip_roles_confirmed": strip_roles_confirmed, "slab_roles_confirmed": slab_roles_confirmed,
         "pile_roles_confirmed": pile_roles_confirmed,
+        "screw_head_match_confirmed": screw_head_match_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
