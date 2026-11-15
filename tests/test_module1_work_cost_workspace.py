@@ -57,7 +57,8 @@ def test_work_cost_workspace_route_and_overview_link_are_declared():
     assert '@router.get("/work-costs", response_class=HTMLResponse)' in view
     assert '"material_hub_work_costs.html"' in view
     assert "_load_provider_work_cost_offer_rows" in view
-    assert "/api/v1/admin/material-hub/view/work-costs" in shell
+    assert "/api/v1/admin/vertical-m1/works" in shell
+    assert "/api/v1/admin/material-hub/view/work-costs" in _template_text()
     assert "Блок 5 · Стоимость работ" not in overview
     assert "WorkRateObservation" not in overview
 

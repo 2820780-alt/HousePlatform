@@ -54,7 +54,7 @@ def test_shell_has_exact_six_tabs_once_and_no_duplicate_title_band() -> None:
         ("overview", "Обзор"),
         ("materials", "Материалы"),
         ("documents", "Документы и технические данные"),
-        ("work-costs", "Стоимость работ"),
+        ("work-costs", "Работы"),
         ("sources", "Источники и анализатор"),
         ("moderation", "Модерация и качество"),
     ]

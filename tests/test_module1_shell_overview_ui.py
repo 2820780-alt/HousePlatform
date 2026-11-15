@@ -22,7 +22,7 @@ def test_shared_shell_has_fixed_six_tabs_in_order() -> None:
         ("overview", "Обзор", "/api/v1/admin/material-hub/view"),
         ("materials", "Материалы", "/api/v1/admin/material-hub/view/materials"),
         ("documents", "Документы и технические данные", "/api/v1/admin/material-hub/view/documents"),
-        ("work-costs", "Стоимость работ", "/api/v1/admin/material-hub/view/work-costs"),
+        ("work-costs", "Работы", "/api/v1/admin/vertical-m1/works"),
         ("sources", "Источники и анализатор", "/api/v1/admin/material-hub/view/sources"),
         ("moderation", "Модерация и качество", "/api/v1/admin/material-hub/view/moderation"),
     ]

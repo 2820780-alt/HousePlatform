@@ -50,11 +50,41 @@ async def test_manual_work_and_price_forms_on_restored_qa(monkeypatch):
                     assert work is not None
                     card = await client.get(created.headers["location"])
                     assert card.status_code == 200 and name in card.text
+                    assert "Основные данные" in card.text and "Укажите регион и условия" in card.text
+                    catalog = await client.get("/api/v1/admin/vertical-m1/works", params={"q": name, "group": group.work_group})
+                    assert catalog.status_code == 200 and name in catalog.text
+                    assert "Предложения исполнителей" in catalog.text
+                    no_match = await client.get("/api/v1/admin/vertical-m1/works", params={"q": name + "-missing"})
+                    assert "Работы не найдены" in no_match.text
+                    before_version = work.version
+                    saved = await client.post("/api/v1/admin/vertical-m1/works/save", data={
+                        "work_code": work.work_code, "version": str(before_version), "name": name + " updated",
+                        "work_group": group.work_group, "unit": "m3", "description": "QA description"})
+                    assert saved.status_code == 303 and "error=" not in saved.headers["location"]
+                    await db.refresh(work)
+                    assert work.version == before_version + 1 and work.description == "QA description"
                     price_url = f"/api/v1/admin/vertical-m1/prices/work/{work.work_code}"
                     response = await client.post(price_url, data={"region": "region", "terms": "terms", "amount": "1500"})
                     assert response.status_code == 303 and "error=" not in response.headers["location"]
                     price = await client.get(response.headers["location"])
                     assert price.status_code == 200 and "1500" in price.text
+                    card = await client.get(f"/api/v1/admin/vertical-m1/works/{work.work_code}",
+                                            params={"region": "region", "terms": "terms"})
+                    assert "1500" in card.text and "Ручная резервная цена" in card.text
+                    assert "Предложения исполнителей" in card.text
+                    changed = await client.post(price_url, data={"region": "region", "terms": "terms",
+                                                                  "amount": "1700", "return_work": "1"})
+                    assert changed.status_code == 303 and "/works/" in changed.headers["location"]
+                    card = await client.get(changed.headers["location"])
+                    assert "1700" in card.text and "Ручная резервная цена" in card.text
+                    assert "Резервная цена:" in card.text
+                    monkeypatch.setattr(settings, "VERTICAL_CALCULATION_PREVIEW_ENABLED", False)
+                    assert (await client.get("/api/v1/admin/vertical-m1/works")).status_code == 200
+                    viewer = SimpleNamespace(id=owner, role="ANALYST")
+                    app.dependency_overrides[get_current_user] = lambda: viewer
+                    hidden = await client.get("/api/v1/admin/vertical-m1/works", params={"q": name})
+                    assert hidden.status_code == 200 and work.work_code not in hidden.text
+                    assert (await client.get(f"/api/v1/admin/vertical-m1/works/{work.work_code}")).status_code == 404
             await transaction.rollback()
     finally:
         await engine.dispose()
