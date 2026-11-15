@@ -199,6 +199,10 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
             app.dependency_overrides[get_db] = lambda: db
             monkeypatch.setattr(db, "commit", db.flush)
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                legacy_new = await client.get(f"/api/v1/admin/vertical-preview/{tech.id}")
+                assert legacy_new.status_code == 303 and "/module7/foundations/view?technology=" in legacy_new.headers["location"]
+                legacy_post = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}", data={})
+                assert legacy_post.status_code == 400
                 page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}")
                 assert page.status_code == 200 and "Геометрия" in page.text
                 form = {"region": "qa", "terms": "qa", "idempotency_key": str(uuid.uuid4())}

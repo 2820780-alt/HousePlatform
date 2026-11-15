@@ -57,7 +57,7 @@
 <header class="m2-page-head"><div><div class="m2-eyebrow">Технологии</div><h1>Расчётные блоки</h1>
 <div class="m2-status-line">{{ technology.name }} · Редакция № {{ technology.revision }} · {{ technology.status }}</div></div>
 <div class="m2-actions"><a class="m2-button ghost" href="/api/v1/admin/module2/workbench/{{ technology.id }}">К технологии</a>
-<a class="m2-button" href="/api/v1/admin/vertical-preview/{{ technology.id }}">Предварительный расчёт</a></div></header>
+<a class="m2-button" href="{% if has_foundation_geometry %}/api/v1/admin/module7/foundations/view?technology={{ technology.id }}{% else %}/api/v1/admin/vertical-preview/{{ technology.id }}{% endif %}">Предварительный расчёт</a></div></header>
 {% if error %}<div class="m2-alert danger" role="alert">{{ error }}</div>{% endif %}
 {% if technology.status == 'DRAFT' %}
 <section class="m2-panel"><div class="m2-panel-head"><h2>Добавить блок</h2></div><div class="m2-panel-body">

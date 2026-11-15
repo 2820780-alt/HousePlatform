@@ -126,6 +126,7 @@ async def builder(technology_id: uuid.UUID, request: Request, db: DBSession, use
         "sources": [(row, source, _block(row)) for row, source in sources],
         "materials": materials, "works": works,
         "geometry_fields": geometry_fields, "geometry_by_unit": geometry_by_unit,
+        "has_foundation_geometry": technology.technology_code in FOUNDATION_FIELDS,
         "material_roles": [(item.id, REQUIREMENT_NAMES.get(item.code) or material_names.get(item.canonical_material_id)
                             or f"Материальная роль {index + 1}") for index, item in enumerate(requirements)],
         "work_steps": [(item.id, f"{item.position}. {work_names.get(item.work_code, 'Работа M1')}")

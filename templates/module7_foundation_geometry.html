@@ -82,6 +82,9 @@
       const saved=await request(path,{method:'POST',body:JSON.stringify(data)}); await list(); $('saved').value=saved.id; await openRevision(saved.id); history.replaceState(null,'','?revision='+encodeURIComponent(saved.id));
     } catch(e) { $('message').textContent=e.message; }
   });
-  (async()=>{try { await list(); const id=new URLSearchParams(location.search).get('revision'); if(id) { $('saved').value=id; await openRevision(id); } } catch(e) { $('message').textContent=e.message; }})();
+  (async()=>{try { await list(); const query=new URLSearchParams(location.search), id=query.get('revision'), technology=query.get('technology');
+    if(id) { $('saved').value=id; await openRevision(id); }
+    else if(technology && [...$('technology').options].some(option=>option.value===technology)) { $('technology').value=technology; await loadFields(technology); }
+  } catch(e) { $('message').textContent=e.message; }})();
 })();
 </script></body></html>

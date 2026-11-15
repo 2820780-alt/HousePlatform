@@ -165,6 +165,9 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
     tech = await db.get(Technology, technology_id)
     if tech is None or tech.status not in {"ACTIVE", "DRAFT"}:
         raise HTTPException(status_code=404)
+    if (tech.technology_code in FOUNDATION_FIELDS and tech.technology_code != "FND_STRIP_MONOLITHIC_RC"
+            and not request.query_params.get("snapshot")):
+        return RedirectResponse("/api/v1/admin/module7/foundations/view?" + urlencode({"technology": str(tech.id)}), status_code=303)
     rows = (await db.scalars(select(TechnologyCalculationBlock).where(
         TechnologyCalculationBlock.technology_id == technology_id).order_by(TechnologyCalculationBlock.position))).all()
     blocks = [(row, decode_definition(row.definition, block_id=str(row.id), name=row.name,
@@ -198,6 +201,7 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
         "provided_parameters": {(item["block_id"], item["input_key"]): item["value"]
                                 for item in snapshot.payload.get("parameters", [])} if snapshot else {},
         "protected_geometry_inputs": PROTECTED_GEOMETRY_INPUTS,
+        "legacy_snapshot_only": tech.technology_code in FOUNDATION_FIELDS and tech.technology_code != "FND_STRIP_MONOLITHIC_RC",
         "idempotency_key": str(uuid.uuid4()),
         "permissions": workbench_permissions(user), "atom_topbar_current_block": "Модуль №2: предварительный расчёт",
     })
@@ -206,6 +210,11 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
 @router.post("/{technology_id}")
 async def calculate(technology_id: uuid.UUID, request: Request, db: DBSession, user: CurrentUser):
     _guard(user)
+    technology = await db.get(Technology, technology_id)
+    if technology is None:
+        raise HTTPException(status_code=404)
+    if technology.technology_code in FOUNDATION_FIELDS and technology.technology_code != "FND_STRIP_MONOLITHIC_RC":
+        raise HTTPException(status_code=400, detail="Используйте геометрию выбранной технологии")
     form = await request.form()
     try:
         raw_key = str(form.get("idempotency_key") or "")

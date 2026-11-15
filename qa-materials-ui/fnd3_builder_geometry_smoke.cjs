@@ -41,6 +41,10 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       const remove=section.locator('form[action$="/delete"] button[type="submit"]');
       await remove.click();
       await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),name,{timeout:60000});
+      await page.getByRole('link',{name:'Предварительный расчёт',exact:true}).click();
+      await page.waitForURL(url=>url.pathname===destination&&url.searchParams.get('technology')===technology,{timeout:60000});
+      await page.locator('input[data-key="pile.count"]').waitFor({state:'visible',timeout:60000});
+      if(await page.locator('#technology').inputValue()!==technology) throw new Error('Selected technology was not preserved');
       await page.close();
     }
     process.stdout.write('M2 builder QA: typed pile geometry, create and delete own test block desktop/mobile PASS\n');

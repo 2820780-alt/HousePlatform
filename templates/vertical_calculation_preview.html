@@ -21,7 +21,7 @@
 {% for row, block in blocks %}{% for parameter in block.parameters if parameter.input_key not in protected_geometry_inputs %}<label><span>{{ row.name }} · {{ parameter.label }} ({{ unit_labels.get(parameter.unit, parameter.unit) }})</span><input name="parameter.{{ row.id }}.{{ parameter.input_key }}" inputmode="decimal" value="{{ provided_parameters.get((row.id|string, parameter.input_key), '') }}"></label>{% endfor %}{% endfor %}
 </div>
 {% if technology.technology_code == 'FND_STRIP_MONOLITHIC_RC' %}<label class="vertical-confirm"><input type="checkbox" name="strip_roles_confirmed" value="yes" {% if snapshot and snapshot.payload.strip_roles_confirmed %}checked{% endif %}><span>Подтверждаю, что верхняя, нижняя и поперечная арматура учтены без пересечений</span></label>{% endif %}
-<button class="m2-button primary" type="submit" {% if not blocks %}disabled{% endif %}>{{ 'Пересчитать' if snapshot else 'Рассчитать' }}</button></form>
+{% if legacy_snapshot_only %}<a class="m2-button" href="/api/v1/admin/module7/foundations/view?technology={{ technology.id }}">Перейти к геометрии технологии</a>{% else %}<button class="m2-button primary" type="submit" {% if not blocks %}disabled{% endif %}>{{ 'Пересчитать' if snapshot else 'Рассчитать' }}</button>{% endif %}</form>
 </div></section>
 {% if snapshot %}{% if not snapshot.payload.result.complete %}<p class="vertical-missing" role="status">Смета неполная: проверьте отсутствующие данные и цены.</p>{% endif %}
 {% if snapshot.payload.missing_required_roles %}<p class="vertical-missing">Требуют проверки: {{ snapshot.payload.missing_required_roles|join(', ') }}.</p>{% endif %}
