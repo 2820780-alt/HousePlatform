@@ -45,6 +45,38 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
       await price.locator('[name="amount"]').fill('1234');
       await price.getByRole('button', { name: 'Сохранить цену' }).click();
       await page.getByText('Ручная резервная цена', { exact: true }).waitFor({ timeout: 30000 });
+      if (width === 1440) {
+        const region = `QA-${crypto.randomBytes(8).toString('hex')}`;
+        await page.goto(`${base}/api/v1/admin/material-hub/view/work-costs`);
+        await page.locator('#add-work-cost-button').click();
+        await page.locator('#offer-work').selectOption('foundations_concrete_betonirovanie_konstrukciy');
+        await page.locator('#offer-region').fill(region);
+        await page.locator('#offer-fixed').fill('1234');
+        const form = page.locator('#work-cost-form');
+        const [created] = await Promise.all([
+          page.waitForResponse(response => response.url().endsWith('/work-cost-offers') && response.request().method() === 'POST'),
+          form.getByRole('button', { name: 'Сохранить черновик' }).click(),
+        ]);
+        if (!created.ok()) throw new Error(`Offer creation failed: ${created.status()}`);
+        const offer = await created.json();
+        await page.locator('#work-cost-search').fill(region);
+        const row = page.locator('#work-cost-body tr').filter({ hasText: region });
+        await row.getByRole('button', { name: 'Редактировать' }).click();
+        await page.locator('#offer-fixed').fill('1500');
+        const [edited] = await Promise.all([
+          page.waitForResponse(response => response.url().endsWith(`/work-cost-offers/${offer.id}`) && response.request().method() === 'PUT'),
+          form.getByRole('button', { name: 'Сохранить', exact: true }).click(),
+        ]);
+        if (!edited.ok() || Number((await edited.json()).fixedAmount) !== 1500)
+          throw new Error('Offer edit failed');
+        page.once('dialog', dialog => dialog.accept());
+        const [deactivated] = await Promise.all([
+          page.waitForResponse(response => response.url().endsWith(`/work-cost-offers/${offer.id}/deactivate`) && response.request().method() === 'POST'),
+          row.getByRole('button', { name: 'Деактивировать' }).click(),
+        ]);
+        if (!deactivated.ok() || (await deactivated.json()).status !== 'inactive')
+          throw new Error('Offer deactivation failed');
+      }
       await page.goto(`${base}${destination}`);
       await page.locator('input[name="q"]').fill('Бетонирование');
       await page.getByRole('button', { name: 'Применить' }).click();

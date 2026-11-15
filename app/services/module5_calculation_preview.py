@@ -14,17 +14,12 @@ from typing import Literal, Mapping
 from app.services.module1_calculation_price import CalculationPrice
 from app.services.module1_unit_conversion_registry import UnitConversionRegistry
 from app.services.module2_calculation_graph import CalculationBlock, CalculationValue, evaluate_block
+from app.services.module2_fnd3_work_policy import FOUNDATION_BUNDLED_WORK
 
 PROTECTED_GEOMETRY_INPUTS = frozenset({"geometry.length", "geometry.width", "geometry.height"})
 
-# The scope of these legacy bundles has not been broken down yet. Treat any
-# additional work in the same technology as potentially overlapping until it is.
-FOUNDATION_BUNDLED_WORK = {
-    "FND_PILE_GRILLAGE": "foundations_concrete_ustroystvo_svayno_rostverkovogo_fundamenta",
-    "FND_SUBSTRUCTURE_INSULATION_XPS": "foundations_concrete_uteplenie_fundamenta",
-    "FND_SUBSTRUCTURE_WATERPROOFING_COATING": "foundations_concrete_gidroizolyaciya_fundamenta",
-    "FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE": "foundations_concrete_gidroizolyaciya_fundamenta",
-}
+# Work scope in these four legacy technologies is not yet machine-verifiable.
+# Treat multiple work prices as potentially overlapping until scope is reviewed.
 
 
 @dataclass(frozen=True)
@@ -66,7 +61,7 @@ class StatementPreview:
 def ambiguous_foundation_work_codes(technology_code: str, bindings: tuple[StatementBinding, ...]) -> frozenset[str]:
     bundle = FOUNDATION_BUNDLED_WORK.get(technology_code)
     work_codes = {item.resource_id for item in bindings if item.kind == "WORK" and item.resource_id}
-    if bundle and bundle in work_codes and len(work_codes) > 1:
+    if bundle and len(work_codes) > 1:
         return frozenset(work_codes)
     return frozenset()
 

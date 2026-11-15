@@ -141,8 +141,8 @@
         const actions = tr.querySelector('.row-actions');
         const open = document.createElement('button'); open.type = 'button'; open.className = 'secondary module1-action-primary'; open.textContent = 'Открыть'; open.onclick = () => showOfferSummary(row); actions.appendChild(open);
         if (row.canEdit) { const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'secondary'; edit.textContent = 'Редактировать'; edit.onclick = () => openWorkCostDialog(row); actions.appendChild(edit); }
-        if (row.canActivate) { const activate = document.createElement('button'); activate.type = 'button'; activate.className = 'secondary'; activate.textContent = 'Активировать'; actions.appendChild(activate); }
-        if (row.canDeactivate) { const deactivate = document.createElement('button'); deactivate.type = 'button'; deactivate.className = 'danger'; deactivate.textContent = 'Деактивировать'; actions.appendChild(deactivate); }
+        if (row.canActivate) { const activate = document.createElement('button'); activate.type = 'button'; activate.className = 'secondary'; activate.textContent = 'Активировать'; activate.onclick = () => changeWorkCostState(row, 'active'); actions.appendChild(activate); }
+        if (row.canDeactivate) { const deactivate = document.createElement('button'); deactivate.type = 'button'; deactivate.className = 'danger'; deactivate.textContent = 'Деактивировать'; deactivate.onclick = () => changeWorkCostState(row, 'inactive'); actions.appendChild(deactivate); }
         body.appendChild(tr);
       });
       setWorkCostViewState("table");
@@ -154,12 +154,62 @@
     function changeWorkCostPage(delta) { workCostState.page = Math.max(1, workCostState.page + delta); renderWorkCostRows(); }
     function showOfferSummary(row) { alert(`${row.workTitle}\n${row.priceLabel}\n${row.statusLabel}`); }
     function openOfferPreview(button) { button.blur(); }
-    function openWorkCostDialog(row) { const dialog = document.getElementById("work-cost-dialog"); dialog.classList.add("open"); dialog.setAttribute("aria-hidden", "false"); document.getElementById("work-cost-dialog-title").textContent = row ? "Редактировать стоимость" : "Добавить стоимость"; document.getElementById("work-cost-form-error").hidden = true; if (!row) document.getElementById("work-cost-form").reset(); syncWorkUnits(); togglePricingModeFields(); setTimeout(() => document.getElementById("offer-work").focus(), 0); }
+    function openWorkCostDialog(row) {
+      workCostState.editing = row || null;
+      const dialog = document.getElementById("work-cost-dialog");
+      const form = document.getElementById("work-cost-form");
+      form.reset();
+      dialog.classList.add("open"); dialog.setAttribute("aria-hidden", "false");
+      document.getElementById("work-cost-dialog-title").textContent = row ? "Редактировать стоимость" : "Добавить стоимость";
+      document.getElementById("work-cost-form-error").hidden = true;
+      form.querySelector('button[type="submit"]').textContent = row ? "Сохранить" : "Сохранить черновик";
+      if (row) {
+        document.getElementById("offer-work").value = row.workCode;
+        document.getElementById("offer-region").value = row.region || "";
+        document.getElementById("offer-mode").value = row.pricingMode;
+        document.getElementById("offer-currency").value = row.currency;
+        document.getElementById("offer-fixed").value = row.fixedAmount ?? "";
+        document.getElementById("offer-minimum").value = row.minimumAmount ?? "";
+        document.getElementById("offer-maximum").value = row.maximumAmount ?? "";
+        document.getElementById("offer-valid-until").value = row.validUntil || "";
+        document.getElementById("offer-comment").value = row.comment || "";
+      }
+      syncWorkUnits();
+      if (row) document.getElementById("offer-unit").value = row.pricingUnit;
+      togglePricingModeFields(); setTimeout(() => document.getElementById("offer-work").focus(), 0);
+    }
     function closeWorkCostDialog() { const dialog = document.getElementById("work-cost-dialog"); dialog.classList.remove("open"); dialog.setAttribute("aria-hidden", "true"); }
     function syncWorkUnits() { const select = document.getElementById("offer-work"); const unitSelect = document.getElementById("offer-unit"); const option = select.selectedOptions[0]; unitSelect.innerHTML = ""; let units = []; try { units = JSON.parse(option?.dataset.units || "[]"); } catch (_error) { units = []; } units.forEach((unit) => { const node = document.createElement("option"); node.value = unit.code; node.textContent = unit.label; unitSelect.appendChild(node); }); const mode = document.getElementById("offer-mode"); if (option?.dataset.range === "0" && mode.value === "range") mode.value = "fixed"; togglePricingModeFields(); }
     function togglePricingModeFields() { const mode = document.getElementById("offer-mode").value; document.getElementById("fixed-field").hidden = mode !== "fixed"; document.getElementById("range-fields").hidden = mode !== "range"; }
     function buildWorkCostPayload(status) { const mode = document.getElementById("offer-mode").value; const payload = { workCode: document.getElementById("offer-work").value, region: document.getElementById("offer-region").value.trim(), pricingMode: mode, pricingUnit: document.getElementById("offer-unit").value, currency: document.getElementById("offer-currency").value, validUntil: document.getElementById("offer-valid-until").value || null, status, comment: document.getElementById("offer-comment").value.trim() || null }; if (mode === "fixed") { payload.fixedAmount = document.getElementById("offer-fixed").value; } else { payload.minimumAmount = document.getElementById("offer-minimum").value; payload.maximumAmount = document.getElementById("offer-maximum").value; } return payload; }
-    async function submitWorkCostOffer(status) { const error = document.getElementById("work-cost-form-error"); const payload = buildWorkCostPayload(status); if (payload.pricingMode === "range" && Number(payload.minimumAmount) > Number(payload.maximumAmount)) { error.textContent = "Стоимость от не может быть больше стоимости до."; error.hidden = false; return; } const response = await fetch("/api/v1/admin/material-hub/work-cost-offers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); if (!response.ok) { error.textContent = "Не удалось сохранить предложение. Проверьте поля формы."; error.hidden = false; return; } closeWorkCostDialog(); await loadWorkCostOffers(); }
+    function workCostHeaders() {
+      const cookie = document.cookie.split('; ').find((item) => item.startsWith('atom_csrf_token='));
+      const headers = { "Content-Type": "application/json" };
+      if (cookie) headers['X-CSRF-Token'] = decodeURIComponent(cookie.substring('atom_csrf_token='.length));
+      return headers;
+    }
+    async function submitWorkCostOffer(status) {
+      const error = document.getElementById("work-cost-form-error");
+      const editing = workCostState.editing;
+      const payload = buildWorkCostPayload(status === 'draft' && editing ? editing.status : status);
+      if (editing && editing.validFrom) payload.validFrom = editing.validFrom;
+      if (payload.pricingMode === "range" && Number(payload.minimumAmount) > Number(payload.maximumAmount)) { error.textContent = "Стоимость от не может быть больше стоимости до."; error.hidden = false; return; }
+      try {
+        const url = "/api/v1/admin/material-hub/work-cost-offers" + (editing ? `/${encodeURIComponent(editing.id)}` : "");
+        const response = await fetch(url, { method: editing ? "PUT" : "POST", headers: workCostHeaders(), body: JSON.stringify(payload) });
+        if (!response.ok) throw new Error("controlled");
+        closeWorkCostDialog(); await loadWorkCostOffers();
+      } catch (_error) { error.textContent = "Не удалось сохранить предложение. Проверьте поля и права доступа."; error.hidden = false; }
+    }
+    async function changeWorkCostState(row, status) {
+      if (status === 'active') { openWorkCostDialog(row); return; }
+      if (!window.confirm('Деактивировать предложение?')) return;
+      try {
+        const response = await fetch(`/api/v1/admin/material-hub/work-cost-offers/${encodeURIComponent(row.id)}/deactivate`, { method: 'POST', headers: workCostHeaders() });
+        if (!response.ok) throw new Error('controlled');
+        await loadWorkCostOffers();
+      } catch (_error) { window.alert('Не удалось деактивировать предложение. Проверьте права доступа.'); }
+    }
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeWorkCostDialog(); });
     const prefs = loadWorkCostPreferences(); setWorkCostPreset(prefs.preset || "all"); applyWorkCostPreferences(); syncWorkUnits(); loadWorkCostOffers();
   </script>

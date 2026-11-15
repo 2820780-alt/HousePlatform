@@ -112,6 +112,8 @@ def test_unresolved_bundle_and_detailed_work_never_both_enter_total(technology, 
     assert not result.complete
     assert all("POTENTIAL_DOUBLE_COUNT" in item.issues for item in result.works)
     assert not ambiguous_foundation_work_codes(technology, (material, bundled))
+    assert ambiguous_foundation_work_codes(technology, (work, replace(work, resource_id="other"))) == {
+        "work-code", "other"}
     assert not ambiguous_foundation_work_codes("FND_SLAB_MONOLITHIC_RC", lines)
 
 
