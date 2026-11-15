@@ -148,7 +148,8 @@ def calculate_statement_preview(
                 line_amount = (quantity * price).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             lines.append(StatementLine(
                 binding, quantity, unit, price, quote.source if quote else "NO_PRICE", line_amount,
-                line_amount if line_amount is not None and not {"POTENTIAL_DOUBLE_COUNT", "TECHNOLOGY_ROLE_INVALID"}.intersection(issues)
+                line_amount if line_amount is not None and not {"POTENTIAL_DOUBLE_COUNT", "TECHNOLOGY_ROLE_INVALID",
+                                                               "PILE_ALLOCATION_UNVERIFIED"}.intersection(issues)
                 else Decimal("0"),
                 tuple(dict.fromkeys(issues)),
                 result.warnings, tuple(evaluated[binding.block_id].items()),

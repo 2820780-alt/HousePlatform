@@ -29,6 +29,8 @@ from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES as SLAB_REBAR_ROL
     REBAR_WORK as SLAB_REBAR_WORK, TECHNOLOGY_CODE as SLAB_TECHNOLOGY_CODE, reinforcement_block as slab_rebar_block)
 from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REBAR_ROLES,
     REBAR_WORK as PILE_REBAR_WORK, TECHNOLOGY_CODE as PILE_TECHNOLOGY_CODE, reinforcement_block as pile_rebar_block)
+from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
+    expected_blocks as expected_driven_pile_blocks)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -206,6 +208,25 @@ async def create_estimate_preview(
     technology = await db.get(Technology, geometry.technology_id)
     if technology is None:
         raise ValueError("technology revision no longer exists")
+    if foundation and technology.technology_code == DRIVEN_PILE_CODE:
+        valid_allocation = False
+        try:
+            expected = await expected_driven_pile_blocks(db, technology)
+            actual = {block.id: block for block in blocks}
+            exact = all(item.id in actual and item.id not in block_issues and
+                        encode_definition(actual[item.id]) == encode_definition(item) and
+                        actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                        for item in expected)
+            counts = [explicit_parameters.get((item.id, item.parameters[0].input_key)) for item in expected[:2]]
+            total = values.get("pile.count")
+            valid_allocation = bool(exact and total and all(item is not None for item in counts) and
+                all(item[0] >= 0 and item[0] == item[0].to_integral_value() for item in counts) and
+                sum(item[0] for item in counts) == total[0])
+        except ValueError:
+            valid_allocation = False
+        if not valid_allocation:
+            for block in blocks:
+                block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
@@ -218,6 +239,8 @@ async def create_estimate_preview(
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
         if technology.technology_code != TECHNOLOGY_CODE:
             missing_roles += ("Полнота комплектации технологии требует проверки",)
+        if technology.technology_code == DRIVEN_PILE_CODE and not valid_allocation:
+            missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
                                           allow_preliminary_defaults=True, parameter_values=explicit_parameters,
                                           block_issues=block_issues, ambiguous_work_codes=conflicts,
