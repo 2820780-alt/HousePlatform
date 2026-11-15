@@ -127,15 +127,17 @@ def calculate_statement_preview(
             if quantity is not None and quantity < 0:
                 quantity = None
                 issues.append("NEGATIVE_QUANTITY")
+            unused = quantity is not None and quantity == 0
             price = quote.amount if quote is not None else None
             if quote is None or quote.source == "NO_PRICE" or price is None:
                 price = None
-                if binding.resource_id:
+                if binding.resource_id and not unused:
                     issues.append("NO_PRICE")
             elif not isinstance(price, Decimal) or not price.is_finite() or price <= 0:
                 price = None
-                issues.append("INVALID_PRICE")
-            if quantity is not None and quote is not None and quote.context.base_unit != unit:
+                if not unused:
+                    issues.append("INVALID_PRICE")
+            if quantity is not None and not unused and quote is not None and quote.context.base_unit != unit:
                 conversion = registry.get_conversion_rule(unit, quote.context.base_unit)
                 if conversion is None or conversion.source not in {"identity", "builtin"}:
                     quantity = None
@@ -144,7 +146,9 @@ def calculate_statement_preview(
                     quantity *= conversion.factor
                     unit = quote.context.base_unit
             line_amount = None
-            if quantity is not None and price is not None:
+            if unused:
+                line_amount = Decimal("0.00")
+            elif quantity is not None and price is not None:
                 line_amount = (quantity * price).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             lines.append(StatementLine(
                 binding, quantity, unit, price, quote.source if quote else "NO_PRICE", line_amount,
@@ -162,4 +166,5 @@ def calculate_statement_preview(
     material_total = sum((item.amount_for_total for item in materials), Decimal(0))
     work_total = sum((item.amount_for_total for item in works), Decimal(0))
     return StatementPreview(materials, works, material_total, work_total, material_total + work_total,
-                            complete=bool(lines) and not any(item.issues for item in lines))
+                            complete=any(item.quantity is not None and item.quantity > 0 for item in lines)
+                            and not any(item.issues for item in lines))

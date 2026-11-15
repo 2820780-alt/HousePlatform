@@ -36,7 +36,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('[name="screw_head_match_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==unconfirmed,{timeout:60000}),page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       const correct=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['Материалы','Работы','3 шт.','2 шт.','5 шт.','Нет цены','Смета неполная'])
+      for(const expected of ['Материалы','Работы','3 шт.','2 шт.','5 шт.','Нет цены','Не требуется','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if(text.includes('Проверьте распределение свай и оголовков и подтвердите их совместимость')) throw new Error('Confirmed allocation rejected');
       await page.goto(unconfirmed);

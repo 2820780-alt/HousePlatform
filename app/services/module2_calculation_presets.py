@@ -136,7 +136,7 @@ def reinforcement_block(*, thresholds: tuple[Threshold, ...], source: str,
     if not source.strip() or any(case.result < 2 or case.result != case.result.to_integral_value() for case in thresholds):
         raise ValueError("bar counts and their source must be explicitly specified")
     names = ("width", "length", "cover", "diameter", "min", "max", "lap", "joints", "mass_per_m",
-             "bars", "spacing", "bar_length", "lap_total", "total_length", "raw_mass", "mass")
+             "bars", "spacing", "bar_length", "lap_total", "total_length", "safe_length", "raw_mass", "mass")
     ids = {key: str(uuid4()) for key in names}
     node = lambda key, operation, unit, **kwargs: CalculationNode(ids[key], operation, unit, **kwargs)
     inputs = (
@@ -155,11 +155,12 @@ def reinforcement_block(*, thresholds: tuple[Threshold, ...], source: str,
         node("bar_length", "MULTIPLY", "m", inputs=(ids["bars"], ids["length"])),
         node("lap_total", "MULTIPLY", "m", inputs=(ids["lap"], ids["joints"])),
         node("total_length", "ADD", "m", inputs=(ids["bar_length"], ids["lap_total"])),
+        node("safe_length", "REQUIRE_VALID", "m", inputs=(ids["total_length"], ids["spacing"])),
         node("raw_mass", "MULTIPLY", "kg", inputs=(ids["total_length"], ids["mass_per_m"])),
         node("mass", "REQUIRE_VALID", "kg", inputs=(ids["raw_mass"], ids["spacing"])),
     )
-    block = CalculationBlock(id=str(uuid4()), name=name, nodes=nodes, outputs=(ids["mass"],),
+    block = CalculationBlock(id=str(uuid4()), name=name, nodes=nodes, outputs=(ids["safe_length"], ids["mass"]),
         parameters=tuple(BlockParameter(input_key, label, unit) for _, input_key, unit, label in inputs),
-        material_output_id=ids["mass"], work_output_id=ids["mass"], rule_source=source.strip(), rule_status="PRELIMINARY")
+        material_output_id=ids["safe_length"], work_output_id=ids["mass"], rule_source=source.strip(), rule_status="PRELIMINARY")
     validate_block(block)
     return block

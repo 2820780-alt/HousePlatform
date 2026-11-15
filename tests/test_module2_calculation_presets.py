@@ -80,8 +80,27 @@ def test_reinforcement_preset_uses_explicit_test_ranges_and_laps():
               "reinforcement.lap_length": ("0.5", "m"), "reinforcement.joints": ("2", "piece"),
               "material.mass_per_m": ("0.888", "kg_per_m")}
     first = evaluate_block(block, inputs)[block.material_output_id]
-    assert first.value == Decimal("27.528") and "PRELIMINARY_RULE" in first.warnings
+    assert first.value == Decimal("31") and "PRELIMINARY_RULE" in first.warnings
+    assert evaluate_block(block, inputs)[block.work_output_id].value == Decimal("27.528")
     changed = evaluate_block(block, {**inputs, "geometry.width": ("500", "mm")})[block.material_output_id]
-    assert changed.value == Decimal("36.408")
+    assert changed.value == Decimal("41")
+    assert evaluate_block(block, {**inputs, "geometry.width": ("500", "mm")})[block.work_output_id].value == Decimal("36.408")
     conflict = evaluate_block(block, {**inputs, "reinforcement.max_spacing": ("100", "mm")})[block.material_output_id]
     assert conflict.value is None and any(error.startswith("RULE_CONFLICT") for error in conflict.errors)
+    assert evaluate_block(block, {**inputs, "reinforcement.max_spacing": ("100", "mm")})[block.work_output_id].value is None
+
+
+def test_reinforcement_width_changes_bar_count_and_laps_in_both_outputs():
+    # These thresholds are test data, not engineering recommendations.
+    cases = (Threshold(Decimal("400"), Decimal("500"), Decimal("4")),
+             Threshold(Decimal("500"), Decimal("600"), Decimal("6"), True))
+    block = reinforcement_block(thresholds=cases, source="QA fixture, not a standard")
+    inputs = {"geometry.width": ("400", "mm"), "geometry.length": ("10", "m"),
+              "reinforcement.cover": ("40", "mm"), "reinforcement.diameter": ("12", "mm"),
+              "reinforcement.min_spacing": ("50", "mm"), "reinforcement.max_spacing": ("150", "mm"),
+              "reinforcement.lap_length": ("0.5", "m"), "reinforcement.joints": ("4", "piece"),
+              "material.mass_per_m": ("0.888", "kg_per_m")}
+    narrow = evaluate_block(block, inputs)
+    wide = evaluate_block(block, {**inputs, "geometry.width": ("600", "mm")})
+    assert (narrow[block.material_output_id].value, wide[block.material_output_id].value) == (Decimal("42"), Decimal("62"))
+    assert (narrow[block.work_output_id].value, wide[block.work_output_id].value) == (Decimal("37.296"), Decimal("55.056"))

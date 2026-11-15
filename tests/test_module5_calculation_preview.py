@@ -72,6 +72,33 @@ def test_incomplete_geometry_cannot_be_mistaken_for_zero_quantity():
     assert not result.complete
 
 
+def test_explicit_zero_quantity_does_not_require_a_price_but_missing_quantity_does():
+    item = CalculationBlock("optional", "Вариант", (
+        CalculationNode("count", "INPUT", "piece", input_key="selected.count"),), ("count",))
+    binding = StatementBinding("optional-line", "optional", "MATERIAL", "material-id", "count", "optional")
+    unused = calculate_statement_preview((item,), (binding,), {"selected.count": ("0", "piece")}, {})
+    assert not unused.complete and unused.materials[0].quantity == 0
+    assert unused.materials[0].unit_price is None and unused.materials[0].line_amount == Decimal("0.00")
+    assert "NO_PRICE" not in unused.materials[0].issues
+    active = bindings()[0]
+    combined = calculate_statement_preview(
+        (item, block()), (replace(binding, resource_id="optional-id"), active),
+        {"selected.count": ("0", "piece"), "length": ("10", "m"),
+         "width": ("0.4", "m"), "height": ("0.6", "m")},
+        {("MATERIAL", "material-id"): quote([1000])},
+    )
+    assert combined.complete and combined.materials[0].unit_price is None
+    assert combined.known_total == Decimal("2400.00")
+    missing = calculate_statement_preview((item,), (binding,), {}, {})
+    assert not missing.complete and missing.materials[0].quantity is None
+    assert "NO_PRICE" in missing.materials[0].issues
+    used = calculate_statement_preview((item,), (binding,), {"selected.count": ("1", "piece")}, {})
+    assert not used.complete and used.materials[0].unit_price is None and "NO_PRICE" in used.materials[0].issues
+    unresolved = calculate_statement_preview((item,), (replace(binding, resource_id=None),),
+                                            {"selected.count": ("0", "piece")}, {})
+    assert not unresolved.complete and "MATERIAL_UNRESOLVED" in unresolved.materials[0].issues
+
+
 def test_duplicate_accounting_key_cannot_double_count_same_role():
     material, work = bindings()
     with pytest.raises(ValueError, match="duplicate accounting key"):
