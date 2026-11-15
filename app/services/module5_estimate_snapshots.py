@@ -37,6 +37,8 @@ from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRA
     expected_blocks as expected_membrane_blocks)
 from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIBBED_SLAB_CODE,
     expected_blocks as expected_ribbed_slab_blocks)
+from app.services.module2_fnd3_column_wall_blocks import (REBAR_ROLES as COLUMN_WALL_REBAR_ROLES,
+    REBAR_WORK as COLUMN_WALL_REBAR_WORK, reinforcement_block as column_wall_rebar_block)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -169,12 +171,13 @@ async def create_estimate_preview(
     screw_head_match_confirmed: bool = False,
     membrane_areas_disjoint_confirmed: bool = False,
     ribbed_concrete_disjoint_confirmed: bool = False,
+    column_wall_rebar_disjoint_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
             pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
-            ribbed_concrete_disjoint_confirmed)):
+            ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -313,6 +316,11 @@ async def create_estimate_preview(
     disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues, pile_roles_confirmed,
         PILE_TECHNOLOGY_CODE, PILE_REBAR_ROLES, PILE_REBAR_WORK, pile_rebar_block)
     disjoint |= await _ribbed_scope_review(db, technology, blocks, bindings, block_issues, ribbed_concrete_disjoint_confirmed)
+    if technology.technology_code in COLUMN_WALL_REBAR_ROLES:
+        disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues,
+            column_wall_rebar_disjoint_confirmed, technology.technology_code,
+            COLUMN_WALL_REBAR_ROLES[technology.technology_code], COLUMN_WALL_REBAR_WORK,
+            lambda tech_id, code, role, step: column_wall_rebar_block(tech_id, technology.technology_code, code, role, step))
     if foundation:
         if geometry.inputs.get("missing"):
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
@@ -349,6 +357,7 @@ async def create_estimate_preview(
         "screw_head_match_confirmed": screw_head_match_confirmed,
         "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
+        "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
