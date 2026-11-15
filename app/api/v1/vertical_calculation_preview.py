@@ -128,8 +128,13 @@ async def calculate(technology_id: uuid.UUID, request: Request, db: DBSession, u
             height_m=str(form.get("height_m") or "").replace(",", "."), expected_version=expected_version)
         rows = (await db.scalars(select(TechnologyCalculationBlock).where(
             TechnologyCalculationBlock.technology_id == technology_id))).all()
-        keys = {(str(row.id), kind): str(form.get(f"scope.{row.id}.{kind}") or "")
-                for row in rows for kind in ("MATERIAL", "WORK")}
+        keys = {}
+        for row in rows:
+            block = decode_definition(row.definition, block_id=str(row.id), name=row.name)
+            for kind in ("MATERIAL", "WORK"):
+                role = block.material_requirement_id or str(row.id)
+                default = f"{kind}:{role}:{block.work_step_id or row.id}"
+                keys[(str(row.id), kind)] = str(form.get(f"scope.{row.id}.{kind}") or default)
         parameters = {}
         for row in rows:
             graph = decode_definition(row.definition, block_id=str(row.id), name=row.name)
@@ -141,7 +146,7 @@ async def calculate(technology_id: uuid.UUID, request: Request, db: DBSession, u
                     parameters[(str(row.id), parameter.input_key)] = raw
         snapshot = await create_estimate_preview(db, actor=user, geometry_revision_id=geometry.id,
             region=str(form.get("region") or ""), terms=str(form.get("terms") or ""), accounting_keys=keys,
-            parameter_values=parameters)
+            parameter_values=parameters, strip_roles_confirmed=form.get("strip_roles_confirmed") == "yes")
         if request_key:
             snapshot.payload = {**snapshot.payload, "idempotency_key": request_key,
                                 "request_fingerprint": fingerprint}

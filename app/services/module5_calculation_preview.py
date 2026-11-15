@@ -73,6 +73,7 @@ def calculate_statement_preview(
     parameter_values: Mapping[tuple[str, str], tuple[object, str]] | None = None,
     block_issues: Mapping[str, tuple[str, ...]] | None = None,
     ambiguous_work_codes: frozenset[str] = frozenset(),
+    confirmed_disjoint_binding_ids: frozenset[str] = frozenset(),
 ) -> StatementPreview:
     """Calculate independent statements from exact IDs and already-resolved M1 prices."""
     by_id = {block.id: block for block in blocks}
@@ -80,6 +81,8 @@ def calculate_statement_preview(
         raise ValueError("block IDs must be unique and nonempty")
     if len({binding.id for binding in bindings}) != len(bindings):
         raise ValueError("binding IDs must be unique")
+    if confirmed_disjoint_binding_ids - {binding.id for binding in bindings}:
+        raise ValueError("confirmed bindings must belong to the statement")
     accounting = [(binding.kind, binding.accounting_key) for binding in bindings]
     if any(not binding.id or not binding.accounting_key for binding in bindings):
         raise ValueError("binding IDs and accounting keys are required")
@@ -113,7 +116,8 @@ def calculate_statement_preview(
             result = evaluated[binding.block_id][binding.output_node_id]
             quote = quotes.get((binding.kind, binding.resource_id)) if binding.resource_id else None
             issues = [*result.errors, *(block_issues or {}).get(binding.block_id, ())]
-            if binding.resource_id and resource_counts[(binding.kind, binding.resource_id)] > 1:
+            if (binding.resource_id and resource_counts[(binding.kind, binding.resource_id)] > 1 and
+                    binding.id not in confirmed_disjoint_binding_ids):
                 issues.append("POTENTIAL_DOUBLE_COUNT")
             if binding.kind == "WORK" and binding.resource_id in ambiguous_work_codes:
                 issues.append("POTENTIAL_DOUBLE_COUNT")
