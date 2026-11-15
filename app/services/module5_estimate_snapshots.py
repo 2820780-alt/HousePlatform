@@ -36,7 +36,7 @@ from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCRE
 from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
     expected_blocks as expected_membrane_blocks)
 from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIBBED_SLAB_CODE,
-    expected_blocks as expected_ribbed_slab_blocks)
+    USHP_CODE, expected_blocks as expected_ribbed_slab_blocks)
 from app.services.module2_fnd3_column_wall_blocks import (REBAR_ROLES as COLUMN_WALL_REBAR_ROLES,
     REBAR_WORK as COLUMN_WALL_REBAR_WORK, reinforcement_block as column_wall_rebar_block)
 from app.services.module5_calculation_preview import (
@@ -136,7 +136,7 @@ async def _reinforcement_scope_review(db, technology, blocks, bindings, block_is
 
 
 async def _ribbed_scope_review(db, technology, blocks, bindings, block_issues, confirmed):
-    if technology.technology_code != RIBBED_SLAB_CODE or not confirmed:
+    if technology.technology_code not in {RIBBED_SLAB_CODE, USHP_CODE} or not confirmed:
         return frozenset()
     try:
         expected = {item.id: item for item in await expected_ribbed_slab_blocks(db, technology)}
@@ -326,6 +326,8 @@ async def create_estimate_preview(
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
         if technology.technology_code != TECHNOLOGY_CODE:
             missing_roles += ("Полнота комплектации технологии требует проверки",)
+        if technology.technology_code == USHP_CODE and values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0:
+            missing_roles += ("Материал утепления стен не выбран",)
         if technology.technology_code == DRIVEN_PILE_CODE and not valid_allocation:
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
         if technology.technology_code == SCREW_PILE_CODE and not screw_valid:

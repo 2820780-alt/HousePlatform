@@ -12,6 +12,7 @@ from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
 
 TECHNOLOGY_CODE = "FND_SLAB_RIBBED_RC"
+USHP_CODE = "FND_SLAB_USHP"
 CONCRETE_WORK = "foundations_concrete_betonirovanie_konstrukciy"
 ROLES = {"SLAB_CONCRETE": "slab", "RIB_CONCRETE": "ribs"}
 
@@ -61,12 +62,15 @@ async def expected_blocks(db, technology):
     return tuple(concrete_block(technology.id, code, roles[code], steps[0]) for code in ROLES)
 
 
-async def add_ribbed_slab_blocks(db, *, actor: object) -> dict:
+async def add_ribbed_slab_blocks(db, *, actor: object, technology_code: str = TECHNOLOGY_CODE) -> dict:
     if db.bind.dialect.name != "postgresql":
         raise ValueError("Ribbed-slab setup requires PostgreSQL transaction locking")
-    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('atom.fnd3.ribbed-slab.blocks'))"))
+    if technology_code not in {TECHNOLOGY_CODE, USHP_CODE}:
+        raise ValueError("Unsupported slab draft")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+                     {"key": f"atom.fnd3.ribbed-slab.{technology_code}"})
     technologies = (await db.scalars(select(Technology).where(
-        Technology.technology_code == TECHNOLOGY_CODE, Technology.status == "DRAFT").with_for_update())).all()
+        Technology.technology_code == technology_code, Technology.status == "DRAFT").with_for_update())).all()
     if len(technologies) != 1:
         raise ValueError("Expected one ribbed-slab draft")
     technology = technologies[0]

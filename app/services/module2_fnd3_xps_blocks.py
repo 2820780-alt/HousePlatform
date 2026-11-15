@@ -15,6 +15,7 @@ TECHNOLOGY_CODE = "FND_SUBSTRUCTURE_INSULATION_XPS"
 INSTALL_WORK = "foundations_concrete_uteplenie_fundamenta"
 ROLES = {"WALL_XPS": ("wall", "Утепление стен", "geometry.wall_area"),
          "UNDER_SLAB_XPS": ("slab", "Утепление под плитой", "geometry.slab_area")}
+EXTRA_ROLES = {"EDGE_XPS": ("edge", "Утепление торцов", "geometry.edge_area")}
 
 
 def _id(technology_id: uuid.UUID, group: str, part: str) -> str:
@@ -22,7 +23,7 @@ def _id(technology_id: uuid.UUID, group: str, part: str) -> str:
 
 
 def material_block(technology_id: uuid.UUID, code: str, role) -> CalculationBlock:
-    key, title, area_key = ROLES[code]
+    key, title, area_key = (ROLES | EXTRA_ROLES)[code]
     def node(part, operation, unit, **kwargs):
         return CalculationNode(_id(technology_id, key, part), operation, unit, **kwargs)
     area = node("area", "INPUT", "m2", input_key=area_key)
