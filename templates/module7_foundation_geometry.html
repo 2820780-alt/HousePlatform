@@ -28,7 +28,8 @@
 </div><h2>Размеры и состав</h2><div id="fields" class="grid"></div>
 <div id="message" class="message" role="status" aria-live="polite"></div>
 <div class="actions"><label class="check"><input type="checkbox" id="preliminary">Применять предварительные значения технологии</label>
-<button id="save" type="submit" {% if not can_create or not can_edit %}disabled{% endif %}>Сохранить</button></div></form>
+<button id="save" type="submit" {% if not can_create or not can_edit %}disabled{% endif %}>Сохранить</button>
+<a id="calculate" hidden>Открыть предварительную смету</a></div></form>
 </main><script>
 (() => {
   const base='/api/v1/admin/module7/foundations', $=id=>document.getElementById(id);
@@ -62,10 +63,11 @@
     return records;
   }
   async function openRevision(id) {
-    if(!id) { revision=null; userValues={}; projectValues={}; $('name').value=''; $('name').readOnly=false; $('technology').disabled=false; $('technology').value=''; $('preliminary').checked=false; $('message').textContent=''; $('save').disabled=!(canCreate&&canEdit); await loadFields(''); return; }
+    if(!id) { revision=null; userValues={}; projectValues={}; $('name').value=''; $('name').readOnly=false; $('technology').disabled=false; $('technology').value=''; $('preliminary').checked=false; $('message').textContent=''; $('calculate').hidden=true; $('save').disabled=!(canCreate&&canEdit); await loadFields(''); return; }
     revision=await request('/revisions/'+encodeURIComponent(id)); userValues={...revision.inputs.user_values}; projectValues={...revision.inputs.project_values};
     await list();
     $('name').value=revision.object_name; $('name').readOnly=true; $('technology').value=revision.technology_id; $('technology').disabled=true; $('save').disabled=!canEdit;
+    $('calculate').href='/api/v1/admin/vertical-preview/foundation/'+encodeURIComponent(revision.id); $('calculate').hidden=false;
     $('preliminary').checked=!!revision.inputs.allow_preliminary; await loadFields(revision.technology_id); showStatus();
   }
   function showStatus() {

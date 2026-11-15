@@ -21,10 +21,11 @@ from app.services.module1_manual_calculation_price import append_manual_price
 from app.services.module1_work_catalog import get_work_catalog_registry
 from app.services.module1_work_catalog_store import WorkCatalogWrite, save_work_item
 from app.services.module2_calculation_blocks import add_block
-from app.services.module2_calculation_presets import rectangular_volume_block
+from app.services.module2_calculation_presets import rectangular_volume_block, slab_net_area_volume_block
 from app.services.module2_calculation_composer import ComposerStep, compose_block
 from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
 from app.services.module7_strip_geometry import create_object, save_strip_geometry
+from app.services.module7_foundation_geometry import save_foundation_geometry
 
 
 @pytest.mark.asyncio
@@ -132,6 +133,84 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                 changed = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}",
                                             data={**form, "width_m": "0,6"})
                 assert "error=" in changed.headers["location"]
+            await db.rollback()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(monkeypatch):
+    dbname = "houseplatform_vertical_20261113_171244"
+    if os.environ.get("ATOM_VERTICAL_QA_DB") != dbname:
+        pytest.skip("requires the explicitly restored vertical QA database")
+    engine = create_async_engine(configured_engine.url.set(database=dbname), echo=False)
+    try:
+        async with async_sessionmaker(engine, expire_on_commit=False)() as db:
+            owner = await db.scalar(select(User.id).limit(1))
+            user = SimpleNamespace(id=owner, role="ADMIN", moduleAccessRules=[
+                {"moduleCode": module, "accessLevel": "ADMIN", "accessScope": "GLOBAL"}
+                for module in ("MODULE_01_MATERIAL_HUB", "MODULE_02_KNOWLEDGE_BASE",
+                               "MODULE_05_ESTIMATE_ENGINE", "MODULE_07_DIGITAL_HOUSE")])
+            tech = await db.scalar(select(Technology).where(
+                Technology.technology_code == "FND_SLAB_RIBBED_RC", Technology.status == "DRAFT"))
+            unit = await db.scalar(select(Unit).where(Unit.abbreviation.in_(["m3", "м³", "м3"])).limit(1))
+            material = Material(id=uuid.uuid4(), canonical_name="QA slab " + uuid.uuid4().hex,
+                                base_unit_id=unit.id, status=MaterialStatus.DRAFT)
+            db.add(material)
+            await db.flush()
+            block = replace(slab_net_area_volume_block(), material_id=str(material.id), work_output_id=None)
+            await add_block(db, technology_id=tech.id, block=block, actor=user, actor_id=owner)
+            obj = await create_object(db, actor=user, name="QA slab M5")
+            values = {"geometry.net_area": "50", "geometry.slab_thickness": "0.2",
+                      "geometry.rib_length": "20", "geometry.rib_width": "0.4",
+                      "geometry.rib_height": "0.3", "geometry.rib_overlap_volume": "0"}
+            first = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values=values, project_values={}, expected_version=0)
+            keys = {(block.id, "MATERIAL"): "slab"}
+            snapshot = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=first.id,
+                region="qa", terms="qa", accounting_keys=keys)
+            assert snapshot.geometry_revision_id is None and snapshot.foundation_geometry_revision_id == first.id
+            assert snapshot.payload["result"]["materials"][0]["quantity"] == "10.0"
+            assert not snapshot.payload["result"]["complete"]
+            assert snapshot.payload["missing_required_roles"]
+            second = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={**values, "geometry.net_area": "70"}, project_values={}, expected_version=1)
+            revised = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=second.id,
+                region="qa", terms="qa", accounting_keys=keys)
+            assert revised.payload["result"]["materials"][0]["quantity"] == "14.0"
+            assert (await read_estimate_preview(db, actor=user, snapshot_id=snapshot.id)).payload[
+                "result"]["materials"][0]["quantity"] == "10.0"
+            with pytest.raises(ValueError, match="unknown"):
+                await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=first.id,
+                    region="qa", terms="qa", accounting_keys=keys,
+                    parameter_values={(block.id, "technology.slab_thickness"): "5"})
+            with pytest.raises(ValueError, match="exactly one"):
+                await create_estimate_preview(db, actor=user, region="qa", terms="qa", accounting_keys=keys)
+            import httpx
+            from fastapi import FastAPI
+            from app.api.deps import get_current_user
+            from app.api.v1.vertical_calculation_preview import router
+            from app.config import settings
+            from app.database import get_db
+            monkeypatch.setattr(settings, "VERTICAL_CALCULATION_PREVIEW_ENABLED", True)
+            app = FastAPI()
+            app.include_router(router, prefix="/api/v1")
+            app.dependency_overrides[get_current_user] = lambda: user
+            app.dependency_overrides[get_db] = lambda: db
+            monkeypatch.setattr(db, "commit", db.flush)
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}")
+                assert page.status_code == 200 and "Геометрия" in page.text
+                form = {"region": "qa", "terms": "qa", "idempotency_key": str(uuid.uuid4())}
+                result = await client.post(f"/api/v1/admin/vertical-preview/foundation/{first.id}", data=form)
+                assert result.status_code == 303 and "snapshot=" in result.headers["location"]
+                repeated = await client.post(f"/api/v1/admin/vertical-preview/foundation/{first.id}", data=form)
+                assert repeated.headers["location"] == result.headers["location"]
+                result_page = await client.get(result.headers["location"])
+                assert result_page.status_code == 200 and "Смета неполная" in result_page.text
+                assert "Нет цены" in result_page.text
+                wrong_route = await client.get(f"/api/v1/admin/vertical-preview/{tech.id}?snapshot={snapshot.id}")
+                assert wrong_route.status_code == 404
             await db.rollback()
     finally:
         await engine.dispose()

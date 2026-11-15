@@ -29,9 +29,12 @@ from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
 from app.services.module7_strip_geometry import read_strip_geometry
+from app.services.module7_foundation_geometry import read_foundation_geometry
+from app.services.module7_foundation_inputs import FOUNDATION_FIELDS
 
 MODULE5_CODE = "MODULE_05_ESTIMATE_ENGINE"
 MODULE1_CODE = "MODULE_01_MATERIAL_HUB"
+FOUNDATION_INPUT_ALIASES = {"geometry.slab_thickness": "technology.slab_thickness"}
 
 
 def _json(value):
@@ -85,7 +88,8 @@ async def _strip_scope_review(db, technology, blocks, bindings, block_issues, co
 
 
 async def create_estimate_preview(
-    db: AsyncSession, *, actor: object, geometry_revision_id: uuid.UUID, region: str, terms: str,
+    db: AsyncSession, *, actor: object, geometry_revision_id: uuid.UUID | None = None,
+    foundation_geometry_revision_id: uuid.UUID | None = None, region: str, terms: str,
     accounting_keys: Mapping[tuple[str, str], str],
     parameter_values: Mapping[tuple[str, str], str] | None = None,
     strip_roles_confirmed: bool = False,
@@ -96,7 +100,11 @@ async def create_estimate_preview(
         raise ValueError("strip role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
-    geometry = await read_strip_geometry(db, actor=actor, revision_id=geometry_revision_id)
+    if (geometry_revision_id is None) == (foundation_geometry_revision_id is None):
+        raise ValueError("exactly one geometry revision is required")
+    foundation = foundation_geometry_revision_id is not None
+    geometry = (await read_foundation_geometry(db, actor=actor, revision_id=foundation_geometry_revision_id)
+                if foundation else await read_strip_geometry(db, actor=actor, revision_id=geometry_revision_id))
     rows = (await db.scalars(select(TechnologyCalculationBlock).where(
         TechnologyCalculationBlock.technology_id == geometry.technology_id).order_by(
         TechnologyCalculationBlock.position))).all()
@@ -127,11 +135,22 @@ async def create_estimate_preview(
                         region=region, terms=terms, as_of=quote_date, actor=actor)
                 except ValueError:
                     quote_errors[f"{kind}:{resource}"] = "PRICE_CONTEXT_OR_RESOURCE_INVALID"
-    values = {"geometry.length": (geometry.length_m, "m"), "geometry.width": (geometry.width_m, "m"),
-              "geometry.height": (geometry.height_m, "m")}
+    if foundation:
+        values = {key: (Decimal(item["value"]), item["unit"]) for key, item in geometry.inputs["values"].items()}
+        protected = set(PROTECTED_GEOMETRY_INPUTS) | {
+            item.key for item in FOUNDATION_FIELDS[geometry.inputs["technology_code"]]}
+        for source, target in FOUNDATION_INPUT_ALIASES.items():
+            if source in protected:
+                protected.add(target)
+                if source in values:
+                    values[target] = values[source]
+    else:
+        values = {"geometry.length": (geometry.length_m, "m"), "geometry.width": (geometry.width_m, "m"),
+                  "geometry.height": (geometry.height_m, "m")}
+        protected = PROTECTED_GEOMETRY_INPUTS
     allowed_parameters = {(block.id, item.input_key): item for block in blocks for item in block.parameters}
     submitted = parameter_values or {}
-    if set(submitted) - set(allowed_parameters) or any(key in PROTECTED_GEOMETRY_INPUTS for _, key in submitted):
+    if set(submitted) - set(allowed_parameters) or any(key in protected for _, key in submitted):
         raise ValueError("unknown calculation parameter")
     explicit_parameters = {}
     for key, raw in submitted.items():
@@ -150,6 +169,11 @@ async def create_estimate_preview(
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
+    if foundation:
+        if geometry.inputs.get("missing"):
+            missing_roles += ("Не заполнены обязательные параметры геометрии",)
+        if technology.technology_code != TECHNOLOGY_CODE:
+            missing_roles += ("Полнота комплектации технологии требует проверки",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
                                           allow_preliminary_defaults=True, parameter_values=explicit_parameters,
                                           block_issues=block_issues, ambiguous_work_codes=conflicts,
@@ -159,9 +183,14 @@ async def create_estimate_preview(
     graph = _json([asdict(block) for block in blocks])
     graph_hash = hashlib.sha256(json.dumps(graph, ensure_ascii=True, sort_keys=True,
                                            separators=(",", ":")).encode()).hexdigest()
-    payload = _json({"schema_version": 1, "mode": "PREVIEW", "geometry": {
-        "revision_id": geometry.id, "version": geometry.version, "technology_id": geometry.technology_id,
-        "length_m": geometry.length_m, "width_m": geometry.width_m, "height_m": geometry.height_m},
+    geometry_payload = {"revision_id": geometry.id, "version": geometry.version,
+                        "technology_id": geometry.technology_id}
+    if foundation:
+        geometry_payload.update({"kind": "FOUNDATION", "inputs": geometry.inputs})
+    else:
+        geometry_payload.update({"length_m": geometry.length_m, "width_m": geometry.width_m,
+                                 "height_m": geometry.height_m})
+    payload = _json({"schema_version": 1, "mode": "PREVIEW", "geometry": geometry_payload,
         "region": region, "terms": terms, "graph": graph, "graph_hash": graph_hash,
         "parameters": [{"block_id": key[0], "input_key": key[1], "value": value[0], "unit": value[1]}
                        for key, value in explicit_parameters.items()],
@@ -169,7 +198,9 @@ async def create_estimate_preview(
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
     snapshot = EstimatePreviewSnapshot(id=uuid.uuid4(), owner_user_id=getattr(actor, "id"),
-                                       geometry_revision_id=geometry.id, mode="PREVIEW", payload=payload)
+                                       geometry_revision_id=None if foundation else geometry.id,
+                                       foundation_geometry_revision_id=geometry.id if foundation else None,
+                                       mode="PREVIEW", payload=payload)
     db.add(snapshot)
     await db.flush()
     await log_event(db, "M5_PREVIEW_CREATED", "EstimatePreviewSnapshot", snapshot.id, getattr(actor, "id"),
@@ -184,7 +215,10 @@ async def read_estimate_preview(db: AsyncSession, *, actor: object, snapshot_id:
         EstimatePreviewSnapshot.id == snapshot_id, EstimatePreviewSnapshot.owner_user_id == getattr(actor, "id", None)))
     if snapshot is None:
         raise ValueError("estimate preview not found")
-    await read_strip_geometry(db, actor=actor, revision_id=snapshot.geometry_revision_id)
+    if snapshot.foundation_geometry_revision_id:
+        await read_foundation_geometry(db, actor=actor, revision_id=snapshot.foundation_geometry_revision_id)
+    else:
+        await read_strip_geometry(db, actor=actor, revision_id=snapshot.geometry_revision_id)
     work_offer_ids = set()
     for entry in snapshot.payload.get("quotes", []):
         if entry.get("kind") == "WORK":

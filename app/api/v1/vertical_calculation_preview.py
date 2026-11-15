@@ -22,8 +22,11 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
 from app.models.module7_geometry import DigitalHouseObject, StripGeometryRevision
 from app.services.module2_calculation_blocks import decode_definition
-from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
+from app.services.module5_estimate_snapshots import (FOUNDATION_INPUT_ALIASES, create_estimate_preview,
+                                                      read_estimate_preview)
 from app.services.module5_calculation_preview import PROTECTED_GEOMETRY_INPUTS
+from app.services.module7_foundation_geometry import read_foundation_geometry
+from app.services.module7_foundation_inputs import FOUNDATION_FIELDS
 from app.services.module7_strip_geometry import create_object, save_strip_geometry
 from app.services.module2_workbench import workbench_permissions
 
@@ -48,6 +51,104 @@ def _guard(user):
     require_permission(user, "MODULE_05_ESTIMATE_ENGINE", "CREATE")
 
 
+@router.get("/foundation/{revision_id}", response_class=HTMLResponse)
+async def foundation_preview_page(revision_id: uuid.UUID, request: Request, db: DBSession, user: CurrentUser):
+    _guard(user)
+    try:
+        geometry = await read_foundation_geometry(db, actor=user, revision_id=revision_id)
+        snapshot = None
+        if request.query_params.get("snapshot"):
+            snapshot = await read_estimate_preview(db, actor=user, snapshot_id=uuid.UUID(request.query_params["snapshot"]))
+            if snapshot.foundation_geometry_revision_id != geometry.id:
+                raise ValueError("snapshot geometry mismatch")
+    except ValueError:
+        raise HTTPException(status_code=404) from None
+    technology = await db.get(Technology, geometry.technology_id)
+    rows = (await db.scalars(select(TechnologyCalculationBlock).where(
+        TechnologyCalculationBlock.technology_id == technology.id).order_by(TechnologyCalculationBlock.position))).all()
+    blocks = [(row, decode_definition(row.definition, block_id=str(row.id), name=row.name,
+                                      material_id=str(row.material_id) if row.material_id else None,
+                                      work_code=row.work_code)) for row in rows]
+    protected = set(PROTECTED_GEOMETRY_INPUTS) | {item.key for item in FOUNDATION_FIELDS[technology.technology_code]}
+    protected.update(target for source, target in FOUNDATION_INPUT_ALIASES.items() if source in protected)
+    names = {}
+    if snapshot:
+        for line in snapshot.payload["result"]["materials"]:
+            identifier = line["binding"]["resource_id"]
+            material = await db.get(Material, uuid.UUID(identifier)) if identifier else None
+            names["MATERIAL:" + (identifier or "")] = material.canonical_name if material else "Материал не выбран"
+        for line in snapshot.payload["result"]["works"]:
+            identifier = line["binding"]["resource_id"]
+            work = await db.get(WorkCatalogItem, identifier) if identifier else None
+            names["WORK:" + (identifier or "")] = work.work_name if work else "Работа не выбрана"
+    return templates.TemplateResponse(request, "vertical_foundation_preview.html", {
+        "technology": technology, "geometry": geometry, "fields": FOUNDATION_FIELDS[technology.technology_code],
+        "blocks": blocks, "protected": protected, "snapshot": snapshot, "names": names,
+        "error": request.query_params.get("error"), "number": _display_number,
+        "provided_parameters": {(item["block_id"], item["input_key"]): item["value"]
+                                for item in snapshot.payload.get("parameters", [])} if snapshot else {},
+        "idempotency_key": str(uuid.uuid4()), "permissions": workbench_permissions(user),
+        "atom_topbar_current_block": "Модуль №5: предварительная смета",
+    })
+
+
+@router.post("/foundation/{revision_id}")
+async def calculate_foundation(revision_id: uuid.UUID, request: Request, db: DBSession, user: CurrentUser):
+    _guard(user)
+    form = await request.form()
+    try:
+        geometry = await read_foundation_geometry(db, actor=user, revision_id=revision_id)
+        technology = await db.get(Technology, geometry.technology_id)
+        raw_key = str(form.get("idempotency_key") or "")
+        request_key = str(uuid.UUID(raw_key)) if raw_key else None
+        fingerprint = None
+        if request_key:
+            if db.bind.dialect.name != "postgresql":
+                raise ValueError("idempotent requests require PostgreSQL transaction locking")
+            payload = sorted((str(key), str(value)) for key, value in form.multi_items()
+                             if key not in {"idempotency_key", "csrf_token"})
+            fingerprint = hashlib.sha256(json.dumps([str(revision_id), payload], ensure_ascii=True,
+                                                    separators=(",", ":")).encode()).hexdigest()
+            await db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+                             {"key": f"atom.m5.preview:{user.id}:{request_key}"})
+            existing = await db.scalar(select(EstimatePreviewSnapshot).where(
+                EstimatePreviewSnapshot.owner_user_id == user.id,
+                EstimatePreviewSnapshot.payload["idempotency_key"].as_string() == request_key))
+            if existing is not None:
+                if existing.payload.get("request_fingerprint") != fingerprint:
+                    raise ValueError("idempotency key cannot be reused for different inputs")
+                await read_estimate_preview(db, actor=user, snapshot_id=existing.id)
+                return RedirectResponse(f"/api/v1/admin/vertical-preview/foundation/{revision_id}?" +
+                                        urlencode({"snapshot": str(existing.id)}), status_code=303)
+        rows = (await db.scalars(select(TechnologyCalculationBlock).where(
+            TechnologyCalculationBlock.technology_id == technology.id))).all()
+        protected = set(PROTECTED_GEOMETRY_INPUTS) | {item.key for item in FOUNDATION_FIELDS[technology.technology_code]}
+        protected.update(target for source, target in FOUNDATION_INPUT_ALIASES.items() if source in protected)
+        keys, parameters = {}, {}
+        for row in rows:
+            block = decode_definition(row.definition, block_id=str(row.id), name=row.name)
+            for kind in ("MATERIAL", "WORK"):
+                role = block.material_requirement_id or str(row.id)
+                keys[(str(row.id), kind)] = f"{kind}:{role}:{block.work_step_id or row.id}"
+            for parameter in block.parameters:
+                if parameter.input_key not in protected:
+                    raw = str(form.get(f"parameter.{row.id}.{parameter.input_key}") or "").strip()
+                    if raw:
+                        parameters[(str(row.id), parameter.input_key)] = raw
+        snapshot = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=revision_id,
+            region=str(form.get("region") or ""), terms=str(form.get("terms") or ""), accounting_keys=keys,
+            parameter_values=parameters, strip_roles_confirmed=form.get("strip_roles_confirmed") == "yes")
+        if request_key:
+            snapshot.payload = {**snapshot.payload, "idempotency_key": request_key,
+                                "request_fingerprint": fingerprint}
+        await db.commit()
+        query = urlencode({"snapshot": str(snapshot.id)})
+    except (KeyError, ValueError):
+        await db.rollback()
+        query = urlencode({"error": "Не удалось выполнить расчёт. Проверьте параметры и условия."})
+    return RedirectResponse(f"/api/v1/admin/vertical-preview/foundation/{revision_id}?{query}", status_code=303)
+
+
 @router.get("/{technology_id}", response_class=HTMLResponse)
 async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession, user: CurrentUser):
     _guard(user)
@@ -65,8 +166,10 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
             snapshot = await read_estimate_preview(db, actor=user, snapshot_id=uuid.UUID(request.query_params["snapshot"]))
         except ValueError:
             raise HTTPException(status_code=404) from None
+        if snapshot.geometry_revision_id is None:
+            raise HTTPException(status_code=404)
         geometry = await db.get(StripGeometryRevision, snapshot.geometry_revision_id)
-        if geometry.technology_id != technology_id:
+        if geometry is None or geometry.technology_id != technology_id:
             raise HTTPException(status_code=404)
         obj = await db.get(DigitalHouseObject, geometry.object_id)
     names = {}
