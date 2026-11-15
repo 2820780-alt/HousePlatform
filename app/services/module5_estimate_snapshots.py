@@ -41,6 +41,8 @@ from app.services.module2_fnd3_column_wall_blocks import (REBAR_ROLES as COLUMN_
     REBAR_WORK as COLUMN_WALL_REBAR_WORK, reinforcement_block as column_wall_rebar_block)
 from app.services.module2_fnd3_uff_blocks import (TECHNOLOGY_CODE as UFF_CODE,
     concrete_blocks as uff_concrete_blocks, expected_blocks as expected_uff_roles)
+from app.services.module2_fnd3_grillage_blocks import (TECHNOLOGY_CODE as GRILLAGE_CODE,
+    expected_blocks as expected_grillage_blocks)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -175,13 +177,15 @@ async def create_estimate_preview(
     ribbed_concrete_disjoint_confirmed: bool = False,
     column_wall_rebar_disjoint_confirmed: bool = False,
     uff_floor_disjoint_confirmed: bool = False,
+    grillage_rebar_disjoint_confirmed: bool = False,
+    grillage_bundle_scope_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
             pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
-            uff_floor_disjoint_confirmed)):
+            uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -330,6 +334,31 @@ async def create_estimate_preview(
             for block in blocks:
                 if block.id in protected_ids:
                     block_issues[block.id] = (*block_issues.get(block.id, ()), "UFF_SCOPE_UNVERIFIED")
+    grillage_exact, grillage_expected, grillage_allocation_valid = False, (), False
+    if foundation and technology.technology_code == GRILLAGE_CODE:
+        try:
+            grillage_expected = await expected_grillage_blocks(db, technology)
+            actual = {block.id: block for block in blocks}
+            grillage_exact = all(item.id in actual and item.id not in block_issues and
+                encode_definition(actual[item.id]) == encode_definition(item) and
+                actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                for item in grillage_expected)
+            counts = [explicit_parameters.get((item.id, item.parameters[0].input_key)) for item in grillage_expected[:5]]
+            total = values.get("pile.count")
+            grillage_allocation_valid = bool(grillage_exact and total and all(item is not None for item in counts) and
+                all(item[0] >= 0 and item[0] == item[0].to_integral_value() for item in counts) and
+                sum(item[0] for item in counts) == total[0])
+        except ValueError:
+            pass
+        if not grillage_allocation_valid:
+            for block in blocks:
+                block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+        if not (grillage_exact and grillage_bundle_scope_confirmed):
+            bundled_ids = {item.id for item in grillage_expected if item.work_code} if grillage_expected else {
+                item.id for item in blocks if item.work_code}
+            for block in blocks:
+                if block.id in bundled_ids:
+                    block_issues[block.id] = (*block_issues.get(block.id, ()), "BUNDLE_SCOPE_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
@@ -343,6 +372,13 @@ async def create_estimate_preview(
             column_wall_rebar_disjoint_confirmed, technology.technology_code,
             COLUMN_WALL_REBAR_ROLES[technology.technology_code], COLUMN_WALL_REBAR_WORK,
             lambda tech_id, code, role, step: column_wall_rebar_block(tech_id, technology.technology_code, code, role, step))
+    if grillage_exact and grillage_rebar_disjoint_confirmed:
+        expected_rebar = {item.id: item for item in grillage_expected[5:8]}
+        for resource in {item.resource_id for item in bindings if item.kind == "MATERIAL" and item.resource_id}:
+            group = [item for item in bindings if item.kind == "MATERIAL" and item.resource_id == resource]
+            if (len(group) > 1 and all(item.block_id in expected_rebar and item.block_id not in block_issues for item in group)
+                    and len({expected_rebar[item.block_id].material_requirement_id for item in group}) == len(group)):
+                disjoint |= frozenset(item.id for item in group)
     if foundation:
         if geometry.inputs.get("missing"):
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
@@ -355,6 +391,11 @@ async def create_estimate_preview(
                 missing_roles += ("Подтвердите, что площадь пола не включает фундаментную часть",)
             if values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0 or values.get("geometry.edge_area", (Decimal(0), "m2"))[0] > 0:
                 missing_roles += ("Материал утепления стен или торцов не выбран",)
+        if technology.technology_code == GRILLAGE_CODE:
+            if not grillage_allocation_valid:
+                missing_roles += ("Проверьте распределение свай по исполнениям",)
+            if not (grillage_exact and grillage_bundle_scope_confirmed):
+                missing_roles += ("Проверьте состав комплексной работы и отсутствие повторного учёта",)
         if technology.technology_code == DRIVEN_PILE_CODE and not valid_allocation:
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
         if technology.technology_code == SCREW_PILE_CODE and not screw_valid:
@@ -388,6 +429,8 @@ async def create_estimate_preview(
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,
         "uff_floor_disjoint_confirmed": uff_floor_disjoint_confirmed,
+        "grillage_rebar_disjoint_confirmed": grillage_rebar_disjoint_confirmed,
+        "grillage_bundle_scope_confirmed": grillage_bundle_scope_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
