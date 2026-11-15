@@ -39,12 +39,14 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         for(const layer of ['sand','gravel'])
           for(const [part,value] of Object.entries({area:'50',thickness:'0.2',supply_factor:'1.2'}))
             await page.locator(`input[name$=".preparation.${layer}.${part}"]`).fill(value);
+        await page.locator('input[name$=".geotextile.area"]').fill('50');
+        await page.locator('input[name$=".geotextile.overlap_area"]').fill('5');
         await page.locator('[name="ribbed_concrete_disjoint_confirmed"]').check();
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       };
       await calculate();
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 м³','12 м³','2,3 м³','6,48 м²','9 шт.','2,16 м²','3 шт.','49 м','Нет цены','Смета неполная'])
+      for(const expected of ['10 м³','12 м³','55 м²','2,3 м³','6,48 м²','9 шт.','2,16 м²','3 шт.','49 м','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       await page.getByRole('link',{name:'К геометрии'}).click(); await page.locator('input[data-key="geometry.net_area"]').fill('70');
       const before=page.url();

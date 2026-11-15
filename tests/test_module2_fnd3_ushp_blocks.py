@@ -14,7 +14,8 @@ from app.models.user import User
 from app.services.module2_fnd3_ribbed_slab_blocks import USHP_CODE, _id as rib_id, add_ribbed_slab_blocks
 from app.services.module2_fnd3_slab_blocks import _id as slab_id
 from app.services.module2_calculation_graph import evaluate_block, validate_block
-from app.services.module2_fnd3_ushp_blocks import add_ushp_blocks, add_ushp_preparation_blocks, preparation_block
+from app.services.module2_fnd3_ushp_blocks import (add_ushp_blocks, add_ushp_geotextile_block,
+    add_ushp_preparation_blocks, geotextile_block, preparation_block)
 from app.services.module2_fnd3_xps_blocks import _id as xps_id
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
@@ -39,6 +40,19 @@ def test_ushp_preparation_keeps_supply_and_compacted_work_quantities_separate():
     assert missing[block.work_output_id].value == Decimal("10.0")
 
 
+def test_ushp_geotextile_requires_explicit_overlap():
+    role = SimpleNamespace(id=uuid.uuid4(), canonical_material_id=uuid.uuid4())
+    step = SimpleNamespace(id=uuid.uuid4(), work_code="earthworks_ukladka_geotekstilya")
+    block = geotextile_block(uuid.uuid4(), role, step)
+    validate_block(block)
+    result = evaluate_block(block, {"geotextile.area": ("50", "m2"), "geotextile.overlap_area": ("5", "m2")})
+    assert result[block.material_output_id].value == Decimal("55")
+    assert result[block.work_output_id].value == Decimal("50")
+    missing = evaluate_block(block, {"geotextile.area": ("50", "m2")})
+    assert missing[block.material_output_id].value is None
+    assert missing[block.work_output_id].value == Decimal("50")
+
+
 @pytest.mark.asyncio
 async def test_ushp_preparation_uses_existing_roles_and_is_idempotent():
     dbname = "houseplatform_vertical_20261113_171244"
@@ -56,6 +70,10 @@ async def test_ushp_preparation_uses_existing_roles_and_is_idempotent():
             second = await add_ushp_preparation_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 2 and not first["edited"]
             assert second["reused"] == 2 and not second["edited"]
+            first_geo = await add_ushp_geotextile_block(db, actor=user)
+            second_geo = await add_ushp_geotextile_block(db, actor=user)
+            assert first_geo["created"] + first_geo["reused"] == 1 and not first_geo["edited"]
+            assert second_geo["reused"] == 1 and not second_geo["edited"]
             technology = await db.get(Technology, uuid.UUID(first["technology_id"]))
             obj = await create_object(db, actor=user, name="QA USHP preparation")
             geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=technology.id,
@@ -70,6 +88,8 @@ async def test_ushp_preparation_uses_existing_roles_and_is_idempotent():
             params = {(identifiers[code], f"preparation.{code}.{key}"): value
                       for code in identifiers for key, value in (("area", "50"), ("thickness", "0.2"),
                                                                   ("supply_factor", "1.2"))}
+            geo = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology.id}/ushp/geotextile/block"))
+            params.update({(geo, "geotextile.area"): "50", (geo, "geotextile.overlap_area"): "5"})
             result = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys, parameter_values=params)
             for code, identifier in identifiers.items():
@@ -80,6 +100,10 @@ async def test_ushp_preparation_uses_existing_roles_and_is_idempotent():
                 assert Decimal(material["quantity"]) == Decimal("12")
                 assert Decimal(work["quantity"]) == Decimal("10")
                 assert material["unit_price"] is None and "NO_PRICE" in material["issues"]
+            assert Decimal(next(line["quantity"] for line in result.payload["result"]["materials"]
+                                if line["binding"]["block_id"] == geo)) == Decimal("55")
+            assert Decimal(next(line["quantity"] for line in result.payload["result"]["works"]
+                                if line["binding"]["block_id"] == geo)) == Decimal("50")
             await db.rollback()
     finally:
         await engine.dispose()
@@ -105,6 +129,7 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
             second = await add_ushp_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 4 and second["reused"] == 4 and not first["edited"]
             await add_ushp_preparation_blocks(db, actor=user)
+            await add_ushp_geotextile_block(db, actor=user)
             tech = await db.scalar(select(Technology).where(Technology.technology_code == USHP_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA USHP")
@@ -124,6 +149,9 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
                 block_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/ushp/preparation/{code}/block"))
                 keys[(block_id, "MATERIAL")] = f"{code}-material"
                 keys[(block_id, "WORK")] = f"{code}-work"
+            geo = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/ushp/geotextile/block"))
+            keys[(geo, "MATERIAL")] = "geotextile-material"
+            keys[(geo, "WORK")] = "geotextile-work"
             params = {(insulation,"xps_slab.sheet_length"):"1.2", (insulation,"xps_slab.sheet_width"):"0.6",
                       (edge,"xps_edge.sheet_length"):"1.2", (edge,"xps_edge.sheet_width"):"0.6"}
             for suffix,value in {"length":"12", "count":"4", "lap_length":"0.5",
@@ -136,7 +164,7 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
             quantities = {line["binding"]["block_id"]:line["quantity"] for line in materials}
             assert all(quantities[key] == expected for key, expected in
                        {slab:"10.0", ribs:"2.30", insulation:"6.48", edge:"2.16", rebar:"49.0"}.items())
-            assert sum(value is None for value in quantities.values()) == 2
+            assert sum(value is None for value in quantities.values()) == 3
             assert any(line["binding"]["block_id"] == install and line["quantity"] == "8" for line in works)
             assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in materials + works)
             assert not result.payload["result"]["complete"] and result.payload["missing_required_roles"]

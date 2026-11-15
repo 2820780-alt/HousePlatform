@@ -21,6 +21,51 @@ ROLES = ("UNDER_SLAB_XPS", "EDGE_XPS", "SLAB_REBAR")
 PREPARATION_WORKS = {"SAND": "earthworks_ustroystvo_peschanoy_podushki",
                      "GRAVEL": "earthworks_ustroystvo_schebenochnoy_podushki"}
 PREPARATION_ROLES = {"SAND": "FND2_BASE_01", "GRAVEL": "FND2_BASE_02"}
+GEOTEXTILE_WORK = "earthworks_ukladka_geotekstilya"
+
+
+def geotextile_block(technology_id: uuid.UUID, role, step) -> CalculationBlock:
+    def node(part, operation, unit, **kwargs):
+        identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/geotextile/{part}"))
+        return CalculationNode(identifier, operation, unit, **kwargs)
+    area = node("area", "INPUT", "m2", input_key="geotextile.area")
+    overlaps = node("overlaps", "INPUT", "m2", input_key="geotextile.overlap_area")
+    total = node("total", "ADD", "m2", inputs=(area.id, overlaps.id))
+    identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/geotextile/block"))
+    return CalculationBlock(id=identifier, name="Геотекстиль основания", nodes=(area, overlaps, total),
+        outputs=(total.id, area.id),
+        parameters=(BlockParameter("geotextile.area", "Площадь укладки геотекстиля", "m2", minimum=Decimal(0)),
+                    BlockParameter("geotextile.overlap_area", "Дополнительная площадь нахлёстов", "m2", minimum=Decimal(0))),
+        material_id=str(role.canonical_material_id), material_requirement_id=str(role.id),
+        work_code=step.work_code, work_step_id=str(step.id), material_output_id=total.id, work_output_id=area.id)
+
+
+async def add_ushp_geotextile_block(db, *, actor: object) -> dict:
+    if db.bind.dialect.name != "postgresql":
+        raise ValueError("USHP setup requires PostgreSQL transaction locking")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('atom.fnd3.ushp.blocks'))"))
+    technologies = (await db.scalars(select(Technology).where(
+        Technology.technology_code == USHP_CODE, Technology.status == "DRAFT").with_for_update())).all()
+    if len(technologies) != 1:
+        raise ValueError("Expected one USHP draft")
+    technology = technologies[0]
+    roles = (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code == "FND2_BASE_04"))).all()
+    steps = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code == GEOTEXTILE_WORK))).all()
+    if len(roles) != 1 or roles[0].canonical_material_id is None or len(steps) != 1:
+        raise ValueError("USHP geotextile requires an explicit M1 material and work selection")
+    block = geotextile_block(technology.id, roles[0], steps[0])
+    existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+    if existing:
+        changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
+                   existing.name != block.name or str(existing.material_id or "") != block.material_id or
+                   existing.work_code != block.work_code)
+        return {"technology_id": str(technology.id), "created": 0, "reused": int(not changed),
+                "edited": [block.name] if changed else []}
+    await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
+    return {"technology_id": str(technology.id), "created": 1, "reused": 0, "edited": []}
 
 
 def preparation_block(technology_id: uuid.UUID, code: str, role, step) -> CalculationBlock:
