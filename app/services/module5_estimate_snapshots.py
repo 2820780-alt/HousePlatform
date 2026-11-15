@@ -25,6 +25,8 @@ from app.services.module2_calculation_blocks import _validate_technology_roles, 
 from app.services.module2_fnd3_strip_blocks import (
     CONCRETE_WORK, FORMWORK_WORK, REINFORCEMENT_WORK, TECHNOLOGY_CODE, _strip_blocks,
 )
+from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES as SLAB_REBAR_ROLES,
+    REBAR_WORK as SLAB_REBAR_WORK, TECHNOLOGY_CODE as SLAB_TECHNOLOGY_CODE, reinforcement_block as slab_rebar_block)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -87,17 +89,51 @@ async def _strip_scope_review(db, technology, blocks, bindings, block_issues, co
     return frozenset(allowed), missing
 
 
+async def _slab_scope_review(db, technology, blocks, bindings, block_issues, confirmed):
+    if technology.technology_code != SLAB_TECHNOLOGY_CODE or not confirmed:
+        return frozenset()
+    roles = {row.code: row for row in (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code.in_(SLAB_REBAR_ROLES)))).all()}
+    steps = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code == SLAB_REBAR_WORK))).all()
+    if set(roles) != set(SLAB_REBAR_ROLES) or any(role.canonical_material_id is None for role in roles.values()) or len(steps) != 1:
+        return frozenset()
+    expected = {block.id: block for block in (slab_rebar_block(technology.id, code, roles[code], steps[0])
+                                               for code in SLAB_REBAR_ROLES)}
+    actual = {block.id: block for block in blocks}
+    exact = {key for key, item in actual.items() if key in expected and key not in block_issues and
+             encode_definition(item) == encode_definition(expected[key]) and
+             item.material_id == expected[key].material_id and item.work_code == expected[key].work_code}
+    role_by_id = {str(role.id): code for code, role in roles.items()}
+    allowed = set()
+    for kind in ("MATERIAL", "WORK"):
+        groups = {}
+        for binding in bindings:
+            if binding.kind == kind and binding.resource_id:
+                groups.setdefault(binding.resource_id, []).append(binding)
+        for resource, group in groups.items():
+            if len(group) < 2 or any(item.block_id not in exact for item in group):
+                continue
+            names = [role_by_id.get(actual[item.block_id].material_requirement_id) for item in group]
+            if (len(set(names)) == len(names) and set(names) <= set(SLAB_REBAR_ROLES) and
+                    (kind == "MATERIAL" or resource == SLAB_REBAR_WORK)):
+                allowed.update(item.id for item in group)
+    return frozenset(allowed)
+
+
 async def create_estimate_preview(
     db: AsyncSession, *, actor: object, geometry_revision_id: uuid.UUID | None = None,
     foundation_geometry_revision_id: uuid.UUID | None = None, region: str, terms: str,
     accounting_keys: Mapping[tuple[str, str], str],
     parameter_values: Mapping[tuple[str, str], str] | None = None,
     strip_roles_confirmed: bool = False,
+    slab_roles_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
-    if not isinstance(strip_roles_confirmed, bool):
-        raise ValueError("strip role confirmation must be boolean")
+    if not isinstance(strip_roles_confirmed, bool) or not isinstance(slab_roles_confirmed, bool):
+        raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
     if (geometry_revision_id is None) == (foundation_geometry_revision_id is None):
@@ -169,6 +205,7 @@ async def create_estimate_preview(
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
+    disjoint |= await _slab_scope_review(db, technology, blocks, bindings, block_issues, slab_roles_confirmed)
     if foundation:
         if geometry.inputs.get("missing"):
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
@@ -194,7 +231,8 @@ async def create_estimate_preview(
         "region": region, "terms": terms, "graph": graph, "graph_hash": graph_hash,
         "parameters": [{"block_id": key[0], "input_key": key[1], "value": value[0], "unit": value[1]}
                        for key, value in explicit_parameters.items()],
-        "strip_roles_confirmed": strip_roles_confirmed, "missing_required_roles": missing_roles,
+        "strip_roles_confirmed": strip_roles_confirmed, "slab_roles_confirmed": slab_roles_confirmed,
+        "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
     snapshot = EstimatePreviewSnapshot(id=uuid.uuid4(), owner_user_id=getattr(actor, "id"),
