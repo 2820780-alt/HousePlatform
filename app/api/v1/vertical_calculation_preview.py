@@ -140,7 +140,8 @@ async def calculate_foundation(revision_id: uuid.UUID, request: Request, db: DBS
             parameter_values=parameters, strip_roles_confirmed=form.get("strip_roles_confirmed") == "yes",
             slab_roles_confirmed=form.get("slab_roles_confirmed") == "yes",
             pile_roles_confirmed=form.get("pile_roles_confirmed") == "yes",
-            screw_head_match_confirmed=form.get("screw_head_match_confirmed") == "yes")
+            screw_head_match_confirmed=form.get("screw_head_match_confirmed") == "yes",
+            membrane_areas_disjoint_confirmed=form.get("membrane_areas_disjoint_confirmed") == "yes")
         if request_key:
             snapshot.payload = {**snapshot.payload, "idempotency_key": request_key,
                                 "request_fingerprint": fingerprint}

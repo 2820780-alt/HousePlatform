@@ -33,6 +33,8 @@ from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRI
     expected_blocks as expected_driven_pile_blocks)
 from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
     expected_blocks as expected_screw_pile_blocks)
+from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
+    expected_blocks as expected_membrane_blocks)
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -138,11 +140,12 @@ async def create_estimate_preview(
     slab_roles_confirmed: bool = False,
     pile_roles_confirmed: bool = False,
     screw_head_match_confirmed: bool = False,
+    membrane_areas_disjoint_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
-                                                       pile_roles_confirmed, screw_head_match_confirmed)):
+            pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -252,6 +255,27 @@ async def create_estimate_preview(
         if not screw_valid:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+    if foundation and technology.technology_code == MEMBRANE_CODE:
+        membrane_valid = False
+        try:
+            expected = await expected_membrane_blocks(db, technology)
+            actual = {block.id: block for block in blocks}
+            exact = all(item.id in actual and item.id not in block_issues and
+                        encode_definition(actual[item.id]) == encode_definition(item) and
+                        actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                        for item in expected)
+            areas = [explicit_parameters.get((item.id, item.parameters[0].input_key)) for item in expected[:2]]
+            laps = [explicit_parameters.get((item.id, item.parameters[1].input_key)) for item in expected[:2]]
+            total = values.get("geometry.area")
+            membrane_valid = bool(exact and total and all(item is not None and item[0] >= 0 for item in areas) and
+                sum(item[0] for item in areas) == total[0] and
+                all(area[0] > 0 or lap is None or lap[0] == 0 for area, lap in zip(areas, laps)) and
+                (sum(area[0] > 0 for area in areas) <= 1 or membrane_areas_disjoint_confirmed))
+        except ValueError:
+            membrane_valid = False
+        if not membrane_valid:
+            for block in blocks:
+                block_issues[block.id] = (*block_issues.get(block.id, ()), "COVERAGE_ALLOCATION_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
@@ -268,6 +292,8 @@ async def create_estimate_preview(
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
         if technology.technology_code == SCREW_PILE_CODE and not screw_valid:
             missing_roles += ("Проверьте распределение свай и оголовков и подтвердите их совместимость",)
+        if technology.technology_code == MEMBRANE_CODE and not membrane_valid:
+            missing_roles += ("Проверьте распределение площади между материалами и отсутствие пересечений",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
                                           allow_preliminary_defaults=True, parameter_values=explicit_parameters,
                                           block_issues=block_issues, ambiguous_work_codes=conflicts,
@@ -291,6 +317,7 @@ async def create_estimate_preview(
         "strip_roles_confirmed": strip_roles_confirmed, "slab_roles_confirmed": slab_roles_confirmed,
         "pile_roles_confirmed": pile_roles_confirmed,
         "screw_head_match_confirmed": screw_head_match_confirmed,
+        "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
         "missing_required_roles": missing_roles,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
