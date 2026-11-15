@@ -64,7 +64,7 @@
 {% if technology.status == 'DRAFT' %}
 <section class="m2-panel"><div class="m2-panel-head"><h2>Добавить блок</h2></div><div class="m2-panel-body">
 <form method="post" action="/api/v1/admin/module2/calculation-builder/{{ technology.id }}/add" data-m2-form>
-<div class="m2-form-grid"><label><span>Вид расчёта</span><select name="preset"><option value="volume">Объём конструкции</option><option value="surface">Покрытие поверхности</option><option value="reinforcement">Продольная арматура</option></select></label>{{ resources() }}</div>
+<div class="m2-form-grid"><label><span>Вид расчёта</span><select name="preset"><option value="volume">Объём конструкции</option><option value="slab_area">Объём плиты по площади</option><option value="counted_prism">Объём одинаковых элементов</option><option value="piles">Объём цилиндрических свай</option><option value="surface">Покрытие поверхности</option><option value="reinforcement">Продольная арматура</option></select></label>{{ resources() }}</div>
 <details><summary>Диапазоны для продольной арматуры</summary>{{ ranges('range') }}<label><span>Основание правила</span><input name="rule_source" maxlength="1000"></label></details>
 <button class="m2-button primary" type="submit">Добавить блок</button></form>
 </div></section>

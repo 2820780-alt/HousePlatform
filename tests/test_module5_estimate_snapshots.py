@@ -93,12 +93,15 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                 assert response.status_code == 200
                 assert "Материалы" in response.text and "Работы" in response.text and "6000.00" in response.text
                 monkeypatch.setattr(db, "commit", db.flush)
-                response = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}", data={
+                form = {
                     "name": "QA via form", "length_m": "10", "width_m": "0,5", "height_m": "1",
                     "region": "region", "terms": "terms", f"scope.{block.id}.MATERIAL": "concrete",
-                    f"scope.{block.id}.WORK": "placement",
-                })
+                    f"scope.{block.id}.WORK": "placement", "idempotency_key": str(uuid.uuid4()),
+                }
+                response = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}", data=form)
                 assert response.status_code == 303 and "error=" not in response.headers["location"]
+                repeated = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}", data=form)
+                assert repeated.headers["location"] == response.headers["location"]
                 calculated = await client.get(response.headers["location"])
                 assert calculated.status_code == 200 and "7500.00" in calculated.text
                 composed = compose_block("QA area", (
@@ -121,10 +124,14 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                 assert response.status_code == 303 and "error=" not in response.headers["location"]
                 calculated = await client.get(response.headers["location"])
                 assert calculated.status_code == 200 and 'value="0.4"' in calculated.text
-            with pytest.raises(ValueError, match="not found"):
-                await read_estimate_preview(db, actor=SimpleNamespace(id=uuid.uuid4(), role="ADMIN",
-                                                                       moduleAccessRules=user.moduleAccessRules),
-                                            snapshot_id=snap.id)
+                with pytest.raises(ValueError, match="not found"):
+                    await read_estimate_preview(db, actor=SimpleNamespace(id=uuid.uuid4(), role="ADMIN",
+                                                                           moduleAccessRules=user.moduleAccessRules),
+                                                snapshot_id=snap.id)
+                # The request rollback also rolls back the test's uncommitted fixture data.
+                changed = await client.post(f"/api/v1/admin/vertical-preview/{tech.id}",
+                                            data={**form, "width_m": "0,6"})
+                assert "error=" in changed.headers["location"]
             await db.rollback()
     finally:
         await engine.dispose()

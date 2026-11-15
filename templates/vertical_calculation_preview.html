@@ -9,6 +9,7 @@
 {% if error %}<div class="m2-alert danger" role="alert">{{ error }}</div>{% endif %}
 <section class="m2-panel"><div class="m2-panel-head"><h2>Размеры и условия</h2></div><div class="m2-panel-body">
 <form method="post" action="/api/v1/admin/vertical-preview/{{ technology.id }}" data-m2-form>
+<input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 {% if object %}<input type="hidden" name="object_id" value="{{ object.id }}"><input type="hidden" name="version" value="{{ geometry.version }}">{% endif %}
 <div class="m2-form-grid"><label><span>Объект</span><input name="name" required value="{{ object.name if object else '' }}" {% if object %}readonly{% endif %}></label>
 <label><span>Длина ленты, м</span><input name="length_m" inputmode="decimal" required value="{{ geometry.length_m if geometry else '' }}"></label>

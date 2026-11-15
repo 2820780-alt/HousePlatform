@@ -16,12 +16,15 @@ from app.core.permission_guard import require_permission
 from app.core.exceptions import ForbiddenError
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.models.module2_calculation_block import TechnologyCalculationBlock
+from app.models.module2_technology import Technology
 from app.models.module5_estimate_snapshot import EstimatePreviewSnapshot
 from app.services.audit_service import log_event
 from app.services.module1_offer_qualification import quote_current_offers
 from app.services.module1_provider_work_cost_offers import _apply_list_permissions
 from app.services.module2_calculation_blocks import _validate_technology_roles, decode_definition
-from app.services.module5_calculation_preview import PROTECTED_GEOMETRY_INPUTS, StatementBinding, calculate_statement_preview
+from app.services.module5_calculation_preview import (
+    PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
+)
 from app.services.module7_strip_geometry import read_strip_geometry
 
 MODULE5_CODE = "MODULE_05_ESTIMATE_ENGINE"
@@ -89,9 +92,13 @@ async def create_estimate_preview(
         if not value.is_finite() or value.adjusted() > 24 or value.adjusted() < -24:
             raise ValueError("invalid calculation parameter")
         explicit_parameters[key] = (value, allowed_parameters[key].unit)
+    technology = await db.get(Technology, geometry.technology_id)
+    if technology is None:
+        raise ValueError("technology revision no longer exists")
+    conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
                                           allow_preliminary_defaults=True, parameter_values=explicit_parameters,
-                                          block_issues=block_issues)
+                                          block_issues=block_issues, ambiguous_work_codes=conflicts)
     graph = _json([asdict(block) for block in blocks])
     graph_hash = hashlib.sha256(json.dumps(graph, ensure_ascii=True, sort_keys=True,
                                            separators=(",", ":")).encode()).hexdigest()

@@ -2,19 +2,22 @@
 from __future__ import annotations
 
 import uuid
+import hashlib
+import json
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from app.api.deps import CurrentUser, DBSession
 from app.config import settings
 from app.core.permission_guard import require_permission
 from app.models.material import Material
 from app.models.module1_work_item import WorkCatalogItem
+from app.models.module5_estimate_snapshot import EstimatePreviewSnapshot
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
 from app.models.module7_geometry import DigitalHouseObject, StripGeometryRevision
@@ -82,6 +85,7 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
         "provided_parameters": {(item["block_id"], item["input_key"]): item["value"]
                                 for item in snapshot.payload.get("parameters", [])} if snapshot else {},
         "protected_geometry_inputs": PROTECTED_GEOMETRY_INPUTS,
+        "idempotency_key": str(uuid.uuid4()),
         "permissions": workbench_permissions(user), "atom_topbar_current_block": "Модуль №2: предварительный расчёт",
     })
 
@@ -91,6 +95,27 @@ async def calculate(technology_id: uuid.UUID, request: Request, db: DBSession, u
     _guard(user)
     form = await request.form()
     try:
+        raw_key = str(form.get("idempotency_key") or "")
+        request_key = str(uuid.UUID(raw_key)) if raw_key else None
+        fingerprint = None
+        if request_key:
+            if db.bind.dialect.name != "postgresql":
+                raise ValueError("idempotent requests require PostgreSQL transaction locking")
+            payload = sorted((str(key), str(value)) for key, value in form.multi_items()
+                             if key not in {"idempotency_key", "csrf_token"})
+            fingerprint = hashlib.sha256(json.dumps([str(technology_id), payload], ensure_ascii=True,
+                                                    separators=(",", ":")).encode()).hexdigest()
+            await db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+                             {"key": f"atom.m5.preview:{user.id}:{request_key}"})
+            existing = await db.scalar(select(EstimatePreviewSnapshot).where(
+                EstimatePreviewSnapshot.owner_user_id == user.id,
+                EstimatePreviewSnapshot.payload["idempotency_key"].as_string() == request_key))
+            if existing is not None:
+                if existing.payload.get("request_fingerprint") != fingerprint:
+                    raise ValueError("idempotency key cannot be reused for different inputs")
+                await read_estimate_preview(db, actor=user, snapshot_id=existing.id)
+                return RedirectResponse(f"/api/v1/admin/vertical-preview/{technology_id}?" +
+                                        urlencode({"snapshot": str(existing.id)}), status_code=303)
         if form.get("object_id"):
             object_id = uuid.UUID(str(form["object_id"]))
             expected_version = int(str(form["version"]))
@@ -117,6 +142,9 @@ async def calculate(technology_id: uuid.UUID, request: Request, db: DBSession, u
         snapshot = await create_estimate_preview(db, actor=user, geometry_revision_id=geometry.id,
             region=str(form.get("region") or ""), terms=str(form.get("terms") or ""), accounting_keys=keys,
             parameter_values=parameters)
+        if request_key:
+            snapshot.payload = {**snapshot.payload, "idempotency_key": request_key,
+                                "request_fingerprint": fingerprint}
         await db.commit()
         query = urlencode({"snapshot": str(snapshot.id)})
     except (KeyError, ValueError):

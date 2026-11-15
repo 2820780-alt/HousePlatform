@@ -17,6 +17,15 @@ from app.services.module2_calculation_graph import CalculationBlock, Calculation
 
 PROTECTED_GEOMETRY_INPUTS = frozenset({"geometry.length", "geometry.width", "geometry.height"})
 
+# The scope of these legacy bundles has not been broken down yet. Treat any
+# additional work in the same technology as potentially overlapping until it is.
+FOUNDATION_BUNDLED_WORK = {
+    "FND_PILE_GRILLAGE": "foundations_concrete_ustroystvo_svayno_rostverkovogo_fundamenta",
+    "FND_SUBSTRUCTURE_INSULATION_XPS": "foundations_concrete_uteplenie_fundamenta",
+    "FND_SUBSTRUCTURE_WATERPROOFING_COATING": "foundations_concrete_gidroizolyaciya_fundamenta",
+    "FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE": "foundations_concrete_gidroizolyaciya_fundamenta",
+}
+
 
 @dataclass(frozen=True)
 class StatementBinding:
@@ -54,12 +63,21 @@ class StatementPreview:
     mode: Literal["PREVIEW"] = "PREVIEW"
 
 
+def ambiguous_foundation_work_codes(technology_code: str, bindings: tuple[StatementBinding, ...]) -> frozenset[str]:
+    bundle = FOUNDATION_BUNDLED_WORK.get(technology_code)
+    work_codes = {item.resource_id for item in bindings if item.kind == "WORK" and item.resource_id}
+    if bundle and bundle in work_codes and len(work_codes) > 1:
+        return frozenset(work_codes)
+    return frozenset()
+
+
 def calculate_statement_preview(
     blocks: tuple[CalculationBlock, ...], bindings: tuple[StatementBinding, ...],
     geometry: Mapping[str, tuple[object, str]], quotes: Mapping[tuple[str, str], CalculationPrice], *,
     allow_preliminary_defaults: bool = False,
     parameter_values: Mapping[tuple[str, str], tuple[object, str]] | None = None,
     block_issues: Mapping[str, tuple[str, ...]] | None = None,
+    ambiguous_work_codes: frozenset[str] = frozenset(),
 ) -> StatementPreview:
     """Calculate independent statements from exact IDs and already-resolved M1 prices."""
     by_id = {block.id: block for block in blocks}
@@ -101,6 +119,8 @@ def calculate_statement_preview(
             quote = quotes.get((binding.kind, binding.resource_id)) if binding.resource_id else None
             issues = [*result.errors, *(block_issues or {}).get(binding.block_id, ())]
             if binding.resource_id and resource_counts[(binding.kind, binding.resource_id)] > 1:
+                issues.append("POTENTIAL_DOUBLE_COUNT")
+            if binding.kind == "WORK" and binding.resource_id in ambiguous_work_codes:
                 issues.append("POTENTIAL_DOUBLE_COUNT")
             if not binding.resource_id:
                 issues.append("MATERIAL_UNRESOLVED" if binding.kind == "MATERIAL" else "WORK_UNRESOLVED")

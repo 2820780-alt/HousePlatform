@@ -26,7 +26,10 @@ from app.services.module2_calculation_blocks import (
 )
 from app.services.module2_calculation_graph import Threshold
 from app.services.module2_calculation_composer import ComposerStep, OPERATIONS, compose_block, composer_form_data, recompose_block
-from app.services.module2_calculation_presets import area_consumption_block, rectangular_volume_block, reinforcement_block
+from app.services.module2_calculation_presets import (
+    area_consumption_block, counted_prism_volume_block, cylindrical_piles_volume_block, rectangular_volume_block,
+    reinforcement_block, slab_net_area_volume_block,
+)
 from app.services.module2_workbench import REQUIREMENT_NAMES, workbench_permissions
 
 
@@ -168,13 +171,16 @@ async def builder_action(technology_id: uuid.UUID, action: str, request: Request
                 await add_block(db, technology_id=technology_id, block=graph, actor=user, actor_id=actor_id)
         elif action == "add":
             preset = form.get("preset")
-            if preset not in {"volume", "surface", "reinforcement"}:
+            if preset not in {"volume", "surface", "reinforcement", "slab_area", "counted_prism", "piles"}:
                 raise ValueError("unknown preset")
             if preset == "reinforcement":
                 graph = reinforcement_block(thresholds=_thresholds(form, "range"),
                                             source=str(form.get("rule_source") or ""))
             else:
-                graph = rectangular_volume_block() if preset == "volume" else area_consumption_block()
+                graph = {"volume": rectangular_volume_block, "surface": area_consumption_block,
+                         "slab_area": slab_net_area_volume_block,
+                         "counted_prism": counted_prism_volume_block,
+                         "piles": cylindrical_piles_volume_block}[preset]()
             material = uuid.UUID(str(form["material_id"])) if form.get("material_id") else None
             graph = replace(graph, material_id=str(material) if material else None,
                             work_code=str(form["work_code"]) if form.get("work_code") else None,

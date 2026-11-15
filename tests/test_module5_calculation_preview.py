@@ -6,7 +6,9 @@ import pytest
 
 from app.services.module1_calculation_price import CalculationPrice, CalculationPriceContext, PriceCandidate, calculate_price
 from app.services.module2_calculation_graph import CalculationBlock, CalculationNode
-from app.services.module5_calculation_preview import StatementBinding, calculate_statement_preview
+from app.services.module5_calculation_preview import (
+    StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
+)
 
 
 def block():
@@ -87,6 +89,30 @@ def test_same_resource_under_different_keys_is_not_silently_counted_twice():
     assert all(line.line_amount == Decimal("19200") for line in result.materials)
     assert result.material_subtotal == 0
     assert result.work_subtotal == result.known_total == Decimal("2400")
+
+
+@pytest.mark.parametrize("technology,bundle", [
+    ("FND_PILE_GRILLAGE", "foundations_concrete_ustroystvo_svayno_rostverkovogo_fundamenta"),
+    ("FND_SUBSTRUCTURE_INSULATION_XPS", "foundations_concrete_uteplenie_fundamenta"),
+    ("FND_SUBSTRUCTURE_WATERPROOFING_COATING", "foundations_concrete_gidroizolyaciya_fundamenta"),
+    ("FND_SUBSTRUCTURE_WATERPROOFING_MEMBRANE", "foundations_concrete_gidroizolyaciya_fundamenta"),
+])
+def test_unresolved_bundle_and_detailed_work_never_both_enter_total(technology, bundle):
+    material, work = bindings()
+    bundled = replace(work, id="bundle", resource_id=bundle, accounting_key="bundle")
+    detailed = replace(work, id="detailed", accounting_key="detailed")
+    lines = (material, bundled, detailed)
+    conflicts = ambiguous_foundation_work_codes(technology, lines)
+    assert conflicts == {bundle, "work-code"}
+    geometry = {"length": ("10", "m"), "width": ("0.4", "m"), "height": ("0.6", "m")}
+    prices = {("MATERIAL", "material-id"): quote([8000]), ("WORK", bundle): quote([1000]),
+              ("WORK", "work-code"): quote([1000])}
+    result = calculate_statement_preview((block(),), lines, geometry, prices, ambiguous_work_codes=conflicts)
+    assert result.material_subtotal == Decimal("19200") and result.work_subtotal == 0
+    assert not result.complete
+    assert all("POTENTIAL_DOUBLE_COUNT" in item.issues for item in result.works)
+    assert not ambiguous_foundation_work_codes(technology, (material, bundled))
+    assert not ambiguous_foundation_work_codes("FND_SLAB_MONOLITHIC_RC", lines)
 
 
 def test_invalid_technology_role_excludes_affected_block_from_subtotals():

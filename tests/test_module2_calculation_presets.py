@@ -1,7 +1,10 @@
 from decimal import Decimal
 
 from app.services.module2_calculation_graph import Threshold, copy_block, evaluate_block
-from app.services.module2_calculation_presets import area_consumption_block, rectangular_volume_block, reinforcement_block
+from app.services.module2_calculation_presets import (
+    area_consumption_block, counted_prism_volume_block, cylindrical_piles_volume_block, rectangular_volume_block,
+    reinforcement_block, slab_net_area_volume_block,
+)
 
 
 def test_volume_preset_requires_dimensions_and_is_independently_mapped():
@@ -33,6 +36,38 @@ def test_area_preset_returns_distinct_material_and_work_quantities():
     assert missing[block.work_output_id].value == Decimal("12")
     negative = evaluate_block(block, {"geometry.area": ("-1", "m2")})
     assert negative[block.work_output_id].errors
+
+
+def test_slab_volume_requires_net_area_and_thickness_and_recalculates():
+    block = slab_net_area_volume_block()
+    assert evaluate_block(block, {})[block.material_output_id].value is None
+    inputs = {"geometry.net_area": ("60", "m2"), "technology.slab_thickness": ("0.2", "m")}
+    assert evaluate_block(block, inputs)[block.material_output_id].value == Decimal("12")
+    assert evaluate_block(block, {**inputs, "geometry.net_area": ("50", "m2")})[block.work_output_id].value == Decimal("10")
+    assert evaluate_block(block, {**inputs, "technology.slab_thickness": ("-1", "m")})[block.material_output_id].value is None
+
+
+def test_counted_prism_requires_integer_count_and_explicit_dimensions():
+    block = counted_prism_volume_block()
+    values = {"element.length": ("2", "m"), "element.width": ("0.5", "m"),
+              "element.height": ("0.4", "m"), "element.count": ("5", "piece")}
+    result = evaluate_block(block, values)
+    assert result[block.material_output_id].value == Decimal("2")
+    assert result[block.work_output_id].value == Decimal("5")
+    assert evaluate_block(block, {**values, "element.count": ("2.5", "piece")})[block.material_output_id].value is None
+    assert evaluate_block(block, {key: value for key, value in values.items() if key != "element.height"})[block.material_output_id].value is None
+
+
+def test_cylindrical_piles_use_explicit_geometry_without_engineering_defaults():
+    block = cylindrical_piles_volume_block()
+    values = {"pile.diameter": ("0.3", "m"), "pile.length": ("3", "m"), "pile.count": ("10", "piece")}
+    first = evaluate_block(block, values)
+    assert first[block.material_output_id].value.quantize(Decimal("0.000001")) == Decimal("2.120575")
+    assert first[block.work_output_id].value == Decimal("10")
+    second = evaluate_block(block, {**values, "pile.count": ("5", "piece")})
+    assert (second[block.material_output_id].value * 2).quantize(Decimal("0.000000001")) == (
+        first[block.material_output_id].value.quantize(Decimal("0.000000001")))
+    assert evaluate_block(block, {"pile.count": ("10", "piece")})[block.material_output_id].value is None
 
 
 def test_reinforcement_preset_uses_explicit_test_ranges_and_laps():
