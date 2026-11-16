@@ -43,7 +43,8 @@ async def prepare_foundation_drafts(db, *, actor: object) -> list[dict]:
         for step in _steps():
             result = await step(db, actor=actor)
             if result.get("edited"):
-                raise ValueError("Existing calculation blocks were changed; no batch changes applied")
+                conflicts = ", ".join(str(name) for name in result["edited"])
+                raise ValueError(f"Existing calculation blocks were changed ({conflicts}); no batch changes applied")
             results.append(result)
         await db.flush()
     return results

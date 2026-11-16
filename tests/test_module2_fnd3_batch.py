@@ -51,7 +51,7 @@ async def test_foundation_batch_rolls_back_on_conflict(monkeypatch):
                 return {"edited": ["changed"]}
 
             monkeypatch.setattr(module2_fnd3_batch, "_steps", lambda: [stage_change, conflict])
-            with pytest.raises(ValueError, match="no batch changes applied"):
+            with pytest.raises(ValueError, match="changed.*no batch changes applied"):
                 await module2_fnd3_batch.prepare_foundation_drafts(db, actor=object())
             await db.refresh(row)
             assert row.name == original
