@@ -78,6 +78,32 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
             snap = await create_estimate_preview(db, actor=user, geometry_revision_id=first.id,
                                                  region="region", terms="terms", accounting_keys=keys)
             assert snap.payload["result"]["known_total"] == "6000.00"
+            no_price = await create_estimate_preview(db, actor=user, geometry_revision_id=first.id,
+                region="qa-without-offers", terms="qa", accounting_keys=keys)
+            assert not no_price.payload["result"]["complete"]
+            no_price_material = no_price.payload["result"]["materials"][0]
+            assert no_price_material["unit_price"] is None and "NO_PRICE" in no_price_material["issues"]
+            assert "TECHNOLOGY_ROLE_INVALID" not in no_price_material["issues"]
+            material.status = MaterialStatus.ARCHIVED
+            await db.flush()
+            archived = await create_estimate_preview(db, actor=user, geometry_revision_id=first.id,
+                region="region", terms="terms", accounting_keys=keys)
+            archived_material = archived.payload["result"]["materials"][0]
+            assert "TECHNOLOGY_ROLE_INVALID" in archived_material["issues"]
+            assert Decimal(archived_material["amount_for_total"]) == 0
+            material.status = MaterialStatus.DRAFT
+            await db.flush()
+            catalog_work = await db.get(WorkCatalogItem, code)
+            old_work_status = catalog_work.status
+            catalog_work.status = "ARCHIVED"
+            await db.flush()
+            archived_work = await create_estimate_preview(db, actor=user, geometry_revision_id=first.id,
+                region="region", terms="terms", accounting_keys=keys)
+            work_line = archived_work.payload["result"]["works"][0]
+            assert "TECHNOLOGY_ROLE_INVALID" in work_line["issues"]
+            assert Decimal(work_line["amount_for_total"]) == 0
+            catalog_work.status = old_work_status
+            await db.flush()
             package = snap.payload["calculation_package_v2"]
             package_hash = snap.payload["calculation_package_sha256"]
             assert package["contract_version"] == "2" and package["technology_id"] == str(tech.id)

@@ -26,7 +26,7 @@ from app.services.audit_service import log_event
 from app.services.module1_offer_qualification import quote_current_offers
 from app.services.module1_material_display import material_ui_attribute_rows
 from app.services.module1_provider_work_cost_offers import _apply_list_permissions
-from app.services.module2_calculation_blocks import _validate_technology_roles, decode_definition, encode_definition
+from app.services.module2_calculation_blocks import _validate_links, _validate_technology_roles, decode_definition, encode_definition
 from app.services.module2_calculation_package_v2 import build_calculation_package_v2
 from app.services.module2_fnd3_strip_blocks import (
     CONCRETE_WORK, FORMWORK_WORK, REINFORCEMENT_WORK, TECHNOLOGY_CODE, _strip_blocks,
@@ -287,6 +287,7 @@ async def create_estimate_preview(
         blocks.append(block)
         try:
             await _validate_technology_roles(db, geometry.technology_id, block)
+            await _validate_links(db, uuid.UUID(block.material_id) if block.material_id else None, block.work_code)
         except ValueError:
             block_issues[block.id] = ("TECHNOLOGY_ROLE_INVALID",)
         for kind, resource, output in (("MATERIAL", block.material_id, block.material_output_id),
