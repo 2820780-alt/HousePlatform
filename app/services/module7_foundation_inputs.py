@@ -68,13 +68,17 @@ PRECAST = (field("layout.fbs_main", "Количество ФБС основно�
 ZONES = (field("geometry.wall_area", "Площадь утепления стен", "m2", False, True),
          field("geometry.slab_area", "Площадь утепления под плитой", "m2", False, True),
          field("geometry.edge_area", "Площадь утепления торцов", "m2", False, True))
+USHP_EDGE = (field("edge.enabled", "Утепление торцов", "piece", False, True),
+             field("edge.contour_length", "Длина утепляемого контура", "m", False, True),
+             field("edge.height", "Высота утепления торцов", "m", False, True),
+             field("edge.excluded_length", "Длина исключаемых участков", "m", False, True))
 
 FOUNDATION_FIELDS = {
     "FND_STRIP_MONOLITHIC_RC": STRIP,
     "FND_STRIP_PRECAST_FBS_FL": PRECAST,
     "FND_SLAB_MONOLITHIC_RC": SLAB,
     "FND_SLAB_RIBBED_RC": SLAB + RIBS,
-    "FND_SLAB_USHP": SLAB + RIBS + ZONES,
+    "FND_SLAB_USHP": SLAB + RIBS + ZONES + USHP_EDGE,
     "FND_UFF": STRIP + SLAB + ZONES,
     "FND_PILE_BORED_RC": PILE_CYLINDER,
     "FND_PILE_DRIVEN_RC": PILE_COUNT,
@@ -140,6 +144,26 @@ def resolve_foundation_geometry(
             continue
         values[spec.key] = (_value(value, spec), spec.unit)
         provenance[spec.key] = source
+    if technology_code == "FND_SLAB_USHP" and "edge.enabled" in values:
+        enabled = values["edge.enabled"][0]
+        if enabled not in (Decimal(0), Decimal(1)):
+            raise ValueError("edge.enabled: expected 0 or 1")
+        if not enabled:
+            values["geometry.edge_area"] = (Decimal(0), "m2")
+            provenance["geometry.edge_area"] = "CALCULATED"
+        else:
+            keys = ("edge.contour_length", "edge.height", "edge.excluded_length")
+            absent = [key for key in keys if key not in values]
+            if absent:
+                missing.extend(absent)
+                values.pop("geometry.edge_area", None)
+                provenance.pop("geometry.edge_area", None)
+            else:
+                length, height, excluded = (values[key][0] for key in keys)
+                if excluded > length:
+                    raise ValueError("Длина исключаемых участков больше длины контура")
+                values["geometry.edge_area"] = ((length - excluded) * height, "m2")
+                provenance["geometry.edge_area"] = "CALCULATED"
     if technology_code == "FND_SUBSTRUCTURE_INSULATION_XPS" and not any(
             values.get(key, (Decimal(0), "m2"))[0] > 0
             for key in ("geometry.wall_area", "geometry.slab_area", "geometry.edge_area")):

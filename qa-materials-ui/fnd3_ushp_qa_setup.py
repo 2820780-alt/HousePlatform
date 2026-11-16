@@ -18,7 +18,7 @@ async def main():
             raise RuntimeError("The restored QA database needs an existing user")
         actor = SimpleNamespace(id=owner, role="ADMIN")
         for prepare, expected in ((lambda: add_ribbed_slab_blocks(db, actor=actor, technology_code=USHP_CODE), 2),
-                                  (lambda: add_ushp_blocks(db, actor=actor), 4),
+                                  (lambda: add_ushp_blocks(db, actor=actor), 5),
                                   (lambda: add_ushp_preparation_blocks(db, actor=actor), 2),
                                   (lambda: add_ushp_geotextile_block(db, actor=actor), 1)):
             first, second = await prepare(), await prepare()

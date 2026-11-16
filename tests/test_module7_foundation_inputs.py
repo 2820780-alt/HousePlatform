@@ -14,6 +14,25 @@ def test_all_fifteen_foundation_types_have_distinct_typed_fields():
         assert all(item.label and item.unit in {"m", "m2", "m3", "piece"} for item in fields)
 
 
+def test_ushp_edge_geometry_is_explicit_and_preserves_legacy_input():
+    resolve = lambda data: resolve_foundation_geometry("FND_SLAB_USHP", user_values=data, project_values={})
+    legacy = resolve({"geometry.edge_area": "2"})
+    assert legacy.values["geometry.edge_area"] == (Decimal(2), "m2")
+    missing = resolve({"edge.enabled": "1", "edge.contour_length": "40"})
+    assert "edge.height" in missing.missing and "edge.excluded_length" in missing.missing
+    assert "geometry.edge_area" not in missing.values
+    result = resolve({"edge.enabled": "1", "edge.contour_length": "40", "edge.height": "0.5",
+                      "edge.excluded_length": "4"})
+    assert result.values["geometry.edge_area"] == (Decimal("18.0"), "m2")
+    assert result.provenance["geometry.edge_area"] == "CALCULATED"
+    disabled = resolve({"edge.enabled": "0", "geometry.edge_area": "9"})
+    assert disabled.values["geometry.edge_area"] == (Decimal(0), "m2")
+    with pytest.raises(ValueError, match="исключаемых"):
+        resolve({"edge.enabled": "1", "edge.contour_length": "4", "edge.height": "1", "edge.excluded_length": "5"})
+    with pytest.raises(ValueError, match="edge.enabled"):
+        resolve({"edge.enabled": "2"})
+
+
 def test_geometry_precedence_and_preliminary_defaults_are_explicit():
     defaults = {"geometry.width": GeometryDefault("0.6", "m", "QA project", "VERIFIED"),
                 "geometry.height": GeometryDefault("0.8", "m", "QA project", "PRELIMINARY")}

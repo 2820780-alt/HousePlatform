@@ -35,6 +35,8 @@ async def _m2_geometry_defaults(db, technology) -> dict[str, GeometryDefault]:
         TechnologyDefaultAssumption.parameter_code.in_(fields)))).all()
     defaults = {}
     for row in rows:
+        if technology.technology_code == "FND_SLAB_USHP" and row.parameter_code.startswith("edge."):
+            continue
         historical_code = EXPLICIT_INPUT_ALIASES.get(row.parameter_code, row.parameter_code)
         if (not may_use_default(technology, row) or
                 (technology.technology_code, historical_code) in FOUNDATION_EXPLICIT_INPUTS or
@@ -66,7 +68,8 @@ async def save_foundation_geometry(
         trusted_defaults = await _m2_geometry_defaults(db, technology)
     trusted_defaults = {key: value for key, value in trusted_defaults.items()
                         if (technology.technology_code, EXPLICIT_INPUT_ALIASES.get(key, key))
-                        not in FOUNDATION_EXPLICIT_INPUTS}
+                        not in FOUNDATION_EXPLICIT_INPUTS and not
+                        (technology.technology_code == "FND_SLAB_USHP" and key.startswith("edge."))}
     explicit_user = resolve_foundation_geometry(technology.technology_code, user_values=user_values, project_values={})
     explicit_project = resolve_foundation_geometry(technology.technology_code, user_values={}, project_values=project_values)
     result = resolve_foundation_geometry(technology.technology_code, user_values=user_values,
@@ -77,8 +80,8 @@ async def save_foundation_geometry(
         raise ValueError("geometry changed; refresh before saving")
     inputs = {"schema_version": 1, "technology_code": technology.technology_code,
               "allow_preliminary": allow_preliminary,
-              "user_values": {key: str(value) for key, (value, _) in explicit_user.values.items()},
-              "project_values": {key: str(value) for key, (value, _) in explicit_project.values.items()},
+              "user_values": {key: str(value) for key, (value, _) in explicit_user.values.items() if key in user_values},
+              "project_values": {key: str(value) for key, (value, _) in explicit_project.values.items() if key in project_values},
               "values": {key: {"value": str(value), "unit": unit, "source": result.provenance[key],
                                "default_source": result.default_sources.get(key)}
                          for key, (value, unit) in result.values.items()},

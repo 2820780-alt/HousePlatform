@@ -23,8 +23,9 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('#technology').selectOption(technology);
       for(const [key,value] of Object.entries({'geometry.net_area':'50','geometry.slab_thickness':'0.2',
         'geometry.rib_length':'20','geometry.rib_width':'0.4','geometry.rib_height':'0.3','geometry.rib_overlap_volume':'0.1',
-        'geometry.wall_area':'0','geometry.slab_area':'6','geometry.edge_area':'2'}))
+        'geometry.wall_area':'0','geometry.slab_area':'6','edge.contour_length':'10','edge.height':'0.25','edge.excluded_length':'2'}))
         await page.locator(`input[data-key="${key}"]`).fill(value);
+      await page.locator('select[data-key="edge.enabled"]').selectOption('1');
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision'),{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
       const calculate=async()=>{
@@ -34,6 +35,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
           await page.locator(`input[name$=".xps_${zone}.sheet_length"]`).fill('1.2');
           await page.locator(`input[name$=".xps_${zone}.sheet_width"]`).fill('0.6');
         }
+        await page.locator('input[name$=".xps_edge.layers"]').fill('2');
         for(const [part,value] of Object.entries({length:'12',count:'4',lap_length:'0.5',lap_count:'2',mass_per_m:'0.888'}))
           await page.locator(`input[name$=".lower_x.${part}"]`).fill(value);
         for(const layer of ['sand','gravel'])
@@ -46,19 +48,32 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       };
       await calculate();
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 м³','12 м³','55 м²','2,3 м³','6,48 м²','9 шт.','2,16 м²','3 шт.','49 м','Нет цены','Смета неполная'])
+      for(const expected of ['10 м³','12 м³','55 м²','2,3 м³','6,48 м²','9 шт.','4,32 м²','6 шт.',
+        'Монтаж утепления торцов','Монтаж утепления под плитой','49 м','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
-      await page.getByRole('link',{name:'К геометрии'}).click(); await page.locator('input[data-key="geometry.net_area"]').fill('70');
+      await page.getByRole('link',{name:'К геометрии'}).click();
+      await page.locator('input[data-key="geometry.net_area"]').fill('70');
+      await page.locator('input[data-key="edge.contour_length"]').fill('14');
       const before=page.url();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision')&&url.href!==before,{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click(); await calculate();
       const revised=page.url();
-      if(!(await page.locator('body').innerText()).includes('14 м³')) throw new Error('USHP recalculation failed');
+      const changed=await page.locator('body').innerText();
+      if(!changed.includes('14 м³') || !changed.includes('7,2 м²')) throw new Error('USHP recalculation failed');
       await page.goto(original);
       if(!(await page.locator('body').innerText()).includes('10 м³')) throw new Error('Original USHP snapshot changed');
       await page.goto(revised);
+      await page.getByRole('link',{name:'К геометрии'}).click();
+      await page.locator('select[data-key="edge.enabled"]').selectOption('0');
+      const beforeDisabled=page.url();
+      await Promise.all([page.waitForURL(url=>url.searchParams.has('revision')&&url.href!==beforeDisabled,{timeout:60000}),
+        page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
+      await page.getByRole('link',{name:'Открыть предварительную смету'}).click(); await calculate();
+      const disabled=await page.locator('body').innerText();
+      if(disabled.includes('7,2 м²')) throw new Error('Disabled edge still counted');
+      if(disabled.includes('Монтаж утепления торцов')) throw new Error('Disabled edge work remains in the statement');
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
-      await page.screenshot({path:path.join(__dirname,`fnd3-ushp-${width}.png`),fullPage:true}); await page.close();
+      await page.screenshot({path:path.join(__dirname,`fnd3-ushp-edge-${width}.png`),fullPage:true}); await page.close();
     }
     process.stdout.write('USHP QA: disjoint concrete, XPS zones, reinforcement, snapshots desktop/mobile PASS\n');
   } finally {await browser.close();}

@@ -9,11 +9,13 @@ from sqlalchemy import select, text
 
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
+from app.models.material_attribute import MaterialAttribute
 from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
 from app.services.module2_fnd3_ribbed_slab_blocks import USHP_CODE
 from app.services.module2_fnd3_slab_blocks import reinforcement_block
-from app.services.module2_fnd3_xps_blocks import material_block, work_block
+from app.services.module2_fnd3_xps_blocks import material_block, work_block, _id as xps_id
+from app.services.audit_service import log_event
 
 XPS_WORK = "foundations_concrete_uteplenie_fundamenta"
 REBAR_WORK = "reinforcement_armirovanie_plity"
@@ -132,12 +134,50 @@ async def add_ushp_preparation_blocks(db, *, actor: object) -> dict:
     return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
 
 
+def edge_material_block(technology_id: uuid.UUID, role) -> CalculationBlock:
+    def node(part, operation, unit, **kwargs):
+        return CalculationNode(xps_id(technology_id, "edge", part), operation, unit, **kwargs)
+    area = node("area", "INPUT", "m2", input_key="geometry.edge_area")
+    length = node("length", "INPUT", "m", input_key="xps_edge.sheet_length")
+    width = node("width", "INPUT", "m", input_key="xps_edge.sheet_width")
+    layers = node("layers", "INPUT", "piece", input_key="xps_edge.layers")
+    zero_area = node("zero_area", "CONSTANT", "m2", constant=Decimal(0))
+    zero_count = node("zero_count", "CONSTANT", "piece", constant=Decimal(0))
+    active = node("active", "LESS_THAN", "1", inputs=(zero_area.id, area.id))
+    sheet = node("sheet_area", "MULTIPLY", "m2", inputs=(length.id, width.id))
+    raw = node("raw_count", "DIVIDE", "1", inputs=(area.id, sheet.id))
+    one_layer = node("rounded", "CEIL", "piece", inputs=(raw.id,))
+    total = node("total_count", "MULTIPLY", "piece", inputs=(one_layer.id, layers.id))
+    purchased = node("purchased", "MULTIPLY", "m2", inputs=(total.id, sheet.id))
+    count = node("count", "IF", "piece", inputs=(active.id, total.id, zero_count.id))
+    material = node("material", "IF", "m2", inputs=(active.id, purchased.id, zero_area.id))
+    return CalculationBlock(id=xps_id(technology_id, "edge", "block"), name="Утепление торцов",
+        nodes=(area, length, width, layers, zero_area, zero_count, active, sheet, raw, one_layer, total,
+               purchased, count, material), outputs=(material.id, count.id),
+        parameters=(BlockParameter("geometry.edge_area", "Площадь торцов", "m2", minimum=Decimal(0)),
+                    BlockParameter("xps_edge.sheet_length", "Длина плиты XPS", "m", minimum=Decimal("0.000001")),
+                    BlockParameter("xps_edge.sheet_width", "Ширина плиты XPS", "m", minimum=Decimal("0.000001")),
+                    BlockParameter("xps_edge.layers", "Количество слоёв; целые плиты отдельно на каждый слой", "piece", minimum=Decimal(1))),
+        material_id=str(role.canonical_material_id), material_requirement_id=str(role.id), material_output_id=material.id)
+
+
+def zone_work_block(technology_id: uuid.UUID, step, zone: str) -> CalculationBlock:
+    key = "geometry.slab_area" if zone == "slab" else "geometry.edge_area"
+    identifier = "work" if zone == "slab" else "edge_work"
+    area = CalculationNode(xps_id(technology_id, identifier, "area"), "INPUT", "m2", input_key=key)
+    title = "Монтаж утепления под плитой" if zone == "slab" else "Монтаж утепления торцов"
+    return CalculationBlock(id=xps_id(technology_id, identifier, "block"), name=title,
+        nodes=(area,), outputs=(area.id,), parameters=(BlockParameter(key, title, "m2", minimum=Decimal(0)),),
+        work_code=step.work_code, work_step_id=str(step.id), work_output_id=area.id)
+
+
 def ushp_blocks(technology_id: uuid.UUID, roles, steps):
     rebar = replace(reinforcement_block(technology_id, "LOWER_X", roles["SLAB_REBAR"], steps[REBAR_WORK]),
                     name="Арматура плиты УШП")
     return (material_block(technology_id, "UNDER_SLAB_XPS", roles["UNDER_SLAB_XPS"]),
-            material_block(technology_id, "EDGE_XPS", roles["EDGE_XPS"]),
-            work_block(technology_id, steps[XPS_WORK]), rebar)
+            edge_material_block(technology_id, roles["EDGE_XPS"]),
+            zone_work_block(technology_id, steps[XPS_WORK], "slab"), rebar,
+            zone_work_block(technology_id, steps[XPS_WORK], "edge"))
 
 
 async def add_ushp_blocks(db, *, actor: object) -> dict:
@@ -158,18 +198,36 @@ async def add_ushp_blocks(db, *, actor: object) -> dict:
     if (set(roles) != set(ROLES) or any(role.canonical_material_id is None for role in roles.values()) or
             len(rows) != 2 or set(steps) != {XPS_WORK, REBAR_WORK}):
         raise ValueError("USHP insulation or reinforcement requires explicit M1 selections")
-    created, reused, edited = 0, 0, []
+    edge_registry_code = await db.scalar(select(MaterialAttribute.attribute_value).where(
+        MaterialAttribute.material_id == roles["EDGE_XPS"].canonical_material_id,
+        MaterialAttribute.attribute_name == "registry_code"))
+    if edge_registry_code != "XPS-04":
+        raise ValueError("USHP edge insulation requires the existing M1 XPS-04 material")
+    legacy = {block.id: block for block in (
+        material_block(technology.id, "EDGE_XPS", roles["EDGE_XPS"]), work_block(technology.id, steps[XPS_WORK]))}
+    created, reused, upgraded, edited = 0, 0, 0, []
     for block in ushp_blocks(technology.id, roles, steps):
         existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
         if existing:
             changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
                        existing.name != block.name or str(existing.material_id or "") != (block.material_id or "") or
                        (existing.work_code or None) != block.work_code)
-            if changed:
+            old = legacy.get(block.id)
+            if (changed and old and existing.technology_id == technology.id and
+                    existing.definition == encode_definition(old) and existing.name == old.name and
+                    str(existing.material_id or "") == (old.material_id or "") and
+                    (existing.work_code or None) == old.work_code):
+                existing.definition = encode_definition(block)
+                existing.name = block.name
+                existing.version += 1
+                await log_event(db, "M2_FND3_USHP_BLOCK_UPGRADED", "TechnologyCalculationBlock", existing.id,
+                                getattr(actor, "id", None), {"version": existing.version})
+                upgraded += 1
+            elif changed:
                 edited.append(block.name)
             else:
                 reused += 1
             continue
         await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
         created += 1
-    return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
+    return {"technology_id": str(technology.id), "created": created, "reused": reused, "upgraded": upgraded, "edited": edited}

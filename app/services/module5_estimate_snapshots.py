@@ -51,6 +51,9 @@ from app.services.module2_fnd3_grillage_blocks import (TECHNOLOGY_CODE as GRILLA
     expected_blocks as expected_grillage_blocks)
 from app.services.module2_fnd3_coating_blocks import (TECHNOLOGY_CODE as COATING_CODE,
     expected_coating_work_blocks)
+from app.services.module2_fnd3_ushp_blocks import (XPS_WORK as USHP_XPS_WORK,
+    edge_material_block as ushp_edge_material_block, zone_work_block as ushp_zone_work_block)
+from app.services.module2_fnd3_xps_blocks import material_block as xps_material_block, _id as xps_block_id
 from app.services.module2_fnd3_work_policy import FOUNDATION_BUNDLED_WORK
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
@@ -173,6 +176,47 @@ async def _ribbed_scope_review(db, technology, blocks, bindings, block_issues, c
     return frozenset(allowed)
 
 
+async def _ushp_xps_zone_review(db, technology, blocks, bindings, block_issues):
+    if technology.technology_code != USHP_CODE:
+        return frozenset()
+    rows = (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code.in_(("UNDER_SLAB_XPS", "EDGE_XPS"))))).all()
+    roles = {role.code: role for role in rows}
+    steps = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code == USHP_XPS_WORK))).all()
+    if len(rows) != 2 or set(roles) != {"UNDER_SLAB_XPS", "EDGE_XPS"} or len(steps) != 1 or any(
+            role.canonical_material_id is None for role in roles.values()):
+        return frozenset()
+    edge_code = await db.scalar(select(MaterialAttribute.attribute_value).where(
+        MaterialAttribute.material_id == roles["EDGE_XPS"].canonical_material_id,
+        MaterialAttribute.attribute_name == "registry_code"))
+    if edge_code != "XPS-04":
+        edge_id = xps_block_id(technology.id, "edge", "block")
+        if any(block.id == edge_id for block in blocks):
+            block_issues[edge_id] = (*block_issues.get(edge_id, ()), "TECHNOLOGY_ROLE_INVALID")
+        return frozenset()
+    expected = {
+        "MATERIAL": (xps_material_block(technology.id, "UNDER_SLAB_XPS", roles["UNDER_SLAB_XPS"]),
+                     ushp_edge_material_block(technology.id, roles["EDGE_XPS"])),
+        "WORK": (ushp_zone_work_block(technology.id, steps[0], "slab"),
+                 ushp_zone_work_block(technology.id, steps[0], "edge")),
+    }
+    actual = {block.id: block for block in blocks}
+    allowed = set()
+    for kind, pair in expected.items():
+        expected_by_id = {block.id: block for block in pair}
+        for resource in {item.resource_id for item in bindings if item.kind == kind and item.resource_id}:
+            group = [item for item in bindings if item.kind == kind and item.resource_id == resource]
+            if (len(group) == 2 and {item.block_id for item in group} == set(expected_by_id) and all(
+                    item.block_id in actual and item.block_id not in block_issues and
+                    encode_definition(actual[item.block_id]) == encode_definition(expected_by_id[item.block_id]) and
+                    actual[item.block_id].material_id == expected_by_id[item.block_id].material_id and
+                    actual[item.block_id].work_code == expected_by_id[item.block_id].work_code for item in group)):
+                allowed.update(item.id for item in group)
+    return frozenset(allowed)
+
+
 async def create_estimate_preview(
     db: AsyncSession, *, actor: object, geometry_revision_id: uuid.UUID | None = None,
     foundation_geometry_revision_id: uuid.UUID | None = None, region: str, terms: str,
@@ -224,6 +268,10 @@ async def create_estimate_preview(
             raise ValueError("work selection contains an unknown block")
     quote_date = date.today()
     blocks, bindings, quotes, quote_errors, block_issues = [], [], {}, {}, {}
+    enabled_value = geometry.inputs.get("values", {}).get("edge.enabled", {}).get("value") if foundation else None
+    edge_disabled = (foundation and technology.technology_code == USHP_CODE and enabled_value is not None and
+                     Decimal(enabled_value) == 0)
+    disabled_edge_blocks = {xps_block_id(technology.id, zone, "block") for zone in ("edge", "edge_work")}
     for row in rows:
         block = decode_definition(row.definition, block_id=str(row.id), name=row.name,
                                   material_id=str(row.material_id) if row.material_id else None, work_code=row.work_code)
@@ -235,6 +283,8 @@ async def create_estimate_preview(
         for kind, resource, output in (("MATERIAL", block.material_id, block.material_output_id),
                                        ("WORK", block.work_code, block.work_output_id)):
             if output is None:
+                continue
+            if edge_disabled and block.id in disabled_edge_blocks:
                 continue
             if kind == "WORK" and selected_work_block_ids is not None and block.id not in selected_work_block_ids:
                 continue
@@ -406,6 +456,7 @@ async def create_estimate_preview(
     disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues,
         ribbed_rebar_disjoint_confirmed, RIBBED_SLAB_CODE, RIBBED_REBAR_ROLES, RIBBED_REBAR_WORK, ribbed_rebar_block)
     disjoint |= await _ribbed_scope_review(db, technology, blocks, bindings, block_issues, ribbed_concrete_disjoint_confirmed)
+    disjoint |= await _ushp_xps_zone_review(db, technology, blocks, bindings, block_issues)
     if technology.technology_code in COLUMN_WALL_REBAR_ROLES:
         disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues,
             column_wall_rebar_disjoint_confirmed, technology.technology_code,

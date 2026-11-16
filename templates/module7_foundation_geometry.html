@@ -47,9 +47,18 @@
     if (!id) return;
     specs=(await request('/technologies/'+encodeURIComponent(id)+'/fields')).fields;
     for (const spec of specs) {
-      const label=document.createElement('label'), title=document.createElement('span'), input=document.createElement('input');
+      const hasEdgeControls=specs.some(item=>item.key==='edge.enabled');
+      if(spec.key==='geometry.edge_area' && hasEdgeControls &&
+          !(revision && revision.inputs.user_values?.['geometry.edge_area']!==undefined &&
+            revision.inputs.user_values?.['edge.enabled']===undefined)) continue;
+      const label=document.createElement('label'), title=document.createElement('span'),
+        input=document.createElement(spec.key==='edge.enabled' ? 'select' : 'input');
       title.textContent=spec.label+(spec.required?' *':'')+' · '+(unit[spec.unit]||spec.unit);
-      input.type='text'; input.inputMode='decimal'; input.dataset.key=spec.key; input.autocomplete='off';
+      if(spec.key==='edge.enabled') {
+        title.textContent=spec.label;
+        input.add(new Option('Не выбрано','')); input.add(new Option('Отключено','0')); input.add(new Option('Включено','1'));
+      } else { input.type='text'; input.inputMode='decimal'; input.autocomplete='off'; }
+      input.dataset.key=spec.key;
       input.value=revision?.inputs?.values?.[spec.key]?.value??'';
       input.addEventListener('input',()=>{ const value=input.value.trim().replace(',','.'); if(value) userValues[spec.key]=value; else delete userValues[spec.key]; });
       label.append(title,input); $('fields').append(label);

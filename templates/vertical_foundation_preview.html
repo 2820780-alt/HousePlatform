@@ -16,7 +16,7 @@
 {% set unit_labels = {'1':'', 'm':'м', 'm2':'м²', 'm3':'м³', 'mm':'мм', 'kg':'кг', 'kg_per_m':'кг/м', 'kg_per_m2':'кг/м²', 'kg_per_m2_mm':'кг/(м²·мм)', 'liter_per_m2':'л/м²', 'piece':'шт.', 'liter':'л'} %}
 <section class="m2-panel"><div class="m2-panel-head"><h2>Геометрия</h2></div><div class="m2-panel-body">
 <div class="m2-form-grid">{% for field in fields %}<div><small>{% if technology.technology_code == 'FND_UFF' and field.key == 'geometry.net_area' %}Площадь пола без фундаментной части{% elif technology.technology_code == 'FND_UFF' and field.key == 'geometry.slab_thickness' %}Толщина пола по грунту{% else %}{{ field.label }}{% endif %}</small><div>{% set item = geometry.inputs['values'].get(field.key) %}{{ number(item.value) if item else 'Не задано' }} {{ unit_labels.get(field.unit, field.unit) }}</div></div>{% endfor %}</div>
-{% if geometry.inputs.missing %}<p class="estimate-warning">Не все обязательные параметры геометрии заполнены.</p>{% endif %}</div></section>
+{% if geometry.inputs.missing %}<p class="estimate-warning">Не заполнено: {% for key in geometry.inputs.missing %}{% set matches = fields | selectattr('key', 'equalto', key) | list %}{{ matches[0].label if matches else 'дополнительные параметры геометрии' }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>{% endif %}</div></section>
 <section class="m2-panel"><div class="m2-panel-head"><h2>Параметры расчёта</h2></div><div class="m2-panel-body">
 <form method="post" action="/api/v1/admin/vertical-preview/foundation/{{ geometry.id }}" data-m2-form>
 <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}"><div class="m2-form-grid">
