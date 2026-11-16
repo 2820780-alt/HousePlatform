@@ -21,7 +21,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       const technology=await option.getAttribute('value');
       if(!technology) throw new Error('XPS draft unavailable');
       await page.locator('#technology').selectOption(technology);
-      for(const [key,value] of Object.entries({'geometry.wall_area':'10','geometry.slab_area':'6','geometry.edge_area':'0'}))
+      for(const [key,value] of Object.entries({'geometry.wall_area':'10','geometry.slab_area':'6','geometry.edge_area':'2'}))
         await page.locator(`input[data-key="${key}"]`).fill(value);
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision'),{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
@@ -36,7 +36,8 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       };
       await calculate();
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10,08 м²','14 шт.','6,48 м²','9 шт.','16 м²','Нет цены','Смета неполная'])
+      for(const expected of ['10,08 м²','14 шт.','6,48 м²','9 шт.','18 м²','Нет цены','Смета неполная',
+        'Материал и отдельный расчёт утепления торцов требуют проверки'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       await page.getByRole('link',{name:'К геометрии'}).click();
       await page.locator('input[data-key="geometry.wall_area"]').fill('20');
@@ -44,12 +45,12 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision')&&url.href!==before,{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click(); await calculate();
       const revised=page.url(), newText=await page.locator('body').innerText();
-      if(!newText.includes('28 шт.')||!newText.includes('26 м²')) throw new Error('XPS recalculation failed');
+      if(!newText.includes('28 шт.')||!newText.includes('28 м²')) throw new Error('XPS recalculation failed');
       await page.goto(original);
       if(!(await page.locator('body').innerText()).includes('14 шт.')) throw new Error('Original XPS snapshot changed');
       await page.goto(revised);
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
-      await page.screenshot({path:path.join(__dirname,`fnd3-xps-${width}.png`),fullPage:true}); await page.close();
+      await page.screenshot({path:path.join(__dirname,`fnd3-xps-edge-${width}.png`),fullPage:true}); await page.close();
     }
     process.stdout.write('XPS QA: zone areas, rounded panels, one work, recalculation desktop/mobile PASS\n');
   } finally {await browser.close();}

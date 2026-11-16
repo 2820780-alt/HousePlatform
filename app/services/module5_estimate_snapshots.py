@@ -427,6 +427,9 @@ async def create_estimate_preview(
             missing_roles += ("Полнота комплектации технологии требует проверки",)
         if technology.technology_code == USHP_CODE and values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0:
             missing_roles += ("Материал утепления стен не выбран",)
+        if (technology.technology_code == "FND_SUBSTRUCTURE_INSULATION_XPS" and
+                values.get("geometry.edge_area", (Decimal(0), "m2"))[0] > 0):
+            missing_roles += ("Материал и отдельный расчёт утепления торцов требуют проверки",)
         if technology.technology_code == UFF_CODE:
             if not uff_scope_valid:
                 missing_roles += ("Подтвердите, что площадь пола не включает фундаментную часть",)

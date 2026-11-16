@@ -55,6 +55,14 @@ async def test_xps_zones_round_panels_and_single_work_on_restored_qa():
                 parameter_values={key:value for key,value in params.items() if key[0] == wall})
             slab_line = next(line for line in only_wall.payload["result"]["materials"] if line["binding"]["block_id"] == slab)
             assert slab_line["quantity"] == "0" and not any(issue.startswith("MISSING_INPUT:") for issue in slab_line["issues"])
+            edge_geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={"geometry.wall_area":"10", "geometry.slab_area":"6", "geometry.edge_area":"2"},
+                project_values={}, expected_version=2)
+            edge_result = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=edge_geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params)
+            assert "Материал и отдельный расчёт утепления торцов требуют проверки" in edge_result.payload["missing_required_roles"]
+            assert not edge_result.payload["result"]["complete"]
+            assert edge_result.payload["result"]["works"][0]["quantity"] == "18"
             await db.rollback()
     finally:
         await engine.dispose()
