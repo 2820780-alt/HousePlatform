@@ -1,5 +1,6 @@
 import os
 import uuid
+import copy
 from types import SimpleNamespace
 
 import pytest
@@ -8,11 +9,12 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.database import engine as configured_engine
 from app.models.module2_technology import Technology
+from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
 from app.services.module2_fnd3_coating_blocks import TECHNOLOGY_CODE, _id, add_coating_blocks, add_coating_primer_work
 from app.services.module2_calculation_blocks import add_block
 from app.services.module2_calculation_graph import CalculationBlock, CalculationNode
-from app.services.module2_fnd3_work_details import add_foundation_work_details
+from app.services.module2_fnd3_work_details import _resolve, add_foundation_work_details, candidates
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
@@ -84,6 +86,8 @@ async def test_explicit_work_selection_preserves_materials_and_double_count_prot
                              "MODULE_05_ESTIMATE_ENGINE", "MODULE_07_DIGITAL_HOUSE")])
             await add_coating_blocks(db, actor=user)
             await add_foundation_work_details(db)
+            primer_candidate = candidates()["FND-WK-035"]
+            assert set(await _resolve(db, {"FND-WK-035": primer_candidate}, numbers={35})) == {"FND-WK-035"}
             await add_coating_primer_work(db, actor=user)
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
@@ -95,13 +99,37 @@ async def test_explicit_work_selection_preserves_materials_and_double_count_prot
             keys = {(primer, "MATERIAL"): "primer", (bundle, "MATERIAL"): "mastic",
                     (bundle, "WORK"): "bundle", (detail.id, "WORK"): "detail"}
             values = {(primer, "primer.consumption"): "0.25", (bundle, "mastic.consumption"): "1.5"}
-            async def calculate(selection):
+            async def calculate(selection, confirmed=False):
                 return await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                     region="qa", terms="qa", accounting_keys=keys, parameter_values=values,
-                    selected_work_block_ids=selection)
+                    selected_work_block_ids=selection, coating_work_scope_confirmed=confirmed)
             both = await calculate(frozenset({bundle, detail.id}))
             assert len(both.payload["result"]["works"]) == 2
             assert all("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in both.payload["result"]["works"])
+            confirmed = await calculate(frozenset({bundle, detail.id}), confirmed=True)
+            assert len(confirmed.payload["result"]["works"]) == 2
+            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in confirmed.payload["result"]["works"])
+            assert confirmed.payload["coating_work_scope_confirmed"] is True
+            detail_row = await db.get(TechnologyCalculationBlock, uuid.UUID(detail.id))
+            original_definition = copy.deepcopy(detail_row.definition)
+            altered = copy.deepcopy(original_definition)
+            altered["parameters"][0]["label"] = "Изменённый параметр"
+            detail_row.definition = altered
+            await db.flush()
+            changed_graph = await calculate(frozenset({bundle, detail.id}), confirmed=True)
+            assert all("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in changed_graph.payload["result"]["works"])
+            detail_row.definition = original_definition
+            await db.flush()
+            extra_node = CalculationNode(str(uuid.uuid4()), "INPUT", "m2", input_key="geometry.area")
+            extra = CalculationBlock(id=str(uuid.uuid4()), name="QA дополнительная работа", nodes=(extra_node,),
+                outputs=(extra_node.id,), work_code=detail_row.work_code, work_output_id=extra_node.id)
+            extra_row = await add_block(db, technology_id=tech.id, block=extra, actor=user, actor_id=owner)
+            keys[(extra.id, "WORK")] = "extra"
+            with_extra = await calculate(frozenset({bundle, detail.id, extra.id}), confirmed=True)
+            assert len(with_extra.payload["result"]["works"]) == 3
+            assert all("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in with_extra.payload["result"]["works"])
+            await db.delete(extra_row)
+            await db.flush()
             for selected in (bundle, detail.id):
                 snapshot = await calculate(frozenset({selected}))
                 assert len(snapshot.payload["result"]["materials"]) == 2

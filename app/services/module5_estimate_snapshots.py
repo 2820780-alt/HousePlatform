@@ -49,6 +49,8 @@ from app.services.module2_fnd3_uff_blocks import (TECHNOLOGY_CODE as UFF_CODE,
     concrete_blocks as uff_concrete_blocks, expected_blocks as expected_uff_roles)
 from app.services.module2_fnd3_grillage_blocks import (TECHNOLOGY_CODE as GRILLAGE_CODE,
     expected_blocks as expected_grillage_blocks)
+from app.services.module2_fnd3_coating_blocks import (TECHNOLOGY_CODE as COATING_CODE,
+    expected_coating_work_blocks)
 from app.services.module2_fnd3_work_policy import FOUNDATION_BUNDLED_WORK
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
@@ -188,6 +190,7 @@ async def create_estimate_preview(
     grillage_bundle_scope_confirmed: bool = False,
     ribbed_rebar_disjoint_confirmed: bool = False,
     selected_work_block_ids: frozenset[str] | None = None,
+    coating_work_scope_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
@@ -195,7 +198,7 @@ async def create_estimate_preview(
             pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
             uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
-            ribbed_rebar_disjoint_confirmed)):
+            ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -381,6 +384,19 @@ async def create_estimate_preview(
                 if block.id in bundled_ids:
                     block_issues[block.id] = (*block_issues.get(block.id, ()), "BUNDLE_SCOPE_UNVERIFIED")
     conflicts = ambiguous_foundation_work_codes(technology.technology_code, tuple(bindings))
+    if foundation and technology.technology_code == COATING_CODE and coating_work_scope_confirmed and conflicts:
+        try:
+            expected = await expected_coating_work_blocks(db, technology)
+            actual = {block.id: block for block in blocks}
+            selected = [item for item in bindings if item.kind == "WORK"]
+            if (len(selected) == 2 and {item.block_id for item in selected} == {item.id for item in expected} and
+                    all(item.id in actual and item.id not in block_issues and
+                        encode_definition(actual[item.id]) == encode_definition(item) and
+                        actual[item.id].material_id == item.material_id and actual[item.id].work_code == item.work_code
+                        for item in expected)):
+                conflicts = frozenset()
+        except ValueError:
+            pass
     disjoint, missing_roles = await _strip_scope_review(db, technology, blocks, bindings, block_issues,
                                                         strip_roles_confirmed)
     disjoint |= await _reinforcement_scope_review(db, technology, blocks, bindings, block_issues, slab_roles_confirmed,
@@ -469,6 +485,7 @@ async def create_estimate_preview(
         "ribbed_rebar_disjoint_confirmed": ribbed_rebar_disjoint_confirmed,
         "missing_required_roles": missing_roles, "resource_names": resource_names,
         "selected_work_block_ids": sorted(selected_work_block_ids) if selected_work_block_ids is not None else None,
+        "coating_work_scope_confirmed": coating_work_scope_confirmed,
         "resource_characteristics": resource_characteristics,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})

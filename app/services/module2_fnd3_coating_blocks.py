@@ -27,16 +27,7 @@ async def add_coating_primer_work(db, *, actor: object) -> dict:
     if len(technologies) != 1:
         raise ValueError("Expected one coating-waterproofing draft")
     technology = technologies[0]
-    work_code = (await _resolve(db, candidates()))["FND-WK-035"]
-    steps = (await db.scalars(select(TechnologyWorkStep).where(
-        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code == work_code))).all()
-    if len(steps) != 1:
-        raise ValueError("Primer work requires an explicit existing M1 work step")
-    area = CalculationNode(_id(technology.id, "primer-work", "area"), "INPUT", "m2", input_key="geometry.area")
-    block = CalculationBlock(id=_id(technology.id, "primer-work", "block"), name="Нанесение праймера",
-        nodes=(area,), outputs=(area.id,),
-        parameters=(BlockParameter("geometry.area", "Площадь поверхности", "m2", minimum=Decimal(0)),),
-        work_code=work_code, work_step_id=str(steps[0].id), work_output_id=area.id)
+    _, block = await expected_coating_work_blocks(db, technology)
     existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
     if existing:
         changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
@@ -65,6 +56,25 @@ def coating_block(technology_id: uuid.UUID, code: str, role, step) -> Calculatio
         material_id=str(role.canonical_material_id), material_requirement_id=str(role.id),
         work_code=step.work_code if with_work else None, work_step_id=str(step.id) if with_work else None,
         material_output_id=amount.id, work_output_id=area.id if with_work else None)
+
+
+async def expected_coating_work_blocks(db, technology):
+    primer_code = (await _resolve(db, candidates(), numbers={35}))["FND-WK-035"]
+    steps = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id,
+        TechnologyWorkStep.work_code.in_((COATING_WORK, primer_code))))).all()
+    by_code = {step.work_code: step for step in steps}
+    roles = (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code == "FND2_WPR_01"))).all()
+    if len(steps) != 2 or set(by_code) != {COATING_WORK, primer_code} or len(roles) != 1 or not roles[0].canonical_material_id:
+        raise ValueError("Coating and primer require explicit existing M1 material and work steps")
+    area = CalculationNode(_id(technology.id, "primer-work", "area"), "INPUT", "m2", input_key="geometry.area")
+    primer = CalculationBlock(id=_id(technology.id, "primer-work", "block"), name="Нанесение праймера",
+        nodes=(area,), outputs=(area.id,),
+        parameters=(BlockParameter("geometry.area", "Площадь поверхности", "m2", minimum=Decimal(0)),),
+        work_code=primer_code, work_step_id=str(by_code[primer_code].id), work_output_id=area.id)
+    return coating_block(technology.id, "FND2_WPR_01", roles[0], by_code[COATING_WORK]), primer
 
 
 async def add_coating_blocks(db, *, actor: object) -> dict:

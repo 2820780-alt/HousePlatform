@@ -35,8 +35,8 @@ def candidates() -> dict[str, WorkCandidate]:
     return result
 
 
-async def _resolve(db, items: dict[str, WorkCandidate]) -> dict[str, str]:
-    numbers = {number for values in DETAILS.values() for number in values}
+async def _resolve(db, items: dict[str, WorkCandidate], *, numbers: set[int] | None = None) -> dict[str, str]:
+    numbers = numbers if numbers is not None else {number for values in DETAILS.values() for number in values}
     works = list((await db.scalars(select(WorkCatalogItem).where(WorkCatalogItem.status != "ARCHIVED"))).all())
     by_code = {work.work_code: work for work in works}
     by_name_unit = {}

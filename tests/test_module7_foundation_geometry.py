@@ -1,6 +1,7 @@
 import os
 import uuid
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
@@ -19,6 +20,31 @@ from app.api.deps import get_current_user
 from app.api.v1.module7_foundation_geometry import router
 from app.config import settings
 from app.database import get_db
+from app.api.v1 import module7_foundation_geometry as geometry_api
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ["object", "revision", "object_with_geometry"])
+async def test_geometry_write_commits_before_success_response(monkeypatch, endpoint):
+    object_id, technology_id, revision_id = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    item = SimpleNamespace(id=object_id, name="QA")
+    revision = SimpleNamespace(id=revision_id, object_id=object_id, version=1,
+                               technology_id=technology_id, inputs={})
+    monkeypatch.setattr(geometry_api, "_guard", lambda *args: None)
+    monkeypatch.setattr(geometry_api, "create_object", AsyncMock(return_value=item))
+    monkeypatch.setattr(geometry_api, "save_foundation_geometry", AsyncMock(return_value=revision))
+    db = SimpleNamespace(commit=AsyncMock())
+    geometry = {"technology_id": technology_id, "expected_version": 0,
+                "user_values": {}, "project_values": {}}
+    if endpoint == "object":
+        result = await geometry_api.new_object(geometry_api.ObjectCreate(name="QA"), db, object())
+    elif endpoint == "revision":
+        result = await geometry_api.new_revision(object_id, geometry_api.GeometryWrite(**geometry), db, object())
+    else:
+        result = await geometry_api.new_object_with_geometry(
+            geometry_api.ObjectGeometryCreate(name="QA", **geometry), db, object())
+    db.commit.assert_awaited_once()
+    assert result["id"] == str(object_id if endpoint == "object" else revision_id)
 
 
 @pytest.mark.asyncio

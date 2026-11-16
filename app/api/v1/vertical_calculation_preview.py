@@ -161,6 +161,7 @@ async def calculate_foundation(revision_id: uuid.UUID, request: Request, db: DBS
             grillage_rebar_disjoint_confirmed=form.get("grillage_rebar_disjoint_confirmed") == "yes",
             grillage_bundle_scope_confirmed=form.get("grillage_bundle_scope_confirmed") == "yes",
             ribbed_rebar_disjoint_confirmed=form.get("ribbed_rebar_disjoint_confirmed") == "yes",
+            coating_work_scope_confirmed=form.get("coating_work_scope_confirmed") == "yes",
             selected_work_block_ids=frozenset(str(value) for value in form.getlist("work_block_id"))
                 if form.get("work_selection_present") == "yes" else None)
         if request_key:

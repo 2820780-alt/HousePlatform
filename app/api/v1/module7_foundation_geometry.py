@@ -91,8 +91,10 @@ async def new_object_with_geometry(data: ObjectGeometryCreate, db: DBSession, us
         revision = await save_foundation_geometry(db, actor=user, object_id=item.id,
             technology_id=data.technology_id, user_values=data.user_values, project_values=data.project_values,
             expected_version=0, allow_preliminary=data.allow_preliminary)
-        return {"id": str(revision.id), "object_id": str(item.id), "version": revision.version,
-                "technology_id": str(revision.technology_id), "inputs": revision.inputs}
+        result = {"id": str(revision.id), "object_id": str(item.id), "version": revision.version,
+                  "technology_id": str(revision.technology_id), "inputs": revision.inputs}
+        await db.commit()
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
 
@@ -120,7 +122,9 @@ async def new_object(data: ObjectCreate, db: DBSession, user: CurrentUser):
     _guard(user, "CREATE")
     try:
         item = await create_object(db, actor=user, name=data.name)
-        return {"id": str(item.id), "name": item.name}
+        result = {"id": str(item.id), "name": item.name}
+        await db.commit()
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
 
@@ -132,8 +136,10 @@ async def new_revision(object_id: uuid.UUID, data: GeometryWrite, db: DBSession,
         revision = await save_foundation_geometry(db, actor=user, object_id=object_id,
             technology_id=data.technology_id, user_values=data.user_values, project_values=data.project_values,
             expected_version=data.expected_version, allow_preliminary=data.allow_preliminary)
-        return {"id": str(revision.id), "object_id": str(revision.object_id), "version": revision.version,
-                "technology_id": str(revision.technology_id), "inputs": revision.inputs}
+        result = {"id": str(revision.id), "object_id": str(revision.object_id), "version": revision.version,
+                  "technology_id": str(revision.technology_id), "inputs": revision.inputs}
+        await db.commit()
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
 
