@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
+from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_precast_blocks import add_precast_blocks
 
 
@@ -20,6 +21,10 @@ async def main():
         second = await add_precast_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 6:
             raise RuntimeError("QA precast blocks were edited or are not idempotent")
+        first = await add_base_preparation_blocks(db, actor=actor, technology_code="FND_STRIP_PRECAST_FBS_FL")
+        second = await add_base_preparation_blocks(db, actor=actor, technology_code="FND_STRIP_PRECAST_FBS_FL")
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 2:
+            raise RuntimeError("QA precast preparation blocks were edited or are not idempotent")
         await db.commit()
         print("QA precast blocks prepared: three FBS variants, FL, mortar and works")
 

@@ -32,9 +32,12 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       if(!(await page.locator('body').innerText()).includes('Не задано: Объём раствора по раскладке и швам'))
         throw new Error('Missing mortar not flagged');
       await page.locator('input[name$=".mortar.volume"]').fill('0.75');
+      for(const layer of ['sand','gravel'])
+        for(const [part,value] of Object.entries({area:'50',thickness:'0.2',supply_factor:'1.2'}))
+          await page.locator(`input[name$=".preparation.${layer}.${part}"]`).fill(value);
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==missing,{timeout:60000}),page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 шт.','4 шт.','2 шт.','8 шт.','16 шт.','0,75 м³','Нет цены','Смета неполная'])
+      for(const expected of ['10 шт.','4 шт.','2 шт.','8 шт.','16 шт.','0,75 м³','12 м³','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       await page.getByRole('link',{name:'К геометрии'}).click(); await page.locator('input[data-key="layout.fbs_main"]').fill('20');
       const before=page.url();

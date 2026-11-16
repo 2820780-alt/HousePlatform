@@ -1,4 +1,6 @@
 import os
+import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
@@ -8,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.database import engine as configured_engine
 from app.models.module2_technology import Technology
 from app.models.user import User
+from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_ribbed_slab_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, _id, add_ribbed_slab_blocks,
                                                           add_ribbed_slab_detail_blocks)
 from app.services.module2_fnd3_slab_blocks import _id as slab_id
@@ -32,6 +35,10 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
             first, second = await add_ribbed_slab_blocks(db, actor=user), await add_ribbed_slab_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 2 and not first["edited"]
             assert second["reused"] == 2 and not second["edited"]
+            prep = await add_base_preparation_blocks(db, actor=user, technology_code=TECHNOLOGY_CODE)
+            again = await add_base_preparation_blocks(db, actor=user, technology_code=TECHNOLOGY_CODE)
+            assert prep["created"] + prep["reused"] == 2 and not prep["edited"]
+            assert again["reused"] == 2 and not again["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA ribbed slab")
@@ -49,6 +56,11 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
             formwork = slab_id(tech.id,"block","formwork")
             keys[(formwork,"MATERIAL")] = "formwork-material"
             keys[(formwork,"WORK")] = "formwork-work"
+            prep_ids = {code: str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/ribbed/preparation/{code}/block"))
+                        for code in ("sand", "gravel")}
+            for code, identifier in prep_ids.items():
+                keys[(identifier, "MATERIAL")] = f"{code}-material"
+                keys[(identifier, "WORK")] = f"{code}-work"
             unconfirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys)
             assert all("POTENTIAL_DOUBLE_COUNT" in line["issues"] for line in
@@ -72,6 +84,9 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
             assert detail["created"] + detail["reused"] == 5 and not detail["edited"]
             assert repeat["reused"] == 5 and not repeat["edited"]
             params = {(formwork,"formwork.material_area"):"8", (formwork,"formwork.installation_area"):"20"}
+            for code, identifier in prep_ids.items():
+                for name, value in (("area", "50"), ("thickness", "0.2"), ("supply_factor", "1.2")):
+                    params[(identifier, f"preparation.{code}.{name}")] = value
             for code in REBAR_ROLES:
                 key = code.lower()
                 block_id = _id(tech.id,key,"block")
@@ -89,6 +104,11 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
             assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in rebar + rebar_work)
             assert any(line["quantity"] == "8" and line["unit"] == "m2" for line in details.payload["result"]["materials"])
             assert any(line["quantity"] == "20" and line["unit"] == "m2" for line in details.payload["result"]["works"])
+            for identifier in prep_ids.values():
+                assert Decimal(next(line["quantity"] for line in details.payload["result"]["materials"]
+                                    if line["binding"]["block_id"] == identifier)) == 12
+                assert Decimal(next(line["quantity"] for line in details.payload["result"]["works"]
+                                    if line["binding"]["block_id"] == identifier)) == 10
             await db.rollback()
     finally:
         await engine.dispose()

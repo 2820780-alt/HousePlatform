@@ -11,7 +11,9 @@ from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_fnd3_ushp_blocks import (GEOTEXTILE_WORK, PREPARATION_ROLES, PREPARATION_WORKS,
                                                     geotextile_block, preparation_block)
 
-SCOPES = {"FND_UFF": "uff", "FND_STRIP_MONOLITHIC_RC": "strip", "FND_SLAB_MONOLITHIC_RC": "slab"}
+SCOPES = {"FND_UFF": "uff", "FND_STRIP_MONOLITHIC_RC": "strip", "FND_SLAB_MONOLITHIC_RC": "slab",
+          "FND_SLAB_RIBBED_RC": "ribbed", "FND_STRIP_PRECAST_FBS_FL": "precast"}
+WITH_GEOTEXTILE = {"FND_UFF", "FND_STRIP_MONOLITHIC_RC", "FND_SLAB_MONOLITHIC_RC"}
 
 
 async def add_base_preparation_blocks(db, *, actor: object, technology_code: str) -> dict:
@@ -24,8 +26,9 @@ async def add_base_preparation_blocks(db, *, actor: object, technology_code: str
     if len(technologies) != 1:
         raise ValueError("Expected one foundation draft")
     technology = technologies[0]
-    role_codes = (*PREPARATION_ROLES.values(), "FND2_BASE_04")
-    work_codes = (*PREPARATION_WORKS.values(), GEOTEXTILE_WORK)
+    include_geotextile = technology_code in WITH_GEOTEXTILE
+    role_codes = (*PREPARATION_ROLES.values(), *(("FND2_BASE_04",) if include_geotextile else ()))
+    work_codes = (*PREPARATION_WORKS.values(), *((GEOTEXTILE_WORK,) if include_geotextile else ()))
     role_rows = (await db.scalars(select(TechnologyMaterialRequirement).where(
         TechnologyMaterialRequirement.technology_id == technology.id,
         TechnologyMaterialRequirement.code.in_(role_codes)))).all()
@@ -39,7 +42,8 @@ async def add_base_preparation_blocks(db, *, actor: object, technology_code: str
         raise ValueError("Base preparation requires explicit M1 materials and work selections")
     blocks = [preparation_block(technology.id, code, roles[PREPARATION_ROLES[code]], steps[work_code], scope=scope)
               for code, work_code in PREPARATION_WORKS.items()]
-    blocks.append(geotextile_block(technology.id, roles["FND2_BASE_04"], steps[GEOTEXTILE_WORK], scope=scope))
+    if include_geotextile:
+        blocks.append(geotextile_block(technology.id, roles["FND2_BASE_04"], steps[GEOTEXTILE_WORK], scope=scope))
     created, reused, edited = 0, 0, []
     for block in blocks:
         existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))

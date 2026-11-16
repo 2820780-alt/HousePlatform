@@ -34,6 +34,9 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
             await page.locator(`input[name$=".${role}.${part}"]`).fill(value);
         await page.locator('input[name$=".formwork.material_area"]').fill('8');
         await page.locator('input[name$=".formwork.installation_area"]').fill('20');
+        for(const layer of ['sand','gravel'])
+          for(const [part,value] of Object.entries({area:'50',thickness:'0.2',supply_factor:'1.2'}))
+            await page.locator(`input[name$=".preparation.${layer}.${part}"]`).fill(value);
       };
       await fillDetails();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
@@ -44,7 +47,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('[name="ribbed_rebar_disjoint_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==unconfirmed,{timeout:60000}),page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 м³','2,3 м³','49 м','43,512 кг','Материалы','Работы','Нет цены','Смета неполная'])
+      for(const expected of ['10 м³','12 м³','2,3 м³','49 м','43,512 кг','Материалы','Работы','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if(text.includes('Не включено в итог: проверьте состав и связи.')) throw new Error('Confirmed rib/slab sections rejected');
       await page.getByRole('link',{name:'К геометрии'}).click();
