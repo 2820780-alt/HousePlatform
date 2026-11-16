@@ -144,6 +144,8 @@ def resolve_foundation_geometry(
             continue
         values[spec.key] = (_value(value, spec), spec.unit)
         provenance[spec.key] = source
+    if technology_code == "FND_SLAB_USHP" and "edge.enabled" not in values and "geometry.edge_area" not in values:
+        missing.append("edge.enabled")
     if technology_code == "FND_SLAB_USHP" and "edge.enabled" in values:
         enabled = values["edge.enabled"][0]
         if enabled not in (Decimal(0), Decimal(1)):

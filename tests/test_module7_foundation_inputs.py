@@ -18,6 +18,8 @@ def test_ushp_edge_geometry_is_explicit_and_preserves_legacy_input():
     resolve = lambda data: resolve_foundation_geometry("FND_SLAB_USHP", user_values=data, project_values={})
     legacy = resolve({"geometry.edge_area": "2"})
     assert legacy.values["geometry.edge_area"] == (Decimal(2), "m2")
+    assert "edge.enabled" not in legacy.missing
+    assert "edge.enabled" in resolve({}).missing
     missing = resolve({"edge.enabled": "1", "edge.contour_length": "40"})
     assert "edge.height" in missing.missing and "edge.excluded_length" in missing.missing
     assert "geometry.edge_area" not in missing.values
