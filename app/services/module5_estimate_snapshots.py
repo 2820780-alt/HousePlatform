@@ -37,7 +37,7 @@ from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REB
 from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
     expected_blocks as expected_driven_pile_blocks, expected_head_treatment_block, _id as driven_block_id)
 from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
-    expected_blocks as expected_screw_pile_blocks)
+    expected_blocks as expected_screw_pile_blocks, _id as screw_block_id)
 from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
     expected_blocks as expected_membrane_blocks)
 from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIBBED_SLAB_CODE,
@@ -226,6 +226,7 @@ async def create_estimate_preview(
     slab_roles_confirmed: bool = False,
     pile_roles_confirmed: bool = False,
     screw_head_match_confirmed: bool = False,
+    screw_head_work_scope_confirmed: bool = False,
     membrane_areas_disjoint_confirmed: bool = False,
     ribbed_concrete_disjoint_confirmed: bool = False,
     column_wall_rebar_disjoint_confirmed: bool = False,
@@ -240,7 +241,7 @@ async def create_estimate_preview(
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
-            pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
+            pile_roles_confirmed, screw_head_match_confirmed, screw_head_work_scope_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
             uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
             ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed, driven_head_scope_confirmed)):
@@ -373,6 +374,7 @@ async def create_estimate_preview(
             elif count is not None and count[0] > 0 and not (exact and driven_head_scope_confirmed):
                 block_issues[head_id] = (*block_issues.get(head_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
                 head_notice = "Подтвердите, что обработка голов не входит в стоимость погружения свай"
+    screw_scope_unverified = False
     if foundation and technology.technology_code == SCREW_PILE_CODE:
         screw_valid = False
         try:
@@ -394,6 +396,10 @@ async def create_estimate_preview(
         if not screw_valid:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+        elif values.get("pile.head_count", (Decimal(0), "piece"))[0] > 0 and not screw_head_work_scope_confirmed:
+            head_work_id = screw_block_id(technology.id, "head_work", "block")
+            block_issues[head_work_id] = (*block_issues.get(head_work_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
+            screw_scope_unverified = True
     if foundation and technology.technology_code == MEMBRANE_CODE:
         membrane_valid = False
         try:
@@ -522,6 +528,8 @@ async def create_estimate_preview(
             missing_roles += ("Распределение количества свай по исполнениям не подтверждено",)
         if technology.technology_code == SCREW_PILE_CODE and not screw_valid:
             missing_roles += ("Проверьте распределение свай и оголовков и подтвердите их совместимость",)
+        if screw_scope_unverified:
+            missing_roles += ("Подтвердите, что монтаж оголовков не входит в стоимость установки свай",)
         if technology.technology_code == MEMBRANE_CODE and not membrane_valid:
             missing_roles += ("Проверьте распределение площади между материалами и отсутствие пересечений",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
@@ -557,6 +565,7 @@ async def create_estimate_preview(
         "strip_roles_confirmed": strip_roles_confirmed, "slab_roles_confirmed": slab_roles_confirmed,
         "pile_roles_confirmed": pile_roles_confirmed,
         "screw_head_match_confirmed": screw_head_match_confirmed,
+        "screw_head_work_scope_confirmed": screw_head_work_scope_confirmed,
         "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,

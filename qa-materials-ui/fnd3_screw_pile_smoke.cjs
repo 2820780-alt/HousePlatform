@@ -39,12 +39,19 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       for(const expected of ['Материалы','Работы','3 шт.','2 шт.','5 шт.','Нет цены','Не требуется','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if(text.includes('Проверьте распределение свай и оголовков и подтвердите их совместимость')) throw new Error('Confirmed allocation rejected');
+      if(!text.includes('Подтвердите, что монтаж оголовков не входит в стоимость установки свай'))
+        throw new Error('Head work scope warning missing');
+      await page.locator('[name="screw_head_work_scope_confirmed"]').check();
+      await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==correct,{timeout:60000}),
+        page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
+      if((await page.locator('body').innerText()).includes('Подтвердите, что монтаж оголовков не входит в стоимость установки свай'))
+        throw new Error('Head work scope confirmation rejected');
       await page.goto(unconfirmed);
       if(!(await page.locator('body').innerText()).includes('Проверьте распределение свай и оголовков'))
         throw new Error('Original unconfirmed snapshot changed');
       await page.goto(correct);
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
-      await page.screenshot({path:path.join(__dirname,`fnd3-screw-pile-${width}.png`),fullPage:true}); await page.close();
+      await page.screenshot({path:path.join(__dirname,`fnd3-screw-scope-${width}.png`),fullPage:true}); await page.close();
     }
     process.stdout.write('Screw-pile QA: variants, explicit head confirmation and snapshots desktop/mobile PASS\n');
   } finally {await browser.close();}
