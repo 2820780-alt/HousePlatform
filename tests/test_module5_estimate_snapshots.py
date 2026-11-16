@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.database import engine as configured_engine
 from app.models.enums import MaterialStatus, UnitType
 from app.models.material import Material
+from app.models.module1_work_item import WorkCatalogItem
 from app.models.module2_technology import Technology
 from app.models.unit import Unit
 from app.models.user import User
@@ -72,12 +73,19 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                                                  region="region", terms="terms", accounting_keys=keys)
             assert snap.payload["result"]["known_total"] == "6000.00"
             assert snap.payload["result"]["complete"] is True
+            original_name = material.canonical_name
+            assert snap.payload["resource_names"][f"MATERIAL:{material.id}"] == original_name
+            assert snap.payload["resource_names"][f"WORK:{code}"] == "QA temporary work"
             second = await save_strip_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                                                length_m="10", width_m="0.5", height_m="1", expected_version=1)
             recalculated = await create_estimate_preview(db, actor=user, geometry_revision_id=second.id,
                                                          region="region", terms="terms", accounting_keys=keys)
             assert recalculated.payload["result"]["known_total"] == "7500.00"
             assert (await read_estimate_preview(db, actor=user, snapshot_id=snap.id)).payload["result"]["known_total"] == "6000.00"
+            material.canonical_name = "QA renamed material"
+            work = await db.get(WorkCatalogItem, code)
+            work.work_name = "QA renamed work"
+            await db.flush()
             import httpx
             from fastapi import FastAPI
             from app.api.deps import get_current_user
@@ -93,6 +101,8 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                 response = await client.get(f"/api/v1/admin/vertical-preview/{tech.id}?snapshot={snap.id}")
                 assert response.status_code == 200
                 assert "Материалы" in response.text and "Работы" in response.text and "6000.00" in response.text
+                assert original_name in response.text and "QA temporary work" in response.text
+                assert "QA renamed material" not in response.text and "QA renamed work" not in response.text
                 monkeypatch.setattr(db, "commit", db.flush)
                 form = {
                     "name": "QA via form", "length_m": "10", "width_m": "0,5", "height_m": "1",
@@ -171,6 +181,8 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                 region="qa", terms="qa", accounting_keys=keys)
             assert snapshot.geometry_revision_id is None and snapshot.foundation_geometry_revision_id == first.id
             assert snapshot.payload["result"]["materials"][0]["quantity"] == "10.0"
+            original_name = material.canonical_name
+            assert snapshot.payload["resource_names"][f"MATERIAL:{material.id}"] == original_name
             assert not snapshot.payload["result"]["complete"]
             assert snapshot.payload["missing_required_roles"]
             second = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
@@ -198,6 +210,8 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
             app.dependency_overrides[get_current_user] = lambda: user
             app.dependency_overrides[get_db] = lambda: db
             monkeypatch.setattr(db, "commit", db.flush)
+            material.canonical_name = "QA renamed slab material"
+            await db.flush()
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
                 legacy_new = await client.get(f"/api/v1/admin/vertical-preview/{tech.id}")
                 assert legacy_new.status_code == 303 and "/module7/foundations/view?technology=" in legacy_new.headers["location"]
@@ -205,6 +219,16 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                 assert legacy_post.status_code == 400
                 page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}")
                 assert page.status_code == 200 and "Геометрия" in page.text
+                saved_page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}?snapshot={snapshot.id}")
+                assert saved_page.status_code == 200 and original_name in saved_page.text
+                assert "QA renamed slab material" not in saved_page.text
+                saved_payload = snapshot.payload
+                snapshot.payload = {key: value for key, value in saved_payload.items() if key != "resource_names"}
+                await db.flush()
+                old_page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}?snapshot={snapshot.id}")
+                assert old_page.status_code == 200 and "QA renamed slab material" in old_page.text
+                snapshot.payload = saved_payload
+                await db.flush()
                 form = {"region": "qa", "terms": "qa", "idempotency_key": str(uuid.uuid4())}
                 result = await client.post(f"/api/v1/admin/vertical-preview/foundation/{first.id}", data=form)
                 assert result.status_code == 303 and "snapshot=" in result.headers["location"]

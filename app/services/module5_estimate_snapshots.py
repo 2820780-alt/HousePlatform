@@ -15,6 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.permission_guard import require_permission
 from app.core.exceptions import ForbiddenError
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
+from app.models.material import Material
+from app.models.module1_work_item import WorkCatalogItem
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
 from app.models.module5_estimate_snapshot import EstimatePreviewSnapshot
@@ -413,6 +415,13 @@ async def create_estimate_preview(
                                           confirmed_disjoint_binding_ids=disjoint)
     if missing_roles:
         preview = replace(preview, complete=False)
+    material_ids = {uuid.UUID(item.resource_id) for item in bindings if item.kind == "MATERIAL" and item.resource_id}
+    work_codes = {item.resource_id for item in bindings if item.kind == "WORK" and item.resource_id}
+    material_rows = (await db.execute(select(Material.id, Material.canonical_name).where(Material.id.in_(material_ids)))).all()
+    work_rows = (await db.execute(select(WorkCatalogItem.work_code, WorkCatalogItem.work_name).where(
+        WorkCatalogItem.work_code.in_(work_codes)))).all()
+    resource_names = {f"MATERIAL:{identifier}": name for identifier, name in material_rows}
+    resource_names.update({f"WORK:{code}": name for code, name in work_rows})
     graph = _json([asdict(block) for block in blocks])
     graph_hash = hashlib.sha256(json.dumps(graph, ensure_ascii=True, sort_keys=True,
                                            separators=(",", ":")).encode()).hexdigest()
@@ -437,7 +446,7 @@ async def create_estimate_preview(
         "grillage_rebar_disjoint_confirmed": grillage_rebar_disjoint_confirmed,
         "grillage_bundle_scope_confirmed": grillage_bundle_scope_confirmed,
         "ribbed_rebar_disjoint_confirmed": ribbed_rebar_disjoint_confirmed,
-        "missing_required_roles": missing_roles,
+        "missing_required_roles": missing_roles, "resource_names": resource_names,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
     snapshot = EstimatePreviewSnapshot(id=uuid.uuid4(), owner_user_id=getattr(actor, "id"),

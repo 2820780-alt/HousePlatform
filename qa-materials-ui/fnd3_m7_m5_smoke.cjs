@@ -10,6 +10,7 @@ const credentials = { email: `qa-${crypto.randomBytes(12).toString('hex')}@examp
 const fixture = spawnSync('docker', ['exec', '-i', 'houseplatform-vertical-qa-20261113',
   'python', 'qa-materials-ui/vertical_auth_fixture.py'], { input: JSON.stringify(credentials), encoding: 'utf8' });
 if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
+let stage = 'setup';
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -19,6 +20,7 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
       await page.goto(`${base}/api/v1/auth/login/view?next=${encodeURIComponent(destination)}`);
       await page.locator('#email').fill(credentials.email);
       await page.locator('#password').fill(credentials.password);
+      stage = `login ${width}`;
       await Promise.all([page.waitForURL(url => url.pathname === destination, { timeout: 60000 }),
         page.locator('#login-submit').click()]);
       await page.locator('#name').fill(`QA M7-M5 ${width}`);
@@ -26,8 +28,11 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
       for (const [key, value] of Object.entries({ 'geometry.length':'12', 'geometry.width':'0.4',
         'geometry.height':'0.8', 'strip.overlap_volume':'0.2' }))
         await page.locator(`input[data-key="${key}"]`).fill(value);
-      await Promise.all([page.waitForURL(url => url.searchParams.has('revision'), { timeout: 60000 }),
-        page.getByRole('button', { name: 'Сохранить', exact: true }).click()]);
+      stage = `save geometry ${width}`;
+      try {
+        await Promise.all([page.waitForURL(url => url.searchParams.has('revision'), { timeout: 30000 }),
+          page.getByRole('button', { name: 'Сохранить', exact: true }).click()]);
+      } catch (error) { throw new Error(`Geometry save failed: ${await page.locator('#message').innerText()} (${error.message})`); }
       await page.getByRole('link', { name: 'Открыть предварительную смету' }).click();
       await page.locator('[name="region"]').fill(`qa-${crypto.randomBytes(8).toString('hex')}`);
       await page.locator('[name="terms"]').fill('qa test only');
@@ -43,6 +48,7 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
         'geotextile.area':'20', 'geotextile.overlap_area':'2' };
       for (const [key,value] of Object.entries(params)) await page.locator(`input[name$=".${key}"]`).fill(value);
       await page.locator('[name="strip_roles_confirmed"]').check();
+      stage = `calculate ${width}`;
       await Promise.all([page.waitForURL(url => url.searchParams.has('snapshot'), { timeout: 60000 }),
         page.getByRole('button', { name:'Рассчитать', exact:true }).click()]);
       const body = await page.locator('body').innerText();
@@ -54,12 +60,14 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
       await concrete.getByText('Расчёт блока',{exact:true}).click();
       if (!(await concrete.innerText()).includes('Объём конструкции')) throw new Error('Calculation trace missing');
       const estimateUrl = page.url();
+      stage = `material card ${width}`;
       await Promise.all([page.waitForURL(url=>url.pathname.includes('/material-hub/view/materials/'),{timeout:60000}),
         concrete.locator('a').first().click()]);
       if ((await page.locator('body').innerText()).includes('Страница не найдена')) throw new Error('Material card unavailable');
       await page.goto(estimateUrl);
       const work = page.locator('section').filter({has:page.getByRole('heading',{name:'Работы',exact:true})})
         .locator('a[href*="/vertical-m1/works/"]').first();
+      stage = `work card ${width}`;
       await Promise.all([page.waitForURL(url=>url.pathname.includes('/vertical-m1/works/'),{timeout:60000}),work.click()]);
       if ((await page.locator('body').innerText()).includes('Страница не найдена')) throw new Error('Work card unavailable');
       await page.goto(estimateUrl);
@@ -70,4 +78,4 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
     }
     process.stdout.write('M7 -> M5 strip: saved geometry, quantities and missing prices desktop/mobile PASS\n');
   } finally { await browser.close(); }
-})().catch(error => { process.stderr.write(`${error.message}\n`); process.exitCode=1; });
+})().catch(error => { process.stderr.write(`${stage}: ${error.message}\n`); process.exitCode=1; });

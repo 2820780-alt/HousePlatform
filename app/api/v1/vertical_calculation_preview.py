@@ -73,14 +73,17 @@ async def foundation_preview_page(revision_id: uuid.UUID, request: Request, db: 
     protected.update(target for source, target in FOUNDATION_INPUT_ALIASES.items() if source in protected)
     names = {}
     if snapshot:
+        captured = snapshot.payload.get("resource_names", {})
         for line in snapshot.payload["result"]["materials"]:
             identifier = line["binding"]["resource_id"]
-            material = await db.get(Material, uuid.UUID(identifier)) if identifier else None
-            names["MATERIAL:" + (identifier or "")] = material.canonical_name if material else "Материал не выбран"
+            key = "MATERIAL:" + (identifier or "")
+            material = await db.get(Material, uuid.UUID(identifier)) if identifier and key not in captured else None
+            names[key] = captured.get(key, material.canonical_name if material else "Материал не выбран")
         for line in snapshot.payload["result"]["works"]:
             identifier = line["binding"]["resource_id"]
-            work = await db.get(WorkCatalogItem, identifier) if identifier else None
-            names["WORK:" + (identifier or "")] = work.work_name if work else "Работа не выбрана"
+            key = "WORK:" + (identifier or "")
+            work = await db.get(WorkCatalogItem, identifier) if identifier and key not in captured else None
+            names[key] = captured.get(key, work.work_name if work else "Работа не выбрана")
     return templates.TemplateResponse(request, "vertical_foundation_preview.html", {
         "technology": technology, "geometry": geometry, "fields": FOUNDATION_FIELDS[technology.technology_code],
         "blocks": blocks, "protected": protected, "snapshot": snapshot, "names": names,
@@ -187,14 +190,17 @@ async def preview_page(technology_id: uuid.UUID, request: Request, db: DBSession
         obj = await db.get(DigitalHouseObject, geometry.object_id)
     names = {}
     if snapshot:
+        captured = snapshot.payload.get("resource_names", {})
         for line in snapshot.payload["result"]["materials"]:
             identifier = line["binding"]["resource_id"]
-            material = await db.get(Material, uuid.UUID(identifier)) if identifier else None
-            names["MATERIAL:" + (identifier or "")] = material.canonical_name if material else "Материал не выбран"
+            key = "MATERIAL:" + (identifier or "")
+            material = await db.get(Material, uuid.UUID(identifier)) if identifier and key not in captured else None
+            names[key] = captured.get(key, material.canonical_name if material else "Материал не выбран")
         for line in snapshot.payload["result"]["works"]:
             identifier = line["binding"]["resource_id"]
-            work = await db.get(WorkCatalogItem, identifier) if identifier else None
-            names["WORK:" + (identifier or "")] = work.work_name if work else "Работа не выбрана"
+            key = "WORK:" + (identifier or "")
+            work = await db.get(WorkCatalogItem, identifier) if identifier and key not in captured else None
+            names[key] = captured.get(key, work.work_name if work else "Работа не выбрана")
     return templates.TemplateResponse(request, "vertical_calculation_preview.html", {
         "technology": tech, "blocks": blocks, "snapshot": snapshot, "geometry": geometry,
         "object": obj, "names": names, "error": request.query_params.get("error"), "number": _display_number,
