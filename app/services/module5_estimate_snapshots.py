@@ -27,6 +27,7 @@ from app.services.module1_offer_qualification import quote_current_offers
 from app.services.module1_material_display import material_ui_attribute_rows
 from app.services.module1_provider_work_cost_offers import _apply_list_permissions
 from app.services.module2_calculation_blocks import _validate_technology_roles, decode_definition, encode_definition
+from app.services.module2_calculation_package_v2 import build_calculation_package_v2
 from app.services.module2_fnd3_strip_blocks import (
     CONCRETE_WORK, FORMWORK_WORK, REINFORCEMENT_WORK, TECHNOLOGY_CODE, _strip_blocks,
 )
@@ -257,12 +258,14 @@ async def create_estimate_preview(
     foundation = foundation_geometry_revision_id is not None
     geometry = (await read_foundation_geometry(db, actor=actor, revision_id=foundation_geometry_revision_id)
                 if foundation else await read_strip_geometry(db, actor=actor, revision_id=geometry_revision_id))
-    technology = await db.get(Technology, geometry.technology_id)
+    technology = await db.scalar(select(Technology).where(Technology.id == geometry.technology_id)
+                                 .with_for_update().execution_options(populate_existing=True))
     if technology is None:
         raise ValueError("technology revision no longer exists")
     rows = (await db.scalars(select(TechnologyCalculationBlock).where(
         TechnologyCalculationBlock.technology_id == geometry.technology_id).order_by(
-        TechnologyCalculationBlock.position))).all()
+        TechnologyCalculationBlock.position).execution_options(populate_existing=True))).all()
+    package, package_hash = build_calculation_package_v2(technology, rows)
     if selected_work_block_ids is not None:
         if (not foundation or technology.technology_code not in FOUNDATION_BUNDLED_WORK or
                 not isinstance(selected_work_block_ids, frozenset) or
@@ -278,8 +281,8 @@ async def create_estimate_preview(
     edge_disabled = (foundation and technology.technology_code == USHP_CODE and enabled_value is not None and
                      Decimal(enabled_value) == 0)
     disabled_edge_blocks = {xps_block_id(technology.id, zone, "block") for zone in ("edge", "edge_work")}
-    for row in rows:
-        block = decode_definition(row.definition, block_id=str(row.id), name=row.name,
+    for row in package.blocks:
+        block = decode_definition(row.definition.model_dump(mode="json"), block_id=str(row.id), name=row.name,
                                   material_id=str(row.material_id) if row.material_id else None, work_code=row.work_code)
         blocks.append(block)
         try:
@@ -593,6 +596,7 @@ async def create_estimate_preview(
         geometry_payload.update({"length_m": geometry.length_m, "width_m": geometry.width_m,
                                  "height_m": geometry.height_m})
     payload = _json({"schema_version": 1, "mode": "PREVIEW", "geometry": geometry_payload,
+        "calculation_package_v2": package.model_dump(mode="json"), "calculation_package_sha256": package_hash,
         "region": region, "terms": terms, "graph": graph, "graph_hash": graph_hash,
         "parameters": [{"block_id": key[0], "input_key": key[1], "value": value[0], "unit": value[1]}
                        for key, value in explicit_parameters.items()],

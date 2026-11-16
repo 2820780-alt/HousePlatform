@@ -17,6 +17,7 @@ from app.models.material import Material
 from app.models.material_attribute import MaterialAttribute
 from app.models.module1_work_item import WorkCatalogItem
 from app.models.module2_technology import Technology
+from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.unit import Unit
 from app.models.user import User
 from app.services.module1_manual_calculation_price import append_manual_price
@@ -77,6 +78,12 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
             snap = await create_estimate_preview(db, actor=user, geometry_revision_id=first.id,
                                                  region="region", terms="terms", accounting_keys=keys)
             assert snap.payload["result"]["known_total"] == "6000.00"
+            package = snap.payload["calculation_package_v2"]
+            package_hash = snap.payload["calculation_package_sha256"]
+            assert package["contract_version"] == "2" and package["technology_id"] == str(tech.id)
+            assert package["technology_revision"] == tech.revision
+            assert package["blocks"][0]["material_id"] == str(material.id)
+            assert package["blocks"][0]["work_code"] == code
             assert snap.payload["result"]["complete"] is True
             original_name = material.canonical_name
             assert snap.payload["resource_names"][f"MATERIAL:{material.id}"] == original_name
@@ -89,6 +96,16 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                                                          region="region", terms="terms", accounting_keys=keys)
             assert recalculated.payload["result"]["known_total"] == "7500.00"
             assert (await read_estimate_preview(db, actor=user, snapshot_id=snap.id)).payload["result"]["known_total"] == "6000.00"
+            stored_block = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+            stored_block.name = "QA revised block"
+            stored_block.version += 1
+            await db.flush()
+            revised_package = await create_estimate_preview(db, actor=user, geometry_revision_id=second.id,
+                                                             region="region", terms="terms", accounting_keys=keys)
+            assert revised_package.payload["calculation_package_sha256"] != package_hash
+            await db.refresh(snap)
+            assert snap.payload["calculation_package_v2"] == package
+            assert snap.payload["calculation_package_sha256"] == package_hash
             material.canonical_name = "QA renamed material"
             characteristic.attribute_value = "B30"
             work = await db.get(WorkCatalogItem, code)
