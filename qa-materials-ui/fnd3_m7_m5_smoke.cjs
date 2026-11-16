@@ -48,6 +48,21 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
       const body = await page.locator('body').innerText();
       for (const expected of ['Материалы', 'Работы', '3,64', '4,8', '22', '49', '63', 'Нет цены', 'Смета неполная'])
         if (!body.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
+      const concrete = page.locator('tr').filter({hasText:'Бетон ленты'}).first();
+      if (!((await concrete.locator('a').first().getAttribute('href')) || '').includes('/material-hub/view/materials/'))
+        throw new Error('Concrete material link missing');
+      await concrete.getByText('Расчёт блока',{exact:true}).click();
+      if (!(await concrete.innerText()).includes('Объём конструкции')) throw new Error('Calculation trace missing');
+      const estimateUrl = page.url();
+      await Promise.all([page.waitForURL(url=>url.pathname.includes('/material-hub/view/materials/'),{timeout:60000}),
+        concrete.locator('a').first().click()]);
+      if ((await page.locator('body').innerText()).includes('Страница не найдена')) throw new Error('Material card unavailable');
+      await page.goto(estimateUrl);
+      const work = page.locator('section').filter({has:page.getByRole('heading',{name:'Работы',exact:true})})
+        .locator('a[href*="/vertical-m1/works/"]').first();
+      await Promise.all([page.waitForURL(url=>url.pathname.includes('/vertical-m1/works/'),{timeout:60000}),work.click()]);
+      if ((await page.locator('body').innerText()).includes('Страница не найдена')) throw new Error('Work card unavailable');
+      await page.goto(estimateUrl);
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth))
         throw new Error(`Horizontal overflow at ${width}px`);
       await page.screenshot({ path:path.join(__dirname, `fnd3-m7-m5-${width}.png`), fullPage:true });
