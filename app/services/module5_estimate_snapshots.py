@@ -49,6 +49,7 @@ from app.services.module2_fnd3_uff_blocks import (TECHNOLOGY_CODE as UFF_CODE,
     concrete_blocks as uff_concrete_blocks, expected_blocks as expected_uff_roles)
 from app.services.module2_fnd3_grillage_blocks import (TECHNOLOGY_CODE as GRILLAGE_CODE,
     expected_blocks as expected_grillage_blocks)
+from app.services.module2_fnd3_work_policy import FOUNDATION_BUNDLED_WORK
 from app.services.module5_calculation_preview import (
     PROTECTED_GEOMETRY_INPUTS, StatementBinding, ambiguous_foundation_work_codes, calculate_statement_preview,
 )
@@ -186,6 +187,7 @@ async def create_estimate_preview(
     grillage_rebar_disjoint_confirmed: bool = False,
     grillage_bundle_scope_confirmed: bool = False,
     ribbed_rebar_disjoint_confirmed: bool = False,
+    selected_work_block_ids: frozenset[str] | None = None,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
@@ -202,9 +204,21 @@ async def create_estimate_preview(
     foundation = foundation_geometry_revision_id is not None
     geometry = (await read_foundation_geometry(db, actor=actor, revision_id=foundation_geometry_revision_id)
                 if foundation else await read_strip_geometry(db, actor=actor, revision_id=geometry_revision_id))
+    technology = await db.get(Technology, geometry.technology_id)
+    if technology is None:
+        raise ValueError("technology revision no longer exists")
     rows = (await db.scalars(select(TechnologyCalculationBlock).where(
         TechnologyCalculationBlock.technology_id == geometry.technology_id).order_by(
         TechnologyCalculationBlock.position))).all()
+    if selected_work_block_ids is not None:
+        if (not foundation or technology.technology_code not in FOUNDATION_BUNDLED_WORK or
+                not isinstance(selected_work_block_ids, frozenset) or
+                not all(isinstance(value, str) for value in selected_work_block_ids)):
+            raise ValueError("work selection is unavailable for this calculation")
+        available = {str(row.id) for row in rows if decode_definition(
+            row.definition, block_id=str(row.id), name=row.name).work_output_id}
+        if not selected_work_block_ids.issubset(available):
+            raise ValueError("work selection contains an unknown block")
     quote_date = date.today()
     blocks, bindings, quotes, quote_errors, block_issues = [], [], {}, {}, {}
     for row in rows:
@@ -218,6 +232,8 @@ async def create_estimate_preview(
         for kind, resource, output in (("MATERIAL", block.material_id, block.material_output_id),
                                        ("WORK", block.work_code, block.work_output_id)):
             if output is None:
+                continue
+            if kind == "WORK" and selected_work_block_ids is not None and block.id not in selected_work_block_ids:
                 continue
             scope = (accounting_keys.get((block.id, kind)) or "").strip()
             if not scope or len(scope) > 255:
@@ -260,9 +276,6 @@ async def create_estimate_preview(
         if not value.is_finite() or value.adjusted() > 24 or value.adjusted() < -24:
             raise ValueError("invalid calculation parameter")
         explicit_parameters[key] = (value, allowed_parameters[key].unit)
-    technology = await db.get(Technology, geometry.technology_id)
-    if technology is None:
-        raise ValueError("technology revision no longer exists")
     if foundation and technology.technology_code == DRIVEN_PILE_CODE:
         valid_allocation = False
         try:
@@ -390,6 +403,8 @@ async def create_estimate_preview(
                     and len({expected_rebar[item.block_id].material_requirement_id for item in group}) == len(group)):
                 disjoint |= frozenset(item.id for item in group)
     if foundation:
+        if selected_work_block_ids is not None and not selected_work_block_ids:
+            missing_roles += ("Не выбрана ни одна работа",)
         if geometry.inputs.get("missing"):
             missing_roles += ("Не заполнены обязательные параметры геометрии",)
         if technology.technology_code != TECHNOLOGY_CODE:
@@ -453,6 +468,7 @@ async def create_estimate_preview(
         "grillage_bundle_scope_confirmed": grillage_bundle_scope_confirmed,
         "ribbed_rebar_disjoint_confirmed": ribbed_rebar_disjoint_confirmed,
         "missing_required_roles": missing_roles, "resource_names": resource_names,
+        "selected_work_block_ids": sorted(selected_work_block_ids) if selected_work_block_ids is not None else None,
         "resource_characteristics": resource_characteristics,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})

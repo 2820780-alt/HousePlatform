@@ -22,6 +22,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import MODULE2_OWNER_CODE, Technology
 from app.models.module7_geometry import DigitalHouseObject, StripGeometryRevision
 from app.services.module2_calculation_blocks import decode_definition
+from app.services.module2_fnd3_work_policy import FOUNDATION_BUNDLED_WORK
 from app.services.module5_estimate_snapshots import (FOUNDATION_INPUT_ALIASES, create_estimate_preview,
                                                       read_estimate_preview)
 from app.services.module5_calculation_preview import PROTECTED_GEOMETRY_INPUTS
@@ -69,6 +70,14 @@ async def foundation_preview_page(revision_id: uuid.UUID, request: Request, db: 
     blocks = [(row, decode_definition(row.definition, block_id=str(row.id), name=row.name,
                                       material_id=str(row.material_id) if row.material_id else None,
                                       work_code=row.work_code)) for row in rows]
+    work_choices = []
+    if technology.technology_code in FOUNDATION_BUNDLED_WORK:
+        codes = {row.work_code for row, block in blocks if row.work_code and block.work_output_id}
+        work_names = {item.work_code: item.work_name for item in (await db.scalars(
+            select(WorkCatalogItem).where(WorkCatalogItem.work_code.in_(codes)))).all()}
+        work_choices = [(str(row.id), block.name, work_names.get(row.work_code, "Работа не выбрана"))
+                        for row, block in blocks if block.work_output_id]
+    selected_work = snapshot.payload.get("selected_work_block_ids") if snapshot else None
     protected = set(PROTECTED_GEOMETRY_INPUTS) | {item.key for item in FOUNDATION_FIELDS[technology.technology_code]}
     protected.update(target for source, target in FOUNDATION_INPUT_ALIASES.items() if source in protected)
     names = {}
@@ -87,6 +96,7 @@ async def foundation_preview_page(revision_id: uuid.UUID, request: Request, db: 
     return templates.TemplateResponse(request, "vertical_foundation_preview.html", {
         "technology": technology, "geometry": geometry, "fields": FOUNDATION_FIELDS[technology.technology_code],
         "blocks": blocks, "protected": protected, "snapshot": snapshot, "names": names,
+        "work_choices": work_choices, "selected_work": selected_work,
         "error": request.query_params.get("error"), "number": _display_number,
         "provided_parameters": {(item["block_id"], item["input_key"]): item["value"]
                                 for item in snapshot.payload.get("parameters", [])} if snapshot else {},
@@ -150,7 +160,9 @@ async def calculate_foundation(revision_id: uuid.UUID, request: Request, db: DBS
             uff_floor_disjoint_confirmed=form.get("uff_floor_disjoint_confirmed") == "yes",
             grillage_rebar_disjoint_confirmed=form.get("grillage_rebar_disjoint_confirmed") == "yes",
             grillage_bundle_scope_confirmed=form.get("grillage_bundle_scope_confirmed") == "yes",
-            ribbed_rebar_disjoint_confirmed=form.get("ribbed_rebar_disjoint_confirmed") == "yes")
+            ribbed_rebar_disjoint_confirmed=form.get("ribbed_rebar_disjoint_confirmed") == "yes",
+            selected_work_block_ids=frozenset(str(value) for value in form.getlist("work_block_id"))
+                if form.get("work_selection_present") == "yes" else None)
         if request_key:
             snapshot.payload = {**snapshot.payload, "idempotency_key": request_key,
                                 "request_fingerprint": fingerprint}

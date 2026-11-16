@@ -210,6 +210,9 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                     parameter_values={(block.id, "technology.slab_thickness"): "5"})
             with pytest.raises(ValueError, match="exactly one"):
                 await create_estimate_preview(db, actor=user, region="qa", terms="qa", accounting_keys=keys)
+            with pytest.raises(ValueError, match="work selection is unavailable"):
+                await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=first.id,
+                    region="qa", terms="qa", accounting_keys=keys, selected_work_block_ids=frozenset())
             import httpx
             from fastapi import FastAPI
             from app.api.deps import get_current_user
