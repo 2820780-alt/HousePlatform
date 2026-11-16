@@ -28,6 +28,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('[name="terms"]').fill('qa test only');
       await page.locator('input[name$=".pile_first.count"]').fill('3');
       await page.locator('input[name$=".pile_second.count"]').fill('3');
+      await page.locator('input[name$=".pile.head_treatment_count"]').fill('3');
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       const incorrect=page.url(), warning=await page.locator('body').innerText();
       if(!warning.includes('Распределение количества свай по исполнениям не подтверждено'))
@@ -38,12 +39,19 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       for(const expected of ['Материалы','Работы','3 шт.','2 шт.','5 шт.','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if(text.includes('Распределение количества свай по исполнениям не подтверждено')) throw new Error('Valid allocation rejected');
+      if(!text.includes('Подтвердите, что обработка голов не входит в стоимость погружения свай'))
+        throw new Error('Head treatment scope warning missing');
+      await page.locator('[name="driven_head_scope_confirmed"]').check();
+      await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==correct,{timeout:60000}),
+        page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
+      if((await page.locator('body').innerText()).includes('Подтвердите, что обработка голов не входит в стоимость погружения свай'))
+        throw new Error('Head treatment scope confirmation rejected');
       await page.goto(incorrect);
       if(!(await page.locator('body').innerText()).includes('Распределение количества свай по исполнениям не подтверждено'))
         throw new Error('Original allocation snapshot changed');
       await page.goto(correct);
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
-      await page.screenshot({path:path.join(__dirname,`fnd3-driven-pile-${width}.png`),fullPage:true}); await page.close();
+      await page.screenshot({path:path.join(__dirname,`fnd3-driven-head-${width}.png`),fullPage:true}); await page.close();
     }
     process.stdout.write('Factory-pile QA: explicit variants, allocation safeguard, immutable snapshots desktop/mobile PASS\n');
   } finally {await browser.close();}

@@ -35,7 +35,7 @@ from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES as SLAB_REBAR_ROL
 from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REBAR_ROLES,
     REBAR_WORK as PILE_REBAR_WORK, TECHNOLOGY_CODE as PILE_TECHNOLOGY_CODE, reinforcement_block as pile_rebar_block)
 from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
-    expected_blocks as expected_driven_pile_blocks)
+    expected_blocks as expected_driven_pile_blocks, expected_head_treatment_block, _id as driven_block_id)
 from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
     expected_blocks as expected_screw_pile_blocks)
 from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
@@ -235,6 +235,7 @@ async def create_estimate_preview(
     ribbed_rebar_disjoint_confirmed: bool = False,
     selected_work_block_ids: frozenset[str] | None = None,
     coating_work_scope_confirmed: bool = False,
+    driven_head_scope_confirmed: bool = False,
 ) -> EstimatePreviewSnapshot:
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
@@ -242,7 +243,7 @@ async def create_estimate_preview(
             pile_roles_confirmed, screw_head_match_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
             uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
-            ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed)):
+            ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed, driven_head_scope_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
         raise ValueError("region and price conditions are required")
@@ -348,6 +349,30 @@ async def create_estimate_preview(
         if not valid_allocation:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+    head_notice = None
+    if foundation and technology.technology_code == DRIVEN_PILE_CODE:
+        head_id = driven_block_id(technology.id, "head_treatment", "block")
+        actual_head = next((block for block in blocks if block.id == head_id), None)
+        if actual_head is not None:
+            count = explicit_parameters.get((head_id, "pile.head_treatment_count"))
+            try:
+                expected_head = await expected_head_treatment_block(db, technology)
+                expected_install = (await expected_driven_pile_blocks(db, technology))[2]
+                install = next((block for block in blocks if block.id == expected_install.id), None)
+                exact = (install is not None and head_id not in block_issues and install.id not in block_issues and
+                         encode_definition(actual_head) == encode_definition(expected_head) and
+                         actual_head.work_code == expected_head.work_code and
+                         encode_definition(install) == encode_definition(expected_install) and
+                         install.work_code == expected_install.work_code)
+            except ValueError:
+                exact = False
+            total = values.get("pile.count")
+            if count is not None and (not total or count[0] > total[0]):
+                block_issues[head_id] = (*block_issues.get(head_id, ()), "PILE_ALLOCATION_UNVERIFIED")
+                head_notice = "Количество обрабатываемых голов не должно превышать число свай"
+            elif count is not None and count[0] > 0 and not (exact and driven_head_scope_confirmed):
+                block_issues[head_id] = (*block_issues.get(head_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
+                head_notice = "Подтвердите, что обработка голов не входит в стоимость погружения свай"
     if foundation and technology.technology_code == SCREW_PILE_CODE:
         screw_valid = False
         try:
@@ -470,6 +495,8 @@ async def create_estimate_preview(
                     and len({expected_rebar[item.block_id].material_requirement_id for item in group}) == len(group)):
                 disjoint |= frozenset(item.id for item in group)
     if foundation:
+        if head_notice:
+            missing_roles += (head_notice,)
         if selected_work_block_ids is not None and not selected_work_block_ids:
             missing_roles += ("Не выбрана ни одна работа",)
         if geometry.inputs.get("missing"):
@@ -540,6 +567,7 @@ async def create_estimate_preview(
         "missing_required_roles": missing_roles, "resource_names": resource_names,
         "selected_work_block_ids": sorted(selected_work_block_ids) if selected_work_block_ids is not None else None,
         "coating_work_scope_confirmed": coating_work_scope_confirmed,
+        "driven_head_scope_confirmed": driven_head_scope_confirmed,
         "resource_characteristics": resource_characteristics,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})

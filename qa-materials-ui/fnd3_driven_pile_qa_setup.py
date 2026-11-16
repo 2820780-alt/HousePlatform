@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
-from app.services.module2_fnd3_driven_pile_blocks import add_driven_pile_blocks
+from app.services.module2_fnd3_driven_pile_blocks import add_driven_pile_blocks, add_driven_head_treatment_block
 
 
 async def main():
@@ -20,6 +20,10 @@ async def main():
         second = await add_driven_pile_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 3:
             raise RuntimeError("QA factory-pile blocks were edited or are not idempotent")
+        first = await add_driven_head_treatment_block(db, actor=actor)
+        second = await add_driven_head_treatment_block(db, actor=actor)
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 1:
+            raise RuntimeError("QA head-treatment block was edited or is not idempotent")
         await db.commit()
         print("QA factory-pile blocks prepared: two variants and one installation work")
 

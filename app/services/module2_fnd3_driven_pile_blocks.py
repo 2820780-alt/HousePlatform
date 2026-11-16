@@ -11,6 +11,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
 from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
+from app.services.module2_fnd3_work_details import candidates, _resolve
 
 TECHNOLOGY_CODE = "FND_PILE_DRIVEN_RC"
 INSTALL_WORK = "foundations_concrete_pogruzhenie_zhelezobetonnyh_svay"
@@ -76,3 +77,42 @@ async def add_driven_pile_blocks(db, *, actor: object) -> dict:
         await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
         created += 1
     return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
+
+
+def head_treatment_block(technology_id: uuid.UUID, step) -> CalculationBlock:
+    count = CalculationNode(_id(technology_id, "head_treatment", "count"), "INPUT", "piece",
+                            input_key="pile.head_treatment_count")
+    return CalculationBlock(id=_id(technology_id, "head_treatment", "block"),
+        name="Подготовка или срубка голов свай", nodes=(count,), outputs=(count.id,),
+        parameters=(BlockParameter("pile.head_treatment_count", "Число свай, требующих обработки голов",
+                                   "piece", minimum=Decimal(0)),),
+        work_code=step.work_code, work_step_id=str(step.id), work_output_id=count.id)
+
+
+async def expected_head_treatment_block(db, technology):
+    code = (await _resolve(db, candidates(), numbers={30}))["FND-WK-030"]
+    steps = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code == code))).all()
+    if len(steps) != 1:
+        raise ValueError("Pile head treatment requires the existing M1 work step")
+    return head_treatment_block(technology.id, steps[0])
+
+
+async def add_driven_head_treatment_block(db, *, actor: object) -> dict:
+    if db.bind.dialect.name != "postgresql":
+        raise ValueError("Factory-pile setup requires PostgreSQL transaction locking")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('atom.fnd3.driven-pile.blocks'))"))
+    technologies = (await db.scalars(select(Technology).where(
+        Technology.technology_code == TECHNOLOGY_CODE, Technology.status == "DRAFT").with_for_update())).all()
+    if len(technologies) != 1:
+        raise ValueError("Expected one factory-pile draft")
+    technology = technologies[0]
+    block = await expected_head_treatment_block(db, technology)
+    existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+    if existing:
+        changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
+                   existing.name != block.name or existing.material_id is not None or existing.work_code != block.work_code)
+        return {"technology_id": str(technology.id), "created": 0, "reused": int(not changed),
+                "edited": [block.name] if changed else []}
+    await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
+    return {"technology_id": str(technology.id), "created": 1, "reused": 0, "edited": []}
