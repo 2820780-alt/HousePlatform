@@ -37,13 +37,16 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
         'rebar_bottom.length':'12', 'rebar_bottom.count':'4', 'rebar_bottom.lap_length':'0.5',
         'rebar_bottom.lap_count':'2', 'rebar_bottom.mass_per_m':'0.888',
         'stirrups.length':'2', 'stirrups.count':'30', 'stirrups.lap_length':'0.1',
-        'stirrups.lap_count':'30', 'stirrups.mass_per_m':'0.395' };
+        'stirrups.lap_count':'30', 'stirrups.mass_per_m':'0.395',
+        'preparation.sand.area':'20', 'preparation.sand.thickness':'0.2', 'preparation.sand.supply_factor':'1.2',
+        'preparation.gravel.area':'20', 'preparation.gravel.thickness':'0.2', 'preparation.gravel.supply_factor':'1.2',
+        'geotextile.area':'20', 'geotextile.overlap_area':'2' };
       for (const [key,value] of Object.entries(params)) await page.locator(`input[name$=".${key}"]`).fill(value);
       await page.locator('[name="strip_roles_confirmed"]').check();
       await Promise.all([page.waitForURL(url => url.searchParams.has('snapshot'), { timeout: 60000 }),
         page.getByRole('button', { name:'Рассчитать', exact:true }).click()]);
       const body = await page.locator('body').innerText();
-      for (const expected of ['Материалы', 'Работы', '3,64', '49', '63', 'Нет цены', 'Смета неполная'])
+      for (const expected of ['Материалы', 'Работы', '3,64', '4,8', '22', '49', '63', 'Нет цены', 'Смета неполная'])
         if (!body.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth))
         throw new Error(`Horizontal overflow at ${width}px`);

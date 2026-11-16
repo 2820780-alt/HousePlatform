@@ -14,6 +14,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
 from app.services.module2_calculation_blocks import decode_definition
 from app.services.module2_calculation_graph import evaluate_block
+from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_strip_blocks import add_strip_blocks
 from app.services.module1_manual_calculation_price import append_manual_price
 from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
@@ -39,6 +40,10 @@ async def test_strip_blocks_bind_real_draft_roles_recalculate_and_are_idempotent
                 assert first["created"] + first["reused"] == 5 and not first["edited"]
                 second = await add_strip_blocks(db, actor=actor)
                 assert second["created"] == 0 and second["reused"] == 5 and not second["edited"]
+                prep = await add_base_preparation_blocks(db, actor=actor, technology_code="FND_STRIP_MONOLITHIC_RC")
+                again = await add_base_preparation_blocks(db, actor=actor, technology_code="FND_STRIP_MONOLITHIC_RC")
+                assert prep["created"] + prep["reused"] == 3 and not prep["edited"]
+                assert again["created"] == 0 and again["reused"] == 3 and not again["edited"]
                 rows = (await db.scalars(select(TechnologyCalculationBlock).where(
                     TechnologyCalculationBlock.technology_id == uuid.UUID(first["technology_id"])))).all()
                 blocks = {row.name: decode_definition(row.definition, block_id=str(row.id), name=row.name,
@@ -68,6 +73,11 @@ async def test_strip_blocks_bind_real_draft_roles_recalculate_and_are_idempotent
                 result = evaluate_block(formwork, formwork_values)
                 assert result[formwork.material_output_id].value == Decimal("8")
                 assert result[formwork.work_output_id].value == Decimal("20")
+                sand = blocks["Песчаная подготовка"]
+                sand_values = {"preparation.sand.area": ("20", "m2"), "preparation.sand.thickness": ("0.2", "m"),
+                               "preparation.sand.supply_factor": ("1.2", "1")}
+                assert evaluate_block(sand, sand_values)[sand.material_output_id].value == Decimal("4.8")
+                assert evaluate_block(sand, sand_values)[sand.work_output_id].value == Decimal("4")
                 obj = await create_object(db, actor=actor, name="QA strip")
                 geometry = await save_strip_geometry(db, actor=actor, object_id=obj.id,
                     technology_id=uuid.UUID(first["technology_id"]), length_m="12", width_m="0.4",
@@ -111,7 +121,7 @@ async def test_strip_blocks_bind_real_draft_roles_recalculate_and_are_idempotent
                 assert not snapshot.payload["result"]["complete"]
                 assert "Состав вспомогательных материалов и работ" in snapshot.payload["missing_required_roles"]
                 assert snapshot.payload["result"]["known_total"] == "30486.36"
-                assert len(snapshot.payload["result"]["materials"]) == len(snapshot.payload["result"]["works"]) == 5
+                assert len(snapshot.payload["result"]["materials"]) == len(snapshot.payload["result"]["works"]) == 8
                 changed = await save_strip_geometry(db, actor=actor, object_id=obj.id,
                     technology_id=uuid.UUID(first["technology_id"]), length_m="12", width_m="0.5",
                     height_m="0.8", expected_version=1)
