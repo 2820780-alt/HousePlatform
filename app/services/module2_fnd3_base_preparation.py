@@ -11,7 +11,7 @@ from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_fnd3_ushp_blocks import (GEOTEXTILE_WORK, PREPARATION_ROLES, PREPARATION_WORKS,
                                                     geotextile_block, preparation_block)
 
-SCOPES = {"FND_UFF": "uff", "FND_STRIP_MONOLITHIC_RC": "strip"}
+SCOPES = {"FND_UFF": "uff", "FND_STRIP_MONOLITHIC_RC": "strip", "FND_SLAB_MONOLITHIC_RC": "slab"}
 
 
 async def add_base_preparation_blocks(db, *, actor: object, technology_code: str) -> dict:

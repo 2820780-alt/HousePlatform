@@ -41,13 +41,18 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
             await page.locator(`input[name$=".${group}.${part}"]`).fill(value);
         await page.locator('input[name$=".formwork.material_area"]').fill('8');
         await page.locator('input[name$=".formwork.installation_area"]').fill('20');
+        for(const layer of ['sand','gravel'])
+          for(const [part,value] of Object.entries({area:'50',thickness:'0.2',supply_factor:'1.2'}))
+            await page.locator(`input[name$=".preparation.${layer}.${part}"]`).fill(value);
+        await page.locator('input[name$=".geotextile.area"]').fill('50');
+        await page.locator('input[name$=".geotextile.overlap_area"]').fill('5');
         await page.locator('[name="slab_roles_confirmed"]').check();
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       };
       stage='initial estimate'; await fillAndCalculate();
       const original=page.url();
       const body=await page.locator('body').innerText();
-      for(const expected of ['Материалы','Работы','10 м³','49 м','43,512 кг','Нет цены','Смета неполная'])
+      for(const expected of ['Материалы','Работы','10 м³','12 м³','55 м²','49 м','43,512 кг','Нет цены','Смета неполная'])
         if(!body.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       stage='geometry revision'; await page.getByRole('link',{name:'К геометрии'}).click();
       await page.locator('input[data-key="geometry.net_area"]').fill('70');

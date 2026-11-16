@@ -1,6 +1,7 @@
 import copy
 import os
 import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
@@ -11,6 +12,7 @@ from app.database import engine as configured_engine
 from app.models.module2_technology import Technology
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
+from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, add_slab_concrete_block,
                                                    add_slab_formwork_block, add_slab_reinforcement_blocks)
 from app.services.module5_estimate_snapshots import create_estimate_preview
@@ -35,6 +37,10 @@ async def test_slab_concrete_block_is_idempotent_and_uses_saved_geometry():
             second = await add_slab_concrete_block(db, actor=user)
             assert first["created"] + first["reused"] == 1 and not first["edited"]
             assert second["reused"] == 1 and not second["edited"]
+            prep = await add_base_preparation_blocks(db, actor=user, technology_code=TECHNOLOGY_CODE)
+            again = await add_base_preparation_blocks(db, actor=user, technology_code=TECHNOLOGY_CODE)
+            assert prep["created"] + prep["reused"] == 3 and not prep["edited"]
+            assert again["created"] == 0 and again["reused"] == 3 and not again["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA monolithic slab")
@@ -46,6 +52,15 @@ async def test_slab_concrete_block_is_idempotent_and_uses_saved_geometry():
             formwork_id = _id(tech.id, "block", "formwork")
             keys = {(block, "MATERIAL"): "slab-concrete", (block, "WORK"): "slab-pouring",
                     (formwork_id, "MATERIAL"): "slab-formwork-material", (formwork_id, "WORK"): "slab-formwork-work"}
+            prep_ids = {}
+            for code in ("sand", "gravel"):
+                identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/slab/preparation/{code}/block"))
+                prep_ids[code] = identifier
+                keys[(identifier, "MATERIAL")] = f"{code}-material"
+                keys[(identifier, "WORK")] = f"{code}-work"
+            geo = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/slab/geotextile/block"))
+            keys[(geo, "MATERIAL")] = "geotextile-material"
+            keys[(geo, "WORK")] = "geotextile-work"
             for code in REBAR_ROLES:
                 key = code.lower()
                 block_id = _id(tech.id, "block", key)
@@ -62,6 +77,11 @@ async def test_slab_concrete_block_is_idempotent_and_uses_saved_geometry():
             assert first_rebar["created"] + first_rebar["reused"] == 4 and not first_rebar["edited"]
             assert repeat_rebar["reused"] == 4 and not repeat_rebar["edited"]
             params = {}
+            for code, identifier in prep_ids.items():
+                for name, value in (("area", "50"), ("thickness", "0.2"), ("supply_factor", "1.2")):
+                    params[(identifier, f"preparation.{code}.{name}")] = value
+            params[(geo, "geotextile.area")] = "50"
+            params[(geo, "geotextile.overlap_area")] = "5"
             for code in REBAR_ROLES:
                 key = code.lower()
                 block_id = _id(tech.id, "block", key)
@@ -84,6 +104,13 @@ async def test_slab_concrete_block_is_idempotent_and_uses_saved_geometry():
             works = [line for line in confirmed.payload["result"]["works"] if line["unit"] == "kg"]
             assert len(works) == 4 and all(line["quantity"] == "43.5120" for line in works)
             assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in works)
+            for code, identifier in (*prep_ids.items(), ("geotextile", geo)):
+                material = next(line for line in confirmed.payload["result"]["materials"]
+                                if line["binding"]["block_id"] == identifier)
+                work = next(line for line in confirmed.payload["result"]["works"]
+                            if line["binding"]["block_id"] == identifier)
+                assert Decimal(material["quantity"]) == (55 if code == "geotextile" else 12)
+                assert Decimal(work["quantity"]) == (50 if code == "geotextile" else 10)
             assert not confirmed.payload["result"]["complete"]
             first_formwork = await add_slab_formwork_block(db, actor=user)
             assert first_formwork["created"] + first_formwork["reused"] == 1 and not first_formwork["edited"]
