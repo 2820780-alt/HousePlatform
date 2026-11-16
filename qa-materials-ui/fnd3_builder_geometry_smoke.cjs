@@ -34,19 +34,38 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await form.locator('select[name="material_step"]').selectOption('1');
       await Promise.all([page.waitForURL(url=>url.pathname.endsWith(technology),{waitUntil:'load',timeout:60000}),
         form.getByRole('button',{name:'Создать расчёт'}).click()]);
-      const section=page.locator('details').filter({has:page.locator('summary').getByText(name,{exact:false})}).last();
+      let section=page.locator('details').filter({has:page.locator('summary').getByText(name,{exact:false})}).last();
       await section.locator('summary').first().click();
+      const renamed=`${name} edited`;
+      const update=section.locator('form[action$="/update"]');
+      await update.locator('input[name="name"]').fill(renamed);
+      await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:60000}),
+        update.getByRole('button',{name:'Сохранить',exact:true}).click()]);
+      section=page.locator('details').filter({has:page.locator('summary').getByText(renamed,{exact:false})}).last();
+      await section.locator('summary').first().click();
+      const graph=section.locator('details').filter({has:page.locator('summary').getByText('Изменить схему расчёта',{exact:true})}).first();
+      await graph.locator('summary').first().click();
+      const graphForm=graph.locator('form[action$="/compose-update"]');
+      await graphForm.locator('input[name="step.1.label"]').fill('Количество свай, проверено');
+      await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:60000}),
+        graphForm.getByRole('button',{name:'Сохранить схему'}).click()]);
+      section=page.locator('details').filter({has:page.locator('summary').getByText(renamed,{exact:false})}).last();
+      await section.locator('summary').first().click();
+      const editedGraph=section.locator('details').filter({has:page.locator('summary').getByText('Изменить схему расчёта',{exact:true})}).first();
+      await editedGraph.locator('summary').first().click();
+      if(await editedGraph.locator('input[name="step.1.label"]').inputValue()!=='Количество свай, проверено')
+        throw new Error('Edited calculation graph was not saved');
       await page.screenshot({path:path.join(__dirname,`fnd3-builder-${width}.png`),fullPage:true});
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
       const remove=section.locator('form[action$="/delete"] button[type="submit"]');
       await remove.click();
-      await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),name,{timeout:60000});
+      await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),renamed,{timeout:60000});
       await page.getByRole('link',{name:'Предварительный расчёт',exact:true}).click();
       await page.waitForURL(url=>url.pathname===destination&&url.searchParams.get('technology')===technology,{timeout:60000});
       await page.locator('input[data-key="pile.count"]').waitFor({state:'visible',timeout:60000});
       if(await page.locator('#technology').inputValue()!==technology) throw new Error('Selected technology was not preserved');
       await page.close();
     }
-    process.stdout.write('M2 builder QA: typed pile geometry, create and delete own test block desktop/mobile PASS\n');
+    process.stdout.write('M2 builder QA: create, edit graph and delete own test block desktop/mobile PASS\n');
   } finally {await browser.close();}
 })().catch(error=>{process.stderr.write(`${error.message}\n`);process.exitCode=1;});
