@@ -14,6 +14,7 @@ from app.services.audit_service import log_event
 from app.services.module1_foundation_target_package import (
     PACKAGE, _normalized, _target_match, _unit, material_inventory_fingerprint, targets,
 )
+from app.services.module1_unit_conversion_registry import UnitConversionRegistry
 
 CATEGORY_MAP = {
     "foundation-reinforcing-steel": ("m1-ui-rebar-metal", "Арматура"),
@@ -40,6 +41,44 @@ def releasable_foundation_targets():
         else:
             result.append(target)
     return result, blocked
+
+
+def is_technically_identified_foundation_draft(material: Material) -> bool:
+    """Use existing reviewed M1 targets; no price or document is required."""
+    if material.status != MaterialStatus.DRAFT or not (material.canonical_name or "").strip():
+        return False
+    attrs = {item.attribute_name: item.attribute_value for item in material.attributes}
+    if attrs.get("registry_origin") != PACKAGE:
+        return False
+    matches = [target for target in releasable_foundation_targets()[0] if target.key == attrs.get("registry_key")]
+    if len(matches) != 1:
+        return False
+    target = matches[0]
+    if not target.expected or not target.unit or material.base_unit is None:
+        return False
+    registry = UnitConversionRegistry()
+    expected_unit = registry.normalize_unit(target.unit)
+    if not expected_unit or registry.normalize_unit(material.base_unit.abbreviation) != expected_unit:
+        return False
+    if any(attrs.get(name) != str(value) for name, value in target.expected.items()):
+        return False
+    if any(attrs.get(name) != str(value) for name, value in target.properties if name == "registry_code"):
+        return False
+    for issue in material.quality_issues:
+        kind = str(issue.issue_type or "").casefold()
+        if (str(issue.status or "").upper() not in {"CLOSED", "RESOLVED"} and
+                str(issue.severity or "").upper() in {"HIGH", "CRITICAL"} and
+                kind not in {"missing_document_link", "missing_price"}):
+            return False
+    return True
+
+
+async def technically_identified_foundation_draft_ids(db, material_ids) -> frozenset:
+    if not material_ids:
+        return frozenset()
+    materials = (await db.scalars(select(Material).where(Material.id.in_(material_ids)).options(
+        selectinload(Material.attributes), selectinload(Material.base_unit), selectinload(Material.quality_issues)))).all()
+    return frozenset(material.id for material in materials if is_technically_identified_foundation_draft(material))
 
 
 async def release_foundation_materials(db, *, expected_inventory_fingerprint: str) -> dict:

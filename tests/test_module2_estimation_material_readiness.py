@@ -13,6 +13,11 @@ import app.services.module2_estimation_export as export
 from app.services.module2_foundation_quantity_rules import describe_quantity_rule
 
 
+@pytest.fixture(autouse=True)
+def no_ready_drafts_by_default(monkeypatch):
+    monkeypatch.setattr(export, "technically_identified_foundation_draft_ids", AsyncMock(return_value=frozenset()))
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status,expected", [
     (MaterialStatus.DRAFT, "canonical_material_not_verified"),
@@ -49,12 +54,28 @@ async def test_m5_input_reports_unverified_or_missing_canonical_material(monkeyp
 
 
 @pytest.mark.asyncio
+async def test_technically_identified_draft_is_not_blocked_by_legacy_export(monkeypatch):
+    material_id = uuid4()
+    requirement = TechnologyMaterialRequirement(id=uuid4(), code="XPS", selector_kind="CANONICAL_MATERIAL",
+                                                canonical_material_id=material_id, technical_constraints={})
+    technology = Technology(id=uuid4(), technology_code="TEST_FOUNDATION", revision=1, status="ACTIVE",
+                            name="Test", source_kind="HUMAN_CURATED", input_missing_fields=[], input_blockers=[])
+    technology.requirements.append(requirement)
+    monkeypatch.setattr(export, "read_technology", AsyncMock(return_value=technology))
+    monkeypatch.setattr(export, "technically_identified_foundation_draft_ids", AsyncMock(return_value=frozenset({material_id})))
+    db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [(material_id, MaterialStatus.DRAFT)])))
+    package = await export.build_module5_estimation_input_package(db, technology.id)
+    assert "canonical_material_not_verified" not in package.material_requirements[0].blockers
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("alteration,expected", [
     (None, None),
     ("formula", "invalid_foundation_quantity_rule"),
     ("role", "quantity_rule_role_unresolved"),
     ("scope", "quantity_rule_role_unresolved"),
     ("draft", "canonical_material_not_verified"),
+    ("draft_ready", None),
 ])
 async def test_typed_quantity_rule_flows_through_existing_m5_contract(monkeypatch, alteration, expected):
     material_id = uuid4()
@@ -84,7 +105,9 @@ async def test_typed_quantity_rule_flows_through_existing_m5_contract(monkeypatc
     technology.evidence_references.append(evidence)
     monkeypatch.setattr(export, "read_technology", AsyncMock(return_value=technology))
     monkeypatch.setattr(export, "verify_evidence_references", AsyncMock(return_value=frozenset({evidence.id})))
-    status = MaterialStatus.DRAFT if alteration == "draft" else MaterialStatus.VERIFIED
+    status = MaterialStatus.DRAFT if alteration in {"draft", "draft_ready"} else MaterialStatus.VERIFIED
+    if alteration == "draft_ready":
+        monkeypatch.setattr(export, "technically_identified_foundation_draft_ids", AsyncMock(return_value=frozenset({material_id})))
     db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [(material_id, status)])))
 
     package = await export.build_module5_estimation_input_package(db, technology.id)
@@ -101,7 +124,8 @@ async def test_typed_quantity_rule_flows_through_existing_m5_contract(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_direct_norm_and_compatibility_selectors_check_m1_status(monkeypatch):
+@pytest.mark.parametrize("ready", [False, True])
+async def test_direct_norm_and_compatibility_selectors_check_m1_status(monkeypatch, ready):
     material_id = uuid4()
     requirement = TechnologyMaterialRequirement(id=uuid4(), code="REBAR", selector_kind="ROLE",
                                                 material_role_code="REBAR", technical_constraints={})
@@ -128,13 +152,14 @@ async def test_direct_norm_and_compatibility_selectors_check_m1_status(monkeypat
     technology.evidence_references.extend(refs)
     monkeypatch.setattr(export, "read_technology", AsyncMock(return_value=technology))
     monkeypatch.setattr(export, "verify_evidence_references", AsyncMock(return_value=frozenset(ref.id for ref in refs)))
+    if ready:
+        monkeypatch.setattr(export, "technically_identified_foundation_draft_ids", AsyncMock(return_value=frozenset({material_id})))
     db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(all=lambda: [(material_id, MaterialStatus.DRAFT)])))
 
     package = await export.build_module5_estimation_input_package(db, technology.id)
 
-    assert "canonical_material_not_verified" in package.consumption_norms[0].blockers
-    assert "canonical_material_not_verified" in package.compatibility_constraints[0].blockers
-    assert not package.ready_for_estimation
+    assert ("canonical_material_not_verified" in package.consumption_norms[0].blockers) == (not ready)
+    assert ("canonical_material_not_verified" in package.compatibility_constraints[0].blockers) == (not ready)
 
 
 @pytest.mark.asyncio

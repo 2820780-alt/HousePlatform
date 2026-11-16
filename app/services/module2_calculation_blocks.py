@@ -8,6 +8,7 @@ from typing import Mapping
 
 from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.access_levels import AccessLevel
 from app.models.enums import MaterialStatus
@@ -18,6 +19,7 @@ from app.models.module2_technology import Technology, TechnologyMaterialRequirem
 from app.models.module2_material_gap import Module2MaterialGap
 from app.schemas.module2_calculation_block import CalculationBlockDefinition
 from app.services.audit_service import log_event
+from app.services.module1_foundation_material_release import is_technically_identified_foundation_draft
 from app.services.module2_calculation_graph import (
     BlockParameter, CalculationBlock, CalculationNode, Threshold, copy_block, validate_block,
 )
@@ -358,9 +360,12 @@ async def require_verified_calculation_blocks(db: AsyncSession, technology_id: u
         if any(parameter.default is not None and parameter.status != "VERIFIED" for parameter in graph.parameters):
             raise ValueError("Подтвердите все используемые значения блоков перед активацией.")
         if graph.material_output_id:
-            material = await db.get(Material, row.material_id) if row.material_id else None
-            if material is None or material.status != MaterialStatus.VERIFIED:
-                raise ValueError("Для активации выберите проверенный материал M1.")
+            material = await db.scalar(select(Material).where(Material.id == row.material_id).options(
+                selectinload(Material.attributes), selectinload(Material.base_unit),
+                selectinload(Material.quality_issues))) if row.material_id else None
+            if (material is None or (material.status != MaterialStatus.VERIFIED and
+                    not is_technically_identified_foundation_draft(material))):
+                raise ValueError("Для активации выберите проверенный материал или технически определённый материал M1.")
             if not graph.material_requirement_id:
                 raise ValueError("Выберите материальную роль этой технологии для расчёта.")
         if graph.work_output_id:

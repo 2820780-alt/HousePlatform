@@ -34,6 +34,7 @@ from app.schemas.module2_knowledge import (
 )
 from app.schemas.module2_technology import TechnologyLifecycle
 from app.services.module1_unit_conversion_registry import UnitConversionRegistry
+from app.services.module1_foundation_material_release import technically_identified_foundation_draft_ids
 from app.services.module2_foundation_quantity_rules import describe_quantity_rule
 from app.services.module2_knowledge_foundation import (
     detect_compatibility_conflicts,
@@ -116,6 +117,8 @@ async def build_module5_estimation_input_package(
         material_statuses = dict((await db.execute(
             select(Material.id, Material.status).where(Material.id.in_(material_ids))
         )).all())
+    ready_drafts = await technically_identified_foundation_draft_ids(
+        db, {key for key, status in material_statuses.items() if status == MaterialStatus.DRAFT})
 
     for code in validate_technology_activation(technology):
         _append_issue(blockers, code, "TECHNOLOGY", technology.id)
@@ -138,7 +141,7 @@ async def build_module5_estimation_input_package(
             },
         )
         local_blockers = list(local_blockers)
-        local_blockers.extend(_canonical_material_blockers(selector, material_statuses))
+        local_blockers.extend(_canonical_material_blockers(selector, material_statuses, ready_drafts))
         scoped_layers = sorted(
             layers_by_requirement.get(requirement.id, ()),
             key=lambda item: item.position,
@@ -231,6 +234,7 @@ async def build_module5_estimation_input_package(
                 verified_evidence,
                 blockers,
                 material_statuses,
+                ready_drafts,
             )
         )
 
@@ -295,6 +299,7 @@ async def build_module5_estimation_input_package(
                 blockers,
                 warnings,
                 material_statuses,
+                ready_drafts,
             )
         )
 
@@ -322,6 +327,7 @@ async def build_module5_estimation_input_package(
                 verified_evidence,
                 blockers,
                 material_statuses,
+                ready_drafts,
             )
         )
 
@@ -377,6 +383,7 @@ def _build_norm(
     verified_evidence: frozenset[uuid.UUID],
     package_blockers: list[EstimationIssue],
     material_statuses: Mapping[uuid.UUID, MaterialStatus],
+    ready_drafts: frozenset[uuid.UUID],
 ) -> EstimationConsumptionNorm:
     local_blockers = list(norm.blockers or ())
     basis_unit = unit_registry.normalize_unit(norm.basis_unit)
@@ -401,7 +408,7 @@ def _build_norm(
 
     resource, selector_blockers = _selector(norm.resource_kind, norm.resource_selector)
     local_blockers.extend(selector_blockers)
-    local_blockers.extend(_canonical_material_blockers(resource, material_statuses))
+    local_blockers.extend(_canonical_material_blockers(resource, material_statuses, ready_drafts))
     evidence_ids = _evidence_ids(
         technology.evidence_references,
         "CONSUMPTION_NORM",
@@ -445,12 +452,13 @@ def _build_compatibility_constraint(
     package_blockers: list[EstimationIssue],
     package_warnings: list[EstimationIssue],
     material_statuses: Mapping[uuid.UUID, MaterialStatus],
+    ready_drafts: frozenset[uuid.UUID],
 ) -> EstimationCompatibilityConstraint:
     subject, subject_blockers = _selector(rule.subject_kind, rule.subject_selector)
     object_, object_blockers = _selector(rule.object_kind, rule.object_selector)
     local_blockers = [*(rule.blockers or ()), *subject_blockers, *object_blockers]
-    local_blockers.extend(_canonical_material_blockers(subject, material_statuses))
-    local_blockers.extend(_canonical_material_blockers(object_, material_statuses))
+    local_blockers.extend(_canonical_material_blockers(subject, material_statuses, ready_drafts))
+    local_blockers.extend(_canonical_material_blockers(object_, material_statuses, ready_drafts))
     conflicts = detect_compatibility_conflicts(rule, peer_rules)
     if conflicts:
         local_blockers.append("conflicting_active_compatibility_rule")
@@ -497,6 +505,7 @@ def _build_knowledge_constraint(
     verified_evidence: frozenset[uuid.UUID],
     package_blockers: list[EstimationIssue],
     material_statuses: Mapping[uuid.UUID, MaterialStatus],
+    ready_drafts: frozenset[uuid.UUID],
 ) -> EstimationKnowledgeConstraint:
     local_blockers = list(rule.blockers or ())
     payload = dict(rule.outcome_payload or {})
@@ -514,7 +523,8 @@ def _build_knowledge_constraint(
         else:
             if material_id not in material_statuses:
                 local_blockers.append("canonical_material_missing")
-            elif material_statuses[material_id] != MaterialStatus.VERIFIED:
+            elif (material_statuses[material_id] != MaterialStatus.VERIFIED and not
+                  (material_statuses[material_id] == MaterialStatus.DRAFT and material_id in ready_drafts)):
                 local_blockers.append("canonical_material_not_verified")
             matched_roles = [
                 item.canonical_material_id == material_id
@@ -555,14 +565,15 @@ def _build_knowledge_constraint(
 
 
 def _canonical_material_blockers(
-    selector: EstimationSelector, material_statuses: Mapping[uuid.UUID, MaterialStatus],
+    selector: EstimationSelector, material_statuses: Mapping[uuid.UUID, MaterialStatus], ready_drafts: frozenset[uuid.UUID],
 ) -> tuple[str, ...]:
     material_id = selector.canonical_material_id
     if selector.selector_kind != KnowledgeSelectorKind.CANONICAL_MATERIAL or material_id is None:
         return ()
     if material_id not in material_statuses:
         return ("canonical_material_missing",)
-    if material_statuses[material_id] != MaterialStatus.VERIFIED:
+    if (material_statuses[material_id] != MaterialStatus.VERIFIED and not
+            (material_statuses[material_id] == MaterialStatus.DRAFT and material_id in ready_drafts)):
         return ("canonical_material_not_verified",)
     return ()
 
