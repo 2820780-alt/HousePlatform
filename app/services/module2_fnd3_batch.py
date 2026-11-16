@@ -5,7 +5,7 @@ from functools import partial
 
 from app.services.module2_fnd3_base_preparation import SCOPES, add_base_preparation_blocks
 from app.services.module2_fnd3_bored_pile_blocks import add_bored_pile_blocks, add_bored_pile_reinforcement_blocks
-from app.services.module2_fnd3_coating_blocks import add_coating_blocks
+from app.services.module2_fnd3_coating_blocks import add_coating_blocks, add_coating_primer_work
 from app.services.module2_fnd3_column_wall_blocks import (
     add_column_wall_concrete, add_column_wall_formwork, add_column_wall_reinforcement,
 )
@@ -20,6 +20,7 @@ from app.services.module2_fnd3_strip_blocks import add_strip_blocks
 from app.services.module2_fnd3_uff_blocks import add_uff_blocks
 from app.services.module2_fnd3_ushp_blocks import add_ushp_blocks, add_ushp_geotextile_block, add_ushp_preparation_blocks
 from app.services.module2_fnd3_xps_blocks import add_xps_blocks
+from app.services.module2_fnd3_work_details import add_foundation_work_details
 
 
 def _steps():
@@ -28,7 +29,8 @@ def _steps():
              partial(add_ribbed_slab_blocks, technology_code=USHP_CODE), add_ushp_blocks,
              add_ushp_preparation_blocks, add_ushp_geotextile_block, add_uff_blocks,
              add_bored_pile_blocks, add_bored_pile_reinforcement_blocks, add_driven_pile_blocks,
-             add_screw_pile_blocks, add_grillage_blocks, add_coating_blocks, add_membrane_blocks, add_xps_blocks]
+             add_screw_pile_blocks, add_grillage_blocks, add_coating_blocks, add_coating_primer_work,
+             add_membrane_blocks, add_xps_blocks]
     for code in ("FND_COLUMN_CONCRETE_RC", "FND_BASEMENT_WALL_MONOLITHIC"):
         steps.extend(partial(fn, technology_code=code) for fn in (
             add_column_wall_concrete, add_column_wall_reinforcement, add_column_wall_formwork))
@@ -40,6 +42,7 @@ async def prepare_foundation_drafts(db, *, actor: object) -> list[dict]:
     """Stage reviewed blocks atomically; the caller retains responsibility for commit."""
     results = []
     async with db.begin_nested():
+        await add_foundation_work_details(db)
         for step in _steps():
             result = await step(db, actor=actor)
             if result.get("edited"):

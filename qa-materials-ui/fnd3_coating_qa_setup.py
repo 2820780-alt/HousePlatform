@@ -7,7 +7,8 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
-from app.services.module2_fnd3_coating_blocks import add_coating_blocks
+from app.services.module2_fnd3_coating_blocks import add_coating_blocks, add_coating_primer_work
+from app.services.module2_fnd3_work_details import add_foundation_work_details
 
 
 async def main():
@@ -20,8 +21,12 @@ async def main():
         second = await add_coating_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 2:
             raise RuntimeError("QA coating blocks were edited or are not idempotent")
+        await add_foundation_work_details(db)
+        first, second = await add_coating_primer_work(db, actor=actor), await add_coating_primer_work(db, actor=actor)
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 1:
+            raise RuntimeError("QA primer work was edited or is not idempotent")
         await db.commit()
-        print("QA coating blocks prepared: primer, mastic and one work")
+        print("QA coating blocks prepared: primer, mastic, bundled and separate primer work")
 
 
 if __name__ == "__main__":

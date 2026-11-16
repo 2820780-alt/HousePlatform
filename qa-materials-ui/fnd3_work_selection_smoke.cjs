@@ -53,18 +53,19 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         await page.locator('input[name$=".primer.consumption"]').fill('0.25');
         await page.locator('input[name$=".mastic.consumption"]').fill('1.5');
         const choices=page.locator('input[name="work_block_id"]');
-        if(await choices.count()!==2) throw new Error('Expected bundled and detailed work choices');
+        if(await choices.count()!==3) throw new Error('Expected bundled and detailed work choices');
         const values=await choices.evaluateAll(items=>items.map(item=>item.value));
-        const bundleId=values.find(value=>value!==detailId);
-        if(!bundleId) throw new Error('Bundled work not found');
+        const excludedIds=values.filter(value=>value!==detailId);
+        if(excludedIds.length!==2) throw new Error('Other work choices not found');
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
         const both=page.url();
         if(!(await page.locator('body').innerText()).includes('Не включено в итог')) throw new Error('Double-count protection missing');
-        await page.locator(`input[name="work_block_id"][value="${bundleId}"]`).uncheck();
+        for(const id of excludedIds) await page.locator(`input[name="work_block_id"][value="${id}"]`).uncheck();
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==both,{timeout:60000}),
           page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
         const selected=page.url();
-        if(await page.locator(`input[name="work_block_id"][value="${bundleId}"]`).isChecked()) throw new Error('Bundle selection was not saved');
+        for(const id of excludedIds)
+          if(await page.locator(`input[name="work_block_id"][value="${id}"]`).isChecked()) throw new Error('Excluded work selection was not saved');
         if(!(await page.locator(`input[name="work_block_id"][value="${detailId}"]`).isChecked())) throw new Error('Detailed selection was not saved');
         if((await page.locator('body').innerText()).includes('Не включено в итог')) throw new Error('Single selected work was excluded');
         await page.goto(both);

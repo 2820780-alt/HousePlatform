@@ -7,12 +7,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.database import engine as configured_engine
-from app.models.module2_technology import Technology, TechnologyWorkStep
+from app.models.module2_technology import Technology
 from app.models.user import User
-from app.services.module2_fnd3_coating_blocks import TECHNOLOGY_CODE, _id, add_coating_blocks
+from app.services.module2_fnd3_coating_blocks import TECHNOLOGY_CODE, _id, add_coating_blocks, add_coating_primer_work
 from app.services.module2_calculation_blocks import add_block
 from app.services.module2_calculation_graph import CalculationBlock, CalculationNode
-from app.services.module2_fnd3_work_details import _resolve, add_foundation_work_details, candidates
+from app.services.module2_fnd3_work_details import add_foundation_work_details
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
@@ -35,20 +35,28 @@ async def test_coating_consumption_and_single_work_on_restored_qa():
             second = await add_coating_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 2 and not first["edited"]
             assert second["reused"] == 2 and not second["edited"]
+            await add_foundation_work_details(db)
+            detail = await add_coating_primer_work(db, actor=user)
+            repeated = await add_coating_primer_work(db, actor=user)
+            assert detail["created"] + detail["reused"] == 1 and not detail["edited"]
+            assert repeated["reused"] == 1 and not repeated["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA coating")
             geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values={"geometry.area":"20"}, project_values={}, expected_version=0)
             primer, mastic = _id(tech.id, "primer", "block"), _id(tech.id, "mastic", "block")
-            keys = {(primer,"MATERIAL"):"primer", (mastic,"MATERIAL"):"mastic", (mastic,"WORK"):"coating-work"}
+            primer_work = _id(tech.id, "primer-work", "block")
+            keys = {(primer,"MATERIAL"):"primer", (mastic,"MATERIAL"):"mastic", (mastic,"WORK"):"coating-work",
+                    (primer_work,"WORK"):"primer-work"}
             missing = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
-                region="qa", terms="qa", accounting_keys=keys)
+                region="qa", terms="qa", accounting_keys=keys, selected_work_block_ids=frozenset({mastic}))
             assert all(line["quantity"] is None for line in missing.payload["result"]["materials"])
             assert not missing.payload["result"]["complete"]
             calculated = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys,
-                parameter_values={(primer,"primer.consumption"):"0.25", (mastic,"mastic.consumption"):"1.5"})
+                parameter_values={(primer,"primer.consumption"):"0.25", (mastic,"mastic.consumption"):"1.5"},
+                selected_work_block_ids=frozenset({mastic}))
             materials = calculated.payload["result"]["materials"]
             work = calculated.payload["result"]["works"]
             assert any(line["unit"] == "liter" and line["quantity"] == "5.00" for line in materials)
@@ -76,16 +84,10 @@ async def test_explicit_work_selection_preserves_materials_and_double_count_prot
                              "MODULE_05_ESTIMATE_ENGINE", "MODULE_07_DIGITAL_HOUSE")])
             await add_coating_blocks(db, actor=user)
             await add_foundation_work_details(db)
+            await add_coating_primer_work(db, actor=user)
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
-            code = (await _resolve(db, candidates()))["FND-WK-035"]
-            step = await db.scalar(select(TechnologyWorkStep).where(
-                TechnologyWorkStep.technology_id == tech.id, TechnologyWorkStep.work_code == code))
-            node = CalculationNode(str(uuid.uuid4()), "INPUT", "m2", input_key="geometry.area")
-            detail = CalculationBlock(id=str(uuid.uuid4()), name="QA нанесение праймера", nodes=(node,),
-                                     outputs=(node.id,), work_code=code, work_step_id=str(step.id),
-                                     work_output_id=node.id)
-            await add_block(db, technology_id=tech.id, block=detail, actor=user, actor_id=owner)
+            detail = SimpleNamespace(id=_id(tech.id, "primer-work", "block"))
             obj = await create_object(db, actor=user, name="QA work selection")
             geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values={"geometry.area": "20"}, project_values={}, expected_version=0)
@@ -153,7 +155,7 @@ async def test_explicit_work_selection_preserves_materials_and_double_count_prot
                 assert reopened.status_code == 200
                 assert f'name="work_block_id" value="{detail.id}" checked' in reopened.text
                 assert f'name="work_block_id" value="{bundle}" checked' not in reopened.text
-                assert "QA нанесение праймера" in reopened.text
+                assert "Нанесение праймера" in reopened.text
                 changed = await client.post(f"/api/v1/admin/vertical-preview/foundation/{geometry.id}",
                                             data={**form, "work_block_id": bundle})
                 assert "error=" in changed.headers["location"]

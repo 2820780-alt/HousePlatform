@@ -30,6 +30,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         await page.locator('[name="terms"]').fill('qa test only');
         await page.locator('input[name$=".primer.consumption"]').fill('0.25');
         await page.locator('input[name$=".mastic.consumption"]').fill('1.5');
+        await page.locator('label').filter({hasText:'Нанесение праймера'}).locator('input[name="work_block_id"]').uncheck();
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       };
       await calculate();
