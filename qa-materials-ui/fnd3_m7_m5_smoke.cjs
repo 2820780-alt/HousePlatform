@@ -17,6 +17,11 @@ let stage = 'setup';
   try {
     for (const width of [1440, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 941 } });
+      const failures = [];
+      page.on('response', response => {
+        if (response.status() >= 400) failures.push(`${response.status()} ${new URL(response.url()).pathname}`);
+      });
+      page.on('requestfailed', request => failures.push(`network failure ${new URL(request.url()).pathname}`));
       await page.goto(`${base}/api/v1/auth/login/view?next=${encodeURIComponent(destination)}`);
       await page.locator('#email').fill(credentials.email);
       await page.locator('#password').fill(credentials.password);
@@ -32,7 +37,7 @@ let stage = 'setup';
       try {
         await Promise.all([page.waitForURL(url => url.searchParams.has('revision'), { timeout: 30000 }),
           page.getByRole('button', { name: 'Сохранить', exact: true }).click()]);
-      } catch (error) { throw new Error(`Geometry save failed: ${await page.locator('#message').innerText()} (${error.message})`); }
+      } catch (error) { throw new Error(`Geometry save failed: ${await page.locator('#message').innerText()}; requests: ${failures.join(', ')} (${error.message})`); }
       await page.getByRole('link', { name: 'Открыть предварительную смету' }).click();
       await page.locator('[name="region"]').fill(`qa-${crypto.randomBytes(8).toString('hex')}`);
       await page.locator('[name="terms"]').fill('qa test only');
@@ -57,6 +62,8 @@ let stage = 'setup';
       const concrete = page.locator('tr').filter({hasText:'Бетон ленты'}).first();
       if (!((await concrete.locator('a').first().getAttribute('href')) || '').includes('/material-hub/view/materials/'))
         throw new Error('Concrete material link missing');
+      await concrete.getByText('Характеристики',{exact:true}).click();
+      if (!(await concrete.innerText()).includes('Класс бетона')) throw new Error('Material characteristics missing');
       await concrete.getByText('Расчёт блока',{exact:true}).click();
       if (!(await concrete.innerText()).includes('Объём конструкции')) throw new Error('Calculation trace missing');
       const estimateUrl = page.url();
@@ -64,6 +71,7 @@ let stage = 'setup';
       await Promise.all([page.waitForURL(url=>url.pathname.includes('/material-hub/view/materials/'),{timeout:60000}),
         concrete.locator('a').first().click()]);
       if ((await page.locator('body').innerText()).includes('Страница не найдена')) throw new Error('Material card unavailable');
+      if (!(await page.locator('body').innerText()).includes('Класс бетона')) throw new Error('Material card characteristics missing');
       await page.goto(estimateUrl);
       const work = page.locator('section').filter({has:page.getByRole('heading',{name:'Работы',exact:true})})
         .locator('a[href*="/vertical-m1/works/"]').first();

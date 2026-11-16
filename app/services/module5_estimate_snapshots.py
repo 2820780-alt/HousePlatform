@@ -11,17 +11,20 @@ from typing import Mapping
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.permission_guard import require_permission
 from app.core.exceptions import ForbiddenError
 from app.models.provider_work_cost_offer import ProviderWorkCostOffer
 from app.models.material import Material
+from app.models.material_attribute import MaterialAttribute
 from app.models.module1_work_item import WorkCatalogItem
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
 from app.models.module5_estimate_snapshot import EstimatePreviewSnapshot
 from app.services.audit_service import log_event
 from app.services.module1_offer_qualification import quote_current_offers
+from app.services.module1_material_display import material_ui_attribute_rows
 from app.services.module1_provider_work_cost_offers import _apply_list_permissions
 from app.services.module2_calculation_blocks import _validate_technology_roles, decode_definition, encode_definition
 from app.services.module2_fnd3_strip_blocks import (
@@ -417,11 +420,14 @@ async def create_estimate_preview(
         preview = replace(preview, complete=False)
     material_ids = {uuid.UUID(item.resource_id) for item in bindings if item.kind == "MATERIAL" and item.resource_id}
     work_codes = {item.resource_id for item in bindings if item.kind == "WORK" and item.resource_id}
-    material_rows = (await db.execute(select(Material.id, Material.canonical_name).where(Material.id.in_(material_ids)))).all()
+    materials = (await db.scalars(select(Material).where(Material.id.in_(material_ids)).options(
+        selectinload(Material.attributes).selectinload(MaterialAttribute.unit)))).all()
     work_rows = (await db.execute(select(WorkCatalogItem.work_code, WorkCatalogItem.work_name).where(
         WorkCatalogItem.work_code.in_(work_codes)))).all()
-    resource_names = {f"MATERIAL:{identifier}": name for identifier, name in material_rows}
+    resource_names = {f"MATERIAL:{material.id}": material.canonical_name for material in materials}
     resource_names.update({f"WORK:{code}": name for code, name in work_rows})
+    resource_characteristics = {str(material.id): sorted(material_ui_attribute_rows(material),
+        key=lambda item: (item["label"], item["value"], item["unit"])) for material in materials}
     graph = _json([asdict(block) for block in blocks])
     graph_hash = hashlib.sha256(json.dumps(graph, ensure_ascii=True, sort_keys=True,
                                            separators=(",", ":")).encode()).hexdigest()
@@ -447,6 +453,7 @@ async def create_estimate_preview(
         "grillage_bundle_scope_confirmed": grillage_bundle_scope_confirmed,
         "ribbed_rebar_disjoint_confirmed": ribbed_rebar_disjoint_confirmed,
         "missing_required_roles": missing_roles, "resource_names": resource_names,
+        "resource_characteristics": resource_characteristics,
         "quotes": [{"kind": key[0], "resource_id": key[1], "quote": asdict(quote)}
                    for key, quote in quotes.items()], "quote_errors": quote_errors, "result": asdict(preview)})
     snapshot = EstimatePreviewSnapshot(id=uuid.uuid4(), owner_user_id=getattr(actor, "id"),

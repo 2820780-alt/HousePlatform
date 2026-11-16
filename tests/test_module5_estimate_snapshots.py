@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.database import engine as configured_engine
 from app.models.enums import MaterialStatus, UnitType
 from app.models.material import Material
+from app.models.material_attribute import MaterialAttribute
 from app.models.module1_work_item import WorkCatalogItem
 from app.models.module2_technology import Technology
 from app.models.unit import Unit
@@ -55,6 +56,10 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                               revision=1, name="QA strip", status="DRAFT")
             db.add_all([material, tech])
             await db.flush()
+            characteristic = MaterialAttribute(material_id=material.id, attribute_name="concrete_class", attribute_value="B25")
+            internal = MaterialAttribute(material_id=material.id, attribute_name="registry_code", attribute_value="internal-only")
+            db.add_all([characteristic, internal])
+            await db.flush()
             group = get_work_catalog_registry().groups[0]
             code = "qa_work_" + uuid.uuid4().hex
             await save_work_item(db, WorkCatalogWrite(work_code=code, work_group=group.work_group,
@@ -76,6 +81,8 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
             original_name = material.canonical_name
             assert snap.payload["resource_names"][f"MATERIAL:{material.id}"] == original_name
             assert snap.payload["resource_names"][f"WORK:{code}"] == "QA temporary work"
+            assert snap.payload["resource_characteristics"][str(material.id)] == [
+                {"label": "Класс бетона", "value": "B25", "unit": "", "unit_inferred": False}]
             second = await save_strip_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                                                length_m="10", width_m="0.5", height_m="1", expected_version=1)
             recalculated = await create_estimate_preview(db, actor=user, geometry_revision_id=second.id,
@@ -83,6 +90,7 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
             assert recalculated.payload["result"]["known_total"] == "7500.00"
             assert (await read_estimate_preview(db, actor=user, snapshot_id=snap.id)).payload["result"]["known_total"] == "6000.00"
             material.canonical_name = "QA renamed material"
+            characteristic.attribute_value = "B30"
             work = await db.get(WorkCatalogItem, code)
             work.work_name = "QA renamed work"
             await db.flush()
@@ -103,6 +111,7 @@ async def test_persisted_previews_capture_prices_and_geometry_on_restored_qa(mon
                 assert "Материалы" in response.text and "Работы" in response.text and "6000.00" in response.text
                 assert original_name in response.text and "QA temporary work" in response.text
                 assert "QA renamed material" not in response.text and "QA renamed work" not in response.text
+                assert "B25" in response.text and "B30" not in response.text and "internal-only" not in response.text
                 monkeypatch.setattr(db, "commit", db.flush)
                 form = {
                     "name": "QA via form", "length_m": "10", "width_m": "0,5", "height_m": "1",
@@ -168,6 +177,9 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                                 base_unit_id=unit.id, status=MaterialStatus.DRAFT)
             db.add_all([material, tech])
             await db.flush()
+            characteristic = MaterialAttribute(material_id=material.id, attribute_name="concrete_class", attribute_value="B25")
+            db.add(characteristic)
+            await db.flush()
             block = replace(slab_net_area_volume_block(), material_id=str(material.id), work_output_id=None)
             await add_block(db, technology_id=tech.id, block=block, actor=user, actor_id=owner)
             obj = await create_object(db, actor=user, name="QA slab M5")
@@ -211,6 +223,7 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
             app.dependency_overrides[get_db] = lambda: db
             monkeypatch.setattr(db, "commit", db.flush)
             material.canonical_name = "QA renamed slab material"
+            characteristic.attribute_value = "B30"
             await db.flush()
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
                 legacy_new = await client.get(f"/api/v1/admin/vertical-preview/{tech.id}")
@@ -222,6 +235,7 @@ async def test_foundation_geometry_snapshot_and_recalculation_on_restored_qa(mon
                 saved_page = await client.get(f"/api/v1/admin/vertical-preview/foundation/{first.id}?snapshot={snapshot.id}")
                 assert saved_page.status_code == 200 and original_name in saved_page.text
                 assert "QA renamed slab material" not in saved_page.text
+                assert "B25" in saved_page.text and "B30" not in saved_page.text
                 saved_payload = snapshot.payload
                 snapshot.payload = {key: value for key, value in saved_payload.items() if key != "resource_names"}
                 await db.flush()
