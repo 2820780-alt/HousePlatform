@@ -231,14 +231,30 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
             assert Decimal(invalid_edge["amount_for_total"]) == 0
             registry_attribute.attribute_value = "XPS-04"
             await db.flush()
+            resized_geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={**values, "edge.contour_length": "14"}, project_values={}, expected_version=1)
+            resized = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=resized_geometry.id,
+                region=price_region, terms="qa", accounting_keys=keys, parameter_values=params,
+                ribbed_concrete_disjoint_confirmed=True)
+            resized_material = next(line for line in resized.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
+            resized_work = next(line for line in resized.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
+            assert Decimal(resized_material["quantity"]) == Decimal("7.2")
+            assert Decimal(resized_work["quantity"]) == Decimal("3")
+            assert Decimal(resized_material["line_amount"]) == Decimal("720")
+            assert Decimal(resized_work["line_amount"]) == Decimal("30")
+            await db.refresh(priced)
+            priced_material = next(line for line in priced.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
+            priced_work = next(line for line in priced.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
+            assert Decimal(priced_material["quantity"]) == Decimal("4.32")
+            assert Decimal(priced_work["quantity"]) == Decimal("2")
             wall = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
-                user_values={**values, "geometry.wall_area":"1"}, project_values={}, expected_version=1)
+                user_values={**values, "geometry.wall_area":"1"}, project_values={}, expected_version=2)
             with_wall = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=wall.id,
                 region="qa", terms="qa", accounting_keys=keys, parameter_values=params,
                 ribbed_concrete_disjoint_confirmed=True)
             assert "Материал утепления стен не выбран" in with_wall.payload["missing_required_roles"]
             disabled = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
-                user_values={**values, "edge.enabled": "0.0"}, project_values={}, expected_version=2)
+                user_values={**values, "edge.enabled": "0.0"}, project_values={}, expected_version=3)
             without_edge = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=disabled.id,
                 region="qa", terms="qa", accounting_keys=keys,
                 parameter_values={key: value for key, value in params.items() if key[0] != edge},
@@ -249,7 +265,7 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
             assert install in {line["binding"]["block_id"] for line in without_edge.payload["result"]["works"]}
             missing_height = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values={key: value for key, value in values.items() if key != "edge.height"},
-                project_values={}, expected_version=3)
+                project_values={}, expected_version=4)
             assert "edge.height" in missing_height.inputs["missing"]
             missing_result = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=missing_height.id,
                 region="qa", terms="qa", accounting_keys=keys, parameter_values=params,
