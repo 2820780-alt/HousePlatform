@@ -33,11 +33,12 @@ def test_ushp_edge_material_layers_and_disabled_zone():
     work = zone_work_block(technology_id, step, "edge")
     validate_block(material)
     validate_block(work)
-    values = {"geometry.edge_area": ("2", "m2"), "xps_edge.sheet_length": ("1.2", "m"),
+    values = {"geometry.edge_area": ("2", "m2"), "edge.contour_length": ("10", "m"),
+              "edge.excluded_length": ("2", "m"), "edge.height": ("0.25", "m"), "xps_edge.sheet_length": ("1.2", "m"),
               "xps_edge.sheet_width": ("0.6", "m"), "xps_edge.layers": ("2", "piece")}
     result = evaluate_block(material, values)
-    assert result[material.material_output_id].value == Decimal("4.32")
-    assert result[material.outputs[1]].value == Decimal("6")
+    assert result[material.material_output_id].value == Decimal("10.08")
+    assert result[material.outputs[1]].value == Decimal("14")
     assert evaluate_block(work, values)[work.work_output_id].value == Decimal("2")
     disabled = evaluate_block(material, {"geometry.edge_area": ("0", "m2")})
     assert disabled[material.material_output_id].value == 0
@@ -196,12 +197,13 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
             materials, works = result.payload["result"]["materials"], result.payload["result"]["works"]
             quantities = {line["binding"]["block_id"]:line["quantity"] for line in materials}
             assert all(quantities[key] == expected for key, expected in
-                       {slab:"10.0", ribs:"2.30", insulation:"6.48", edge:"4.32", rebar:"49.0"}.items())
+                       {slab:"10.0", ribs:"2.30", insulation:"6.48", edge:"10.08", rebar:"49.0"}.items())
             assert sum(value is None for value in quantities.values()) == 3
             assert any(line["binding"]["block_id"] == install and line["quantity"] == "6" for line in works)
             assert any(line["binding"]["block_id"] == edge_install and Decimal(line["quantity"]) == 2 for line in works)
             assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in materials + works)
             assert not result.payload["result"]["complete"] and result.payload["missing_required_roles"]
+            assert "Для точного раскроя торцов необходимо уточнить расположение исключённых участков" in result.payload["missing_required_roles"]
             assert geometry.inputs["values"]["geometry.edge_area"]["value"] == "2.00"
             assert "geometry.edge_area" not in geometry.inputs["user_values"]
             price_region = f"qa-{uuid.uuid4()}"
@@ -214,9 +216,9 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
                 ribbed_concrete_disjoint_confirmed=True)
             priced_material = next(line for line in priced.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
             priced_work = next(line for line in priced.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
-            assert Decimal(priced_material["line_amount"]) == Decimal("432")
+            assert Decimal(priced_material["line_amount"]) == Decimal("1008")
             assert Decimal(priced_work["line_amount"]) == Decimal("20")
-            assert Decimal(priced_material["amount_for_total"]) == Decimal("432")
+            assert Decimal(priced_material["amount_for_total"]) == Decimal("1008")
             assert Decimal(priced_work["amount_for_total"]) == Decimal("20")
             registry_attribute = await db.scalar(select(MaterialAttribute).where(
                 MaterialAttribute.material_id == edge_role.canonical_material_id,
@@ -238,14 +240,14 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
                 ribbed_concrete_disjoint_confirmed=True)
             resized_material = next(line for line in resized.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
             resized_work = next(line for line in resized.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
-            assert Decimal(resized_material["quantity"]) == Decimal("7.2")
+            assert Decimal(resized_material["quantity"]) == Decimal("14.4")
             assert Decimal(resized_work["quantity"]) == Decimal("3")
-            assert Decimal(resized_material["line_amount"]) == Decimal("720")
+            assert Decimal(resized_material["line_amount"]) == Decimal("1440")
             assert Decimal(resized_work["line_amount"]) == Decimal("30")
             await db.refresh(priced)
             priced_material = next(line for line in priced.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
             priced_work = next(line for line in priced.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
-            assert Decimal(priced_material["quantity"]) == Decimal("4.32")
+            assert Decimal(priced_material["quantity"]) == Decimal("10.08")
             assert Decimal(priced_work["quantity"]) == Decimal("2")
             wall = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values={**values, "geometry.wall_area":"1"}, project_values={}, expected_version=2)
@@ -274,6 +276,17 @@ async def test_ushp_disjoint_concrete_and_xps_zones_on_restored_qa():
                                       (missing_result.payload["result"]["works"], edge_install)):
                 line = next(item for item in lines if item["binding"]["block_id"] == identifier)
                 assert line["quantity"] is None and line["line_amount"] is None
+            legacy_values = {key: value for key, value in values.items() if not key.startswith("edge.")}
+            legacy_values["geometry.edge_area"] = "2"
+            legacy = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values=legacy_values, project_values={}, expected_version=5)
+            legacy_result = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=legacy.id,
+                region=price_region, terms="qa", accounting_keys=keys, parameter_values=params,
+                ribbed_concrete_disjoint_confirmed=True)
+            legacy_material = next(line for line in legacy_result.payload["result"]["materials"] if line["binding"]["block_id"] == edge)
+            legacy_work = next(line for line in legacy_result.payload["result"]["works"] if line["binding"]["block_id"] == edge_install)
+            assert legacy_material["quantity"] is None and legacy_material["line_amount"] is None
+            assert Decimal(legacy_work["quantity"]) == 2
             await db.rollback()
     finally:
         await engine.dispose()

@@ -134,7 +134,7 @@ async def add_ushp_preparation_blocks(db, *, actor: object) -> dict:
     return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
 
 
-def edge_material_block(technology_id: uuid.UUID, role) -> CalculationBlock:
+def area_edge_material_block(technology_id: uuid.UUID, role) -> CalculationBlock:
     def node(part, operation, unit, **kwargs):
         return CalculationNode(xps_id(technology_id, "edge", part), operation, unit, **kwargs)
     area = node("area", "INPUT", "m2", input_key="geometry.edge_area")
@@ -158,6 +158,44 @@ def edge_material_block(technology_id: uuid.UUID, role) -> CalculationBlock:
                     BlockParameter("xps_edge.sheet_length", "Длина плиты XPS", "m", minimum=Decimal("0.000001")),
                     BlockParameter("xps_edge.sheet_width", "Ширина плиты XPS", "m", minimum=Decimal("0.000001")),
                     BlockParameter("xps_edge.layers", "Количество слоёв; целые плиты отдельно на каждый слой", "piece", minimum=Decimal(1))),
+        material_id=str(role.canonical_material_id), material_requirement_id=str(role.id), material_output_id=material.id)
+
+
+def edge_material_block(technology_id: uuid.UUID, role) -> CalculationBlock:
+    def node(part, operation, unit, **kwargs):
+        return CalculationNode(xps_id(technology_id, "edge", part), operation, unit, **kwargs)
+    area = node("area", "INPUT", "m2", input_key="geometry.edge_area")
+    contour = node("contour", "INPUT", "m", input_key="edge.contour_length")
+    excluded = node("excluded", "INPUT", "m", input_key="edge.excluded_length")
+    height = node("height", "INPUT", "m", input_key="edge.height")
+    length = node("length", "INPUT", "m", input_key="xps_edge.sheet_length")
+    width = node("width", "INPUT", "m", input_key="xps_edge.sheet_width")
+    layers = node("layers", "INPUT", "piece", input_key="xps_edge.layers")
+    zero_area = node("zero_area", "CONSTANT", "m2", constant=Decimal(0))
+    zero_count = node("zero_count", "CONSTANT", "piece", constant=Decimal(0))
+    active = node("active", "LESS_THAN", "1", inputs=(zero_area.id, area.id))
+    net_length = node("net_length", "SUBTRACT", "m", inputs=(contour.id, excluded.id))
+    raw_length = node("raw_length", "DIVIDE", "1", inputs=(net_length.id, length.id))
+    raw_height = node("raw_height", "DIVIDE", "1", inputs=(height.id, width.id))
+    columns = node("columns", "CEIL", "piece", inputs=(raw_length.id,))
+    rows = node("rows", "CEIL", "piece", inputs=(raw_height.id,))
+    one_layer = node("grid_count", "MULTIPLY", "piece", inputs=(columns.id, rows.id))
+    total = node("total_count", "MULTIPLY", "piece", inputs=(one_layer.id, layers.id))
+    sheet = node("sheet_area", "MULTIPLY", "m2", inputs=(length.id, width.id))
+    purchased = node("purchased", "MULTIPLY", "m2", inputs=(total.id, sheet.id))
+    count = node("count", "IF", "piece", inputs=(active.id, total.id, zero_count.id))
+    material = node("material", "IF", "m2", inputs=(active.id, purchased.id, zero_area.id))
+    return CalculationBlock(id=xps_id(technology_id, "edge", "block"), name="Утепление торцов",
+        nodes=(area, contour, excluded, height, length, width, layers, zero_area, zero_count, active,
+               net_length, raw_length, raw_height, columns, rows, one_layer, total, sheet, purchased, count, material),
+        outputs=(material.id, count.id),
+        parameters=(BlockParameter("geometry.edge_area", "Площадь торцов", "m2", minimum=Decimal(0)),
+                    BlockParameter("edge.contour_length", "Длина контура", "m", minimum=Decimal(0)),
+                    BlockParameter("edge.excluded_length", "Исключаемая длина", "m", minimum=Decimal(0)),
+                    BlockParameter("edge.height", "Высота утепления", "m", minimum=Decimal(0)),
+                    BlockParameter("xps_edge.sheet_length", "Длина плиты XPS", "m", minimum=Decimal("0.000001")),
+                    BlockParameter("xps_edge.sheet_width", "Высота плиты XPS", "m", minimum=Decimal("0.000001")),
+                    BlockParameter("xps_edge.layers", "Слои: сетка плит по общей длине, без учёта разрывов и использования обрезков", "piece", minimum=Decimal(1))),
         material_id=str(role.canonical_material_id), material_requirement_id=str(role.id), material_output_id=material.id)
 
 
@@ -203,8 +241,12 @@ async def add_ushp_blocks(db, *, actor: object) -> dict:
         MaterialAttribute.attribute_name == "registry_code"))
     if edge_registry_code != "XPS-04":
         raise ValueError("USHP edge insulation requires the existing M1 XPS-04 material")
-    legacy = {block.id: block for block in (
-        material_block(technology.id, "EDGE_XPS", roles["EDGE_XPS"]), work_block(technology.id, steps[XPS_WORK]))}
+    grid = edge_material_block(technology.id, roles["EDGE_XPS"])
+    previous_grid = replace(grid, parameters=(*grid.parameters[:-1], replace(
+        grid.parameters[-1], label="Слои: сетка целых плит без повторного использования обрезков")))
+    legacy = (material_block(technology.id, "EDGE_XPS", roles["EDGE_XPS"]),
+              area_edge_material_block(technology.id, roles["EDGE_XPS"]), previous_grid,
+              work_block(technology.id, steps[XPS_WORK]))
     created, reused, upgraded, edited = 0, 0, 0, []
     for block in ushp_blocks(technology.id, roles, steps):
         existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
@@ -212,11 +254,11 @@ async def add_ushp_blocks(db, *, actor: object) -> dict:
             changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
                        existing.name != block.name or str(existing.material_id or "") != (block.material_id or "") or
                        (existing.work_code or None) != block.work_code)
-            old = legacy.get(block.id)
-            if (changed and old and existing.technology_id == technology.id and
-                    existing.definition == encode_definition(old) and existing.name == old.name and
-                    str(existing.material_id or "") == (old.material_id or "") and
-                    (existing.work_code or None) == old.work_code):
+            old = next((item for item in legacy if item.id == block.id and
+                        existing.definition == encode_definition(item) and existing.name == item.name and
+                        str(existing.material_id or "") == (item.material_id or "") and
+                        (existing.work_code or None) == item.work_code), None)
+            if changed and old and existing.technology_id == technology.id:
                 existing.definition = encode_definition(block)
                 existing.name = block.name
                 existing.version += 1

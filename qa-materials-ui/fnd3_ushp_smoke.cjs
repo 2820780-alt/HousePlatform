@@ -48,7 +48,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       };
       await calculate();
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['10 м³','12 м³','55 м²','2,3 м³','6,48 м²','9 шт.','4,32 м²','6 шт.',
+      for(const expected of ['10 м³','12 м³','55 м²','2,3 м³','6,48 м²','9 шт.','10,08 м²','14 шт.',
         'Монтаж утепления торцов','Монтаж утепления под плитой','49 м','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       await page.getByRole('link',{name:'К геометрии'}).click();
@@ -59,7 +59,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click(); await calculate();
       const revised=page.url();
       const changed=await page.locator('body').innerText();
-      if(!changed.includes('14 м³') || !changed.includes('7,2 м²')) throw new Error('USHP recalculation failed');
+      if(!changed.includes('14 м³') || !changed.includes('14,4 м²')) throw new Error('USHP recalculation failed');
       await page.goto(original);
       if(!(await page.locator('body').innerText()).includes('10 м³')) throw new Error('Original USHP snapshot changed');
       await page.goto(revised);
@@ -70,7 +70,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click(); await calculate();
       const disabled=await page.locator('body').innerText();
-      if(disabled.includes('7,2 м²')) throw new Error('Disabled edge still counted');
+      if(disabled.includes('14,4 м²')) throw new Error('Disabled edge still counted');
       if(disabled.includes('Монтаж утепления торцов')) throw new Error('Disabled edge work remains in the statement');
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
       await page.screenshot({path:path.join(__dirname,`fnd3-ushp-edge-${width}.png`),fullPage:true}); await page.close();

@@ -540,6 +540,10 @@ async def create_estimate_preview(
             missing_roles += ("Полнота комплектации технологии требует проверки",)
         if technology.technology_code == USHP_CODE and values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0:
             missing_roles += ("Материал утепления стен не выбран",)
+        if (technology.technology_code == USHP_CODE and
+                values.get("edge.enabled", (Decimal(0), "piece"))[0] == 1 and
+                values.get("edge.excluded_length", (Decimal(0), "m"))[0] > 0):
+            missing_roles += ("Для точного раскроя торцов необходимо уточнить расположение исключённых участков",)
         if (technology.technology_code == "FND_SUBSTRUCTURE_INSULATION_XPS" and
                 values.get("geometry.edge_area", (Decimal(0), "m2"))[0] > 0):
             missing_roles += ("Материал и отдельный расчёт утепления торцов требуют проверки",)
