@@ -24,14 +24,14 @@ PREPARATION_ROLES = {"SAND": "FND2_BASE_01", "GRAVEL": "FND2_BASE_02"}
 GEOTEXTILE_WORK = "earthworks_ukladka_geotekstilya"
 
 
-def geotextile_block(technology_id: uuid.UUID, role, step) -> CalculationBlock:
+def geotextile_block(technology_id: uuid.UUID, role, step, *, scope: str = "ushp") -> CalculationBlock:
     def node(part, operation, unit, **kwargs):
-        identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/geotextile/{part}"))
+        identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/{scope}/geotextile/{part}"))
         return CalculationNode(identifier, operation, unit, **kwargs)
     area = node("area", "INPUT", "m2", input_key="geotextile.area")
     overlaps = node("overlaps", "INPUT", "m2", input_key="geotextile.overlap_area")
     total = node("total", "ADD", "m2", inputs=(area.id, overlaps.id))
-    identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/geotextile/block"))
+    identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/{scope}/geotextile/block"))
     return CalculationBlock(id=identifier, name="Геотекстиль основания", nodes=(area, overlaps, total),
         outputs=(total.id, area.id),
         parameters=(BlockParameter("geotextile.area", "Площадь укладки геотекстиля", "m2", minimum=Decimal(0)),
@@ -68,19 +68,19 @@ async def add_ushp_geotextile_block(db, *, actor: object) -> dict:
     return {"technology_id": str(technology.id), "created": 1, "reused": 0, "edited": []}
 
 
-def preparation_block(technology_id: uuid.UUID, code: str, role, step) -> CalculationBlock:
+def preparation_block(technology_id: uuid.UUID, code: str, role, step, *, scope: str = "ushp") -> CalculationBlock:
     labels = {"SAND": "Песчаная подготовка", "GRAVEL": "Щебёночная подготовка"}
     label = labels[code]
     prefix = code.lower()
     def node(part, operation, unit, **kwargs):
-        identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/preparation/{prefix}/{part}"))
+        identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/{scope}/preparation/{prefix}/{part}"))
         return CalculationNode(identifier, operation, unit, **kwargs)
     area = node("area", "INPUT", "m2", input_key=f"preparation.{prefix}.area")
     thickness = node("thickness", "INPUT", "m", input_key=f"preparation.{prefix}.thickness")
     factor = node("factor", "INPUT", "1", input_key=f"preparation.{prefix}.supply_factor")
     work_volume = node("work_volume", "MULTIPLY", "m3", inputs=(area.id, thickness.id))
     material_volume = node("material_volume", "MULTIPLY", "m3", inputs=(work_volume.id, factor.id))
-    identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/ushp/preparation/{prefix}/block"))
+    identifier = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{technology_id}/{scope}/preparation/{prefix}/block"))
     return CalculationBlock(id=identifier, name=label, nodes=(area, thickness, factor, work_volume, material_volume),
         outputs=(material_volume.id, work_volume.id),
         parameters=(BlockParameter(f"preparation.{prefix}.area", "Площадь слоя", "m2", minimum=Decimal(0)),

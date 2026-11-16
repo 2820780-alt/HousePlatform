@@ -12,6 +12,8 @@ from app.models.module2_technology import Technology, TechnologyMaterialRequirem
 from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
 from app.services.module2_fnd3_slab_blocks import reinforcement_block
+from app.services.module2_fnd3_ushp_blocks import (GEOTEXTILE_WORK, PREPARATION_ROLES, PREPARATION_WORKS,
+                                                    geotextile_block, preparation_block)
 from app.services.module2_fnd3_xps_blocks import material_block, work_block
 
 TECHNOLOGY_CODE = "FND_UFF"
@@ -20,6 +22,48 @@ FLOOR_WORK = "fnd2_d0708e07f78c544d821e823b99136780"
 XPS_WORK = "foundations_concrete_uteplenie_fundamenta"
 REBAR_WORK = "reinforcement_armirovanie_fundamenta"
 ROLES = ("FND2_BT_02", "FLOOR_CONCRETE", "FOUNDATION_XPS", "FND2_RA_04")
+
+
+async def add_uff_preparation_blocks(db, *, actor: object) -> dict:
+    if db.bind.dialect.name != "postgresql":
+        raise ValueError("UFF setup requires PostgreSQL transaction locking")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('atom.fnd3.uff.blocks'))"))
+    technologies = (await db.scalars(select(Technology).where(
+        Technology.technology_code == TECHNOLOGY_CODE, Technology.status == "DRAFT").with_for_update())).all()
+    if len(technologies) != 1:
+        raise ValueError("Expected one UFF draft")
+    technology = technologies[0]
+    role_codes = (*PREPARATION_ROLES.values(), "FND2_BASE_04")
+    work_codes = (*PREPARATION_WORKS.values(), GEOTEXTILE_WORK)
+    role_rows = (await db.scalars(select(TechnologyMaterialRequirement).where(
+        TechnologyMaterialRequirement.technology_id == technology.id,
+        TechnologyMaterialRequirement.code.in_(role_codes)))).all()
+    work_rows = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code.in_(work_codes)))).all()
+    roles = {row.code: row for row in role_rows}
+    steps = {row.work_code: row for row in work_rows}
+    if (len(role_rows) != len(role_codes) or set(roles) != set(role_codes) or
+            any(role.canonical_material_id is None for role in roles.values()) or
+            len(work_rows) != len(work_codes) or set(steps) != set(work_codes)):
+        raise ValueError("UFF preparation requires explicit M1 materials and work selections")
+    blocks = [preparation_block(technology.id, code, roles[PREPARATION_ROLES[code]], steps[work_code], scope="uff")
+              for code, work_code in PREPARATION_WORKS.items()]
+    blocks.append(geotextile_block(technology.id, roles["FND2_BASE_04"], steps[GEOTEXTILE_WORK], scope="uff"))
+    created, reused, edited = 0, 0, []
+    for block in blocks:
+        existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+        if existing:
+            changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
+                       existing.name != block.name or str(existing.material_id or "") != block.material_id or
+                       existing.work_code != block.work_code)
+            if changed:
+                edited.append(block.name)
+            else:
+                reused += 1
+            continue
+        await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
+        created += 1
+    return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
 
 
 def _id(technology_id: uuid.UUID, group: str, part: str) -> str:

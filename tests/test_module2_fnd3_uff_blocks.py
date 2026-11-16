@@ -1,6 +1,7 @@
 import copy
 import os
 import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
@@ -12,7 +13,7 @@ from app.models.module2_technology import Technology
 from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
 from app.services.module2_fnd3_slab_blocks import _id as slab_id
-from app.services.module2_fnd3_uff_blocks import TECHNOLOGY_CODE, _id, add_uff_blocks
+from app.services.module2_fnd3_uff_blocks import TECHNOLOGY_CODE, _id, add_uff_blocks, add_uff_preparation_blocks
 from app.services.module2_fnd3_xps_blocks import _id as xps_id
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
@@ -35,6 +36,9 @@ async def test_uff_foundation_floor_disjoint_and_xps_on_restored_qa():
             first, second = await add_uff_blocks(db, actor=user), await add_uff_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 5 and not first["edited"]
             assert second["reused"] == 5 and not second["edited"]
+            first, second = await add_uff_preparation_blocks(db, actor=user), await add_uff_preparation_blocks(db, actor=user)
+            assert first["created"] + first["reused"] == 3 and not first["edited"]
+            assert second["reused"] == 3 and not second["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA UFF")
@@ -49,7 +53,18 @@ async def test_uff_foundation_floor_disjoint_and_xps_on_restored_qa():
             keys = {(foundation,"MATERIAL"):"foundation", (foundation,"WORK"):"foundation-work",
                     (floor,"MATERIAL"):"floor", (floor,"WORK"):"floor-work", (insulation,"MATERIAL"):"xps",
                     (install,"WORK"):"xps-work", (rebar,"MATERIAL"):"rebar", (rebar,"WORK"):"rebar-work"}
+            preparation = {code: str(uuid.uuid5(uuid.NAMESPACE_URL,
+                f"atom/fnd3/{tech.id}/uff/preparation/{code}/block")) for code in ("sand", "gravel")}
+            geo = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/uff/geotextile/block"))
+            for code, identifier in (*preparation.items(), ("geotextile", geo)):
+                keys[(identifier, "MATERIAL")] = f"{code}-material"
+                keys[(identifier, "WORK")] = f"{code}-work"
             params = {(insulation,"xps_slab.sheet_length"):"1.2", (insulation,"xps_slab.sheet_width"):"0.6"}
+            for code, identifier in preparation.items():
+                for name, value in (("area", "50"), ("thickness", "0.2"), ("supply_factor", "1.2")):
+                    params[(identifier, f"preparation.{code}.{name}")] = value
+            params[(geo, "geotextile.area")] = "50"
+            params[(geo, "geotextile.overlap_area")] = "5"
             for suffix,value in {"length":"12", "count":"4", "lap_length":"0.5",
                                  "lap_count":"2", "mass_per_m":"0.888"}.items():
                 params[(rebar, f"lower_x.{suffix}")] = value
@@ -61,7 +76,13 @@ async def test_uff_foundation_floor_disjoint_and_xps_on_restored_qa():
             confirmed = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
                 region="qa", terms="qa", accounting_keys=keys, parameter_values=params, uff_floor_disjoint_confirmed=True)
             quantities = {line["binding"]["block_id"]:line["quantity"] for line in confirmed.payload["result"]["materials"]}
-            assert quantities == {foundation:"3.64", floor:"5.0", insulation:"6.48", rebar:"49.0"}
+            assert all(quantities[key] == value for key, value in
+                       {foundation:"3.64", floor:"5.0", insulation:"6.48", rebar:"49.0"}.items())
+            assert all(Decimal(quantities[identifier]) == 12 for identifier in preparation.values())
+            assert Decimal(quantities[geo]) == 55
+            work_quantities = {line["binding"]["block_id"]: line["quantity"] for line in confirmed.payload["result"]["works"]}
+            assert all(Decimal(work_quantities[identifier]) == 10 for identifier in preparation.values())
+            assert Decimal(work_quantities[geo]) == 50
             assert all("UFF_SCOPE_UNVERIFIED" not in line["issues"] for line in
                        confirmed.payload["result"]["materials"] + confirmed.payload["result"]["works"])
             assert not confirmed.payload["result"]["complete"]

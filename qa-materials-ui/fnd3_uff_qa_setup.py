@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
-from app.services.module2_fnd3_uff_blocks import add_uff_blocks
+from app.services.module2_fnd3_uff_blocks import add_uff_blocks, add_uff_preparation_blocks
 
 
 async def main():
@@ -19,8 +19,11 @@ async def main():
         first, second = await add_uff_blocks(db, actor=actor), await add_uff_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 5:
             raise RuntimeError("QA UFF blocks were edited or are not idempotent")
+        first, second = await add_uff_preparation_blocks(db, actor=actor), await add_uff_preparation_blocks(db, actor=actor)
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 3:
+            raise RuntimeError("QA UFF preparation blocks were edited or are not idempotent")
         await db.commit()
-        print("QA UFF foundation, floor, insulation and aggregate reinforcement blocks prepared")
+        print("QA UFF foundation, floor, insulation, preparation and reinforcement blocks prepared")
 
 
 if __name__ == "__main__":

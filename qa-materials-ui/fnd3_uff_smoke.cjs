@@ -34,6 +34,11 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         await page.locator('input[name$=".xps_slab.sheet_width"]').fill('0.6');
         for(const [part,value] of Object.entries({length:'12',count:'4',lap_length:'0.5',lap_count:'2',mass_per_m:'0.888'}))
           await page.locator(`input[name$=".lower_x.${part}"]`).fill(value);
+        for(const layer of ['sand','gravel'])
+          for(const [part,value] of Object.entries({area:'50',thickness:'0.2',supply_factor:'1.2'}))
+            await page.locator(`input[name$=".preparation.${layer}.${part}"]`).fill(value);
+        await page.locator('input[name$=".geotextile.area"]').fill('50');
+        await page.locator('input[name$=".geotextile.overlap_area"]').fill('5');
       };
       await fill();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
@@ -43,7 +48,7 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('[name="uff_floor_disjoint_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==unconfirmed,{timeout:60000}),page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       const original=page.url(), text=await page.locator('body').innerText();
-      for(const expected of ['3,64 м³','5 м³','6,48 м²','9 шт.','49 м','Нет цены','Смета неполная'])
+      for(const expected of ['3,64 м³','5 м³','12 м³','55 м²','6,48 м²','9 шт.','49 м','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
       await page.getByRole('link',{name:'К геометрии'}).click(); await page.locator('input[data-key="geometry.net_area"]').fill('70');
       const before=page.url();
