@@ -37,7 +37,8 @@ from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REB
 from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
     expected_blocks as expected_driven_pile_blocks, expected_head_treatment_block, _id as driven_block_id)
 from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
-    expected_blocks as expected_screw_pile_blocks, _id as screw_block_id)
+    expected_blocks as expected_screw_pile_blocks, expected_optional_work_blocks as expected_screw_optional_blocks,
+    _id as screw_block_id)
 from app.services.module2_fnd3_membrane_blocks import (TECHNOLOGY_CODE as MEMBRANE_CODE,
     expected_blocks as expected_membrane_blocks)
 from app.services.module2_fnd3_ribbed_slab_blocks import (TECHNOLOGY_CODE as RIBBED_SLAB_CODE,
@@ -227,6 +228,8 @@ async def create_estimate_preview(
     pile_roles_confirmed: bool = False,
     screw_head_match_confirmed: bool = False,
     screw_head_work_scope_confirmed: bool = False,
+    screw_weld_scope_confirmed: bool = False,
+    screw_corrosion_scope_confirmed: bool = False,
     membrane_areas_disjoint_confirmed: bool = False,
     ribbed_concrete_disjoint_confirmed: bool = False,
     column_wall_rebar_disjoint_confirmed: bool = False,
@@ -241,7 +244,8 @@ async def create_estimate_preview(
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
-            pile_roles_confirmed, screw_head_match_confirmed, screw_head_work_scope_confirmed, membrane_areas_disjoint_confirmed,
+            pile_roles_confirmed, screw_head_match_confirmed, screw_head_work_scope_confirmed,
+            screw_weld_scope_confirmed, screw_corrosion_scope_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
             uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
             ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed, driven_head_scope_confirmed)):
@@ -375,6 +379,7 @@ async def create_estimate_preview(
                 block_issues[head_id] = (*block_issues.get(head_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
                 head_notice = "Подтвердите, что обработка голов не входит в стоимость погружения свай"
     screw_scope_unverified = False
+    screw_optional_notices = []
     if foundation and technology.technology_code == SCREW_PILE_CODE:
         screw_valid = False
         try:
@@ -400,6 +405,30 @@ async def create_estimate_preview(
             head_work_id = screw_block_id(technology.id, "head_work", "block")
             block_issues[head_work_id] = (*block_issues.get(head_work_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
             screw_scope_unverified = True
+        optional = {block.id: block for block in blocks if block.id in {
+            screw_block_id(technology.id, "weld", "block"), screw_block_id(technology.id, "corrosion", "block")}}
+        if optional:
+            try:
+                expected_optional = {block.id: block for block in await expected_screw_optional_blocks(db, technology)}
+            except ValueError:
+                expected_optional = {}
+            for key, input_key, confirmed_scope, notice in (
+                    ("weld", "screw.weld_count", screw_weld_scope_confirmed, "Проверьте состав расценки сварки соединений"),
+                    ("corrosion", "screw.corrosion_area", screw_corrosion_scope_confirmed, "Проверьте состав расценки антикоррозионной обработки")):
+                block_id = screw_block_id(technology.id, key, "block")
+                actual = optional.get(block_id)
+                if actual is None:
+                    continue
+                expected = expected_optional.get(block_id)
+                exact = (expected is not None and block_id not in block_issues and
+                         encode_definition(actual) == encode_definition(expected) and actual.work_code == expected.work_code)
+                quantity = explicit_parameters.get((block_id, input_key))
+                if not exact:
+                    block_issues[block_id] = (*block_issues.get(block_id, ()), "TECHNOLOGY_ROLE_INVALID")
+                    screw_optional_notices.append(notice)
+                elif quantity is not None and quantity[0] > 0 and not confirmed_scope:
+                    block_issues[block_id] = (*block_issues.get(block_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
+                    screw_optional_notices.append(notice)
     if foundation and technology.technology_code == MEMBRANE_CODE:
         membrane_valid = False
         try:
@@ -530,6 +559,7 @@ async def create_estimate_preview(
             missing_roles += ("Проверьте распределение свай и оголовков и подтвердите их совместимость",)
         if screw_scope_unverified:
             missing_roles += ("Подтвердите, что монтаж оголовков не входит в стоимость установки свай",)
+        missing_roles += tuple(screw_optional_notices)
         if technology.technology_code == MEMBRANE_CODE and not membrane_valid:
             missing_roles += ("Проверьте распределение площади между материалами и отсутствие пересечений",)
     preview = calculate_statement_preview(tuple(blocks), tuple(bindings), values, quotes,
@@ -566,6 +596,8 @@ async def create_estimate_preview(
         "pile_roles_confirmed": pile_roles_confirmed,
         "screw_head_match_confirmed": screw_head_match_confirmed,
         "screw_head_work_scope_confirmed": screw_head_work_scope_confirmed,
+        "screw_weld_scope_confirmed": screw_weld_scope_confirmed,
+        "screw_corrosion_scope_confirmed": screw_corrosion_scope_confirmed,
         "membrane_areas_disjoint_confirmed": membrane_areas_disjoint_confirmed,
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,

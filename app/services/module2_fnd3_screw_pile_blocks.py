@@ -11,6 +11,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.module2_technology import Technology, TechnologyMaterialRequirement, TechnologyWorkStep
 from app.services.module2_calculation_blocks import add_block, encode_definition
 from app.services.module2_calculation_graph import BlockParameter, CalculationBlock, CalculationNode
+from app.services.module2_fnd3_work_details import candidates, _resolve
 
 TECHNOLOGY_CODE = "FND_PILE_SCREW"
 PILE_WORK = "foundations_concrete_montazh_vintovyh_svay"
@@ -74,6 +75,57 @@ async def add_screw_pile_blocks(db, *, actor: object) -> dict:
             changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
                        existing.name != block.name or str(existing.material_id or "") != (block.material_id or "") or
                        (existing.work_code or None) != block.work_code)
+            if changed:
+                edited.append(block.name)
+            else:
+                reused += 1
+            continue
+        await add_block(db, technology_id=technology.id, block=block, actor=actor, actor_id=getattr(actor, "id", None))
+        created += 1
+    return {"technology_id": str(technology.id), "created": created, "reused": reused, "edited": edited}
+
+
+OPTIONAL_WORKS = {
+    33: ("weld", "Сварка и монтаж соединений свайной системы", "screw.weld_count", "piece"),
+    34: ("corrosion", "Антикоррозионная обработка соединений", "screw.corrosion_area", "m2"),
+}
+
+
+def optional_work_block(technology_id: uuid.UUID, number: int, step) -> CalculationBlock:
+    key, title, input_key, unit = OPTIONAL_WORKS[number]
+    value = CalculationNode(_id(technology_id, key, "quantity"), "INPUT", unit, input_key=input_key)
+    label = "Количество предусмотренных соединений" if number == 33 else "Площадь обрабатываемых соединений"
+    return CalculationBlock(id=_id(technology_id, key, "block"), name=title, nodes=(value,), outputs=(value.id,),
+        parameters=(BlockParameter(input_key, label, unit, minimum=Decimal(0)),),
+        work_code=step.work_code, work_step_id=str(step.id), work_output_id=value.id)
+
+
+async def expected_optional_work_blocks(db, technology):
+    codes = await _resolve(db, candidates(), numbers=set(OPTIONAL_WORKS))
+    work_codes = {number: codes[f"FND-WK-{number:03d}"] for number in OPTIONAL_WORKS}
+    rows = (await db.scalars(select(TechnologyWorkStep).where(
+        TechnologyWorkStep.technology_id == technology.id, TechnologyWorkStep.work_code.in_(work_codes.values())))).all()
+    steps = {row.work_code: row for row in rows}
+    if len(rows) != len(work_codes) or set(steps) != set(work_codes.values()):
+        raise ValueError("Optional screw-pile works require existing M1 steps")
+    return tuple(optional_work_block(technology.id, number, steps[code]) for number, code in work_codes.items())
+
+
+async def add_screw_optional_work_blocks(db, *, actor: object) -> dict:
+    if db.bind.dialect.name != "postgresql":
+        raise ValueError("Screw-pile setup requires PostgreSQL transaction locking")
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('atom.fnd3.screw-pile.blocks'))"))
+    technologies = (await db.scalars(select(Technology).where(
+        Technology.technology_code == TECHNOLOGY_CODE, Technology.status == "DRAFT").with_for_update())).all()
+    if len(technologies) != 1:
+        raise ValueError("Expected one screw-pile draft")
+    technology = technologies[0]
+    created, reused, edited = 0, 0, []
+    for block in await expected_optional_work_blocks(db, technology):
+        existing = await db.get(TechnologyCalculationBlock, uuid.UUID(block.id))
+        if existing:
+            changed = (existing.technology_id != technology.id or existing.definition != encode_definition(block) or
+                       existing.name != block.name or existing.material_id is not None or existing.work_code != block.work_code)
             if changed:
                 edited.append(block.name)
             else:

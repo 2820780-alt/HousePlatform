@@ -29,6 +29,8 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.locator('[name="terms"]').fill('qa test only');
       for(const [key,value] of Object.entries({screw_89:'3',screw_108_long:'2',screw_108:'0',head_89:'3',head_108:'2'}))
         await page.locator(`input[name$=".${key}.count"]`).fill(value);
+      await page.locator('input[name$=".screw.weld_count"]').fill('3');
+      await page.locator('input[name$=".screw.corrosion_area"]').fill('2.5');
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       const unconfirmed=page.url(), warning=await page.locator('body').innerText();
       if(!warning.includes('Проверьте распределение свай и оголовков и подтвердите их совместимость'))
@@ -41,17 +43,24 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       if(text.includes('Проверьте распределение свай и оголовков и подтвердите их совместимость')) throw new Error('Confirmed allocation rejected');
       if(!text.includes('Подтвердите, что монтаж оголовков не входит в стоимость установки свай'))
         throw new Error('Head work scope warning missing');
+      if(!text.includes('Проверьте состав расценки сварки соединений') ||
+          !text.includes('Проверьте состав расценки антикоррозионной обработки'))
+        throw new Error('Optional work scope warning missing');
       await page.locator('[name="screw_head_work_scope_confirmed"]').check();
+      await page.locator('[name="screw_weld_scope_confirmed"]').check();
+      await page.locator('[name="screw_corrosion_scope_confirmed"]').check();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot')&&url.href!==correct,{timeout:60000}),
         page.getByRole('button',{name:'Пересчитать',exact:true}).click()]);
       if((await page.locator('body').innerText()).includes('Подтвердите, что монтаж оголовков не входит в стоимость установки свай'))
         throw new Error('Head work scope confirmation rejected');
+      if((await page.locator('body').innerText()).includes('Проверьте состав расценки сварки соединений'))
+        throw new Error('Optional work scope confirmation rejected');
       await page.goto(unconfirmed);
       if(!(await page.locator('body').innerText()).includes('Проверьте распределение свай и оголовков'))
         throw new Error('Original unconfirmed snapshot changed');
       await page.goto(correct);
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
-      await page.screenshot({path:path.join(__dirname,`fnd3-screw-scope-${width}.png`),fullPage:true}); await page.close();
+      await page.screenshot({path:path.join(__dirname,`fnd3-screw-optional-${width}.png`),fullPage:true}); await page.close();
     }
     process.stdout.write('Screw-pile QA: variants, explicit head confirmation and snapshots desktop/mobile PASS\n');
   } finally {await browser.close();}

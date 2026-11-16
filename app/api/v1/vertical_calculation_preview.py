@@ -155,6 +155,8 @@ async def calculate_foundation(revision_id: uuid.UUID, request: Request, db: DBS
             pile_roles_confirmed=form.get("pile_roles_confirmed") == "yes",
             screw_head_match_confirmed=form.get("screw_head_match_confirmed") == "yes",
             screw_head_work_scope_confirmed=form.get("screw_head_work_scope_confirmed") == "yes",
+            screw_weld_scope_confirmed=form.get("screw_weld_scope_confirmed") == "yes",
+            screw_corrosion_scope_confirmed=form.get("screw_corrosion_scope_confirmed") == "yes",
             membrane_areas_disjoint_confirmed=form.get("membrane_areas_disjoint_confirmed") == "yes",
             ribbed_concrete_disjoint_confirmed=form.get("ribbed_concrete_disjoint_confirmed") == "yes",
             column_wall_rebar_disjoint_confirmed=form.get("column_wall_rebar_disjoint_confirmed") == "yes",

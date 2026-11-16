@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.database import async_session_factory
 from app.models.user import User
-from app.services.module2_fnd3_screw_pile_blocks import add_screw_pile_blocks
+from app.services.module2_fnd3_screw_pile_blocks import add_screw_pile_blocks, add_screw_optional_work_blocks
 
 
 async def main():
@@ -20,6 +20,10 @@ async def main():
         second = await add_screw_pile_blocks(db, actor=actor)
         if first["edited"] or second["edited"] or second["created"] or second["reused"] != 7:
             raise RuntimeError("QA screw-pile blocks were edited or are not idempotent")
+        first = await add_screw_optional_work_blocks(db, actor=actor)
+        second = await add_screw_optional_work_blocks(db, actor=actor)
+        if first["edited"] or second["edited"] or second["created"] or second["reused"] != 2:
+            raise RuntimeError("QA optional screw-pile works were edited or are not idempotent")
         await db.commit()
         print("QA screw-pile blocks prepared: variants, heads and installation works")
 

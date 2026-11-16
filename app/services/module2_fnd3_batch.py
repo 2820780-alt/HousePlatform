@@ -14,7 +14,7 @@ from app.services.module2_fnd3_grillage_blocks import add_grillage_blocks
 from app.services.module2_fnd3_membrane_blocks import add_membrane_blocks
 from app.services.module2_fnd3_precast_blocks import add_precast_blocks
 from app.services.module2_fnd3_ribbed_slab_blocks import USHP_CODE, add_ribbed_slab_blocks, add_ribbed_slab_detail_blocks
-from app.services.module2_fnd3_screw_pile_blocks import add_screw_pile_blocks
+from app.services.module2_fnd3_screw_pile_blocks import add_screw_pile_blocks, add_screw_optional_work_blocks
 from app.services.module2_fnd3_slab_blocks import add_slab_concrete_block, add_slab_formwork_block, add_slab_reinforcement_blocks
 from app.services.module2_fnd3_strip_blocks import add_strip_blocks
 from app.services.module2_fnd3_uff_blocks import add_uff_blocks
@@ -29,7 +29,7 @@ def _steps():
              partial(add_ribbed_slab_blocks, technology_code=USHP_CODE), add_ushp_blocks,
              add_ushp_preparation_blocks, add_ushp_geotextile_block, add_uff_blocks,
              add_bored_pile_blocks, add_bored_pile_reinforcement_blocks, add_driven_pile_blocks, add_driven_head_treatment_block,
-             add_screw_pile_blocks, add_grillage_blocks, add_coating_blocks, add_coating_primer_work,
+             add_screw_pile_blocks, add_screw_optional_work_blocks, add_grillage_blocks, add_coating_blocks, add_coating_primer_work,
              add_membrane_blocks, add_xps_blocks]
     for code in ("FND_COLUMN_CONCRETE_RC", "FND_BASEMENT_WALL_MONOLITHIC"):
         steps.extend(partial(fn, technology_code=code) for fn in (
