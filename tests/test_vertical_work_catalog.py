@@ -56,6 +56,11 @@ async def test_manual_work_and_price_forms_on_restored_qa(monkeypatch):
                     assert "Предложения исполнителей" in catalog.text
                     no_match = await client.get("/api/v1/admin/vertical-m1/works", params={"q": name + "-missing"})
                     assert "Работы не найдены" in no_match.text
+                    wrong_group = await client.get("/api/v1/admin/vertical-m1/works", params={
+                        "q": name, "group": "unknown-qa-group"})
+                    assert f"/works/{work.work_code}?" not in wrong_group.text and "Работы не найдены" in wrong_group.text
+                    literal_wildcard = await client.get("/api/v1/admin/vertical-m1/works", params={"q": name + "%"})
+                    assert "Работы не найдены" in literal_wildcard.text
                     before_version = work.version
                     saved = await client.post("/api/v1/admin/vertical-m1/works/save", data={
                         "work_code": work.work_code, "version": str(before_version), "name": name + " updated",

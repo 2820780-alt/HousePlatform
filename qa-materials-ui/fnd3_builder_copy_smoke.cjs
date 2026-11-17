@@ -129,7 +129,9 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       for(const [key,value] of Object.entries(sourceResources))
         if(await sourceEdit.locator(`select[name="${key}"]`).inputValue()!==value) throw new Error(`Source ${key} changed`);
       await sourceBlock.locator('form[action$="/delete"] button[type="submit"]').click();
-      await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),name,{timeout:60000});
+      await page.waitForFunction(([blockName, savedTemplate])=>![...document.querySelectorAll('summary')]
+        .some(item=>item.textContent.includes(blockName) && !item.textContent.includes(savedTemplate)),
+        [name, templateName],{timeout:60000});
       await page.close();
     }
     process.stdout.write('M2 builder QA: M1 resources, library and cross-technology copy, independent edits desktop/mobile PASS\n');
