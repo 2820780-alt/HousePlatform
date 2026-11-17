@@ -5,6 +5,7 @@ from functools import partial
 
 from app.services.module2_fnd3_base_preparation import SCOPES, add_base_preparation_blocks
 from app.services.module2_fnd3_bored_pile_blocks import add_bored_pile_blocks, add_bored_pile_reinforcement_blocks
+from app.services.module2_fnd3_bored_casing import add_bored_casing_block
 from app.services.module2_fnd3_coating_blocks import add_coating_blocks, add_coating_primer_work
 from app.services.module2_fnd3_column_wall_blocks import (
     add_column_wall_concrete, add_column_wall_formwork, add_column_wall_reinforcement,
@@ -19,6 +20,7 @@ from app.services.module2_fnd3_slab_blocks import add_slab_concrete_block, add_s
 from app.services.module2_fnd3_strip_blocks import add_strip_blocks
 from app.services.module2_fnd3_strip_auxiliary import add_strip_auxiliary_blocks
 from app.services.module2_fnd3_uff_blocks import add_uff_blocks
+from app.services.module2_fnd3_uff_sleeves import add_uff_sleeve_blocks
 from app.services.module2_fnd3_ushp_blocks import add_ushp_blocks, add_ushp_geotextile_block, add_ushp_preparation_blocks
 from app.services.module2_fnd3_xps_blocks import add_xps_blocks
 from app.services.module2_fnd3_work_details import add_foundation_work_details
@@ -28,8 +30,8 @@ def _steps():
     steps = [add_strip_blocks, add_strip_auxiliary_blocks, add_precast_blocks, add_slab_concrete_block, add_slab_reinforcement_blocks,
              add_slab_formwork_block, add_ribbed_slab_blocks, add_ribbed_slab_detail_blocks,
              partial(add_ribbed_slab_blocks, technology_code=USHP_CODE), add_ushp_blocks,
-             add_ushp_preparation_blocks, add_ushp_geotextile_block, add_uff_blocks,
-             add_bored_pile_blocks, add_bored_pile_reinforcement_blocks, add_driven_pile_blocks, add_driven_head_treatment_block,
+             add_ushp_preparation_blocks, add_ushp_geotextile_block, add_uff_blocks, add_uff_sleeve_blocks,
+             add_bored_pile_blocks, add_bored_pile_reinforcement_blocks, add_bored_casing_block, add_driven_pile_blocks, add_driven_head_treatment_block,
              add_screw_pile_blocks, add_screw_optional_work_blocks, add_grillage_blocks, add_coating_blocks, add_coating_primer_work,
              add_membrane_blocks, add_xps_blocks]
     for code in ("FND_COLUMN_CONCRETE_RC", "FND_BASEMENT_WALL_MONOLITHIC"):

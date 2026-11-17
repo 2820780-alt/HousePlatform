@@ -14,6 +14,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
 from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, _id, add_bored_pile_blocks,
                                                         add_bored_pile_reinforcement_blocks)
+from app.services.module2_fnd3_bored_casing import _id as casing_id, add_bored_casing_block
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
@@ -36,16 +37,19 @@ async def test_bored_pile_concrete_and_drilling_are_separate_on_restored_qa():
             second = await add_bored_pile_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 2 and not first["edited"]
             assert second["reused"] == 2 and not second["edited"]
+            casing = await add_bored_casing_block(db, actor=user)
+            assert casing["created"] + casing["reused"] == 1 and not casing["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA bored piles")
             geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
-                user_values={"pile.diameter":"0.4", "pile.length":"2", "pile.count":"5"},
+                user_values={"pile.diameter":"0.4", "pile.length":"2", "pile.count":"5", "pile.casing_length":"0"},
                 project_values={}, expected_version=0)
             first_id = _id(tech.id, "concrete-drilling", "block")
             second_id = _id(tech.id, "pouring", "block")
             keys = {(first_id,"MATERIAL"):"pile-concrete", (first_id,"WORK"):"pile-drilling",
                     (second_id,"WORK"):"pile-pouring"}
+            keys[(casing_id(tech.id, "block"), "WORK")] = "pile-casing"
             for code in REBAR_ROLES:
                 key = code.lower()
                 block_id = _id(tech.id, key, "block")

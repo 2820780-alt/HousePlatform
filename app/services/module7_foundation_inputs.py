@@ -79,8 +79,10 @@ FOUNDATION_FIELDS = {
     "FND_SLAB_MONOLITHIC_RC": SLAB,
     "FND_SLAB_RIBBED_RC": SLAB + RIBS,
     "FND_SLAB_USHP": SLAB + RIBS + ZONES + USHP_EDGE,
-    "FND_UFF": STRIP + SLAB + ZONES,
-    "FND_PILE_BORED_RC": PILE_CYLINDER,
+    "FND_UFF": STRIP + SLAB + ZONES + (
+        field("uff.sleeves_dn110", "Количество гильз DN110", "piece", False, True),
+        field("uff.sleeves_dn160", "Количество гильз DN160", "piece", False, True)),
+    "FND_PILE_BORED_RC": PILE_CYLINDER + (field("pile.casing_length", "Суммарная длина обсадки", "m", False, True),),
     "FND_PILE_DRIVEN_RC": PILE_COUNT,
     "FND_PILE_SCREW": SCREW_PILE,
     "FND_PILE_GRILLAGE": STRIP + PILE_COUNT,

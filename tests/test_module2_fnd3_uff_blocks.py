@@ -14,6 +14,7 @@ from app.models.module2_calculation_block import TechnologyCalculationBlock
 from app.models.user import User
 from app.services.module2_fnd3_slab_blocks import _id as slab_id
 from app.services.module2_fnd3_uff_blocks import TECHNOLOGY_CODE, _id, add_uff_blocks, add_uff_preparation_blocks
+from app.services.module2_fnd3_uff_sleeves import _id as sleeve_id, add_uff_sleeve_blocks
 from app.services.module2_fnd3_xps_blocks import _id as xps_id
 from app.services.module5_estimate_snapshots import create_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
@@ -39,12 +40,16 @@ async def test_uff_foundation_floor_disjoint_and_xps_on_restored_qa():
             first, second = await add_uff_preparation_blocks(db, actor=user), await add_uff_preparation_blocks(db, actor=user)
             assert first["created"] + first["reused"] == 3 and not first["edited"]
             assert second["reused"] == 3 and not second["edited"]
+            first, second = await add_uff_sleeve_blocks(db, actor=user), await add_uff_sleeve_blocks(db, actor=user)
+            assert first["created"] + first["reused"] == 3 and not first["edited"]
+            assert second["reused"] == 3 and not second["edited"]
             tech = await db.scalar(select(Technology).where(Technology.technology_code == TECHNOLOGY_CODE,
                                                              Technology.status == "DRAFT"))
             obj = await create_object(db, actor=user, name="QA UFF")
             values = {"geometry.length":"12", "geometry.width":"0.4", "geometry.height":"0.8",
                       "strip.overlap_volume":"0.2", "geometry.net_area":"50", "geometry.slab_thickness":"0.1",
-                      "geometry.wall_area":"0", "geometry.slab_area":"6", "geometry.edge_area":"0"}
+                      "geometry.wall_area":"0", "geometry.slab_area":"6", "geometry.edge_area":"0",
+                      "uff.sleeves_dn110":"0", "uff.sleeves_dn160":"0"}
             geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
                 user_values=values, project_values={}, expected_version=0)
             foundation, floor = (_id(tech.id, name, "block") for name in ("foundation", "floor"))
@@ -53,6 +58,9 @@ async def test_uff_foundation_floor_disjoint_and_xps_on_restored_qa():
             keys = {(foundation,"MATERIAL"):"foundation", (foundation,"WORK"):"foundation-work",
                     (floor,"MATERIAL"):"floor", (floor,"WORK"):"floor-work", (insulation,"MATERIAL"):"xps",
                     (install,"WORK"):"xps-work", (rebar,"MATERIAL"):"rebar", (rebar,"WORK"):"rebar-work"}
+            keys[(sleeve_id(tech.id, "dn110", "block"), "MATERIAL")] = "sleeve110"
+            keys[(sleeve_id(tech.id, "dn160", "block"), "MATERIAL")] = "sleeve160"
+            keys[(sleeve_id(tech.id, "work", "block"), "WORK")] = "sleeve-work"
             preparation = {code: str(uuid.uuid5(uuid.NAMESPACE_URL,
                 f"atom/fnd3/{tech.id}/uff/preparation/{code}/block")) for code in ("sand", "gravel")}
             geo = str(uuid.uuid5(uuid.NAMESPACE_URL, f"atom/fnd3/{tech.id}/uff/geotextile/block"))

@@ -24,7 +24,7 @@ if(fixture.status !== 0) throw new Error('Could not create isolated QA login');
       const technology=await option.getAttribute('value');
       if(!technology) throw new Error('Bored-pile draft unavailable');
       await page.locator('#technology').selectOption(technology);
-      for(const [key,value] of Object.entries({'pile.diameter':'0.4','pile.length':'2','pile.count':'5'}))
+      for(const [key,value] of Object.entries({'pile.diameter':'0.4','pile.length':'2','pile.count':'5','pile.casing_length':'12.5'}))
         await page.locator(`input[data-key="${key}"]`).fill(value);
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision'),{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
@@ -35,22 +35,32 @@ if(fixture.status !== 0) throw new Error('Could not create isolated QA login');
           for(const [part,value] of Object.entries({length:'2',count:'20',lap_length:'0.5',lap_count:'4',mass_per_m:'0.888'}))
             await page.locator(`input[name$=".${group}.${part}"]`).fill(value);
         await page.locator('[name="pile_roles_confirmed"]').check();
+        await page.locator('[name="pile_casing_scope_confirmed"]').check();
         await Promise.all([page.waitForURL(url=>url.searchParams.has('snapshot'),{timeout:60000}),page.getByRole('button',{name:'Рассчитать',exact:true}).click()]);
       };
       await calculate();
       const original=page.url(), text=await page.locator('body').innerText();
       for(const expected of ['Материалы','Работы','1,256637','5 шт.','42 м','37,296 кг','Нет цены','Смета неполная'])
         if(!text.includes(expected)) throw new Error(`Missing ${expected} at ${width}px`);
+      if(!text.includes('Для обсадки выберите материал и уточните его расход')) throw new Error('Casing material gap missing');
+      const casingRow = await page.locator('tr').filter({hasText:'Устройство обсадки скважин'}).innerText();
+      if(!casingRow.includes('12,5 м'))
+        throw new Error(`Casing work quantity incorrect: ${casingRow}`);
       await page.getByRole('link',{name:'К геометрии'}).click();
       await page.locator('input[data-key="pile.count"]').fill('10');
+      await page.locator('input[data-key="pile.casing_length"]').fill('15');
       const before=page.url();
       await Promise.all([page.waitForURL(url=>url.searchParams.has('revision')&&url.href!==before,{timeout:60000}),page.getByRole('button',{name:'Сохранить',exact:true}).click()]);
       await page.getByRole('link',{name:'Открыть предварительную смету'}).click();
       await calculate();
       if(!(await page.locator('body').innerText()).includes('2,513274')) throw new Error('Bored-pile recalculation failed');
+      if(!(await page.locator('tr').filter({hasText:'Устройство обсадки скважин'}).innerText()).includes('15 м'))
+        throw new Error('Casing recalculation failed');
       const revised=page.url();
       await page.goto(original);
       if(!(await page.locator('body').innerText()).includes('1,256637')) throw new Error('Original pile snapshot changed');
+      if(!(await page.locator('tr').filter({hasText:'Устройство обсадки скважин'}).innerText()).includes('12,5 м'))
+        throw new Error('Original casing snapshot changed');
       await page.goto(revised);
       if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw new Error(`Overflow at ${width}px`);
       await page.screenshot({path:path.join(__dirname,`fnd3-bored-pile-${width}.png`),fullPage:true});

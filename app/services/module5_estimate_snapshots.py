@@ -35,6 +35,7 @@ from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES as SLAB_REBAR_ROL
     REBAR_WORK as SLAB_REBAR_WORK, TECHNOLOGY_CODE as SLAB_TECHNOLOGY_CODE, reinforcement_block as slab_rebar_block)
 from app.services.module2_fnd3_bored_pile_blocks import (REBAR_ROLES as PILE_REBAR_ROLES,
     REBAR_WORK as PILE_REBAR_WORK, TECHNOLOGY_CODE as PILE_TECHNOLOGY_CODE, reinforcement_block as pile_rebar_block)
+from app.services.module2_fnd3_bored_casing import _id as bored_casing_id, expected_casing_block
 from app.services.module2_fnd3_driven_pile_blocks import (TECHNOLOGY_CODE as DRIVEN_PILE_CODE,
     expected_blocks as expected_driven_pile_blocks, expected_head_treatment_block, _id as driven_block_id)
 from app.services.module2_fnd3_screw_pile_blocks import (TECHNOLOGY_CODE as SCREW_PILE_CODE,
@@ -49,6 +50,7 @@ from app.services.module2_fnd3_column_wall_blocks import (REBAR_ROLES as COLUMN_
     REBAR_WORK as COLUMN_WALL_REBAR_WORK, reinforcement_block as column_wall_rebar_block)
 from app.services.module2_fnd3_uff_blocks import (TECHNOLOGY_CODE as UFF_CODE,
     concrete_blocks as uff_concrete_blocks, expected_blocks as expected_uff_roles)
+from app.services.module2_fnd3_uff_sleeves import _id as uff_sleeve_id, expected_sleeve_blocks
 from app.services.module2_fnd3_grillage_blocks import (TECHNOLOGY_CODE as GRILLAGE_CODE,
     expected_blocks as expected_grillage_blocks)
 from app.services.module2_fnd3_coating_blocks import (TECHNOLOGY_CODE as COATING_CODE,
@@ -227,6 +229,7 @@ async def create_estimate_preview(
     strip_roles_confirmed: bool = False,
     slab_roles_confirmed: bool = False,
     pile_roles_confirmed: bool = False,
+    pile_casing_scope_confirmed: bool = False,
     screw_head_match_confirmed: bool = False,
     screw_head_work_scope_confirmed: bool = False,
     screw_weld_scope_confirmed: bool = False,
@@ -235,6 +238,7 @@ async def create_estimate_preview(
     ribbed_concrete_disjoint_confirmed: bool = False,
     column_wall_rebar_disjoint_confirmed: bool = False,
     uff_floor_disjoint_confirmed: bool = False,
+    uff_sleeve_scope_confirmed: bool = False,
     grillage_rebar_disjoint_confirmed: bool = False,
     grillage_bundle_scope_confirmed: bool = False,
     ribbed_rebar_disjoint_confirmed: bool = False,
@@ -245,10 +249,10 @@ async def create_estimate_preview(
     require_permission(actor, MODULE5_CODE, "CREATE")
     require_permission(actor, MODULE1_CODE, "VIEW")
     if not all(isinstance(value, bool) for value in (strip_roles_confirmed, slab_roles_confirmed,
-            pile_roles_confirmed, screw_head_match_confirmed, screw_head_work_scope_confirmed,
+            pile_roles_confirmed, pile_casing_scope_confirmed, screw_head_match_confirmed, screw_head_work_scope_confirmed,
             screw_weld_scope_confirmed, screw_corrosion_scope_confirmed, membrane_areas_disjoint_confirmed,
             ribbed_concrete_disjoint_confirmed, column_wall_rebar_disjoint_confirmed,
-            uff_floor_disjoint_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
+            uff_floor_disjoint_confirmed, uff_sleeve_scope_confirmed, grillage_rebar_disjoint_confirmed, grillage_bundle_scope_confirmed,
             ribbed_rebar_disjoint_confirmed, coating_work_scope_confirmed, driven_head_scope_confirmed)):
         raise ValueError("role confirmation must be boolean")
     if not region.strip() or not terms.strip():
@@ -358,6 +362,26 @@ async def create_estimate_preview(
         if not valid_allocation:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "PILE_ALLOCATION_UNVERIFIED")
+    casing_notices = []
+    if foundation and technology.technology_code == PILE_TECHNOLOGY_CODE:
+        casing_id = bored_casing_id(technology.id, "block")
+        casing = next((block for block in blocks if block.id == casing_id), None)
+        if casing is not None:
+            try:
+                expected_casing = await expected_casing_block(db, technology)
+                exact = (casing_id not in block_issues and encode_definition(casing) == encode_definition(expected_casing)
+                         and casing.work_code == expected_casing.work_code)
+            except ValueError:
+                exact = False
+            length = values.get("pile.casing_length", (Decimal(0), "m"))[0]
+            if not exact:
+                block_issues[casing_id] = (*block_issues.get(casing_id, ()), "TECHNOLOGY_ROLE_INVALID")
+                casing_notices.append("Проверьте связь работы обсадки с каталогом M1")
+            elif length > 0:
+                casing_notices.append("Для обсадки выберите материал и уточните его расход")
+                if not pile_casing_scope_confirmed:
+                    block_issues[casing_id] = (*block_issues.get(casing_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
+                    casing_notices.append("Подтвердите, что обсадка не входит в другие работы")
     head_notice = None
     if foundation and technology.technology_code == DRIVEN_PILE_CODE:
         head_id = driven_block_id(technology.id, "head_treatment", "block")
@@ -460,6 +484,7 @@ async def create_estimate_preview(
         if not membrane_valid:
             for block in blocks:
                 block_issues[block.id] = (*block_issues.get(block.id, ()), "COVERAGE_ALLOCATION_UNVERIFIED")
+    uff_sleeve_notice = None
     if foundation and technology.technology_code == UFF_CODE:
         uff_scope_valid = False
         try:
@@ -478,6 +503,26 @@ async def create_estimate_preview(
             for block in blocks:
                 if block.id in protected_ids:
                     block_issues[block.id] = (*block_issues.get(block.id, ()), "UFF_SCOPE_UNVERIFIED")
+        sleeve_work_id = uff_sleeve_id(technology.id, "work", "block")
+        sleeve_work = next((block for block in blocks if block.id == sleeve_work_id), None)
+        if sleeve_work is not None:
+            try:
+                expected_sleeves = await expected_sleeve_blocks(db, technology)
+                actual_sleeves = {block.id: block for block in blocks}
+                exact = all(item.id in actual_sleeves and item.id not in block_issues and
+                            encode_definition(actual_sleeves[item.id]) == encode_definition(item) and
+                            actual_sleeves[item.id].material_id == item.material_id and
+                            actual_sleeves[item.id].work_code == item.work_code for item in expected_sleeves)
+            except ValueError:
+                exact = False
+            sleeve_count = sum(values.get(key, (Decimal(0), "piece"))[0]
+                               for key in ("uff.sleeves_dn110", "uff.sleeves_dn160"))
+            if not exact:
+                block_issues[sleeve_work_id] = (*block_issues.get(sleeve_work_id, ()), "TECHNOLOGY_ROLE_INVALID")
+                uff_sleeve_notice = "Проверьте материалы и работу монтажа гильз"
+            elif sleeve_count > 0 and not uff_sleeve_scope_confirmed:
+                block_issues[sleeve_work_id] = (*block_issues.get(sleeve_work_id, ()), "BUNDLE_SCOPE_UNVERIFIED")
+                uff_sleeve_notice = "Подтвердите, что монтаж гильз не учтён в других работах"
     grillage_exact, grillage_expected, grillage_allocation_valid = False, (), False
     if foundation and technology.technology_code == GRILLAGE_CODE:
         try:
@@ -540,6 +585,7 @@ async def create_estimate_preview(
                     and len({expected_rebar[item.block_id].material_requirement_id for item in group}) == len(group)):
                 disjoint |= frozenset(item.id for item in group)
     if foundation:
+        missing_roles += tuple(casing_notices)
         if head_notice:
             missing_roles += (head_notice,)
         if selected_work_block_ids is not None and not selected_work_block_ids:
@@ -560,6 +606,8 @@ async def create_estimate_preview(
         if technology.technology_code == UFF_CODE:
             if not uff_scope_valid:
                 missing_roles += ("Подтвердите, что площадь пола не включает фундаментную часть",)
+            if uff_sleeve_notice:
+                missing_roles += (uff_sleeve_notice,)
             if values.get("geometry.wall_area", (Decimal(0), "m2"))[0] > 0 or values.get("geometry.edge_area", (Decimal(0), "m2"))[0] > 0:
                 missing_roles += ("Материал утепления стен или торцов не выбран",)
         if technology.technology_code == GRILLAGE_CODE:
@@ -609,6 +657,7 @@ async def create_estimate_preview(
                        for key, value in explicit_parameters.items()],
         "strip_roles_confirmed": strip_roles_confirmed, "slab_roles_confirmed": slab_roles_confirmed,
         "pile_roles_confirmed": pile_roles_confirmed,
+        "pile_casing_scope_confirmed": pile_casing_scope_confirmed,
         "screw_head_match_confirmed": screw_head_match_confirmed,
         "screw_head_work_scope_confirmed": screw_head_work_scope_confirmed,
         "screw_weld_scope_confirmed": screw_weld_scope_confirmed,
@@ -617,6 +666,7 @@ async def create_estimate_preview(
         "ribbed_concrete_disjoint_confirmed": ribbed_concrete_disjoint_confirmed,
         "column_wall_rebar_disjoint_confirmed": column_wall_rebar_disjoint_confirmed,
         "uff_floor_disjoint_confirmed": uff_floor_disjoint_confirmed,
+        "uff_sleeve_scope_confirmed": uff_sleeve_scope_confirmed,
         "grillage_rebar_disjoint_confirmed": grillage_rebar_disjoint_confirmed,
         "grillage_bundle_scope_confirmed": grillage_bundle_scope_confirmed,
         "ribbed_rebar_disjoint_confirmed": ribbed_rebar_disjoint_confirmed,
