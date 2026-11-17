@@ -55,6 +55,10 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         throw new Error('Head work scope confirmation rejected');
       if((await page.locator('body').innerText()).includes('Проверьте состав расценки сварки соединений'))
         throw new Error('Optional work scope confirmation rejected');
+      const approvedText=await page.locator('body').innerText();
+      if(!approvedText.includes('Для сварки соединений уточните материал и его расход') ||
+         !approvedText.includes('Для антикоррозионной обработки уточните материал и его расход'))
+        throw new Error('Optional work material notices missing');
       await page.goto(unconfirmed);
       if(!(await page.locator('body').innerText()).includes('Проверьте распределение свай и оголовков'))
         throw new Error('Original unconfirmed snapshot changed');

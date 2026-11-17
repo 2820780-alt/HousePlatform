@@ -694,7 +694,7 @@ def test_material_hub_views_have_bounded_read_only_query_counts() -> None:
                 response = client.get(path)
                 assert response.status_code == 200
                 assert set(operations) <= {"select"}
-                assert len(operations) <= budget
+                assert len(operations) <= budget, f"{path}: {len(operations)} queries, budget {budget}"
     finally:
         app.dependency_overrides.pop(get_current_user, None)
         event.remove(engine.sync_engine, "before_cursor_execute", capture)

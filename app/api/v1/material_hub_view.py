@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BeforeValidator
 from urllib.parse import urlparse
 from sqlalchemy import func, or_, select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.api.deps import CurrentUser, DBSession, require_admin
 from app.core.permission_guard import can, require_permission
@@ -1577,7 +1577,7 @@ async def _load_catalog_products(db: DBSession) -> list[CatalogProduct]:
 async def _load_provider_work_cost_offer_rows(db: DBSession, *, catalog=None) -> list[dict[str, Any]]:
     result = await db.execute(
         select(ProviderWorkCostOffer)
-        .options(selectinload(ProviderWorkCostOffer.owner))
+        .options(joinedload(ProviderWorkCostOffer.owner))
         .order_by(ProviderWorkCostOffer.updated_at.desc())
         .limit(50)
     )

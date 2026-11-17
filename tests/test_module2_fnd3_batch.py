@@ -22,6 +22,31 @@ def qa_engine():
 
 
 @pytest.mark.asyncio
+async def test_foundation_batch_against_fresh_release_restore():
+    dbname = "houseplatform_fnd3_release_20261117"
+    if os.environ.get("ATOM_FND3_RELEASE_QA_DB") != dbname:
+        pytest.skip("requires the explicitly restored FND-3 release QA database")
+    engine = create_async_engine(configured_engine.url.set(database=dbname), echo=False)
+    try:
+        async with async_sessionmaker(engine, expire_on_commit=False)() as db:
+            actor = SimpleNamespace(id=await db.scalar(select(User.id).limit(1)), role="ADMIN")
+            active_query = select(Technology.id, Technology.technology_code, Technology.revision).where(
+                Technology.status == "ACTIVE").order_by(Technology.id)
+            before = (await db.execute(active_query)).all()
+            first = await module2_fnd3_batch.prepare_foundation_drafts(db, actor=actor)
+            second = await module2_fnd3_batch.prepare_foundation_drafts(db, actor=actor)
+            assert len({item["technology_id"] for item in first}) == 15
+            assert all(not item["edited"] for item in first + second)
+            assert all(item["created"] == 0 for item in second)
+            assert (await db.execute(active_query)).all() == before
+            print(f"Fresh release dry-run: {len(before)} active technologies preserved; "
+                  f"{sum(item['created'] for item in first)} blocks created in rollback transaction")
+            await db.rollback()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
 async def test_foundation_batch_is_idempotent_in_qa():
     engine = qa_engine()
     try:

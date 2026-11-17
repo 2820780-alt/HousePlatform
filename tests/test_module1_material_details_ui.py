@@ -95,12 +95,16 @@ def test_material_details_separates_characteristics_packaging_documents_and_evid
 
 
 def test_material_details_uses_human_labels_for_fallback_characteristics() -> None:
+    from app.services.module1_material_display import humanize_material_field_key
+
     view_source = VIEW.read_text(encoding="utf-8")
 
-    assert "def _humanize_material_field_key" in view_source
+    assert "humanize_material_field_key as _humanize_material_field_key" in view_source
+    assert "_humanize_material_field_key(template.field_key)" in view_source
     assert "return template.field_key" not in view_source
-    assert '"length_mm": "Длина, мм"' in view_source
-    assert 'return key.replace("_", " ").replace("-", " ")' in view_source
+    assert humanize_material_field_key("length_mm") == "Длина, мм"
+    assert humanize_material_field_key("custom_field-name") == "custom field name"
+    assert humanize_material_field_key(None) == "Характеристика"
 
 
 def test_material_details_is_responsive_and_does_not_import_ref_or_other_modules() -> None:

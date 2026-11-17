@@ -69,6 +69,8 @@ async def test_screw_pile_allocations_require_explicit_head_confirmation():
             assert [line["quantity"] for line in confirmed.payload["result"]["works"]] == ["5", "5", "0", "0"]
             assert all("PILE_ALLOCATION_UNVERIFIED" not in line["issues"] for line in
                        confirmed.payload["result"]["materials"] + confirmed.payload["result"]["works"])
+            assert "Для сварки соединений уточните материал и его расход" not in confirmed.payload["missing_required_roles"]
+            assert "Для антикоррозионной обработки уточните материал и его расход" not in confirmed.payload["missing_required_roles"]
             head_line = next(line for line in confirmed.payload["result"]["works"] if line["binding"]["resource_id"] == HEAD_WORK)
             assert "BUNDLE_SCOPE_UNVERIFIED" in head_line["issues"] and Decimal(head_line["amount_for_total"]) == 0
             separate = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=geometry.id,
@@ -110,6 +112,9 @@ async def test_screw_pile_allocations_require_explicit_head_confirmation():
             optional_lines = {line["binding"]["block_id"]:line for line in approved.payload["result"]["works"]}
             assert Decimal(optional_lines[weld.id]["amount_for_total"]) == 30
             assert Decimal(optional_lines[corrosion.id]["amount_for_total"]) == 25
+            assert "Для сварки соединений уточните материал и его расход" in approved.payload["missing_required_roles"]
+            assert "Для антикоррозионной обработки уточните материал и его расход" in approved.payload["missing_required_roles"]
+            assert not approved.payload["result"]["complete"]
             edited = await db.get(TechnologyCalculationBlock, uuid.UUID(weld.id))
             edited.definition = {**edited.definition, "rule_source": "QA changed"}
             await db.flush()

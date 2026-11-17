@@ -427,6 +427,12 @@ async def create_estimate_preview(
                 exact = (expected is not None and block_id not in block_issues and
                          encode_definition(actual) == encode_definition(expected) and actual.work_code == expected.work_code)
                 quantity = explicit_parameters.get((block_id, input_key))
+                selected = any(binding.block_id == block_id and binding.kind == "WORK" for binding in bindings)
+                if selected and quantity is not None and quantity[0] > 0:
+                    if key == "weld":
+                        screw_optional_notices.append("Для сварки соединений уточните материал и его расход")
+                    else:
+                        screw_optional_notices.append("Для антикоррозионной обработки уточните материал и его расход")
                 if not exact:
                     block_issues[block_id] = (*block_issues.get(block_id, ()), "TECHNOLOGY_ROLE_INVALID")
                     screw_optional_notices.append(notice)

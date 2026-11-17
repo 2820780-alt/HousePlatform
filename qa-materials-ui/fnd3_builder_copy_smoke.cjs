@@ -44,6 +44,12 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       const sourceUrl=page.url();
       const own=page.locator('details').filter({has:page.locator('summary').getByText(name,{exact:false})}).first();
       if(!await own.count()) throw new Error('Source block not created');
+      await own.locator('summary').first().click();
+      const templateName=`${name} template`;
+      const saveTemplate=own.locator('form[action$="/save-template"]');
+      await saveTemplate.locator('input[name="template_name"]').fill(templateName);
+      await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:60000}),
+        saveTemplate.getByRole('button',{name:'Сохранить как шаблон'}).click()]);
       await page.goto(`${base}/api/v1/admin/module2/calculation-builder/${target}`);
       const targetResources=await page.locator('form[action$="/update"]').evaluateAll(forms=>{
         const result={};
@@ -56,6 +62,37 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
         return ['material_id','work_code','material_requirement_id','work_step_id'].every(key=>result[key]) ? result : null;
       });
       if(!targetResources) throw new Error('Target resources unavailable');
+      const library=page.locator('details').filter({has:page.locator('summary').getByText(templateName,{exact:false})}).first();
+      if(!await library.count()) throw new Error('Saved library template unavailable');
+      await library.locator('summary').first().click();
+      const libraryCopy=library.locator('form[action$="/copy-template"]');
+      for(const input of await libraryCopy.locator('select[name^="mapping."]').all()){
+        const name=await input.getAttribute('name'), key=name.slice('mapping.'.length);
+        const parameter=input.locator('option').filter({hasText:'Параметр блока'});
+        const geometry=input.locator('option').filter({hasText:'Количество свай'});
+        const option=key==='pile.count' && await geometry.count() ? await geometry.first().getAttribute('value') :
+          (await parameter.count() ? await parameter.first().getAttribute('value') : null);
+        if(!option) throw new Error('Library input mapping unavailable');
+        await input.selectOption(option);
+      }
+      for(const [key,value] of Object.entries(targetResources)) await libraryCopy.locator(`select[name="${key}"]`).selectOption(value);
+      await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:60000}),
+        libraryCopy.getByRole('button',{name:'Добавить копию'}).click()]);
+      let libraryBlock=page.locator('details').filter({has:page.locator('summary').getByText(templateName,{exact:false})}).first();
+      if(!await libraryBlock.count()) throw new Error('Library block not copied');
+      await libraryBlock.locator('summary').first().click();
+      const libraryRename=`${templateName} edited`;
+      const libraryUpdate=libraryBlock.locator('form[action$="/update"]');
+      await libraryUpdate.locator('input[name="name"]').fill(libraryRename);
+      await Promise.all([page.waitForNavigation({waitUntil:'load',timeout:60000}),
+        libraryUpdate.getByRole('button',{name:'Сохранить',exact:true}).click()]);
+      libraryBlock=page.locator('details').filter({has:page.locator('summary').getByText(libraryRename,{exact:false})}).first();
+      if(!await libraryBlock.count()) throw new Error('Library copy edit not saved');
+      await libraryBlock.locator('summary').first().click();
+      await libraryBlock.locator('form[action$="/delete"] button[type="submit"]').click();
+      await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),libraryRename,{timeout:60000});
+      if(!await page.locator('details').filter({has:page.locator('summary').getByText(templateName,{exact:false})}).count())
+        throw new Error('Library template changed when its copy was edited');
       const sourceDetails=page.locator('details').filter({has:page.locator('summary').getByText(name,{exact:false})}).last();
       await sourceDetails.locator('summary').first().click();
       const copy=sourceDetails.locator('form[action$="/copy-technology"]');
@@ -95,6 +132,6 @@ if(fixture.status!==0) throw new Error('Could not create isolated QA login');
       await page.waitForFunction(text=>![...document.querySelectorAll('summary')].some(item=>item.textContent.includes(text)),name,{timeout:60000});
       await page.close();
     }
-    process.stdout.write('M2 builder QA: M1 resources, cross-technology copy and independent edits desktop/mobile PASS\n');
+    process.stdout.write('M2 builder QA: M1 resources, library and cross-technology copy, independent edits desktop/mobile PASS\n');
   } finally { await browser.close(); }
 })().catch(error=>{process.stderr.write(`${error.message}\n`);process.exitCode=1;});

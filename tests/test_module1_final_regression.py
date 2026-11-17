@@ -247,6 +247,7 @@ READ_ONLY_SERVICES = frozenset(
     {
         "module1_material_ui_catalog.py",
         "module1_material_ui_prices.py",
+        "module1_material_display.py",
         "module1_calculation_price.py",
         "module1_alternatives_analogs.py",
         "module1_characteristic_schema_registry.py",
