@@ -14,7 +14,7 @@ from app.services.module2_fnd3_base_preparation import add_base_preparation_bloc
 from app.services.module2_fnd3_ribbed_slab_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, _id, add_ribbed_slab_blocks,
                                                           add_ribbed_slab_detail_blocks)
 from app.services.module2_fnd3_slab_blocks import _id as slab_id
-from app.services.module5_estimate_snapshots import create_estimate_preview
+from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
 
@@ -109,6 +109,21 @@ async def test_ribbed_slab_disjoint_volumes_on_restored_qa():
                                     if line["binding"]["block_id"] == identifier)) == 12
                 assert Decimal(next(line["quantity"] for line in details.payload["result"]["works"]
                                     if line["binding"]["block_id"] == identifier)) == 10
+            resized = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={**values, "geometry.net_area":"60", "geometry.rib_length":"30"},
+                project_values={}, expected_version=2)
+            recalculated = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=resized.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params,
+                ribbed_concrete_disjoint_confirmed=True, ribbed_rebar_disjoint_confirmed=True)
+            for kind in ("materials", "works"):
+                quantities = {line["binding"]["block_id"]: Decimal(line["quantity"])
+                              for line in recalculated.payload["result"][kind]
+                              if line["binding"]["block_id"] in {slab, ribs}}
+                assert quantities == {slab: Decimal("12"), ribs: Decimal("3.5")}
+            original = await read_estimate_preview(db, actor=user, snapshot_id=details.id)
+            assert {line["binding"]["block_id"]: Decimal(line["quantity"])
+                    for line in original.payload["result"]["materials"]
+                    if line["binding"]["block_id"] in {slab, ribs}} == {slab: Decimal("10"), ribs: Decimal("2.3")}
             await db.rollback()
     finally:
         await engine.dispose()

@@ -17,6 +17,7 @@ from app.services.module2_fnd3_ribbed_slab_blocks import USHP_CODE, add_ribbed_s
 from app.services.module2_fnd3_screw_pile_blocks import add_screw_pile_blocks, add_screw_optional_work_blocks
 from app.services.module2_fnd3_slab_blocks import add_slab_concrete_block, add_slab_formwork_block, add_slab_reinforcement_blocks
 from app.services.module2_fnd3_strip_blocks import add_strip_blocks
+from app.services.module2_fnd3_strip_auxiliary import add_strip_auxiliary_blocks
 from app.services.module2_fnd3_uff_blocks import add_uff_blocks
 from app.services.module2_fnd3_ushp_blocks import add_ushp_blocks, add_ushp_geotextile_block, add_ushp_preparation_blocks
 from app.services.module2_fnd3_xps_blocks import add_xps_blocks
@@ -24,7 +25,7 @@ from app.services.module2_fnd3_work_details import add_foundation_work_details
 
 
 def _steps():
-    steps = [add_strip_blocks, add_precast_blocks, add_slab_concrete_block, add_slab_reinforcement_blocks,
+    steps = [add_strip_blocks, add_strip_auxiliary_blocks, add_precast_blocks, add_slab_concrete_block, add_slab_reinforcement_blocks,
              add_slab_formwork_block, add_ribbed_slab_blocks, add_ribbed_slab_detail_blocks,
              partial(add_ribbed_slab_blocks, technology_code=USHP_CODE), add_ushp_blocks,
              add_ushp_preparation_blocks, add_ushp_geotextile_block, add_uff_blocks,

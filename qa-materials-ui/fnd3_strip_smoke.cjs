@@ -37,6 +37,7 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
         'rebar_bottom.lap_count': '2', 'rebar_bottom.mass_per_m': '0.888',
         'stirrups.length': '2', 'stirrups.count': '30', 'stirrups.lap_length': '0.1',
         'stirrups.lap_count': '30', 'stirrups.mass_per_m': '0.395',
+        'strip_auxiliary.wire.quantity': '3.5', 'strip_auxiliary.spacers.quantity': '40',
       };
       for (const [key, value] of Object.entries(params))
         await page.locator(`input[name$=".${key}"]`).fill(value);
@@ -45,7 +46,8 @@ if (fixture.status !== 0) throw new Error('Could not create isolated QA login');
         page.getByRole('button', { name: 'Рассчитать', exact: true }).click()]);
       const original = page.url();
       const first = await page.locator('body').innerText();
-      for (const expected of ['Материалы', 'Работы', '3,64', '49', '63', '43,512', '24,885', 'Нет цены', 'Смета неполная'])
+      for (const expected of ['Материалы', 'Работы', '3,64', '49', '63', '43,512', '24,885', 'Нет цены', 'Смета неполная',
+        'Вязальная проволока', 'Фиксатор защитного слоя', '3,5', '40'])
         if (!first.includes(expected)) throw new Error(`Strip result missing: ${expected} at ${width}px`);
       const csrf = await page.evaluate(() => decodeURIComponent((document.cookie.split('; ').find(
         item => item.startsWith('atom_csrf_token=')) || '').split('=').slice(1).join('=')));

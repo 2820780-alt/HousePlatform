@@ -15,7 +15,7 @@ from app.models.user import User
 from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_slab_blocks import (REBAR_ROLES, TECHNOLOGY_CODE, add_slab_concrete_block,
                                                    add_slab_formwork_block, add_slab_reinforcement_blocks)
-from app.services.module5_estimate_snapshots import create_estimate_preview
+from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
 
@@ -124,6 +124,20 @@ async def test_slab_concrete_block_is_idempotent_and_uses_saved_geometry():
                        with_formwork.payload["result"]["materials"])
             assert any(line["unit"] == "m2" and line["quantity"] == "20" for line in
                        with_formwork.payload["result"]["works"])
+            revised_geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={"geometry.net_area": "60", "geometry.slab_thickness": "0.2"},
+                project_values={}, expected_version=1)
+            revised = await create_estimate_preview(db, actor=user,
+                foundation_geometry_revision_id=revised_geometry.id, region="qa", terms="qa", accounting_keys=keys,
+                parameter_values=params, slab_roles_confirmed=True)
+            assert next(line["quantity"] for line in revised.payload["result"]["materials"]
+                        if line["binding"]["block_id"] == block) == "12.0"
+            assert next(line["quantity"] for line in revised.payload["result"]["works"]
+                        if line["binding"]["block_id"] == block) == "12.0"
+            saved = await read_estimate_preview(db, actor=user, snapshot_id=with_formwork.id)
+            assert next(line["quantity"] for line in saved.payload["result"]["materials"]
+                        if line["binding"]["block_id"] == block) == "10.0"
+            assert not revised.payload["result"]["complete"]
             row = await db.get(TechnologyCalculationBlock, uuid.UUID(_id(tech.id, "block", "lower_x")))
             altered = copy.deepcopy(row.definition)
             altered["parameters"][0]["label"] = "Изменённый параметр"

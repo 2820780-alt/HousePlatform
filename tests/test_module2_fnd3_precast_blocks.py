@@ -12,7 +12,7 @@ from app.models.module2_technology import Technology
 from app.models.user import User
 from app.services.module2_fnd3_base_preparation import add_base_preparation_blocks
 from app.services.module2_fnd3_precast_blocks import TECHNOLOGY_CODE, _id, add_precast_blocks
-from app.services.module5_estimate_snapshots import create_estimate_preview
+from app.services.module5_estimate_snapshots import create_estimate_preview, read_estimate_preview
 from app.services.module7_foundation_geometry import save_foundation_geometry
 from app.services.module7_strip_geometry import create_object
 
@@ -75,6 +75,22 @@ async def test_precast_layout_and_explicit_mortar_on_restored_qa():
                 assert Decimal(next(line["quantity"] for line in materials if line["binding"]["block_id"] == identifier)) == 12
                 assert Decimal(next(line["quantity"] for line in works if line["binding"]["block_id"] == identifier)) == 10
             assert not result.payload["result"]["complete"]
+            assert all(line["unit_price"] is None and line["line_amount"] is None for line in materials + works)
+            revised_geometry = await save_foundation_geometry(db, actor=user, object_id=obj.id, technology_id=tech.id,
+                user_values={"layout.fbs_main":"20", "layout.fbs_short":"4", "layout.fbs_shorter":"2", "layout.fl":"8"},
+                project_values={}, expected_version=1)
+            revised = await create_estimate_preview(db, actor=user, foundation_geometry_revision_id=revised_geometry.id,
+                region="qa", terms="qa", accounting_keys=keys, parameter_values=params)
+            new_material = next(line for line in revised.payload["result"]["materials"]
+                                if line["binding"]["block_id"] == ids["main"])
+            new_work = next(line for line in revised.payload["result"]["works"]
+                            if line["binding"]["block_id"] == ids["fbs-work"])
+            assert Decimal(new_material["quantity"]) == 20 and Decimal(new_work["quantity"]) == 26
+            saved = await read_estimate_preview(db, actor=user, snapshot_id=result.id)
+            assert next(line["quantity"] for line in saved.payload["result"]["works"]
+                        if line["binding"]["block_id"] == ids["fbs-work"]) == "16"
+            assert all("POTENTIAL_DOUBLE_COUNT" not in line["issues"] for line in
+                       revised.payload["result"]["materials"] + revised.payload["result"]["works"])
             await db.rollback()
     finally:
         await engine.dispose()
